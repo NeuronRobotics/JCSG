@@ -835,7 +835,7 @@ public class CSG {
 //        });
         for (PropertyStorage s : materialNames.keySet()) {
             if (s.contains("material:color")) {
-                mtlSb.append("newmtl material-").append((String)s.getValue("material:name")).append("\n");
+                mtlSb.append("newmtl material-").append(s.getValue("material:name")).append("\n");
                 mtlSb.append("Kd ").append((String)s.getValue("material:color")).append("\n");
             }
         }

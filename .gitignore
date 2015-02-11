@@ -1,3 +1,6 @@
 /.nb-gradle/private/
 /build/
 /bin/
+/sample.stl
+/sample-color.obj
+/sample-color.mtl
