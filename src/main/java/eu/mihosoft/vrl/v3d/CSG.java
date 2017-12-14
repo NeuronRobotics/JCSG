@@ -33,30 +33,19 @@
  */
 package eu.mihosoft.vrl.v3d;
 
-import eu.mihosoft.vrl.v3d.ext.quickhull3d.HullUtil;
-import eu.mihosoft.vrl.v3d.parametrics.CSGDatabase;
-import eu.mihosoft.vrl.v3d.parametrics.IParametric;
-import eu.mihosoft.vrl.v3d.parametrics.IRegenerate;
-import eu.mihosoft.vrl.v3d.parametrics.LengthParameter;
-import eu.mihosoft.vrl.v3d.parametrics.Parameter;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import com.neuronrobotics.interaction.CadInteractionEvent;
-
+import eu.mihosoft.vrl.v3d.ext.quickhull3d.HullUtil;
+import eu.mihosoft.vrl.v3d.parametrics.*;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.CullFace;
 import javafx.scene.shape.MeshView;
 import javafx.scene.shape.TriangleMesh;
 import javafx.scene.transform.Affine;
+
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -1690,10 +1679,37 @@ public class CSG {
 	/**
 	 * Helper function wrapping bounding box values
 	 * 
-	 * @return tMinZ
+	 * @return MinZ
 	 */
 	public double getMinZ() {
 		return getBounds().getMin().z;
+	}
+
+	/**
+	 * Helper function to get the x size of this CSG
+	 *
+	 * @return X size
+	 */
+	public double getX() {
+		return getMaxX() - getMinX();
+	}
+
+	/**
+	 * Helper function to get the y size of this CSG
+	 *
+	 * @return Y size
+	 */
+	public double getY() {
+		return getMaxY() - getMinY();
+	}
+
+	/**
+	 * Helper function to get the z size of this CSG
+	 *
+	 * @return Z size
+	 */
+	public double getZ() {
+		return getMaxZ() - getMinZ();
 	}
 
 	/**
