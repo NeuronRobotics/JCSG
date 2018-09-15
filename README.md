@@ -22,7 +22,7 @@ In addition to CSG this library provides the following features:
 
 **JCSG** on [stackoverflow](http://stackoverflow.com/search?q=jcsg).
 
-![](/resources/screenshot2.png)
+![](/Kernel/resources/screenshot2.png)
 
 
 
@@ -60,11 +60,11 @@ by calling the `assemble` task.
 Navigate to the [Gradle](http://www.gradle.org/) project (e.g., `path/to/JCSG`) and enter the following command
 
 #### Bash (Linux/OS X/Cygwin/other Unix-like shell)
-    
+
     sudo update-alternatives --config java # select Java 8
     sudo apt-get install libopenjfx-java
     bash gradlew assemble
-    
+
 #### Windows (CMD)
 
     gradlew assemble
@@ -82,14 +82,14 @@ CSG sphere = new Sphere(1.25).toCSG();
 CSG cubePlusSphere = cube.union(sphere);
 CSG cubeMinusSphere = cube.difference(sphere);
 CSG cubeIntersectSphere = cube.intersect(sphere);
-        
-// translate geometries to prevent overlapping 
+
+// translate geometries to prevent overlapping
 CSG union = cube.
         union(sphere.transformed(Transform.unity().translateX(3))).
         union(cubePlusSphere.transformed(Transform.unity().translateX(6))).
         union(cubeMinusSphere.transformed(Transform.unity().translateX(9))).
         union(cubeIntersectSphere.transformed(Transform.unity().translateX(12)));
-        
+
 // save union as stl
 try {
     FileUtil.write(
