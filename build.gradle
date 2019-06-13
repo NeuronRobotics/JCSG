@@ -5,7 +5,7 @@ plugins {
  	id 'eclipse'
  	id 'maven'
 	id 'application'
-	id 'org.openjfx.javafxplugin' version '0.0.7'
+	id 'org.openjfx.javafxplugin' 
 }
 javafx {
     version = "11.0.2"
