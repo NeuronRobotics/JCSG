@@ -1,11 +1,20 @@
 
-apply plugin: 'java'
-apply plugin: 'signing'
-apply plugin: 'maven'
-apply plugin: 'application'
-
-
-
+plugins {
+ 	id 'java'
+ 	id 'signing'
+ 	id 'eclipse'
+ 	id 'maven'
+	id 'application'
+	id 'org.openjfx.javafxplugin' version '0.0.7'
+}
+javafx {
+    version = "11.0.2"
+    modules = [ 'javafx.controls',
+    'javafx.fxml',
+    'javafx.media',
+    'javafx.swing'
+     ]
+}
 sourceCompatibility = '1.8'
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
