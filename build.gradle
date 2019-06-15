@@ -5,9 +5,9 @@ plugins {
  	id 'eclipse'
  	id 'maven'
 	id 'application'
-	//id 'org.openjfx.javafxplugin' 
+	id 'org.openjfx.javafxplugin' 
 }
-/*
+
 javafx {
     version = "11.0.2"
     modules = [ 'javafx.controls',
@@ -16,7 +16,7 @@ javafx {
     'javafx.swing'
      ]
 }
-*/
+
 sourceCompatibility = '1.8'
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
