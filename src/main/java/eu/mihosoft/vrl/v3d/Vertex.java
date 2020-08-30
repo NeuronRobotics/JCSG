@@ -41,7 +41,7 @@ import java.util.Objects;
  * primitives like {@link Cube} can return a smooth vertex normal, but
  * {@link #normal} is not used anywhere else.
  */
-public class Vertex {
+public class Vertex implements MutableTransformable {
 
     /**
      * Vertex position.
@@ -155,6 +155,7 @@ public class Vertex {
      * @param transform the transform to apply
      * @return this vertex
      */
+    @Override
     public Vertex transform(Transform transform) {
         pos = pos.transform(transform, weight);
         return this;
@@ -166,6 +167,7 @@ public class Vertex {
      * @param transform the transform to apply
      * @return a copy of this transform
      */
+    @Override
     public Vertex transformed(Transform transform) {
         return clone().transform(transform);
     }

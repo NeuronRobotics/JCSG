@@ -48,7 +48,7 @@ import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
  * polygon. This can be used to define per-polygon properties (such as surface
  * color).
  */
-public final class Polygon {
+public final class Polygon implements MutableTransformable {
 
     /** Polygon vertices. */
     public final List<Vertex> vertices;
@@ -274,6 +274,7 @@ public final class Polygon {
      *
      * @return this polygon
      */
+    @Override
     public Polygon transform(Transform transform) {
 
         this.vertices.stream().forEach(
@@ -308,6 +309,7 @@ public final class Polygon {
      * @param transform the transformation to apply
      * @return a transformed copy of this polygon
      */
+    @Override
     public Polygon transformed(Transform transform) {
         return clone().transform(transform);
     }

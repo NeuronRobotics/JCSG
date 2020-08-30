@@ -45,8 +45,8 @@ import java.util.Random;
  *
  * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
  */
-public class Vector3d extends javax.vecmath.Vector3d{
-
+public class Vector3d extends javax.vecmath.Vector3d
+        implements MutableTransformable {
 
     /**
 	 * 
@@ -327,6 +327,7 @@ public class Vector3d extends javax.vecmath.Vector3d{
      *
      * @return this vector
      */
+    @Override
     public Vector3d transform(Transform transform) {
         return transform.transform(this);
     }
@@ -340,6 +341,7 @@ public class Vector3d extends javax.vecmath.Vector3d{
      *
      * @return a transformed copy of this vector
      */
+    @Override
     public Vector3d transformed(Transform transform) {
         return clone().transform(transform);
     }

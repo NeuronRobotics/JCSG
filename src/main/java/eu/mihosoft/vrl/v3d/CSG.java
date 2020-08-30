@@ -102,7 +102,7 @@ import javafx.scene.transform.Affine;
  */
 
 @SuppressWarnings("restriction")
-public class CSG implements IuserAPI{
+public class CSG implements IuserAPI, Transformable {
 
 	private static int numFacesInOffset = 15;
 
@@ -117,6 +117,10 @@ public class CSG implements IuserAPI{
 
 	/** The storage. */
 	private PropertyStorage storage;
+
+	private HashMap<String, Transformable> subTransformable;
+	private boolean subTransformableMutationEnabled = true;
+
 	/** The current. */
 	private MeshView current;
 	
@@ -636,7 +640,18 @@ public class CSG implements IuserAPI{
 
 		csg.setPolygons(polygonStream.map((Polygon p) -> p.clone()).collect(Collectors.toList()));
 
-		return csg.historySync(this);
+		csg.historySync(this);
+		csg.cloneEachSubTransformable();
+
+		return csg;
+	}
+
+	/**
+	 * Replaces every {@code Transformable} object with a {@code clone} of itself.
+	 */
+	public void cloneEachSubTransformable() {
+		if (subTransformable == null) return;
+		subTransformable.replaceAll((k, t) -> t.clone());
 	}
 
 	/**
@@ -1375,20 +1390,35 @@ public class CSG implements IuserAPI{
 	 *
 	 * @return a transformed copy of this CSG
 	 */
+	@Override
 	public CSG transformed(Transform transform) {
-
+		CSG result;
 		if (getPolygons().isEmpty()) {
-			return clone();
+			result = clone();
+		} else {
+			List<Polygon> newPolygons = this.getPolygons().stream().map(p -> p.transformed(transform))
+					.collect(Collectors.toList());
+
+			result = CSG.fromPolygons(newPolygons).optimization(getOptType());
+			result.storage = storage;
+			result.historySync(this);
 		}
+		result.applyTransformToSubTransformable(transform);
+		return result;
+	}
 
-		List<Polygon> newpolygons = this.getPolygons().stream().map(p -> p.transformed(transform))
-				.collect(Collectors.toList());
-
-		CSG result = CSG.fromPolygons(newpolygons).optimization(getOptType());
-
-		result.storage = storage;
-
-		return result.historySync(this);
+	private void applyTransformToSubTransformable(Transform transform) {
+		if (subTransformable == null) return;
+		if (subTransformableMutationEnabled) {
+			subTransformable.replaceAll((key, t) -> {
+				if (t instanceof MutableTransformable) {
+					return ((MutableTransformable) t).transform(transform);
+				}
+				return t.transformed(transform);
+			});
+		} else {
+			subTransformable.replaceAll((key, t) -> t.transformed(transform));
+		}
 	}
 
 	/**
@@ -1935,6 +1965,9 @@ public class CSG implements IuserAPI{
 	}
 
 	public CSG historySync(CSG dyingCSG) {
+		subTransformableMutationEnabled = dyingCSG.subTransformableMutationEnabled;
+		shallowCopySubTransformableFrom(dyingCSG);
+
 		if(useStackTraces) {
 			this.addCreationEventStringList(dyingCSG.getCreationEventStackTraceList());
 			Set<String> params = dyingCSG.getParameters();
@@ -1953,6 +1986,44 @@ public class CSG implements IuserAPI{
 			this.setColor(dyingCSG.getColor());
 		}
 		return this;
+	}
+
+	private void shallowCopySubTransformableFrom(CSG other) {
+		if (other.subTransformable == null || other.subTransformable.isEmpty()) return;
+		initSubTransformableIfNecessary();
+		subTransformable.putAll(other.subTransformable);
+	}
+
+	private void initSubTransformableIfNecessary() {
+		if (subTransformable != null) return;
+		subTransformable = new HashMap<>();
+	}
+
+	public boolean isSubTransformableMutationEnabled() {
+		return subTransformableMutationEnabled;
+	}
+
+	/**
+	 * Set whether or not sub-transformable objects should be transformed in place
+	 * if they're {@code MutableTransformable}. Default is {@code true}.
+	 */
+	public void setSubTransformableMutationEnabled(boolean value) {
+		this.subTransformableMutationEnabled = value;
+	}
+
+	public void clearSubTransformable() {
+		if (subTransformable == null) return;
+		subTransformable.clear();
+	}
+
+	/**
+	 * Initializes the sub-transformable map if it isn't.
+	 *
+	 * @return the map of transformable objects
+	 */
+	public Map<String, Transformable> getSubTransformable() {
+		initSubTransformableIfNecessary();
+		return subTransformable;
 	}
 
 	public CSG addCreationEventStringList(ArrayList<String> incoming) {
