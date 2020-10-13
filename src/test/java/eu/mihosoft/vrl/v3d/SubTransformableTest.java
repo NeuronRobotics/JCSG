@@ -28,14 +28,14 @@ public class SubTransformableTest {
         Map<String, Transformable> st = hat.getSubTransformable();
 
         CSG union = hat.union(new Cube(0.5).toCSG());
-        assertTrue(union.getSubTransformable().containsKey("s"));
-        assertTrue(union.getSubTransformable().containsKey("v"));
+        assertEquals(st.get("s"), union.getSubTransformable().get("s"));
+        assertEquals(st.get("v"), union.getSubTransformable().get("v"));
         assertNotSame(union.getSubTransformable(), st);
 
         // reverse
         union = new Cube(0.5).toCSG().union(hat);
-        assertTrue(union.getSubTransformable().containsKey("s"));
-        assertTrue(union.getSubTransformable().containsKey("v"));
+        assertEquals(st.get("s"), union.getSubTransformable().get("s"));
+        assertEquals(st.get("v"), union.getSubTransformable().get("v"));
         assertNotSame(union.getSubTransformable(), st);
     }
 
