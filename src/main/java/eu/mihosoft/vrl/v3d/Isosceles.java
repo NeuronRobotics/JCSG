@@ -2,6 +2,8 @@ package eu.mihosoft.vrl.v3d;
 
 import java.util.List;
 
+import eu.mihosoft.vvecmath.Vector3d;
+
 public class Isosceles extends Primitive {
   double w, h, d;
 
@@ -34,11 +36,11 @@ public class Isosceles extends Primitive {
    */
   @Override
   public List<Polygon> toPolygons() {
-      CSG polygon = Extrude.points(new Vector3d(0, 0, w),// This is the  extrusion depth
-              new Vector3d(0,0),// All values after this are the points in the polygon
-              new Vector3d(0,-h/2),// upper right corner
-              new Vector3d(d,0),// Bottom right corner
-              new Vector3d(0,h/2)// upper right corner
+      CSG polygon = Extrude.points(Vector3d.xyz(0, 0, w),// This is the  extrusion depth
+              Vector3d.xy(0,0),// All values after this are the points in the polygon
+              Vector3d.xy(0,-h/2),// upper right corner
+              Vector3d.xy(d,0),// Bottom right corner
+              Vector3d.xy(0,h/2)// upper right corner
       ).roty(90)
       .rotz(180);
       return polygon.getPolygons();

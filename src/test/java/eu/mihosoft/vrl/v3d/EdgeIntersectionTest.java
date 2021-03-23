@@ -9,6 +9,8 @@ import java.util.Optional;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
+import eu.mihosoft.vvecmath.Vector3d;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Class EdgeIntersectionTest.
@@ -25,29 +27,29 @@ public class EdgeIntersectionTest {
 
         // closest point is e1p2
         createClosestPointTest(
-                new Vector3d(1, 2, 3), /*e1p2*/ new Vector3d(4, 5, 6),
-                new Vector3d(4, 5, 7), new Vector3d(0, 1, 7),
-                new Vector3d(4, 5, 6));
+                Vector3d.xyz(1, 2, 3), /*e1p2*/ Vector3d.xyz(4, 5, 6),
+                Vector3d.xyz(4, 5, 7), Vector3d.xyz(0, 1, 7),
+                Vector3d.xyz(4, 5, 6));
 
         // parallel edges (result=null)
         createClosestPointTest(
-                new Vector3d(1, 1, -1), new Vector3d(1, 1, 1),
-                new Vector3d(2, 2, -3), new Vector3d(2, 2, 4),
+                Vector3d.xyz(1, 1, -1), Vector3d.xyz(1, 1, 1),
+                Vector3d.xyz(2, 2, -3), Vector3d.xyz(2, 2, 4),
                 null);
         createClosestPointTest(
-                new Vector3d(1, 3, -1), new Vector3d(1, 4, 2),
-                new Vector3d(1 + 10, 3, -1), new Vector3d(1 + 10, 4, 2),
+                Vector3d.xyz(1, 3, -1), Vector3d.xyz(1, 4, 2),
+                Vector3d.xyz(1 + 10, 3, -1), Vector3d.xyz(1 + 10, 4, 2),
                 null);
         createClosestPointTest(
-                new Vector3d(3, 6, -1), new Vector3d(10, 7, 1),
-                new Vector3d(3, 6, -1 + 3), new Vector3d(10, 7, 1 + 3),
+                Vector3d.xyz(3, 6, -1), Vector3d.xyz(10, 7, 1),
+                Vector3d.xyz(3, 6, -1 + 3), Vector3d.xyz(10, 7, 1 + 3),
                 null);
 
         // result is exactly in the middle of e1 and e2
 //        createClosestPointTest(
-//                new Vector3d(5, 4, 2), /*e1p2*/ new Vector3d(3, 2, 11),
-//                new Vector3d(5, 2, 11), /*e1p2*/ new Vector3d(3, 4, 2),
-//                new Vector3d(4, 3, 6.5));
+//                Vector3d.xyz(5, 4, 2), /*e1p2*/ Vector3d.xyz(3, 2, 11),
+//                Vector3d.xyz(5, 2, 11), /*e1p2*/ Vector3d.xyz(3, 4, 2),
+//                Vector3d.xyz(4, 3, 6.5));
     }
 
     /**
@@ -58,29 +60,29 @@ public class EdgeIntersectionTest {
         // closest point is e1p2 which does not exist on e2. thus, the expected
         // result is null
         createIntersectionTest(
-                new Vector3d(1, 2, 3), /*e1p2*/ new Vector3d(4, 5, 6),
-                new Vector3d(4, 5, 7), new Vector3d(0, 1, 7),
+                Vector3d.xyz(1, 2, 3), /*e1p2*/ Vector3d.xyz(4, 5, 6),
+                Vector3d.xyz(4, 5, 7), Vector3d.xyz(0, 1, 7),
                 null);
 
         // parallel edges (result=null)
         createIntersectionTest(
-                new Vector3d(1, 1, -1), new Vector3d(1, 1, 1),
-                new Vector3d(2, 2, -3), new Vector3d(2, 2, 4),
+                Vector3d.xyz(1, 1, -1), Vector3d.xyz(1, 1, 1),
+                Vector3d.xyz(2, 2, -3), Vector3d.xyz(2, 2, 4),
                 null);
         createIntersectionTest(
-                new Vector3d(1, 3, -1), new Vector3d(1, 4, 2),
-                new Vector3d(1 + 10, 3, -1), new Vector3d(1 + 10, 4, 2),
+                Vector3d.xyz(1, 3, -1), Vector3d.xyz(1, 4, 2),
+                Vector3d.xyz(1 + 10, 3, -1), Vector3d.xyz(1 + 10, 4, 2),
                 null);
         createIntersectionTest(
-                new Vector3d(3, 6, -1), new Vector3d(10, 7, 1),
-                new Vector3d(3, 6, -1 + 3), new Vector3d(10, 7, 1 + 3),
+                Vector3d.xyz(3, 6, -1), Vector3d.xyz(10, 7, 1),
+                Vector3d.xyz(3, 6, -1 + 3), Vector3d.xyz(10, 7, 1 + 3),
                 null);
 
         // result is exactly in the middle of e1 and e2
 //        createIntersectionTest(
-//                new Vector3d(5, 4, 2), /*e1p2*/ new Vector3d(3, 2, 11),
-//                new Vector3d(5, 2, 11), /*e1p2*/ new Vector3d(3, 4, 2),
-//                new Vector3d(4, 3, 6.5));
+//                Vector3d.xyz(5, 4, 2), /*e1p2*/ Vector3d.xyz(3, 2, 11),
+//                Vector3d.xyz(5, 2, 11), /*e1p2*/ Vector3d.xyz(3, 4, 2),
+//                Vector3d.xyz(4, 3, 6.5));
     }
 
     /**

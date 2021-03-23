@@ -40,6 +40,7 @@ import eu.mihosoft.vrl.v3d.parametrics.IParametric;
 import eu.mihosoft.vrl.v3d.parametrics.IRegenerate;
 import eu.mihosoft.vrl.v3d.parametrics.LengthParameter;
 import eu.mihosoft.vrl.v3d.parametrics.Parameter;
+import eu.mihosoft.vvecmath.Vector3d;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -257,7 +258,7 @@ public class CSG implements IuserAPI{
 	 * @return the csg
 	 */
 	public CSG toZMin(CSG target) {
-		return this.transformed(new Transform().translateZ(-target.getBounds().getMin().z));
+		return this.transformed(new Transform().translateZ(-target.getBounds().getMin().getZ()));
 	}
 
 	/**
@@ -268,7 +269,7 @@ public class CSG implements IuserAPI{
 	 * @return the csg
 	 */
 	public CSG toZMax(CSG target) {
-		return this.transformed(new Transform().translateZ(-target.getBounds().getMax().z));
+		return this.transformed(new Transform().translateZ(-target.getBounds().getMax().getZ()));
 	}
 
 	/**
@@ -279,7 +280,7 @@ public class CSG implements IuserAPI{
 	 * @return the csg
 	 */
 	public CSG toXMin(CSG target) {
-		return this.transformed(new Transform().translateX(-target.getBounds().getMin().x));
+		return this.transformed(new Transform().translateX(-target.getBounds().getMin().getX()));
 	}
 
 	/**
@@ -290,7 +291,7 @@ public class CSG implements IuserAPI{
 	 * @return the csg
 	 */
 	public CSG toXMax(CSG target) {
-		return this.transformed(new Transform().translateX(-target.getBounds().getMax().x));
+		return this.transformed(new Transform().translateX(-target.getBounds().getMax().getX()));
 	}
 
 	/**
@@ -301,7 +302,7 @@ public class CSG implements IuserAPI{
 	 * @return the csg
 	 */
 	public CSG toYMin(CSG target) {
-		return this.transformed(new Transform().translateY(-target.getBounds().getMin().y));
+		return this.transformed(new Transform().translateY(-target.getBounds().getMin().getY()));
 	}
 
 	/**
@@ -312,7 +313,7 @@ public class CSG implements IuserAPI{
 	 * @return the csg
 	 */
 	public CSG toYMax(CSG target) {
-		return this.transformed(new Transform().translateY(-target.getBounds().getMax().y));
+		return this.transformed(new Transform().translateY(-target.getBounds().getMax().getY()));
 	}
 
 	/**
@@ -376,7 +377,7 @@ public class CSG implements IuserAPI{
 		return transformed(new Transform().translate(v.getX(),v.getY(),v.getZ()));
 	}
 	public CSG move(Vector3d v) {
-		return transformed(new Transform().translate(v.x,v.y,v.z));
+		return transformed(new Transform().translate(v.getX(),v.getY(),v.getZ()));
 	}
 	public CSG move(Number[] posVector) {
 		return move(posVector[0], posVector[1], posVector[2]);
@@ -1308,9 +1309,9 @@ public class CSG implements IuserAPI{
 			int startingIndex = vertices.size()+1;
 			sb.append("\n# Reference Datum").append("\n");
 			for(Transform t:datumReferences) {
-				Vertex v=new Vertex(new Vector3d(0, 0, 0), new Vector3d(0, 0, 1))
+				Vertex v=new Vertex(Vector3d.ZERO,Vector3d.Z_ONE)
 							.transform(t);
-				Vertex v1=new Vertex(new Vector3d(0, 0, 1), new Vector3d(0, 0, 1))
+				Vertex v1=new Vertex(Vector3d.Z_ONE, Vector3d.Z_ONE)
 						.transform(t);
 				mapping.put(v,startingIndex++);
 				mapping.put(v1,startingIndex++);
@@ -1448,83 +1449,83 @@ public class CSG implements IuserAPI{
 				Vertex firstVertex = p.vertices.get(0);
 				for (int i = 0; i < p.vertices.size() - 2; i++) {
 
-					if (firstVertex.pos.x < minX) {
-						minX = firstVertex.pos.x;
+					if (firstVertex.pos.getX() < minX) {
+						minX = firstVertex.pos.getX();
 					}
-					if (firstVertex.pos.y < minY) {
-						minY = firstVertex.pos.y;
+					if (firstVertex.pos.getY() < minY) {
+						minY = firstVertex.pos.getY();
 					}
-					if (firstVertex.pos.z < minZ) {
-						minZ = firstVertex.pos.z;
-					}
-
-					if (firstVertex.pos.x > maxX) {
-						maxX = firstVertex.pos.x;
-					}
-					if (firstVertex.pos.y > maxY) {
-						maxY = firstVertex.pos.y;
-					}
-					if (firstVertex.pos.z > maxZ) {
-						maxZ = firstVertex.pos.z;
+					if (firstVertex.pos.getZ() < minZ) {
+						minZ = firstVertex.pos.getZ();
 					}
 
-					mesh.getPoints().addAll((float) firstVertex.pos.x, (float) firstVertex.pos.y,
-							(float) firstVertex.pos.z);
+					if (firstVertex.pos.getX() > maxX) {
+						maxX = firstVertex.pos.getX();
+					}
+					if (firstVertex.pos.getY() > maxY) {
+						maxY = firstVertex.pos.getY();
+					}
+					if (firstVertex.pos.getZ() > maxZ) {
+						maxZ = firstVertex.pos.getZ();
+					}
+
+					mesh.getPoints().addAll((float) firstVertex.pos.getX(), (float) firstVertex.pos.getY(),
+							(float) firstVertex.pos.getZ());
 
 					mesh.getTexCoords().addAll(0); // texture (not covered)
 					mesh.getTexCoords().addAll(0);
 
 					Vertex secondVertex = p.vertices.get(i + 1);
 
-					if (secondVertex.pos.x < minX) {
-						minX = secondVertex.pos.x;
+					if (secondVertex.pos.getX() < minX) {
+						minX = secondVertex.pos.getX();
 					}
-					if (secondVertex.pos.y < minY) {
-						minY = secondVertex.pos.y;
+					if (secondVertex.pos.getY() < minY) {
+						minY = secondVertex.pos.getY();
 					}
-					if (secondVertex.pos.z < minZ) {
-						minZ = secondVertex.pos.z;
-					}
-
-					if (secondVertex.pos.x > maxX) {
-						maxX = firstVertex.pos.x;
-					}
-					if (secondVertex.pos.y > maxY) {
-						maxY = firstVertex.pos.y;
-					}
-					if (secondVertex.pos.z > maxZ) {
-						maxZ = firstVertex.pos.z;
+					if (secondVertex.pos.getZ() < minZ) {
+						minZ = secondVertex.pos.getZ();
 					}
 
-					mesh.getPoints().addAll((float) secondVertex.pos.x, (float) secondVertex.pos.y,
-							(float) secondVertex.pos.z);
+					if (secondVertex.pos.getX() > maxX) {
+						maxX = firstVertex.pos.getX();
+					}
+					if (secondVertex.pos.getY() > maxY) {
+						maxY = firstVertex.pos.getY();
+					}
+					if (secondVertex.pos.getZ() > maxZ) {
+						maxZ = firstVertex.pos.getZ();
+					}
+
+					mesh.getPoints().addAll((float) secondVertex.pos.getX(), (float) secondVertex.pos.getY(),
+							(float) secondVertex.pos.getZ());
 
 					mesh.getTexCoords().addAll(0); // texture (not covered)
 					mesh.getTexCoords().addAll(0);
 
 					Vertex thirdVertex = p.vertices.get(i + 2);
 
-					mesh.getPoints().addAll((float) thirdVertex.pos.x, (float) thirdVertex.pos.y,
-							(float) thirdVertex.pos.z);
+					mesh.getPoints().addAll((float) thirdVertex.pos.getX(), (float) thirdVertex.pos.getY(),
+							(float) thirdVertex.pos.getZ());
 
-					if (thirdVertex.pos.x < minX) {
-						minX = thirdVertex.pos.x;
+					if (thirdVertex.pos.getX() < minX) {
+						minX = thirdVertex.pos.getX();
 					}
-					if (thirdVertex.pos.y < minY) {
-						minY = thirdVertex.pos.y;
+					if (thirdVertex.pos.getY() < minY) {
+						minY = thirdVertex.pos.getY();
 					}
-					if (thirdVertex.pos.z < minZ) {
-						minZ = thirdVertex.pos.z;
+					if (thirdVertex.pos.getZ() < minZ) {
+						minZ = thirdVertex.pos.getZ();
 					}
 
-					if (thirdVertex.pos.x > maxX) {
-						maxX = firstVertex.pos.x;
+					if (thirdVertex.pos.getX() > maxX) {
+						maxX = firstVertex.pos.getX();
 					}
-					if (thirdVertex.pos.y > maxY) {
-						maxY = firstVertex.pos.y;
+					if (thirdVertex.pos.getY() > maxY) {
+						maxY = firstVertex.pos.getY();
 					}
-					if (thirdVertex.pos.z > maxZ) {
-						maxZ = firstVertex.pos.z;
+					if (thirdVertex.pos.getZ() > maxZ) {
+						maxZ = firstVertex.pos.getZ();
 					}
 
 					mesh.getTexCoords().addAll(0); // texture (not covered)
@@ -1543,7 +1544,7 @@ public class CSG implements IuserAPI{
 
 		} // end for polygon
 
-		return new MeshContainer(new Vector3d(minX, minY, minZ), new Vector3d(maxX, maxY, maxZ), mesh);
+		return new MeshContainer( Vector3d.xyz(minX, minY, minZ), Vector3d.xyz(maxX, maxY, maxZ), mesh);
 	}
 
 	/**
@@ -1574,36 +1575,36 @@ public class CSG implements IuserAPI{
 
 				Vertex vert = p.vertices.get(i);
 
-				if (vert.pos.x < minX) {
-					minX = vert.pos.x;
+				if (vert.pos.getX() < minX) {
+					minX = vert.pos.getX();
 				}
-				if (vert.pos.y < minY) {
-					minY = vert.pos.y;
+				if (vert.pos.getY() < minY) {
+					minY = vert.pos.getY();
 				}
-				if (vert.pos.z < minZ) {
-					minZ = vert.pos.z;
+				if (vert.pos.getZ() < minZ) {
+					minZ = vert.pos.getZ();
 				}
 
-				if (vert.pos.x > maxX) {
-					maxX = vert.pos.x;
+				if (vert.pos.getX() > maxX) {
+					maxX = vert.pos.getX();
 				}
-				if (vert.pos.y > maxY) {
-					maxY = vert.pos.y;
+				if (vert.pos.getY() > maxY) {
+					maxY = vert.pos.getY();
 				}
-				if (vert.pos.z > maxZ) {
-					maxZ = vert.pos.z;
+				if (vert.pos.getZ() > maxZ) {
+					maxZ = vert.pos.getZ();
 				}
 
 			} // end for vertices
 
 		} // end for polygon
 
-		bounds = new Bounds(new Vector3d(minX, minY, minZ), new Vector3d(maxX, maxY, maxZ));
+		bounds = new Bounds(Vector3d.xyz(minX, minY, minZ), Vector3d.xyz(maxX, maxY, maxZ));
 		return bounds;
 	}
 	
 	public Vector3d getCenter(){
-		return new Vector3d(
+		return Vector3d.xyz(
 				getCenterX(),
 				getCenterY(),
 				getCenterZ());
@@ -1642,7 +1643,7 @@ public class CSG implements IuserAPI{
 	 * @return MaxX
 	 */
 	public double getMaxX() {
-		return getBounds().getMax().x;
+		return getBounds().getMax().getX();
 	}
 
 	/**
@@ -1651,7 +1652,7 @@ public class CSG implements IuserAPI{
 	 * @return MaxY
 	 */
 	public double getMaxY() {
-		return getBounds().getMax().y;
+		return getBounds().getMax().getY();
 	}
 
 	/**
@@ -1660,7 +1661,7 @@ public class CSG implements IuserAPI{
 	 * @return MaxZ
 	 */
 	public double getMaxZ() {
-		return getBounds().getMax().z;
+		return getBounds().getMax().getZ();
 	}
 
 	/**
@@ -1669,7 +1670,7 @@ public class CSG implements IuserAPI{
 	 * @return MinX
 	 */
 	public double getMinX() {
-		return getBounds().getMin().x;
+		return getBounds().getMin().getX();
 	}
 
 	/**
@@ -1678,7 +1679,7 @@ public class CSG implements IuserAPI{
 	 * @return MinY
 	 */
 	public double getMinY() {
-		return getBounds().getMin().y;
+		return getBounds().getMin().getY();
 	}
 
 	/**
@@ -1687,7 +1688,7 @@ public class CSG implements IuserAPI{
 	 * @return tMinZ
 	 */
 	public double getMinZ() {
-		return getBounds().getMin().z;
+		return getBounds().getMin().getZ();
 	}
 	/**
 	 * Helper function wrapping bounding box values
@@ -1871,18 +1872,18 @@ public class CSG implements IuserAPI{
 	public CSG makeKeepaway(Number sn) {
 		double shellThickness =sn.doubleValue();
 
-		double x = Math.abs(this.getBounds().getMax().x) + Math.abs(this.getBounds().getMin().x);
-		double y = Math.abs(this.getBounds().getMax().y) + Math.abs(this.getBounds().getMin().y);
+		double x = Math.abs(this.getBounds().getMax().getX()) + Math.abs(this.getBounds().getMin().getX());
+		double y = Math.abs(this.getBounds().getMax().getY()) + Math.abs(this.getBounds().getMin().getY());
 
-		double z = Math.abs(this.getBounds().getMax().z) + Math.abs(this.getBounds().getMin().z);
+		double z = Math.abs(this.getBounds().getMax().getZ()) + Math.abs(this.getBounds().getMin().getZ());
 
 		double xtol = (x + shellThickness) / x;
 		double ytol = (y + shellThickness) / y;
 		double ztol = (z + shellThickness) / z;
 
-		double xPer = -(Math.abs(this.getBounds().getMax().x) - Math.abs(this.getBounds().getMin().x)) / x;
-		double yPer = -(Math.abs(this.getBounds().getMax().y) - Math.abs(this.getBounds().getMin().y)) / y;
-		double zPer = -(Math.abs(this.getBounds().getMax().z) - Math.abs(this.getBounds().getMin().z)) / z;
+		double xPer = -(Math.abs(this.getBounds().getMax().getX()) - Math.abs(this.getBounds().getMin().getX())) / x;
+		double yPer = -(Math.abs(this.getBounds().getMax().getY()) - Math.abs(this.getBounds().getMin().getY())) / y;
+		double zPer = -(Math.abs(this.getBounds().getMax().getZ()) - Math.abs(this.getBounds().getMin().getZ())) / z;
 
 		// println " Keep away x = "+y+" new = "+ytol
 		return this.transformed(new Transform().scale(xtol, ytol, ztol))

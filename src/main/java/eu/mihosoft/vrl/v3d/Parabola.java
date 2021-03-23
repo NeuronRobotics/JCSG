@@ -2,6 +2,8 @@ package eu.mihosoft.vrl.v3d;
 
 import java.util.ArrayList;
 
+import eu.mihosoft.vvecmath.Vector3d;
+
 public class Parabola {
 
   double Radius, w, a, b, FocalLength;
@@ -44,13 +46,13 @@ public class Parabola {
 
   public ArrayList<Vector3d> getpoints() {
     ArrayList<Vector3d> points = new ArrayList<>();
-    points.add(new Vector3d(0, computeY(Radius)));
+    points.add(Vector3d.xy(0, computeY(Radius)));
     for (double i = 0; i <= 1; i += 0.05) {
       double x = Radius * i;
       double y = computeY(x);
-      points.add(new Vector3d(x, y));
+      points.add(Vector3d.xy(x, y));
     }
-    points.add(new Vector3d(Radius, computeY(Radius)));
+    points.add(Vector3d.xy(Radius, computeY(Radius)));
     return points;
   }
 
@@ -102,7 +104,7 @@ public class Parabola {
   }
 
   public static CSG extrudeByEquation(double Radius, double a, double b, double thickness) {
-    return Extrude.points(new Vector3d(0, 0, thickness), // This is the extrusion depth
+    return Extrude.points(Vector3d.xyz(0, 0, thickness), // This is the extrusion depth
         new Parabola().fromEquation(Radius, a, b).getpoints()// upper right corner
     );
   }

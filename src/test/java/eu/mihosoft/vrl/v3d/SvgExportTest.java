@@ -14,6 +14,7 @@ import org.junit.Test;
 
 import eu.mihosoft.vrl.v3d.svg.SVGExporter;
 import eu.mihosoft.vrl.v3d.svg.SVGLoad;
+import eu.mihosoft.vvecmath.Vector3d;
 
 public class SvgExportTest {
 
@@ -49,16 +50,16 @@ public class SvgExportTest {
 		List<Polygon> polygons = new ArrayList<Polygon>();
 
 		List<Vertex> vertices = new ArrayList<Vertex>();
-		vertices.add(new Vertex(new Vector3d(-30, 0), new Vector3d(0, 0)));
-		vertices.add(new Vertex(new Vector3d(100, 0), new Vector3d(0, 0)));
-		vertices.add(new Vertex(new Vector3d(100, 100), new Vector3d(0, 0)));
-		vertices.add(new Vertex(new Vector3d(-30, 100), new Vector3d(0, 0)));
+		vertices.add(new Vertex(Vector3d.xy(-30, 0), Vector3d.xy(0, 0)));
+		vertices.add(new Vertex(Vector3d.xy(100, 0), Vector3d.xy(0, 0)));
+		vertices.add(new Vertex(Vector3d.xy(100, 100), Vector3d.xy(0, 0)));
+		vertices.add(new Vertex(Vector3d.xy(-30, 100), Vector3d.xy(0, 0)));
 
 		List<Vertex> vertices2 = new ArrayList<Vertex>();
-		vertices2.add(new Vertex(new Vector3d(50, 50), new Vector3d(0, 0)));
-		vertices2.add(new Vertex(new Vector3d(75, 50), new Vector3d(0, 0)));
-		vertices2.add(new Vertex(new Vector3d(75, 75), new Vector3d(0, 0)));
-		vertices2.add(new Vertex(new Vector3d(50, 75), new Vector3d(0, 0)));
+		vertices2.add(new Vertex(Vector3d.xy(50, 50), Vector3d.xy(0, 0)));
+		vertices2.add(new Vertex(Vector3d.xy(75, 50), Vector3d.xy(0, 0)));
+		vertices2.add(new Vertex(Vector3d.xy(75, 75), Vector3d.xy(0, 0)));
+		vertices2.add(new Vertex(Vector3d.xy(50, 75), Vector3d.xy(0, 0)));
 
 		Polygon outline2 = new Polygon(vertices2);
 		Polygon outline = new Polygon(vertices);
@@ -75,16 +76,16 @@ public class SvgExportTest {
 		List<Polygon> polygons = new ArrayList<Polygon>();
 
 		List<Vertex> vertices = new ArrayList<Vertex>();
-		vertices.add(new Vertex(new Vector3d(-30, 0), new Vector3d(0, 0)));
-		vertices.add(new Vertex(new Vector3d(100, 0), new Vector3d(0, 0)));
-		vertices.add(new Vertex(new Vector3d(100, 100), new Vector3d(0, 0)));
-		vertices.add(new Vertex(new Vector3d(-30, 100), new Vector3d(0, 0)));
+		vertices.add(new Vertex(Vector3d.xy(-30, 0), Vector3d.xy(0, 0)));
+		vertices.add(new Vertex(Vector3d.xy(100, 0), Vector3d.xy(0, 0)));
+		vertices.add(new Vertex(Vector3d.xy(100, 100), Vector3d.xy(0, 0)));
+		vertices.add(new Vertex(Vector3d.xy(-30, 100), Vector3d.xy(0, 0)));
 
 		List<Vertex> vertices2 = new ArrayList<Vertex>();
-		vertices2.add(new Vertex(new Vector3d(50, 50), new Vector3d(0, 0)));
-		vertices2.add(new Vertex(new Vector3d(75, 50), new Vector3d(0, 0)));
-		vertices2.add(new Vertex(new Vector3d(75, 75), new Vector3d(0, 0)));
-		vertices2.add(new Vertex(new Vector3d(50, 75), new Vector3d(0, 0)));
+		vertices2.add(new Vertex(Vector3d.xy(50, 50), Vector3d.xy(0, 0)));
+		vertices2.add(new Vertex(Vector3d.xy(75, 50), Vector3d.xy(0, 0)));
+		vertices2.add(new Vertex(Vector3d.xy(75, 75), Vector3d.xy(0, 0)));
+		vertices2.add(new Vertex(Vector3d.xy(50, 75), Vector3d.xy(0, 0)));
 
 		Polygon outline2 = new Polygon(vertices2);
 		Polygon outline = new Polygon(vertices);
@@ -154,7 +155,7 @@ public class SvgExportTest {
 		carrot.addSlicePlane(slicePlane);
 		
 		CSG sphere = new Sphere(10,80,80)
-						.setCenter(new Vector3d(30, 30))
+						.setCenter(Vector3d.xy(30, 30))
 						.toCSG();
 		for(int i=0;i<10;i++){
 			Transform sp = new Transform();

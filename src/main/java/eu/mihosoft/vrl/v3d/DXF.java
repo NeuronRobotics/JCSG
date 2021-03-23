@@ -18,6 +18,8 @@ import org.kabeja.parser.DXFParser;
 import org.kabeja.parser.Parser;
 import org.kabeja.parser.ParserBuilder;
 
+import eu.mihosoft.vvecmath.Vector3d;
+
 public class DXF{
 
 	private File source;
@@ -56,7 +58,7 @@ public class DXF{
 										for (int i = 0; i < pline.getVertexCount(); i++) {
 											DXFVertex vertex = pline.getVertex(i);
 											Point point = vertex.getPoint();
-											points.add(new Vector3d(point.getX(), point.getY(), point.getZ()));
+											points.add(Vector3d.xyz(point.getX(), point.getY(), point.getZ()));
 											System.out.println(points.get(points.size()-1)+",");
 										}
 									}
@@ -70,11 +72,11 @@ public class DXF{
 									for (Object p : plines) {
 										DXFLine pline = (DXFLine) p;
 										Point point = pline.getStartPoint();
-										points.add(new Vector3d(point.getX(), point.getY(), point.getZ()));
+										points.add(Vector3d.xyz(point.getX(), point.getY(), point.getZ()));
 										System.out.println(points.get(points.size()-1)+",");
 									}
 									System.out.println("Extruding");
-									parts.add(Extrude.points(new Vector3d(0, 0, extrudeDistance), points));
+									parts.add(Extrude.points(Vector3d.xyz(0, 0, extrudeDistance), points));
 									points.clear();
 									
 								}
@@ -89,7 +91,7 @@ public class DXF{
 										if(splinePointIterator!=null)
 											for (;splinePointIterator.hasNext();) {
 												SplinePoint point =(SplinePoint) splinePointIterator.next();
-												points.add(new Vector3d(point.getX(), point.getY(), point.getZ()));
+												points.add(Vector3d.xyz(point.getX(), point.getY(), point.getZ()));
 												System.out.println(points.get(points.size()-1)+",");
 											}
 									}

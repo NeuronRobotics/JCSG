@@ -9,6 +9,7 @@ import java.util.List;
 import eu.mihosoft.vrl.v3d.ext.quickhull3d.HullUtil;
 import eu.mihosoft.vrl.v3d.parametrics.LengthParameter;
 import eu.mihosoft.vrl.v3d.parametrics.Parameter;
+import eu.mihosoft.vvecmath.Vector3d;
 
 public class Tetrahedron extends Primitive {
 
@@ -31,7 +32,7 @@ public class Tetrahedron extends Primitive {
      * dimensions {@code [1,1,1]}.
      */
     public Tetrahedron() {
-        center = new Vector3d(0, 0, 0);
+        center = Vector3d.xyz(0, 0, 0);
         radius = 1;
     }
 
@@ -42,7 +43,7 @@ public class Tetrahedron extends Primitive {
      * @param size size
      */
     public Tetrahedron(double size) {
-        center = new Vector3d(0, 0, 0);
+        center = Vector3d.xyz(0, 0, 0);
         radius = size;
     }
 
@@ -67,10 +68,10 @@ public class Tetrahedron extends Primitive {
     	double _1_sqrt2 = 1/Math.sqrt(2);
     	
     	List<Vector3d> points = new ArrayList<>();
-    		points.add(new Vector3d(-1,0,-_1_sqrt2));
-			points.add(new Vector3d(+1,0,-_1_sqrt2));
-			points.add(new Vector3d(0,-1,+_1_sqrt2));
-			points.add(new Vector3d(0,+1,+_1_sqrt2));
+    		points.add(Vector3d.xyz(-1,0,-_1_sqrt2));
+			points.add(Vector3d.xyz(+1,0,-_1_sqrt2));
+			points.add(Vector3d.xyz(0,-1,+_1_sqrt2));
+			points.add(Vector3d.xyz(0,+1,+_1_sqrt2));
     	
 		List<Polygon> polygons = HullUtil.hull(points).scale(radius/Math.sqrt(3)).getPolygons();
 

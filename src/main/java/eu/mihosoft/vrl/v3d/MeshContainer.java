@@ -8,6 +8,8 @@ package eu.mihosoft.vrl.v3d;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import eu.mihosoft.vvecmath.Vector3d;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Group;
 import javafx.scene.PerspectiveCamera;
@@ -79,9 +81,9 @@ public class MeshContainer {
         this.meshes = meshes;
         this.materials = new ArrayList<>();
         this.bounds = new Bounds(min, max);
-        this.width = bounds.getBounds().x;
-        this.height = bounds.getBounds().y;
-        this.depth = bounds.getBounds().z;
+        this.width = bounds.getBounds().getX();
+        this.height = bounds.getBounds().getY();
+        this.depth = bounds.getBounds().getZ();
 
         PhongMaterial material = new PhongMaterial(Color.RED);
         for (Mesh mesh : meshes) {
@@ -101,9 +103,9 @@ public class MeshContainer {
         this.meshes = meshes;
         this.materials = materials;
         this.bounds = new Bounds(min, max);
-        this.width = bounds.getBounds().x;
-        this.height = bounds.getBounds().y;
-        this.depth = bounds.getBounds().z;
+        this.width = bounds.getBounds().getX();
+        this.height = bounds.getBounds().getY();
+        this.depth = bounds.getBounds().getZ();
 
         if (materials.size() != meshes.size()) {
             throw new IllegalArgumentException("Mesh list and Material list must not differ in size!");

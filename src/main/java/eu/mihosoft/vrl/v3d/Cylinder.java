@@ -38,6 +38,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import eu.mihosoft.vrl.v3d.parametrics.LengthParameter;
+import eu.mihosoft.vvecmath.Vector3d;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -74,8 +75,8 @@ public class Cylinder extends Primitive {
      * {@code size = 1}.
      */
     public Cylinder() {
-        this.start = new Vector3d(0, -0.5, 0);
-        this.end = new Vector3d(0, 0.5, 0);
+        this.start = Vector3d.xyz(0, -0.5, 0);
+        this.end = Vector3d.xyz(0, 0.5, 0);
         this.startRadius = 1;
         this.endRadius = 1;
         this.numSlices = defaultNumSlices;
@@ -213,10 +214,10 @@ public class Cylinder extends Primitive {
         Vector3d e = getEnd();
         final Vector3d ray = e.minus(s);
         final Vector3d axisZ = ray.normalized();
-        boolean isY = (Math.abs(axisZ.y) > 0.5);
-        final Vector3d axisX = new Vector3d(isY ? 1 : 0, !isY ? 1 : 0, 0).
-                cross(axisZ).normalized();
-        final Vector3d axisY = axisX.cross(axisZ).normalized();
+        boolean isY = (Math.abs(axisZ.getY()) > 0.5);
+        final Vector3d axisX = Vector3d.xyz(isY ? 1 : 0, !isY ? 1 : 0, 0).
+                crossed(axisZ).normalized();
+        final Vector3d axisY = axisX.crossed(axisZ).normalized();
         Vertex startV = new Vertex(s, axisZ.negated());
         Vertex endV = new Vertex(e, axisZ.normalized());
         List<Polygon> polygons = new ArrayList<>();

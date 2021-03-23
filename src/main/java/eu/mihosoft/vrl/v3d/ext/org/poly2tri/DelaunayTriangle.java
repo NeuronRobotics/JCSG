@@ -61,6 +61,8 @@ package eu.mihosoft.vrl.v3d.ext.org.poly2tri;
  */
 import java.util.ArrayList;
 
+import eu.mihosoft.vvecmath.Vector3d;
+
 // TODO: Auto-generated Javadoc
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
@@ -964,10 +966,10 @@ public class DelaunayTriangle
      * @return the coordinates of the point as a Vector3d
      */
     public eu.mihosoft.vrl.v3d.Polygon toPolygon() {
-    	eu.mihosoft.vrl.v3d.Vector3d normal = new eu.mihosoft.vrl.v3d.Vector3d(0,0,1);
-    	eu.mihosoft.vrl.v3d.Vector3d p0 = new eu.mihosoft.vrl.v3d.Vector3d(points[0].getX(),points[0].getY(),points[0].getZ());
-    	eu.mihosoft.vrl.v3d.Vector3d p1 = new eu.mihosoft.vrl.v3d.Vector3d(points[1].getX(),points[1].getY(),points[1].getZ());
-    	eu.mihosoft.vrl.v3d.Vector3d p2 = new eu.mihosoft.vrl.v3d.Vector3d(points[2].getX(),points[2].getY(),points[2].getZ());
+    	Vector3d normal = Vector3d.xyz(0,0,1);
+    	Vector3d p0 = Vector3d.xyz(points[0].getX(),points[0].getY(),points[0].getZ());
+    	Vector3d p1 = Vector3d.xyz(points[1].getX(),points[1].getY(),points[1].getZ());
+    	Vector3d p2 = Vector3d.xyz(points[2].getX(),points[2].getY(),points[2].getZ());
     	eu.mihosoft.vrl.v3d.Vertex v0 = new eu.mihosoft.vrl.v3d.Vertex(p0, normal);
     	eu.mihosoft.vrl.v3d.Vertex v1 = new eu.mihosoft.vrl.v3d.Vertex(p1, normal);
     	eu.mihosoft.vrl.v3d.Vertex v2 = new eu.mihosoft.vrl.v3d.Vertex(p2, normal);

@@ -9,6 +9,7 @@ import java.util.List;
 import eu.mihosoft.vrl.v3d.ext.quickhull3d.HullUtil;
 import eu.mihosoft.vrl.v3d.parametrics.LengthParameter;
 import eu.mihosoft.vrl.v3d.parametrics.Parameter;
+import eu.mihosoft.vvecmath.Vector3d;
 
 public class Dodecahedron extends Primitive {
 
@@ -31,7 +32,7 @@ public class Dodecahedron extends Primitive {
      * dimensions {@code [1,1,1]}.
      */
     public Dodecahedron() {
-        center = new Vector3d(0, 0, 0);
+        center = Vector3d.xyz(0, 0, 0);
         radius = 1;
     }
 
@@ -42,7 +43,7 @@ public class Dodecahedron extends Primitive {
      * @param size size
      */
     public Dodecahedron(double size) {
-        center = new Vector3d(0, 0, 0);
+        center = Vector3d.xyz(0, 0, 0);
         radius = size;
     }
 
@@ -67,26 +68,26 @@ public class Dodecahedron extends Primitive {
     	double phi = (Math.sqrt(5)+1)/2;
     	
     	List<Vector3d> points = new ArrayList<>();
-	    	points.add(new Vector3d(-1,-1,-1));
-	    	points.add(new Vector3d(-1,-1,+1));
-	    	points.add(new Vector3d(-1,+1,-1));
-	    	points.add(new Vector3d(-1,+1,+1));
-	    	points.add(new Vector3d(+1,-1,-1));
-	    	points.add(new Vector3d(+1,-1,+1));
-	    	points.add(new Vector3d(+1,+1,-1));
-	    	points.add(new Vector3d(+1,+1,+1));
-    		points.add(new Vector3d(0,1/phi,phi));
-			points.add(new Vector3d(0,-1/phi,phi));
-			points.add(new Vector3d(phi,0,1/phi));
-			points.add(new Vector3d(1/phi,phi,0));
-			points.add(new Vector3d(-1/phi,phi,0));
-			points.add(new Vector3d(-phi,0,1/phi));
-			points.add(new Vector3d(1/phi,-phi,0));
-			points.add(new Vector3d(phi,0,-1/phi));
-			points.add(new Vector3d(0,1/phi,-phi));
-			points.add(new Vector3d(-phi,0,-1/phi));
-			points.add(new Vector3d(-1/phi,-phi,0));
-			points.add(new Vector3d(0,-1/phi,-phi));
+	    	points.add(Vector3d.xyz(-1,-1,-1));
+	    	points.add(Vector3d.xyz(-1,-1,+1));
+	    	points.add(Vector3d.xyz(-1,+1,-1));
+	    	points.add(Vector3d.xyz(-1,+1,+1));
+	    	points.add(Vector3d.xyz(+1,-1,-1));
+	    	points.add(Vector3d.xyz(+1,-1,+1));
+	    	points.add(Vector3d.xyz(+1,+1,-1));
+	    	points.add(Vector3d.xyz(+1,+1,+1));
+    		points.add(Vector3d.xyz(0,1/phi,phi));
+			points.add(Vector3d.xyz(0,-1/phi,phi));
+			points.add(Vector3d.xyz(phi,0,1/phi));
+			points.add(Vector3d.xyz(1/phi,phi,0));
+			points.add(Vector3d.xyz(-1/phi,phi,0));
+			points.add(Vector3d.xyz(-phi,0,1/phi));
+			points.add(Vector3d.xyz(1/phi,-phi,0));
+			points.add(Vector3d.xyz(phi,0,-1/phi));
+			points.add(Vector3d.xyz(0,1/phi,-phi));
+			points.add(Vector3d.xyz(-phi,0,-1/phi));
+			points.add(Vector3d.xyz(-1/phi,-phi,0));
+			points.add(Vector3d.xyz(0,-1/phi,-phi));
     	
 		List<Polygon> polygons = HullUtil.hull(points).scale(radius*(phi-1)).getPolygons();
 

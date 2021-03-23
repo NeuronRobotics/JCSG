@@ -38,6 +38,7 @@ import java.util.List;
 
 import eu.mihosoft.vrl.v3d.parametrics.LengthParameter;
 import eu.mihosoft.vrl.v3d.parametrics.Parameter;
+import eu.mihosoft.vvecmath.Vector3d;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -67,8 +68,8 @@ public class Cube extends Primitive {
      * dimensions {@code [1,1,1]}.
      */
     public Cube() {
-        center = new Vector3d(0, 0, 0);
-        dimensions = new Vector3d(1, 1, 1);
+        center = Vector3d.xyz(0, 0, 0);
+        dimensions = Vector3d.xyz(1, 1, 1);
     }
 
     /**
@@ -78,8 +79,8 @@ public class Cube extends Primitive {
      * @param size size
      */
     public Cube(double size) {
-        center = new Vector3d(0, 0, 0);
-        dimensions = new Vector3d(size, size, size);
+        center = Vector3d.xyz(0, 0, 0);
+        dimensions = Vector3d.xyz(size, size, size);
     }
 
     /**
@@ -103,10 +104,10 @@ public class Cube extends Primitive {
      * @param d depth
      */
     public Cube(double w, double h, double d) {
-        this(Vector3d.ZERO, new Vector3d(w, h, d));
+        this(Vector3d.ZERO, Vector3d.xyz(w, h, d));
     }
     public Cube(LengthParameter w, LengthParameter h, LengthParameter d) {
-        this(Vector3d.ZERO, new Vector3d(w.getMM(), h.getMM(), d.getMM()));
+        this(Vector3d.ZERO, Vector3d.xyz(w.getMM(), h.getMM(), d.getMM()));
         parametrics.add(w);
         parametrics.add(h);
         parametrics.add(d);
@@ -133,12 +134,12 @@ public class Cube extends Primitive {
         for (int[][] info : a) {
             List<Vertex> vertices = new ArrayList<>();
             for (int i : info[0]) {
-                Vector3d pos = new Vector3d(
-                        center.x + dimensions.x * (1 * Math.min(1, i & 1) - 0.5),
-                        center.y + dimensions.y * (1 * Math.min(1, i & 2) - 0.5),
-                        center.z + dimensions.z * (1 * Math.min(1, i & 4) - 0.5)
+                Vector3d pos = Vector3d.xyz(
+                        center.getX() + dimensions.getX() * (1 * Math.min(1, i & 1) - 0.5),
+                        center.getY() + dimensions.getY() * (1 * Math.min(1, i & 2) - 0.5),
+                        center.getZ() + dimensions.getZ() * (1 * Math.min(1, i & 4) - 0.5)
                 );
-                vertices.add(new Vertex(pos, new Vector3d(
+                vertices.add(new Vertex(pos, Vector3d.xyz(
                         (double) info[1][0],
                         (double) info[1][1],
                         (double) info[1][2]
@@ -149,7 +150,7 @@ public class Cube extends Primitive {
 
         if (!centered) {
 
-            Transform centerTransform = Transform.unity().translate(dimensions.x / 2.0, dimensions.y / 2.0, dimensions.z / 2.0);
+            Transform centerTransform = Transform.unity().translate(dimensions.getX() / 2.0, dimensions.getY() / 2.0, dimensions.getZ() / 2.0);
 
             for (Polygon p : polygons) {
                 p.transform(centerTransform);

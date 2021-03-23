@@ -3,6 +3,8 @@ package eu.mihosoft.vrl.v3d;
 import java.util.ArrayList;
 import java.util.List;
 
+import eu.mihosoft.vvecmath.Vector3d;
+
 public class Fillet extends Primitive {
 
   double w, h;
@@ -63,7 +65,7 @@ public class Fillet extends Primitive {
         double angleAbs = Math.toDegrees(seg1.angle(Vector3d.Y_ONE));
         CSG fillet = new Fillet(rad, len).toCSG().toYMax();
         // .roty(90)
-        if (seg1.x < 0) {
+        if (seg1.getX() < 0) {
           angleAbs = 360 - angleAbs;
           // fillet=fillet.toYMax()
         }

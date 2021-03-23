@@ -9,6 +9,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.junit.Test;
+
+import eu.mihosoft.vvecmath.Vector3d;
+
 import static org.junit.Assert.*;
 
 // TODO: Auto-generated Javadoc
@@ -27,44 +30,44 @@ public class HoleDetectionTest {
         
         // one polygon with one hole
         Polygon p1 = Polygon.fromPoints(
-                new Vector3d(1, 1),
-                new Vector3d(2, 3),
-                new Vector3d(4, 3),
-                new Vector3d(5, 2),
-                new Vector3d(4, 1),
-                new Vector3d(3, 0),
-                new Vector3d(2, 2)
+                Vector3d.xy(1, 1),
+                Vector3d.xy(2, 3),
+                Vector3d.xy(4, 3),
+                Vector3d.xy(5, 2),
+                Vector3d.xy(4, 1),
+                Vector3d.xy(3, 0),
+                Vector3d.xy(2, 2)
         );
         Polygon p1Hole = Polygon.fromPoints(
-                new Vector3d(3, 1),
-                new Vector3d(3, 2),
-                new Vector3d(4, 2)
+                Vector3d.xy(3, 1),
+                Vector3d.xy(3, 2),
+                Vector3d.xy(4, 2)
         );
 
         createNumHolesTest(Arrays.asList(p1, p1Hole), 1, 0);
         
         // one polygon with two holes
         Polygon p2 = Polygon.fromPoints(
-                new Vector3d(1, 1),
-                new Vector3d(2, 2),
-                new Vector3d(1, 5),
-                new Vector3d(2, 6),
-                new Vector3d(6, 6),
-                new Vector3d(3, 5),
-                new Vector3d(6, 5),
-                new Vector3d(6, 1),
-                new Vector3d(3, 0)
+                Vector3d.xy(1, 1),
+                Vector3d.xy(2, 2),
+                Vector3d.xy(1, 5),
+                Vector3d.xy(2, 6),
+                Vector3d.xy(6, 6),
+                Vector3d.xy(3, 5),
+                Vector3d.xy(6, 5),
+                Vector3d.xy(6, 1),
+                Vector3d.xy(3, 0)
         );
         Polygon p2Hole1 = Polygon.fromPoints(
-                new Vector3d(3, 2),
-                new Vector3d(3, 3),
-                new Vector3d(4, 2),
-                new Vector3d(4, 1)
+                Vector3d.xy(3, 2),
+                Vector3d.xy(3, 3),
+                Vector3d.xy(4, 2),
+                Vector3d.xy(4, 1)
         );
         Polygon p2Hole2 = Polygon.fromPoints(
-                new Vector3d(2, 3),
-                new Vector3d(2, 4),
-                new Vector3d(3, 4)
+                Vector3d.xy(2, 3),
+                Vector3d.xy(2, 4),
+                Vector3d.xy(3, 4)
         );
 
         createNumHolesTest(Arrays.asList(p2, p2Hole1, p2Hole2), 2, 0, 0);
@@ -72,43 +75,43 @@ public class HoleDetectionTest {
         // one polygon with two holes, one of the holes contains another
         // polygon with one hole
         Polygon p3 = Polygon.fromPoints(
-                new Vector3d(1, 1),
-                new Vector3d(2, 2),
-                new Vector3d(1, 5),
-                new Vector3d(2, 6),
-                new Vector3d(6, 6),
-                new Vector3d(3, 5),
-                new Vector3d(6, 5),
-                new Vector3d(6, 1),
-                new Vector3d(3, 0)
+                Vector3d.xy(1, 1),
+                Vector3d.xy(2, 2),
+                Vector3d.xy(1, 5),
+                Vector3d.xy(2, 6),
+                Vector3d.xy(6, 6),
+                Vector3d.xy(3, 5),
+                Vector3d.xy(6, 5),
+                Vector3d.xy(6, 1),
+                Vector3d.xy(3, 0)
         );
         Polygon p3Hole1 = Polygon.fromPoints(
-                new Vector3d(3, 2),
-                new Vector3d(3, 3),
-                new Vector3d(4, 4),
-                new Vector3d(5, 3),
-                new Vector3d(5, 2),
-                new Vector3d(4, 1)
+                Vector3d.xy(3, 2),
+                Vector3d.xy(3, 3),
+                Vector3d.xy(4, 4),
+                Vector3d.xy(5, 3),
+                Vector3d.xy(5, 2),
+                Vector3d.xy(4, 1)
         );
         
         Polygon p3p1 = Polygon.fromPoints(
-                new Vector3d(4, 2),
-                new Vector3d(3.5, 2.5),
-                new Vector3d(4, 3),
-                new Vector3d(4.5, 2.5)
+                Vector3d.xy(4, 2),
+                Vector3d.xy(3.5, 2.5),
+                Vector3d.xy(4, 3),
+                Vector3d.xy(4.5, 2.5)
         );
         
         Polygon p3p1Hole = Polygon.fromPoints(
-                new Vector3d(4, 2.25),
-                new Vector3d(3.75, 2.5),
-                new Vector3d(4, 2.75),
-                new Vector3d(4.25, 2.5)
+                Vector3d.xy(4, 2.25),
+                Vector3d.xy(3.75, 2.5),
+                Vector3d.xy(4, 2.75),
+                Vector3d.xy(4.25, 2.5)
         );
         
         Polygon p3Hole2 = Polygon.fromPoints(
-                new Vector3d(2, 3),
-                new Vector3d(2, 4),
-                new Vector3d(3, 4)
+                Vector3d.xy(2, 3),
+                Vector3d.xy(2, 4),
+                Vector3d.xy(3, 4)
         );
 
         createNumHolesTest(

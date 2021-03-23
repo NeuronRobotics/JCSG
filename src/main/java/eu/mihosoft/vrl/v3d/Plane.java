@@ -1,7 +1,9 @@
+package eu.mihosoft.vrl.v3d;
+
 /**
  * Plane.java
  *
- * Copyright 2014-2014 Michael Hoffer info@michaelhoffer.de. All rights
+ * Copyright 2014-2014 Michael Hoffer <info@michaelhoffer.de>. All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -14,10 +16,10 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY Michael Hoffer info@michaelhoffer.de "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY Michael Hoffer <info@michaelhoffer.de> "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL Michael Hoffer info@michaelhoffer.de OR
+ * ARE DISCLAIMED. IN NO EVENT SHALL Michael Hoffer <info@michaelhoffer.de> OR
  * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
  * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
@@ -29,45 +31,44 @@
  * The views and conclusions contained in the software and documentation are
  * those of the authors and should not be interpreted as representing official
  * policies, either expressed or implied, of Michael Hoffer
- * info@michaelhoffer.de.
+ * <info@michaelhoffer.de>.
  */
-package eu.mihosoft.vrl.v3d;
 
 // # class Plane
+import eu.mihosoft.vvecmath.Vector3d;
 import java.util.ArrayList;
 import java.util.List;
 
-// TODO: Auto-generated Javadoc
 /**
  * Represents a plane in 3D space.
  *
  * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
  */
-public class Plane {
+class Plane {
 
     /**
-     * EPSILON is the tolerance used by {@link #splitPolygon(eu.mihosoft.vrl.v3d.Polygon, java.util.List, java.util.List, java.util.List, java.util.List)
+     * EPSILON is the tolerance used by {@link #splitPolygon(Polygon, java.util.List, java.util.List, java.util.List, java.util.List)
      * } to decide if a point is on the plane.
      */
-    public static final double EPSILON = 1e-6;
+    public static double EPSILON = 1e-8;
 
     /**
      * XY plane.
      */
-    public static final Plane XY_PLANE = new Plane(Vector3d.Z_ONE, 1);
+    public static final Plane XY_PLANE = new Plane(eu.mihosoft.vvecmath.Vector3d.Z_ONE, 1);
     /**
      * XZ plane.
      */
-    public static final Plane XZ_PLANE = new Plane(Vector3d.Y_ONE, 1);
+    public static final Plane XZ_PLANE = new Plane(eu.mihosoft.vvecmath.Vector3d.Y_ONE, 1);
     /**
      * YZ plane.
      */
-    public static final Plane YZ_PLANE = new Plane(Vector3d.X_ONE, 1);
+    public static final Plane YZ_PLANE = new Plane(eu.mihosoft.vvecmath.Vector3d.X_ONE, 1);
 
     /**
      * Normal vector.
      */
-    public Vector3d normal;
+    public eu.mihosoft.vvecmath.Vector3d normal;
     /**
      * Distance to origin.
      */
@@ -94,13 +95,10 @@ public class Plane {
      * @return a plane
      */
     public static Plane createFromPoints(Vector3d a, Vector3d b, Vector3d c) {
-        Vector3d n = b.minus(a).cross(c.minus(a)).normalized();
+        Vector3d n = b.minus(a).crossed(c.minus(a)).normalized();
         return new Plane(n, n.dot(a));
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#clone()
-     */
     @Override
     public Plane clone() {
         return new Plane(normal.clone(), dist);
@@ -137,26 +135,25 @@ public class Plane {
         final int COPLANAR = 0;
         final int FRONT = 1;
         final int BACK = 2;
-        final int SPANNING = 3;
+        final int SPANNING = 3; // == some in the FRONT + some in the BACK
 
-        // Classify each point as well as the entire polygon into one of the above
-        // four classes.
+        // Classify each point as well as the entire polygon into one of the 
+        // above four classes.
         int polygonType = 0;
-        List<Integer> types = new ArrayList<>();
+        List<Integer> types = new ArrayList<>(polygon.vertices.size());
         for (int i = 0; i < polygon.vertices.size(); i++) {
-            double t = this.normal.dot(polygon.vertices.get(i).pos) - this.dist;
+            double t = this.normal.dot(polygon.vertices.get(i).pos) - this.dist; 
             int type = (t < -Plane.EPSILON) ? BACK : (t > Plane.EPSILON) ? FRONT : COPLANAR;
             polygonType |= type;
             types.add(type);
         }
-        
-        //System.out.println("> switching");
 
+        //System.out.println("> switching");
         // Put the polygon in the correct list, splitting it when necessary.
         switch (polygonType) {
             case COPLANAR:
                 //System.out.println(" -> coplanar");
-                (this.normal.dot(polygon.plane.normal) > 0 ? coplanarFront : coplanarBack).add(polygon);
+                (this.normal.dot(polygon._csg_plane.normal) > 0 ? coplanarFront : coplanarBack).add(polygon);
                 break;
             case FRONT:
                 //System.out.println(" -> front");
@@ -183,7 +180,8 @@ public class Plane {
                         b.add(ti != BACK ? vi.clone() : vi);
                     }
                     if ((ti | tj) == SPANNING) {
-                        double t = (this.dist - this.normal.dot(vi.pos)) / this.normal.dot(vj.pos.minus(vi.pos));
+                        double t = (this.dist - this.normal.dot(vi.pos))
+                                / this.normal.dot(vj.pos.minus(vi.pos));
                         Vertex v = vi.interpolate(vj, t);
                         f.add(v);
                         b.add(v.clone());

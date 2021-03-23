@@ -6,7 +6,6 @@
 package eu.mihosoft.vrl.v3d.ext.quickhull3d;
 
 import eu.mihosoft.vrl.v3d.CSG;
-import eu.mihosoft.vrl.v3d.Vector3d;
 import eu.mihosoft.vrl.v3d.Polygon;
 import eu.mihosoft.vrl.v3d.PropertyStorage;
 import java.util.ArrayList;
@@ -35,9 +34,9 @@ public class HullUtil {
 	 * @return the csg
 	 */
 	public static CSG hull(List<?> points) {
-		List<Vector3d> plist = new ArrayList<>();
+		List<eu.mihosoft.vvecmath.Vector3d> plist = new ArrayList<>();
 		if (Vector3d.class.isInstance(points.get(0))) {
-			points.stream().forEach((pobj) -> plist.add((Vector3d) pobj));
+			points.stream().forEach((pobj) -> plist.add((eu.mihosoft.vvecmath.Vector3d) pobj));
 			return hull(plist, new PropertyStorage());
 		}
 		if (CSG.class.isInstance(points.get(0))) {
@@ -58,9 +57,9 @@ public class HullUtil {
 	 *            the storage
 	 * @return the csg
 	 */
-	public static CSG hull(List<Vector3d> points, PropertyStorage storage) {
+	public static CSG hull(List<eu.mihosoft.vvecmath.Vector3d> points, PropertyStorage storage) {
 
-		Point3d[] hullPoints = points.stream().map((vec) -> new Point3d(vec.x, vec.y, vec.z)).toArray(Point3d[]::new);
+		Point3d[] hullPoints = points.stream().map((vec) -> new Point3d(vec.getX(), vec.getY(), vec.getZ())).toArray(Point3d[]::new);
 
 		QuickHull3D hull = new QuickHull3D();
 		hull.build(hullPoints);
@@ -70,7 +69,7 @@ public class HullUtil {
 
 		List<Polygon> polygons = new ArrayList<>();
 
-		List<Vector3d> vertices = new ArrayList<>();
+		List<eu.mihosoft.vvecmath.Vector3d> vertices = new ArrayList<>();
 
 		for (int[] verts : faces) {
 
@@ -97,7 +96,7 @@ public class HullUtil {
 	 */
 	public static CSG hull(CSG csg, PropertyStorage storage) {
 
-		List<Vector3d> points = new ArrayList<>(csg.getPolygons().size() * 3);
+		List<eu.mihosoft.vvecmath.Vector3d> points = new ArrayList<>(csg.getPolygons().size() * 3);
 
 		csg.getPolygons().forEach((p) -> p.vertices.forEach((v) -> points.add(v.pos)));
 
@@ -115,7 +114,7 @@ public class HullUtil {
 	 */
 	public static CSG hull(CSG... csgList) {
 
-		List<Vector3d> points = new ArrayList<>();
+		List<eu.mihosoft.vvecmath.Vector3d> points = new ArrayList<>();
 		for (CSG csg : csgList)
 			csg.getPolygons().forEach((p) -> p.vertices.forEach((v) -> points.add(v.pos)));
 

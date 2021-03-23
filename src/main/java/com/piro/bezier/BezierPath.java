@@ -6,7 +6,8 @@ import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import eu.mihosoft.vrl.v3d.Vector3d;
+import eu.mihosoft.vvecmath.Vector3d;
+
 
 public class BezierPath {
 
@@ -60,14 +61,14 @@ public class BezierPath {
 				x = nextFloat(tokens);
 				y = nextFloat(tokens);
 				path.movetoAbs(x, y);
-				pointList.add(new Vector3d(x, y, 0));
+				pointList.add(Vector3d.xyz(x, y, 0));
 				curCmd = 'L';
 				break;
 			case 'm':
 				x = nextFloat(tokens);
 				y = nextFloat(tokens);
 				path.movetoRel(x, y);
-				pointList.add(new Vector3d(x, y, 0));
+				pointList.add(Vector3d.xyz(x, y, 0));
 				curCmd = 'l';
 				break;
 			case 'L':
@@ -177,7 +178,7 @@ public class BezierPath {
 	 * must be on [0..1].
 	 */
 	public Vector3d eval(float interp) {
-		Vector3d point = new Vector3d(0, 0);// = new Vector3d();
+		Vector3d point =  Vector3d.xy(0, 0);// = Vector3d.xyz();
 		if (interp < 0.001)
 			interp = (float) 0.001;
 		if (interp > 0.9999)
@@ -204,7 +205,7 @@ public class BezierPath {
 	 * Evaluates this animation element for the passed interpolation time. Interp
 	 * must be on [0..1].
 	 */
-	public ArrayList<Vector3d> evaluate() {
+	public ArrayList<eu.mihosoft.vvecmath.Vector3d> evaluate() {
 
 		return pointList;
 	}

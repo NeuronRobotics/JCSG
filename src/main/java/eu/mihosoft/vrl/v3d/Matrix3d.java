@@ -5,6 +5,8 @@
  */
 package eu.mihosoft.vrl.v3d;
 
+import eu.mihosoft.vvecmath.Vector3d;
+
 // TODO: Auto-generated Javadoc
 /**
  * 3D Matrix3d.
@@ -133,10 +135,10 @@ public class Matrix3d {
      * @return the product of this matrix and the specified vector
      */
     public Vector3d times(Vector3d a) {
-        return new Vector3d(
-                m11 * a.x + m12 * a.y + m13 * a.z,
-                m21 * a.x + m22 * a.y + m23 * a.z,
-                m31 * a.x + m32 * a.y + m33 * a.z);
+        return Vector3d.xyz(
+                m11 * a.getX() + m12 * a.getY() + m13 * a.getZ(),
+                m21 * a.getX() + m22 * a.getY() + m23 * a.getZ(),
+                m31 * a.getX() + m32 * a.getY() + m33 * a.getZ());
     }
 
 }

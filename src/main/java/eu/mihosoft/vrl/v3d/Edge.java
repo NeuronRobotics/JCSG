@@ -1,10 +1,42 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package eu.mihosoft.vrl.v3d;
 
+import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
+
+/**
+ * Edge.java
+ *
+ * Copyright 2014-2016 Michael Hoffer <info@michaelhoffer.de>. All rights
+ * reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY Michael Hoffer <info@michaelhoffer.de> "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL Michael Hoffer <info@michaelhoffer.de> OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+ * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * The views and conclusions contained in the software and documentation are
+ * those of the authors and should not be interpreted as representing official
+ * policies, either expressed or implied, of Michael Hoffer
+ * <info@michaelhoffer.de>.
+ */
+
+import eu.mihosoft.vvecmath.Vector3d;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -12,31 +44,17 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class Edge.
  *
  * @author miho
  */
 public class Edge {
 
-    /** The p1. */
     private final Vertex p1;
-    
-    /** The p2. */
     private final Vertex p2;
-    
-    /** The direction. */
     private final Vector3d direction;
 
-    /**
-     * Instantiates a new edge.
-     *
-     * @param p1 the p1
-     * @param p2 the p2
-     */
     public Edge(Vertex p1, Vertex p2) {
         this.p1 = p1;
         this.p2 = p2;
@@ -45,8 +63,6 @@ public class Edge {
     }
 
     /**
-     * Gets the p1.
-     *
      * @return the p1
      */
     public Vertex getP1() {
@@ -60,10 +76,8 @@ public class Edge {
 //        this.p1 = p1;
 //    }
     /**
- * Gets the p2.
- *
- * @return the p2
- */
+     * @return the p2
+     */
     public Vertex getP2() {
         return p2;
     }
@@ -73,12 +87,6 @@ public class Edge {
 //     */
 //    public void setP2(Vertex p2) {
 //        this.p2 = p2;
-/**
- * From polygon.
- *
- * @param poly the poly
- * @return the list
- */
 //    }
     public static List<Edge> fromPolygon(Polygon poly) {
         List<Edge> result = new ArrayList<>();
@@ -92,34 +100,15 @@ public class Edge {
         return result;
     }
 
-    /**
-     * To vertices.
-     *
-     * @param edges the edges
-     * @return the list
-     */
     public static List<Vertex> toVertices(List<Edge> edges) {
         return edges.stream().map(e -> e.p1).collect(Collectors.toList());
     }
 
-    /**
-     * To points.
-     *
-     * @param edges the edges
-     * @return the list
-     */
     public static List<Vector3d> toPoints(List<Edge> edges) {
         return edges.stream().map(e -> e.p1.pos).collect(Collectors.toList());
     }
 
-    /**
-     * To polygon.
-     *
-     * @param points the points
-     * @param plane the plane
-     * @return the polygon
-     */
-    public static Polygon toPolygon(List<Vector3d> points, Plane plane) {
+    private static Polygon toPolygon(List<Vector3d> points, Plane plane) {
 
 //        List<Vector3d> points = edges.stream().().map(e -> e.p1.pos).
 //                collect(Collectors.toList());
@@ -136,13 +125,6 @@ public class Edge {
         return p;
     }
 
-    /**
-     * To polygons.
-     *
-     * @param boundaryEdges the boundary edges
-     * @param plane the plane
-     * @return the list
-     */
     public static List<Polygon> toPolygons(List<Edge> boundaryEdges, Plane plane) {
 
         List<Vector3d> boundaryPath = new ArrayList<>();
@@ -177,61 +159,28 @@ public class Edge {
         return result;
     }
 
-    /**
-     * The Class Node.
-     *
-     * @param <T> the generic type
-     */
     private static class Node<T> {
 
-        /** The parent. */
         private Node parent;
-        
-        /** The children. */
         private final List<Node> children = new ArrayList<>();
-        
-        /** The index. */
         private final int index;
-        
-        /** The value. */
         private final T value;
-        
-        /** The is hole. */
         private boolean isHole;
 
-        /**
-         * Instantiates a new node.
-         *
-         * @param index the index
-         * @param value the value
-         */
         public Node(int index, T value) {
             this.index = index;
             this.value = value;
         }
 
-        /**
-         * Adds the child.
-         *
-         * @param index the index
-         * @param value the value
-         */
         public void addChild(int index, T value) {
             children.add(new Node(index, value));
         }
 
-        /**
-         * Gets the children.
-         *
-         * @return the children
-         */
         public List<Node> getChildren() {
             return this.children;
         }
 
         /**
-         * Gets the parent.
-         *
          * @return the parent
          */
         public Node getParent() {
@@ -239,8 +188,6 @@ public class Edge {
         }
 
         /**
-         * Gets the index.
-         *
          * @return the index
          */
         public int getIndex() {
@@ -248,17 +195,12 @@ public class Edge {
         }
 
         /**
-         * Gets the value.
-         *
          * @return the value
          */
         public T getValue() {
             return value;
         }
 
-        /* (non-Javadoc)
-         * @see java.lang.Object#hashCode()
-         */
         @Override
         public int hashCode() {
             int hash = 7;
@@ -266,9 +208,6 @@ public class Edge {
             return hash;
         }
 
-        /* (non-Javadoc)
-         * @see java.lang.Object#equals(java.lang.Object)
-         */
         @Override
         public boolean equals(Object obj) {
             if (obj == null) {
@@ -284,11 +223,6 @@ public class Edge {
             return true;
         }
 
-        /**
-         * Distance to root.
-         *
-         * @return the int
-         */
         public int distanceToRoot() {
             int dist = 0;
 
@@ -303,8 +237,6 @@ public class Edge {
         }
 
         /**
-         * Checks if is checks if is hole.
-         *
          * @return the isHole
          */
         public boolean isIsHole() {
@@ -312,8 +244,6 @@ public class Edge {
         }
 
         /**
-         * Sets the checks if is hole.
-         *
          * @param isHole the isHole to set
          */
         public void setIsHole(boolean isHole) {
@@ -322,15 +252,8 @@ public class Edge {
 
     }
 
-    /** The Constant KEY_POLYGON_HOLES. */
     public static final String KEY_POLYGON_HOLES = "jcsg:edge:polygon-holes";
 
-    /**
-     * Boundary paths with holes.
-     *
-     * @param boundaryPaths the boundary paths
-     * @return the list
-     */
     public static List<Polygon> boundaryPathsWithHoles(List<Polygon> boundaryPaths) {
 
         List<Polygon> result = boundaryPaths.stream().
@@ -403,9 +326,9 @@ public class Edge {
      * Returns a list of all boundary paths.
      *
      * @param boundaryEdges boundary edges (all paths must be closed)
-     * @return the list
+     * @return
      */
-    public static List<Polygon> boundaryPaths(List<Edge> boundaryEdges) {
+    private static List<Polygon> boundaryPaths(List<Edge> boundaryEdges) {
         List<Polygon> result = new ArrayList<>();
 
         boolean[] used = new boolean[boundaryEdges.size()];
@@ -423,14 +346,14 @@ public class Edge {
 
                 boundaryPath.add(finalEdge.p1.pos);
 
-//                System.out.print("edge: " + edge.p2.pos);
+                System.out.print("edge: " + edge.p2.pos);
 
                 Optional<Edge> nextEdgeResult = boundaryEdges.stream().
                         filter(e -> finalEdge.p2.equals(e.p1)).findFirst();
 
                 if (!nextEdgeResult.isPresent()) {
-//                    System.out.println("ERROR: unclosed path:"
-//                            + " no edge found with " + finalEdge.p2);
+                    System.out.println("ERROR: unclosed path:"
+                            + " no edge found with " + finalEdge.p2);
                     break;
                 }
 
@@ -443,7 +366,7 @@ public class Edge {
                 }
 
                 edge = nextEdge;
-//                System.out.println("-> edge: " + edge.p1.pos);
+                System.out.println("-> edge: " + edge.p1.pos);
                 used[nextEdgeIndex] = true;
             }
 
@@ -460,8 +383,8 @@ public class Edge {
             }
 
         }
-//
-//        System.out.println("paths: " + result.size());
+
+        System.out.println("paths: " + result.size());
 
         return result;
     }
@@ -482,13 +405,6 @@ public class Edge {
         return -1;
     }
 
-    /**
-     * _to polygons.
-     *
-     * @param boundaryEdges the boundary edges
-     * @param plane the plane
-     * @return the list
-     */
     public static List<Polygon> _toPolygons(List<Edge> boundaryEdges, Plane plane) {
 
         List<Vector3d> boundaryPath = new ArrayList<>();
@@ -533,17 +449,17 @@ public class Edge {
      */
     public boolean contains(Vector3d p, double TOL) {
 
-        double x = p.x;
-        double x1 = this.p1.pos.x;
-        double x2 = this.p2.pos.x;
+        double x = p.x();
+        double x1 = this.p1.pos.x();
+        double x2 = this.p2.pos.x();
 
-        double y = p.y;
-        double y1 = this.p1.pos.y;
-        double y2 = this.p2.pos.y;
+        double y = p.y();
+        double y1 = this.p1.pos.y();
+        double y2 = this.p2.pos.y();
 
-        double z = p.z;
-        double z1 = this.p1.pos.z;
-        double z2 = this.p2.pos.z;
+        double z = p.z();
+        double z1 = this.p1.pos.z();
+        double z2 = this.p2.pos.z();
 
         double AB = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1) + (z2 - z1) * (z2 - z1));
         double AP = Math.sqrt((x - x1) * (x - x1) + (y - y1) * (y - y1) + (z - z1) * (z - z1));
@@ -563,9 +479,6 @@ public class Edge {
         return contains(p, Plane.EPSILON);
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#hashCode()
-     */
     @Override
     public int hashCode() {
         int hash = 7;
@@ -574,9 +487,6 @@ public class Edge {
         return hash;
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
     @Override
     public boolean equals(Object obj) {
         if (obj == null) {
@@ -595,18 +505,6 @@ public class Edge {
         return true;
     }
 
-    @Override
-    public String toString()
-    {
-        return "[[" + this.p1.getX() + ", " + this.p1.getY() + ", " + this.p1.getZ() + "]" +
-                ", [" + this.p2.getX() + ", " + this.p2.getY() + ", " + this.p2.getZ() + "]]";
-    }
-
-    /**
-     * Gets the direction.
-     *
-     * @return the direction
-     */
     public Vector3d getDirection() {
         return direction;
     }
@@ -614,7 +512,7 @@ public class Edge {
     /**
      * Returns the the point of this edge that is closest to the specified edge.
      *
-     *  NOTE:  returns an empty optional if the edges are parallel
+     * <b>NOTE:</b> returns an empty optional if the edges are parallel
      *
      * @param e the edge to check
      * @return the the point of this edge that is closest to the specified edge
@@ -664,7 +562,7 @@ public class Edge {
     /**
      * Returns the intersection point between this edge and the specified edge.
      *
-     *  NOTE:  returns an empty optional if the edges are parallel or if
+     * <b>NOTE:</b> returns an empty optional if the edges are parallel or if
      * the intersection point is not inside the specified edge segment
      *
      * @param e edge to intersect
@@ -688,12 +586,6 @@ public class Edge {
         }
     }
 
-    /**
-     * Boundary polygons.
-     *
-     * @param csg the csg
-     * @return the list
-     */
     public static List<Polygon> boundaryPolygons(CSG csg) {
         List<Polygon> result = new ArrayList<>();
 
@@ -704,22 +596,16 @@ public class Edge {
         return result;
     }
 
-    /**
-     * Boundary edges of plane group.
-     *
-     * @param planeGroup the plane group
-     * @return the list
-     */
-    public static List<Edge> boundaryEdgesOfPlaneGroup(List<Polygon> planeGroup) {
+    private static List<Edge> boundaryEdgesOfPlaneGroup(List<Polygon> planeGroup) {
         List<Edge> edges = new ArrayList<>();
 
         Stream<Polygon> pStream;
 
-        if (planeGroup.size() > 200) {
-            pStream = planeGroup.parallelStream();
-        } else {
+        // if (planeGroup.size() > 200) {
+        //     pStream = planeGroup.parallelStream();
+        // } else {
             pStream = planeGroup.stream();
-        }
+        // }
 
         pStream.map((p) -> Edge.fromPolygon(p)).forEach((pEdges) -> {
             edges.addAll(pEdges);
@@ -727,11 +613,11 @@ public class Edge {
 
         Stream<Edge> edgeStream;
 
-        if (edges.size() > 200) {
-            edgeStream = edges.parallelStream();
-        } else {
+        // if (edges.size() > 200) {
+            // edgeStream = edges.parallelStream();
+        // } else {
             edgeStream = edges.stream();
-        }
+        // }
 
         // find potential boundary edges, i.e., edges that occur once (freq=1)
         List<Edge> potentialBoundaryEdges = new ArrayList<>();
@@ -766,12 +652,6 @@ public class Edge {
         return realBndEdges;
     }
 
-    /**
-     * Boundary polygons of plane group.
-     *
-     * @param planeGroup the plane group
-     * @return the list
-     */
     private static List<Polygon> boundaryPolygonsOfPlaneGroup(
             List<Polygon> planeGroup) {
 
@@ -798,14 +678,7 @@ public class Edge {
         return result;
     }
 
-    /**
-     * False boundary edge shared with other edge.
-     *
-     * @param fbe the fbe
-     * @param e the e
-     * @return true, if successful
-     */
-    public static boolean falseBoundaryEdgeSharedWithOtherEdge(Edge fbe, Edge e) {
+    private static boolean falseBoundaryEdgeSharedWithOtherEdge(Edge fbe, Edge e) {
 
         // we don't consider edges with shared end-points since we are only
         // interested in "false-boundary-edge"-cases
@@ -821,12 +694,6 @@ public class Edge {
         return fbe.contains(e.getP1().pos) || fbe.contains(e.getP2().pos);
     }
 
-    /**
-     * Search plane groups.
-     *
-     * @param polygons the polygons
-     * @return the list
-     */
     private static List<List<Polygon>> searchPlaneGroups(List<Polygon> polygons) {
         List<List<Polygon>> planeGroups = new ArrayList<>();
         boolean[] used = new boolean[polygons.size()];
@@ -851,9 +718,10 @@ public class Edge {
                     continue;
                 }
 
-                Vector3d nOuter = pOuter.plane.normal;
-                Vector3d nInner = pInner.plane.normal;
+                Vector3d nOuter = pOuter._csg_plane.normal;
+                Vector3d nInner = pInner._csg_plane.normal;
 
+                // TODO do we need radians or degrees?
                 double angle = nOuter.angle(nInner);
 
 //                System.out.println("angle: " + angle + " between " + pOuterI+" -> " + pInnerI);

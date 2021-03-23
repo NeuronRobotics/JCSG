@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import eu.mihosoft.vvecmath.Vector3d;
+
 // TODO: Auto-generated Javadoc
 /**
  * Polyhedron.

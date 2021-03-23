@@ -1,7 +1,9 @@
+package eu.mihosoft.vrl.v3d;
+
 /**
  * Vertex.java
  *
- * Copyright 2014-2014 Michael Hoffer info@michaelhoffer.de. All rights
+ * Copyright 2014-2014 Michael Hoffer <info@michaelhoffer.de>. All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -14,10 +16,10 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY Michael Hoffer info@michaelhoffer.de "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY Michael Hoffer <info@michaelhoffer.de> "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL Michael Hoffer info@michaelhoffer.de OR
+ * ARE DISCLAIMED. IN NO EVENT SHALL Michael Hoffer <info@michaelhoffer.de> OR
  * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
  * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
@@ -29,13 +31,13 @@
  * The views and conclusions contained in the software and documentation are
  * those of the authors and should not be interpreted as representing official
  * policies, either expressed or implied, of Michael Hoffer
- * info@michaelhoffer.de.
+ * <info@michaelhoffer.de>.
  */
-package eu.mihosoft.vrl.v3d;
 
+import eu.mihosoft.vvecmath.Vector3d;
+import eu.mihosoft.vvecmath.Transform;
 import java.util.Objects;
 
-// TODO: Auto-generated Javadoc
 /**
  * Represents a vertex of a polygon. This class provides {@link #normal} so
  * primitives like {@link Cube} can return a smooth vertex normal, but
@@ -53,7 +55,6 @@ public class Vertex {
      */
     public Vector3d normal;
     
-    /** The weight. */
     private double weight = 1.0;
 
     /**
@@ -66,7 +67,32 @@ public class Vertex {
         this.pos = pos;
         this.normal = normal;
     }
+    /**
+     * Returns the {@code x} component of this vector.
+     *
+     * @return the {@code x} component of this vector
+     */
+    public double getX() {
+    	return pos.getX();
+    }
 
+    /**
+     * Returns the {@code y} component of this vector.
+     *
+     * @return the {@code y} component of this vector
+     */
+    public double getY(){
+    	return pos.getY();
+    }
+
+    /**
+     * Returns the {@code z} component of this vector.
+     *
+     * @return the {@code z} component of this vector
+     */
+    public double getZ(){
+    	return pos.getZ();
+    }
     
         /**
      * Constructor. Creates a vertex.
@@ -81,9 +107,6 @@ public class Vertex {
         this.weight = weight;
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#clone()
-     */
     @Override
     public Vertex clone() {
         return new Vertex(pos.clone(), normal.clone(), weight);
@@ -156,7 +179,7 @@ public class Vertex {
      * @return this vertex
      */
     public Vertex transform(Transform transform) {
-        pos = pos.transform(transform, weight);
+        pos = pos.transformed(transform, weight);
         return this;
     }
 
@@ -171,8 +194,6 @@ public class Vertex {
     }
 
     /**
-     * Gets the weight.
-     *
      * @return the weight
      */
     public double getWeight() {
@@ -180,17 +201,12 @@ public class Vertex {
     }
 
     /**
-     * Sets the weight.
-     *
      * @param weight the weight to set
      */
     public void setWeight(double weight) {
         this.weight = weight;
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#hashCode()
-     */
     @Override
     public int hashCode() {
         int hash = 7;
@@ -198,9 +214,6 @@ public class Vertex {
         return hash;
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
     @Override
     public boolean equals(Object obj) {
         if (obj == null) {
@@ -216,24 +229,10 @@ public class Vertex {
         return true;
     }
 
-  /* (non-Javadoc)
-   * @see java.lang.Object#toString()
-   */
   @Override
     public String toString() {
         return pos.toString();
     }
-
-
-public double getX() {
-	return pos.x;
-}
-public double getY() {
-	return pos.y;
-}
-public double getZ() {
-	return pos.z;
-}
     
     
 }

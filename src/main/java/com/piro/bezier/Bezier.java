@@ -1,7 +1,6 @@
 package com.piro.bezier;
 
 
-import eu.mihosoft.vrl.v3d.Vector3d;
 
 /**
  * Class that represents a Bèzier curve
@@ -61,7 +60,7 @@ public class Bezier
         return point;
     }
     
-     Vector3d eval(double param)
+     eu.mihosoft.vvecmath.Vector3d eval(double param)
     {
     	Vector2 point = new Vector2();
         point.x = 0;
@@ -75,7 +74,7 @@ public class Bezier
             point.y += coord[i * 2 + 1] * scale;
         }
         
-        return new Vector3d(point.x,point.y);
+        return  eu.mihosoft.vvecmath.Vector3d.xy(point.x,point.y);
     }
     
     /**

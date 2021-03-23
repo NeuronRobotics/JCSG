@@ -32,6 +32,7 @@
 package eu.mihosoft.vrl.v3d;
 
 import eu.mihosoft.vrl.v3d.ext.imagej.STLLoader;
+import eu.mihosoft.vvecmath.Vector3d;
 
 import java.io.IOException;
 import java.net.URI;
@@ -84,7 +85,7 @@ public class STL {
         List<Polygon> polygons = new ArrayList<>();
         List<Vector3d> vertices = new ArrayList<>();
         for(Point3f p :loader.parse(path.toFile())) {
-            vertices.add(new Vector3d(p.x, p.y, p.z));
+            vertices.add(Vector3d.xyz(p.x, p.y, p.z));
             if (vertices.size()==3) {
                 polygons.add(Polygon.fromPoints(vertices));
                 vertices = new ArrayList<>();

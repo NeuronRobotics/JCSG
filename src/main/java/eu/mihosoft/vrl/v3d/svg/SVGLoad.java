@@ -37,7 +37,7 @@ import eu.mihosoft.vrl.v3d.Edge;
 import eu.mihosoft.vrl.v3d.Extrude;
 import eu.mihosoft.vrl.v3d.Polygon;
 import eu.mihosoft.vrl.v3d.Transform;
-import eu.mihosoft.vrl.v3d.Vector3d;
+import eu.mihosoft.vvecmath.Vector3d;
 import javafx.scene.paint.Color;
 
 // CSG.setDefaultOptType(CSG.OptType.CSG_BOUND);
@@ -602,9 +602,9 @@ public class SVGLoad {
 		double runningTotal=0;
 		List<Edge> edges = Edge.fromPolygon(polygon);
 		for(Edge e:edges) {
-			//runningTotal+=((e.getP1().pos.x-e.getP2().pos.x)*(e.getP1().pos.y-e.getP2().pos.y));
-			runningTotal+=e.getP1().pos.x*e.getP2().pos.y;
-			runningTotal-=e.getP2().pos.x*e.getP1().pos.y;
+			//runningTotal+=((e.getP1().pos.getX()-e.getP2().pos.getX())*(e.getP1().pos.getY()-e.getP2().pos.getY()));
+			runningTotal+=e.getP1().pos.getX()*e.getP2().pos.getY();
+			runningTotal-=e.getP2().pos.getX()*e.getP1().pos.getY();
 		}
 		
 		return runningTotal<0;
@@ -616,11 +616,11 @@ public class SVGLoad {
 		
 		ArrayList<Vector3d> p = path.evaluate();
 		for (Vector3d point : p) {
-			point.transform(startingFrame);
-			point.transform(new Transform().scale((1.0 / getScale())));
-			point.transform(new Transform().translate(0, -height, 0));
-			point.transform(new Transform().rotZ(-180));
-			point.transform(new Transform().rotY(180));
+			point=point.transformed(startingFrame)
+			.transformed(new Transform().scale((1.0 / getScale())))
+			.transformed(new Transform().translate(0, -height, 0))
+			.transformed(new Transform().rotZ(-180))
+			.transformed(new Transform().rotY(180));
 		}
 
 		// System.out.println(" Path " + code);
@@ -680,7 +680,7 @@ public class SVGLoad {
 			parts.clear();
 			for(Polygon p:getPolygonByLayers().get(key)) {
 				CSG newbit;
-				newbit = Extrude.getExtrusionEngine().extrude(new Vector3d(0, 0, thickness), p);
+				newbit = Extrude.getExtrusionEngine().extrude(Vector3d.xyz(0, 0, thickness), p);
 				if (negativeThickness) {
 					newbit = newbit.toZMax();
 				}

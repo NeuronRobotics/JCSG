@@ -2,6 +2,8 @@ package eu.mihosoft.vrl.v3d;
 
 import java.util.List;
 
+import eu.mihosoft.vvecmath.Vector3d;
+
 public interface IExtrusion {
 	/**
 	 * Extrusion interface for writing extrusion strategy scripts

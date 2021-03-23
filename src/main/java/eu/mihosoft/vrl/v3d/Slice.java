@@ -8,6 +8,7 @@ import java.util.List;
 import javafx.scene.image.WritableImage;
 import java.util.HashMap;
 import eu.mihosoft.vrl.v3d.CSG;
+import eu.mihosoft.vvecmath.Vector3d;
 import javafx.application.Platform;
 //import javafx.embed.swing.JFXPanel;
 import javafx.geometry.Insets;
@@ -200,7 +201,7 @@ public class Slice {
 			ArrayList<Polygon> polys = new ArrayList<>();
 			ArrayList<int[]> pixelVersionOfPoints = new ArrayList<>();
 			for (Vector3d it : points) {
-				int[] pix = toPixels(it.x, it.y, xOffset, yOffset, scaleX, scaleY);
+				int[] pix = toPixels(it.getX(), it.getY(), xOffset, yOffset, scaleX, scaleY);
 				if (pixelEdge(pix[0], pix[1], obj_img)) {
 					pixelVersionOfPoints.add(pix);
 				}
@@ -271,7 +272,7 @@ public class Slice {
 							// Thread.sleep(1000)
 							List<Vector3d> p = new ArrayList<>();
 							for (int[] it : listOfPointsForThisPoly) {
-								p.add(new Vector3d((it[0] * scaleX) + xOffset, (it[1] * scaleY) + yOffset, 0));
+								p.add(Vector3d.xyz((it[0] * scaleX) + xOffset, (it[1] * scaleY) + yOffset, 0));
 							}
 
 							Polygon polyNew = Polygon.fromPoints(p);
@@ -293,7 +294,7 @@ public class Slice {
 				// Thread.sleep(1000)
 				List<Vector3d> p = new ArrayList<>();
 				for (int[] it : listOfPointsForThisPoly) {
-					p.add(new Vector3d((it[0] * scaleX) + xOffset, (it[1] * scaleY) + yOffset, 0));
+					p.add(Vector3d.xyz((it[0] * scaleX) + xOffset, (it[1] * scaleY) + yOffset, 0));
 				}
 				polys.add(Polygon.fromPoints(p));
 				// if(display)BowlerStudioController.getBowlerStudio() .addObject(polys, new

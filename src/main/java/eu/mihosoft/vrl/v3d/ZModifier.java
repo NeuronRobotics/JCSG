@@ -5,6 +5,8 @@
  */
 package eu.mihosoft.vrl.v3d;
 
+import eu.mihosoft.vvecmath.Vector3d;
+
 // TODO: Auto-generated Javadoc
 /**
  * Modifies along z axis.
@@ -51,10 +53,10 @@ public class ZModifier implements WeightFunction {
 
         if (bounds == null) {
             this.bounds = csg.getBounds();
-            sPerUnit = (max - min) / (bounds.getMax().z - bounds.getMin().z);
+            sPerUnit = (max - min) / (bounds.getMax().getZ() - bounds.getMin().getZ());
         }
 
-        double s = sPerUnit * (pos.z - bounds.getMin().z);
+        double s = sPerUnit * (pos.getZ() - bounds.getMin().getZ());
 
         if (centered) {
             s = s - (max - min) / 2.0;

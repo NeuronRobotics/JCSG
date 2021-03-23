@@ -6,6 +6,8 @@
 
 package eu.mihosoft.vrl.v3d;
 
+import eu.mihosoft.vvecmath.Vector3d;
+
 // TODO: Auto-generated Javadoc
 /**
  * Weight function.

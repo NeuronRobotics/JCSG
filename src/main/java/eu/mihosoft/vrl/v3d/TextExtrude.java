@@ -16,6 +16,8 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import eu.mihosoft.vvecmath.Vector3d;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.paint.Color;
@@ -134,7 +136,7 @@ public class TextExtrude {
 //		polis.stream().filter(LineSegment::isHole).forEach(hole -> {
 //			polis.stream().filter(poly -> !poly.isHole())
 //					.filter(poly -> !((Path) Shape.intersect(poly.getPath(), hole.getPath())).getElements().isEmpty())
-//					.filter(poly -> poly.getPath().contains(new Point2D(hole.getOrigen().x, hole.getOrigen().y)))
+//					.filter(poly -> poly.getPath().contains(new Point2D(hole.getOrigen().getX(), hole.getOrigen().getY())))
 //					.forEach(poly -> poly.addHole(hole));
 //		});
 		//polis.removeIf(LineSegment::isHole);
@@ -181,17 +183,17 @@ public class TextExtrude {
 	    }
 	    
 	    public List<Vector3d> getOffset(){
-	        return polis.stream().sorted((p1,p2)->(int)(p1.getOrigen().x-p2.getOrigen().x))
+	        return polis.stream().sorted((p1,p2)->(int)(p1.getOrigen().getX()-p2.getOrigen().getX()))
 	                .map(LineSegment::getOrigen).collect(Collectors.toList());
 	    }
 	    
 	    private void getPoints(PathElement elem){
 	        if(elem instanceof MoveTo){
 	        	loadPoints();
-	            p0=new Vector3d((float)((MoveTo)elem).getX(),(float)((MoveTo)elem).getY(),0f);
+	            p0=Vector3d.xyz((float)((MoveTo)elem).getX(),(float)((MoveTo)elem).getY(),0f);
 	            points.add(p0);
 	        } else if(elem instanceof LineTo){
-	            points.add(new Vector3d((float)((LineTo)elem).getX(),(float)((LineTo)elem).getY(),0f));
+	            points.add(Vector3d.xyz((float)((LineTo)elem).getX(),(float)((LineTo)elem).getY(),0f));
 	        } else if(elem instanceof CubicCurveTo){
 	            Vector3d ini = (points.size()>0?points.get(points.size()-1):p0);
 	            IntStream.rangeClosed(1, POINTS_CURVE).forEach(i->points.add(evalCubicBezier((CubicCurveTo)elem, ini, ((double)i)/POINTS_CURVE)));
@@ -221,7 +223,7 @@ public class TextExtrude {
 	        	points.remove(points.size() - 1);
 				//points.remove(points.size() - 1);
 				boolean hole = Extrude.isCCW(Polygon.fromPoints(points));
-				CSG newLetter = Extrude.points(new Vector3d(0, 0, dir), points);
+				CSG newLetter = Extrude.points(Vector3d.xyz(0, 0, dir), points);
 
 				if (!hole)
 					sections.add(newLetter);
@@ -232,11 +234,11 @@ public class TextExtrude {
 	    }
 	    
 	    private Vector3d evalCubicBezier(CubicCurveTo c, Vector3d ini, double t){
-	        Vector3d p=new Vector3d((float)(Math.pow(1-t,3)*ini.x+
+	        Vector3d p=Vector3d.xyz((float)(Math.pow(1-t,3)*ini.getX()+
 	                3*t*Math.pow(1-t,2)*c.getControlX1()+
 	                3*(1-t)*t*t*c.getControlX2()+
 	                Math.pow(t, 3)*c.getX()),
-	                (float)(Math.pow(1-t,3)*ini.y+
+	                (float)(Math.pow(1-t,3)*ini.getY()+
 	                3*t*Math.pow(1-t, 2)*c.getControlY1()+
 	                3*(1-t)*t*t*c.getControlY2()+
 	                Math.pow(t, 3)*c.getY()),
@@ -245,10 +247,10 @@ public class TextExtrude {
 	    }
 	    
 	    private Vector3d evalQuadBezier(QuadCurveTo c, Vector3d ini, double t){
-	        Vector3d p=new Vector3d((float)(Math.pow(1-t,2)*ini.x+
+	        Vector3d p=Vector3d.xyz((float)(Math.pow(1-t,2)*ini.getX()+
 	                2*(1-t)*t*c.getControlX()+
 	                Math.pow(t, 2)*c.getX()),
-	                (float)(Math.pow(1-t,2)*ini.y+
+	                (float)(Math.pow(1-t,2)*ini.getY()+
 	                2*(1-t)*t*c.getControlY()+
 	                Math.pow(t, 2)*c.getY()),
 	                0f);
@@ -258,7 +260,7 @@ public class TextExtrude {
 	    private double getArea(){
 	        DoubleProperty res=new SimpleDoubleProperty();
 	        IntStream.range(0, points.size()-1)
-	                .forEach(i->res.set(res.get()+points.get(i).cross(points.get(i+1)).z));
+	                .forEach(i->res.set(res.get()+points.get(i).crossed(points.get(i+1)).getZ()));
 	        // System.out.println("path: "+res.doubleValue()/2);
 	        
 	        return res.doubleValue()/2d;
@@ -271,8 +273,8 @@ public class TextExtrude {
 	    }
 	    
 	    private Path generatePath(){
-	        Path path = new Path(new MoveTo(points.get(0).x,points.get(0).y));
-	        points.stream().skip(1).forEach(p->path.getElements().add(new LineTo(p.x,p.y)));
+	        Path path = new Path(new MoveTo(points.get(0).getX(),points.get(0).getY()));
+	        points.stream().skip(1).forEach(p->path.getElements().add(new LineTo(p.getX(),p.getY())));
 	        path.getElements().add(new ClosePath());
 	        path.setStroke(Color.GREEN);
 	        // Path must be filled to allow Shape.intersect

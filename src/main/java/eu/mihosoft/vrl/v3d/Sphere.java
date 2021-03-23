@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import eu.mihosoft.vrl.v3d.parametrics.LengthParameter;
+import eu.mihosoft.vvecmath.Vector3d;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -88,7 +89,7 @@ public class Sphere extends Primitive {
         this.radius = radius;
     }
 //    public Cube(LengthParameter w, LengthParameter h, LengthParameter d) {
-//        this(Vector3d.ZERO, new Vector3d(w.getMM(), h.getMM(), d.getMM()));
+//        this(Vector3d.ZERO, Vector3d.xyz(w.getMM(), h.getMM(), d.getMM()));
 //
 //    }
     public Sphere(LengthParameter size) {
@@ -134,7 +135,7 @@ public class Sphere extends Primitive {
      * Inits the.
      */
     private void init() {
-        center = new Vector3d(0, 0, 0);
+        center = Vector3d.xyz(0, 0, 0);
         radius = 1;
         setNumSlices(NUM_SLICES);
         setNumStacks(NUM_STACKS);
@@ -152,7 +153,7 @@ public class Sphere extends Primitive {
     private Vertex sphereVertex(Vector3d c, double r, double theta, double phi) {
         theta *= Math.PI * 2;
         phi *= Math.PI;
-        Vector3d dir = new Vector3d(
+        Vector3d dir = Vector3d.xyz(
                 Math.cos(theta) * Math.sin(phi),
                 Math.cos(phi),
                 Math.sin(theta) * Math.sin(phi)

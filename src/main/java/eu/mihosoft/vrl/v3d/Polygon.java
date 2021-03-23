@@ -1,7 +1,9 @@
+package eu.mihosoft.vrl.v3d;
+
 /**
  * Polygon.java
  *
- * Copyright 2014-2014 Michael Hoffer info@michaelhoffer.de. All rights
+ * Copyright 2014-2014 Michael Hoffer <info@michaelhoffer.de>. All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -14,10 +16,10 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY Michael Hoffer info@michaelhoffer.de "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY Michael Hoffer <info@michaelhoffer.de> "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL Michael Hoffer info@michaelhoffer.de OR
+ * ARE DISCLAIMED. IN NO EVENT SHALL Michael Hoffer <info@michaelhoffer.de> OR
  * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
  * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
@@ -29,17 +31,17 @@
  * The views and conclusions contained in the software and documentation are
  * those of the authors and should not be interpreted as representing official
  * policies, either expressed or implied, of Michael Hoffer
- * info@michaelhoffer.de.
+ * <info@michaelhoffer.de>.
  */
-package eu.mihosoft.vrl.v3d;
 
+import eu.mihosoft.vvecmath.Vector3d;
+import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
+import eu.mihosoft.vvecmath.Transform;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
 
-// TODO: Auto-generated Javadoc
 /**
  * Represents a convex polygon.
  *
@@ -50,7 +52,9 @@ import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
  */
 public final class Polygon {
 
-    /** Polygon vertices. */
+    /**
+     * Polygon vertices
+     */
     public final List<Vertex> vertices;
     /**
      * Shared property (can be used for shared color etc.).
@@ -59,17 +63,20 @@ public final class Polygon {
     /**
      * Plane defined by this polygon.
      *
-     *  Note:  uses first three vertices to define the plane.
+     * <b>Note:</b> uses first three vertices to define the plane.
      */
-    public final Plane plane;
-	//private final Exception creationEventStackTrace = new Exception();
+    public final Plane _csg_plane;
+    private eu.mihosoft.vvecmath.Plane plane;
     
-
     /**
-     * Sets the storage.
-     *
-     * @param storage the new storage
+     * Returns the plane defined by this triangle. 
+     * 
+     * @return plane
      */
+    public eu.mihosoft.vvecmath.Plane getPlane() {
+        return plane;
+    }
+
     void setStorage(PropertyStorage storage) {
         this.shared = storage;
     }
@@ -99,10 +106,21 @@ public final class Polygon {
     }
 
     /**
+     * Indicates whether this polyon is valid, i.e., if it
+     *
+     * @return
+     */
+    public boolean isValid() {
+        return valid;
+    }
+
+    private boolean valid = true;
+
+    /**
      * Constructor. Creates a new polygon that consists of the specified
      * vertices.
      *
-     *  Note:  the vertices used to initialize a polygon must be coplanar
+     * <b>Note:</b> the vertices used to initialize a polygon must be coplanar
      * and form a convex loop.
      *
      * @param vertices polygon vertices
@@ -111,34 +129,62 @@ public final class Polygon {
     public Polygon(List<Vertex> vertices, PropertyStorage shared) {
         this.vertices = vertices;
         this.shared = shared;
-        this.plane = Plane.createFromPoints(
+        this._csg_plane = Plane.createFromPoints(
                 vertices.get(0).pos,
                 vertices.get(1).pos,
                 vertices.get(2).pos);
+        this.plane = eu.mihosoft.vvecmath.Plane.
+                fromPointAndNormal(centroid(), _csg_plane.normal);
+
+        validateAndInit(vertices);
+    }
+
+    private void validateAndInit(List<Vertex> vertices1) {
+        for (Vertex v : vertices1) {
+            v.normal = _csg_plane.normal;
+        }
+        if (Vector3d.ZERO.equals(_csg_plane.normal)) {
+            valid = false;
+            System.err.println(
+                    "Normal is zero! Probably, duplicate points have been specified!\n\n" + toStlString());
+//            throw new RuntimeException(
+//                    "Normal is zero! Probably, duplicate points have been specified!\n\n"+toStlString());
+        }
+
+        if (vertices.size() < 3) {
+            throw new RuntimeException(
+                    "Invalid polygon: at least 3 vertices expected, got: "
+                    + vertices.size());
+        }
     }
 
     /**
      * Constructor. Creates a new polygon that consists of the specified
      * vertices.
      *
-     *  Note:  the vertices used to initialize a polygon must be coplanar
+     * <b>Note:</b> the vertices used to initialize a polygon must be coplanar
      * and form a convex loop.
      *
      * @param vertices polygon vertices
      */
     public Polygon(List<Vertex> vertices) {
         this.vertices = vertices;
-        this.plane = Plane.createFromPoints(
+        this._csg_plane = Plane.createFromPoints(
                 vertices.get(0).pos,
                 vertices.get(1).pos,
                 vertices.get(2).pos);
+
+        this.plane = eu.mihosoft.vvecmath.Plane.
+                fromPointAndNormal(centroid(), _csg_plane.normal);
+
+        validateAndInit(vertices);
     }
 
     /**
      * Constructor. Creates a new polygon that consists of the specified
      * vertices.
      *
-     *  Note:  the vertices used to initialize a polygon must be coplanar
+     * <b>Note:</b> the vertices used to initialize a polygon must be coplanar
      * and form a convex loop.
      *
      * @param vertices polygon vertices
@@ -148,9 +194,6 @@ public final class Polygon {
         this(Arrays.asList(vertices));
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#clone()
-     */
     @Override
     public Polygon clone() {
         List<Vertex> newVertices = new ArrayList<>();
@@ -171,7 +214,8 @@ public final class Polygon {
         });
         Collections.reverse(vertices);
 
-        plane.flip();
+        _csg_plane.flip();
+        this.plane = plane.flipped();
 
         return this;
     }
@@ -179,7 +223,7 @@ public final class Polygon {
     /**
      * Returns a flipped copy of this polygon.
      *
-     *  Note:  this polygon is not modified.
+     * <b>Note:</b> this polygon is not modified.
      *
      * @return a flipped copy of this polygon
      */
@@ -215,8 +259,7 @@ public final class Polygon {
             String firstVertexStl = this.vertices.get(0).toStlString();
             for (int i = 0; i < this.vertices.size() - 2; i++) {
                 sb.
-                        append("  facet normal ").append(
-                                this.plane.normal.toStlString()).append("\n").
+                        append("  facet normal ").append(this._csg_plane.normal.toStlString()).append("\n").
                         append("    outer loop\n").
                         append("      ").append(firstVertexStl).append("\n").
                         append("      ");
@@ -229,6 +272,38 @@ public final class Polygon {
         }
 
         return sb;
+    }
+
+    /**
+     * Returns a triangulated version of this polygon.
+     *
+     * @return triangles
+     */
+    public List<Polygon> toTriangles() {
+
+        List<Polygon> result = new ArrayList<>();
+
+        if (this.vertices.size() >= 3) {
+
+            // TODO: improve the triangulation?
+            //
+            // If our polygon has more vertices, create
+            // multiple triangles:
+            Vertex firstVertexStl = this.vertices.get(0);
+            for (int i = 0; i < this.vertices.size() - 2; i++) {
+
+                // create triangle
+                Polygon polygon = Polygon.fromPoints(
+                        firstVertexStl.pos,
+                        this.vertices.get(i + 1).pos,
+                        this.vertices.get(i + 2).pos
+                );
+
+                result.add(polygon);
+            }
+        }
+
+        return result;
     }
 
     /**
@@ -246,7 +321,11 @@ public final class Polygon {
         Vector3d b = this.vertices.get(1).pos;
         Vector3d c = this.vertices.get(2).pos;
 
-        this.plane.normal = b.minus(a).cross(c.minus(a));
+        // TODO plane update correct?
+        this._csg_plane.normal = b.minus(a).crossed(c.minus(a));
+
+        this.plane = eu.mihosoft.vvecmath.Plane.
+                fromPointAndNormal(centroid(), _csg_plane.normal);
 
         return this;
     }
@@ -254,7 +333,7 @@ public final class Polygon {
     /**
      * Returns a translated copy of this polygon.
      *
-     *  Note:  this polygon is not modified
+     * <b>Note:</b> this polygon is not modified
      *
      * @param v the vector that defines the translation
      *
@@ -267,7 +346,7 @@ public final class Polygon {
     /**
      * Applies the specified transformation to this polygon.
      *
-     *  Note:  if the applied transformation performs a mirror operation
+     * <b>Note:</b> if the applied transformation performs a mirror operation
      * the vertex order of this polygon is reversed.
      *
      * @param transform the transformation to apply
@@ -286,8 +365,15 @@ public final class Polygon {
         Vector3d b = this.vertices.get(1).pos;
         Vector3d c = this.vertices.get(2).pos;
 
-        this.plane.normal = b.minus(a).cross(c.minus(a)).normalized();
-        this.plane.dist = this.plane.normal.dot(a);
+        this._csg_plane.normal = b.minus(a).crossed(c.minus(a)).normalized();
+        this._csg_plane.dist = this._csg_plane.normal.dot(a);
+
+        this.plane = eu.mihosoft.vvecmath.Plane.
+                fromPointAndNormal(centroid(), _csg_plane.normal);
+
+        vertices.forEach((vertex) -> {
+            vertex.normal = plane.getNormal();
+        });
 
         if (transform.isMirror()) {
             // the transformation includes mirroring. flip polygon
@@ -300,10 +386,10 @@ public final class Polygon {
     /**
      * Returns a transformed copy of this polygon.
      *
-     *  Note:  if the applied transformation performs a mirror operation
+     * <b>Note:</b> if the applied transformation performs a mirror operation
      * the vertex order of this polygon is reversed.
      *
-     *  Note:  this polygon is not modified
+     * <b>Note:</b> this polygon is not modified
      *
      * @param transform the transformation to apply
      * @return a transformed copy of this polygon
@@ -348,7 +434,7 @@ public final class Polygon {
      * Creates a polygon from the specified point list.
      *
      * @param points the points that define the polygon
-     * @param shared the shared
+     * @param shared
      * @param plane may be null
      * @return a polygon defined by the specified point list
      */
@@ -356,7 +442,14 @@ public final class Polygon {
             List<Vector3d> points, PropertyStorage shared, Plane plane) {
 
         Vector3d normal
-                = (plane != null) ? plane.normal.clone() : new Vector3d(0, 0, 0);
+                = (plane != null) ? plane.normal.clone() : null;
+
+        if (normal == null) {
+            normal = Plane.createFromPoints(
+                    points.get(0),
+                    points.get(1),
+                    points.get(2)).normal;
+        }
 
         List<Vertex> vertices = new ArrayList<>();
 
@@ -387,76 +480,156 @@ public final class Polygon {
 
             Vertex vert = vertices.get(i);
 
-            if (vert.pos.x < minX) {
-                minX = vert.pos.x;
+            if (vert.pos.x() < minX) {
+                minX = vert.pos.x();
             }
-            if (vert.pos.y < minY) {
-                minY = vert.pos.y;
+            if (vert.pos.y() < minY) {
+                minY = vert.pos.y();
             }
-            if (vert.pos.z < minZ) {
-                minZ = vert.pos.z;
+            if (vert.pos.z() < minZ) {
+                minZ = vert.pos.z();
             }
 
-            if (vert.pos.x > maxX) {
-                maxX = vert.pos.x;
+            if (vert.pos.x() > maxX) {
+                maxX = vert.pos.x();
             }
-            if (vert.pos.y > maxY) {
-                maxY = vert.pos.y;
+            if (vert.pos.y() > maxY) {
+                maxY = vert.pos.y();
             }
-            if (vert.pos.z > maxZ) {
-                maxZ = vert.pos.z;
+            if (vert.pos.z() > maxZ) {
+                maxZ = vert.pos.z();
             }
 
         } // end for vertices
 
         return new Bounds(
-                new Vector3d(minX, minY, minZ),
-                new Vector3d(maxX, maxY, maxZ));
+                Vector3d.xyz(minX, minY, minZ),
+                Vector3d.xyz(maxX, maxY, maxZ));
+    }
+
+    public Vector3d centroid() {
+        Vector3d sum = Vector3d.zero();
+
+        for (Vertex v : vertices) {
+            sum = sum.plus(v.pos);
+        }
+
+        return sum.times(1.0 / vertices.size());
     }
 
     /**
-     * Contains.
+     * Indicates whether the specified point is contained within this polygon.
      *
-     * @param p the p
-     * @return true, if successful
+     * @param p point
+     * @return {@code true} if the point is inside the polygon or on one of the
+     * edges; {@code false} otherwise
      */
     public boolean contains(Vector3d p) {
-        // taken from http://www.java-gaming.org/index.php?topic=26013.0
-        // and http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
-        double px = p.x;
-        double py = p.y;
-        boolean oddNodes = false;
-        double x2 = vertices.get(vertices.size() - 1).pos.x;
-        double y2 = vertices.get(vertices.size() - 1).pos.y;
-        double x1, y1;
-        for (int i = 0; i < vertices.size(); x2 = x1, y2 = y1, ++i) {
-            x1 = vertices.get(i).pos.x;
-            y1 = vertices.get(i).pos.y;
-            if (((y1 < py) && (y2 >= py))
-                    || (y1 >= py) && (y2 < py)) {
-                if ((py - y1) / (y2 - y1)
-                        * (x2 - x1) < (px - x1)) {
-                    oddNodes = !oddNodes;
-                }
+
+        // P not on the plane
+        if (plane.distance(p) > Plane.EPSILON) {
+            return false;
+        }
+
+        // if P is on one of the vertices, return true
+        for (int i = 0; i < vertices.size() - 1; i++) {
+            if (p.minus(vertices.get(i).pos).magnitude() < Plane.EPSILON) {
+                return true;
             }
         }
+
+        // if P is on the plane, we proceed with projection to XY plane
+        //  
+        // P1--P------P2
+        //     ^
+        //     |
+        // P is on the segment if( dist(P1,P) + dist(P2,P) - dist(P1,P2) < TOL) 
+        for (int i = 0; i < vertices.size() - 1; i++) {
+
+            Vector3d p1 = vertices.get(i).pos;
+            Vector3d p2 = vertices.get(i + 1).pos;
+
+            boolean onASegment = p1.minus(p).magnitude() + p2.minus(p).magnitude()
+                    - p1.minus(p2).magnitude() < Plane.EPSILON;
+
+            if (onASegment) {
+                return true;
+            }
+        }
+
+        // find projection plane
+        // we start with XY plane
+        int coordIndex1 = 0;
+        int coordIndex2 = 1;
+
+        boolean orthogonalToXY = Math.abs(eu.mihosoft.vvecmath.Plane.XY_PLANE.getNormal()
+                .dot(plane.getNormal())) < Plane.EPSILON;
+
+        boolean foundProjectionPlane = false;
+        if (!orthogonalToXY && !foundProjectionPlane) {
+            coordIndex1 = 0;
+            coordIndex2 = 1;
+            foundProjectionPlane = true;
+        }
+
+        boolean orthogonalToXZ = Math.abs(eu.mihosoft.vvecmath.Plane.XZ_PLANE.getNormal()
+                .dot(plane.getNormal())) < Plane.EPSILON;
+
+        if (!orthogonalToXZ && !foundProjectionPlane) {
+            coordIndex1 = 0;
+            coordIndex2 = 2;
+            foundProjectionPlane = true;
+        }
+
+        boolean orthogonalToYZ = Math.abs(eu.mihosoft.vvecmath.Plane.YZ_PLANE.getNormal()
+                .dot(plane.getNormal())) < Plane.EPSILON;
+
+        if (!orthogonalToYZ && !foundProjectionPlane) {
+            coordIndex1 = 1;
+            coordIndex2 = 2;
+            foundProjectionPlane = true;
+        }
+
+        // see from http://www.java-gaming.org/index.php?topic=26013.0
+        // see http://alienryderflex.com/polygon/
+        // see http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+        int i, j = vertices.size() - 1;
+        boolean oddNodes = false;
+        double x = p.get(coordIndex1);
+        double y = p.get(coordIndex2);
+        for (i = 0; i < vertices.size(); i++) {
+            double xi = vertices.get(i).pos.get(coordIndex1);
+            double yi = vertices.get(i).pos.get(coordIndex2);
+            double xj = vertices.get(j).pos.get(coordIndex1);
+            double yj = vertices.get(j).pos.get(coordIndex2);
+            if ((yi < y && yj >= y
+                    || yj < y && yi >= y)
+                    && (xi <= x || xj <= x)) {
+                oddNodes ^= (xi + (y - yi) / (yj - yi) * (xj - xi) < x);
+            }
+            j = i;
+        }
         return oddNodes;
+
     }
-    
-    /**
-     * Contains.
-     *
-     * @param p the p
-     * @return true, if successful
-     */
+
+    @Deprecated
+    public boolean intersects(Polygon p) {
+        if (!getBounds().intersects(p.getBounds())) {
+            return false;
+        }
+
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
     public boolean contains(Polygon p) {
-        
+
         for (Vertex v : p.vertices) {
             if (!contains(v.pos)) {
                 return false;
             }
         }
-        
+
         return true;
     }
 
@@ -571,10 +744,8 @@ public final class Polygon {
 ////        return result;
 //    }
     /**
- * Gets the storage.
- *
- * @return the shared
- */
+     * @return the shared
+     */
     public PropertyStorage getStorage() {
 
         if (shared == null) {
@@ -584,127 +755,11 @@ public final class Polygon {
         return shared;
     }
 
-//	public Exception getCreationEventStackTrace() {
-//		return creationEventStackTrace;
-//	}
-
 	public List<Vector3d> getPoints() {
 		ArrayList<Vector3d> p =new ArrayList<>();
 		for(Vertex v:vertices) {
 			p.add(v.pos);
 		}
 		return p;
-	}
-	/**
-	 * Movey.
-	 *
-	 * @param howFarToMove
-	 *            the how far to move
-	 * @return the csg
-	 */
-	// Helper/wrapper functions for movement
-	public Polygon movey(Number howFarToMove) {
-		return this.transformed(Transform.unity().translateY(howFarToMove.doubleValue()));
-	}
-
-	/**
-	 * Movez.
-	 *
-	 * @param howFarToMove
-	 *            the how far to move
-	 * @return the csg
-	 */
-	public Polygon movez(Number howFarToMove) {
-		return this.transformed(Transform.unity().translateZ(howFarToMove.doubleValue()));
-	}
-
-	/**
-	 * Movex.
-	 *
-	 * @param howFarToMove
-	 *            the how far to move
-	 * @return the csg
-	 */
-	public Polygon movex(Number howFarToMove) {
-		return this.transformed(Transform.unity().translateX(howFarToMove.doubleValue()));
-	}
-
-	/**
-	 * Rotz.
-	 *
-	 * @param degreesToRotate
-	 *            the degrees to rotate
-	 * @return the csg
-	 */
-	// Rotation function, rotates the object
-	public Polygon rotz(Number degreesToRotate) {
-		return this.transformed(new Transform().rotZ(degreesToRotate.doubleValue()));
-	}
-
-	/**
-	 * Roty.
-	 *
-	 * @param degreesToRotate
-	 *            the degrees to rotate
-	 * @return the csg
-	 */
-	public Polygon roty(Number degreesToRotate) {
-		return this.transformed(new Transform().rotY(degreesToRotate.doubleValue()));
-	}
-
-	/**
-	 * Rotx.
-	 *
-	 * @param degreesToRotate
-	 *            the degrees to rotate
-	 * @return the csg
-	 */
-	public Polygon rotx(Number degreesToRotate) {
-		return this.transformed(new Transform().rotX(degreesToRotate.doubleValue()));
-	}
-
-	/**
-	 * Scalez.
-	 *
-	 * @param scaleValue
-	 *            the scale value
-	 * @return the csg
-	 */
-	// Scale function, scales the object
-	public Polygon scalez(Number scaleValue) {
-		return this.transformed(new Transform().scaleZ(scaleValue.doubleValue()));
-	}
-
-	/**
-	 * Scaley.
-	 *
-	 * @param scaleValue
-	 *            the scale value
-	 * @return the csg
-	 */
-	public Polygon scaley(Number scaleValue) {
-		return this.transformed(new Transform().scaleY(scaleValue.doubleValue()));
-	}
-
-	/**
-	 * Scalex.
-	 *
-	 * @param scaleValue
-	 *            the scale value
-	 * @return the csg
-	 */
-	public Polygon scalex(Number scaleValue) {
-		return this.transformed(new Transform().scaleX(scaleValue.doubleValue()));
-	}
-
-	/**
-	 * Scale.
-	 *
-	 * @param scaleValue
-	 *            the scale value
-	 * @return the csg
-	 */
-	public Polygon scale(Number scaleValue) {
-		return this.transformed(new Transform().scale(scaleValue.doubleValue()));
 	}
 }

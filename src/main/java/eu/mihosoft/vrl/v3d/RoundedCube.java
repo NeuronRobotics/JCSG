@@ -9,6 +9,7 @@ import static eu.mihosoft.vrl.v3d.Transform.unity;
 import java.util.List;
 
 import eu.mihosoft.vrl.v3d.parametrics.LengthParameter;
+import eu.mihosoft.vvecmath.Vector3d;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -43,8 +44,8 @@ public class RoundedCube extends Primitive {
      * dimensions {@code [1,1,1]}.
      */
     public RoundedCube() {
-        center = new Vector3d(0, 0, 0);
-        dimensions = new Vector3d(1, 1, 1);
+        center = Vector3d.xyz(0, 0, 0);
+        dimensions = Vector3d.xyz(1, 1, 1);
     }
 
     /**
@@ -54,13 +55,13 @@ public class RoundedCube extends Primitive {
      * @param size size
      */
     public RoundedCube(double size) {
-        center = new Vector3d(0, 0, 0);
-        dimensions = new Vector3d(size, size, size);
+        center = Vector3d.xyz(0, 0, 0);
+        dimensions = Vector3d.xyz(size, size, size);
     }
     
 
     public RoundedCube(LengthParameter w, LengthParameter h, LengthParameter d) {
-        this(Vector3d.ZERO, new Vector3d(w.getMM(), h.getMM(), d.getMM()));
+        this(Vector3d.ZERO, Vector3d.xyz(w.getMM(), h.getMM(), d.getMM()));
         parametrics.add(w);
         parametrics.add(h);
         parametrics.add(d);
@@ -90,7 +91,7 @@ public class RoundedCube extends Primitive {
      * @param d depth
      */
     public RoundedCube(double w, double h, double d) {
-        this(Vector3d.ZERO, new Vector3d(w, h, d));
+        this(Vector3d.ZERO, Vector3d.xyz(w, h, d));
     }
 
 
@@ -102,9 +103,9 @@ public class RoundedCube extends Primitive {
         CSG spherePrototype = 
                 new Sphere(getCornerRadius(), getResolution()*2, getResolution()).toCSG();
 
-        double x = dimensions.x / 2.0 - getCornerRadius();
-        double y = dimensions.y / 2.0 - getCornerRadius();
-        double z = dimensions.z / 2.0 - getCornerRadius();
+        double x = dimensions.getX() / 2.0 - getCornerRadius();
+        double y = dimensions.getY() / 2.0 - getCornerRadius();
+        double z = dimensions.getZ() / 2.0 - getCornerRadius();
 
         CSG sphere1 = spherePrototype.transformed(unity().translate(-x, -y, -z));
         CSG sphere2 = spherePrototype.transformed(unity().translate(x, -y, -z));
@@ -122,7 +123,7 @@ public class RoundedCube extends Primitive {
 
         if (!centered) {
 
-            Transform centerTransform = Transform.unity().translate(dimensions.x / 2.0, dimensions.y / 2.0, dimensions.z / 2.0);
+            Transform centerTransform = Transform.unity().translate(dimensions.getX() / 2.0, dimensions.getY() / 2.0, dimensions.getZ() / 2.0);
 
             for (Polygon p : result) {
                 p.transform(centerTransform);

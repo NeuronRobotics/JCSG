@@ -36,6 +36,8 @@ package eu.mihosoft.vrl.v3d;
 import javax.vecmath.Matrix4d;
 import javax.vecmath.Quat4d;
 
+import eu.mihosoft.vvecmath.Vector3d;
+
 // TODO: Auto-generated Javadoc
 /**
  * Transform. Transformations (translation, rotation, scale) can be applied to
@@ -57,7 +59,7 @@ import javax.vecmath.Quat4d;
  *
  * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
  */
-public class Transform {
+public class Transform extends eu.mihosoft.vvecmath.Transform{
 
 	/**
 	 * Internal 4x4 matrix.
@@ -173,7 +175,7 @@ public class Transform {
 	public Transform rot(Vector3d vec) {
 
 		// TODO: use quaternions
-		return rotX(vec.x).rotY(vec.y).rotZ(vec.z);
+		return rotX(vec.getX()).rotY(vec.getY()).rotZ(vec.getZ());
 	}
 
 	/**
@@ -185,7 +187,7 @@ public class Transform {
 	 * @return this transform
 	 */
 	public Transform translate(Vector3d vec) {
-		return translate(vec.x, vec.y, vec.z);
+		return translate(vec.getX(), vec.getY(), vec.getZ());
 	}
 
 	/**
@@ -312,9 +314,9 @@ public class Transform {
 
 		System.err.println("WARNING: I'm too dumb to implement the mirror() operation correctly. Please fix me!");
 
-		double nx = plane.normal.x;
-		double ny = plane.normal.y;
-		double nz = plane.normal.z;
+		double nx = plane.normal.getX();
+		double ny = plane.normal.getY();
+		double nz = plane.normal.getZ();
 		double w = plane.dist;
 		double elemenents[] = { (1.0 - 2.0 * nx * nx), (-2.0 * ny * nx), (-2.0 * nz * nx), 0, (-2.0 * nx * ny),
 				(1.0 - 2.0 * ny * ny), (-2.0 * nz * ny), 0, (-2.0 * nx * nz), (-2.0 * ny * nz), (1.0 - 2.0 * nz * nz),
@@ -333,11 +335,11 @@ public class Transform {
 	 */
 	public Transform scale(Vector3d vec) {
 
-		if (vec.x == 0 || vec.y == 0 || vec.z == 0) {
+		if (vec.getX() == 0 || vec.getY() == 0 || vec.getZ() == 0) {
 			throw new IllegalArgumentException("scale by 0 not allowed!");
 		}
 
-		double elemenents[] = { vec.x, 0, 0, 0, 0, vec.y, 0, 0, 0, 0, vec.z, 0, 0, 0, 0, 1 };
+		double elemenents[] = { vec.getX(), 0, 0, 0, 0, vec.getY(), 0, 0, 0, 0, vec.getZ(), 0, 0, 0, 0, 1 };
 		getInternalMatrix().mul(new Matrix4d(elemenents));
 		return this;
 	}
@@ -451,15 +453,13 @@ public class Transform {
 	 */
 	public Vector3d transform(Vector3d vec) {
 		double x, y;
-		x = getInternalMatrix().m00 * vec.x + getInternalMatrix().m01 * vec.y + getInternalMatrix().m02 * vec.z
+		x = getInternalMatrix().m00 * vec.getX() + getInternalMatrix().m01 * vec.getY() + getInternalMatrix().m02 * vec.getZ()
 				+ getInternalMatrix().m03;
-		y = getInternalMatrix().m10 * vec.x + getInternalMatrix().m11 * vec.y + getInternalMatrix().m12 * vec.z
+		y = getInternalMatrix().m10 * vec.getX() + getInternalMatrix().m11 * vec.getY() + getInternalMatrix().m12 * vec.getZ()
 				+ getInternalMatrix().m13;
-		vec.z = getInternalMatrix().m20 * vec.x + getInternalMatrix().m21 * vec.y + getInternalMatrix().m22 * vec.z
-				+ getInternalMatrix().m23;
-		vec.x = x;
-		vec.y = y;
 
+		vec = Vector3d.xyz(x, y, getInternalMatrix().m20 * vec.getX() + getInternalMatrix().m21 * vec.getY() + getInternalMatrix().m22 * vec.getZ()
+				+ getInternalMatrix().m23);
 		return vec;
 	}
 
@@ -475,27 +475,26 @@ public class Transform {
 	 */
 	public Vector3d transform(Vector3d vec, double amount) {
 
-		double prevX = vec.x;
-		double prevY = vec.y;
-		double prevZ = vec.z;
+		double prevX = vec.getX();
+		double prevY = vec.getY();
+		double prevZ = vec.getZ();
 
 		final double x, y;
-		x = getInternalMatrix().m00 * vec.x + getInternalMatrix().m01 * vec.y + getInternalMatrix().m02 * vec.z
+		x = getInternalMatrix().m00 * vec.getX() + getInternalMatrix().m01 * vec.getY() + getInternalMatrix().m02 * vec.getZ()
 				+ getInternalMatrix().m03;
-		y = getInternalMatrix().m10 * vec.x + getInternalMatrix().m11 * vec.y + getInternalMatrix().m12 * vec.z
+		y = getInternalMatrix().m10 * vec.getX() + getInternalMatrix().m11 * vec.getY() + getInternalMatrix().m12 * vec.getZ()
 				+ getInternalMatrix().m13;
-		vec.z = getInternalMatrix().m20 * vec.x + getInternalMatrix().m21 * vec.y + getInternalMatrix().m22 * vec.z
-				+ getInternalMatrix().m23;
-		vec.x = x;
-		vec.y = y;
+		vec = Vector3d.xyz(x, y, getInternalMatrix().m20 * vec.getX() + getInternalMatrix().m21 * vec.getY() + getInternalMatrix().m22 * vec.getZ()
+				+ getInternalMatrix().m23);
 
-		double diffX = vec.x - prevX;
-		double diffY = vec.y - prevY;
-		double diffZ = vec.z - prevZ;
 
-		vec.x = prevX + (diffX) * amount;
-		vec.y = prevY + (diffY) * amount;
-		vec.z = prevZ + (diffZ) * amount;
+		double diffX = vec.getX() - prevX;
+		double diffY = vec.getY() - prevY;
+		double diffZ = vec.getZ() - prevZ;
+
+		vec = Vector3d.xyz(prevX + (diffX) * amount,
+				prevY + (diffY) * amount,
+				 prevZ + (diffZ) * amount);
 
 		return vec;
 	}
@@ -607,7 +606,7 @@ public class Transform {
 		return new Transform().translate(v.getX(),v.getY(),v.getZ()).apply(this);
 	}
 	public Transform move(Vector3d v) {
-		return new Transform().translate(v.x,v.y,v.z).apply(this);
+		return new Transform().translate(v.getX(),v.getY(),v.getZ()).apply(this);
 	}
 	public Transform move(Number[] posVector) {
 		return move(posVector[0], posVector[1], posVector[2]);

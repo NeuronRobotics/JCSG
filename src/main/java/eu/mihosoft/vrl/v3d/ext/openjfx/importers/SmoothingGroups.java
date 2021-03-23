@@ -31,7 +31,6 @@
  */
 package eu.mihosoft.vrl.v3d.ext.openjfx.importers;
 
-import eu.mihosoft.vrl.v3d.Vector3d;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;

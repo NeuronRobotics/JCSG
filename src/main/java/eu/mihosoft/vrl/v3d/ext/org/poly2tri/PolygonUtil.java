@@ -34,8 +34,9 @@
 package eu.mihosoft.vrl.v3d.ext.org.poly2tri;
 
 import eu.mihosoft.vrl.v3d.Extrude;
-import eu.mihosoft.vrl.v3d.Vector3d;
 import eu.mihosoft.vrl.v3d.Vertex;
+import eu.mihosoft.vvecmath.Vector3d;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -68,7 +69,7 @@ public class PolygonUtil {
         // convert polygon
         List< PolygonPoint> points = new ArrayList<>();
         for (Vertex v : polygon.vertices) {
-            PolygonPoint vp = new PolygonPoint(v.pos.x, v.pos.y, v.pos.z);
+            PolygonPoint vp = new PolygonPoint(v.pos.getX(), v.pos.getY(), v.pos.getZ());
             points.add(vp);
         }
 
@@ -121,7 +122,7 @@ public class PolygonUtil {
             for (TriangulationPoint tp : t.points) {
 
                 triPoints.add(new Vertex(
-                        new Vector3d(tp.getX(), tp.getY(), tp.getZ()),
+                        Vector3d.xyz(tp.getX(), tp.getY(), tp.getZ()),
                         normal));
 
                 if (counter == 2) {

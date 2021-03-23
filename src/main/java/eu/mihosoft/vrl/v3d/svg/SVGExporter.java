@@ -11,8 +11,8 @@ import eu.mihosoft.vrl.v3d.CSG;
 import eu.mihosoft.vrl.v3d.Polygon;
 import eu.mihosoft.vrl.v3d.Slice;
 import eu.mihosoft.vrl.v3d.Transform;
-import eu.mihosoft.vrl.v3d.Vector3d;
 import eu.mihosoft.vrl.v3d.Vertex;
+import eu.mihosoft.vvecmath.Vector3d;
 
 @SuppressWarnings("restriction")
 public class SVGExporter {
@@ -133,14 +133,14 @@ public class SVGExporter {
 
 		for (Vertex v : p.vertices) {
 			Vector3d position = v.pos.transformed(new Transform().rotX(180));
-			double x = (position.x * Scale);
-			double y = (position.y * Scale)+VueBoxSize;
+			double x = (position.getX() * Scale);
+			double y = (position.getY() * Scale)+VueBoxSize;
 			section += x + "," + y + " ";
 		}
 		// Close loop
 		Vector3d position = p.vertices.get(0).pos.transformed(new Transform().rotX(180));
-		double x = (position.x * Scale);
-		double y = (position.y * Scale)+VueBoxSize;
+		double x = (position.getX() * Scale);
+		double y = (position.getY() * Scale)+VueBoxSize;
 		section += x + "," + y + " ";
 		section= section + "\" \nstroke=\""+color+"\" \nstroke-width=\"1\" \nfill=\"none\"\nid=\"line"+(lineCounter++)+"\" />\n";
 		polylines.add(section);

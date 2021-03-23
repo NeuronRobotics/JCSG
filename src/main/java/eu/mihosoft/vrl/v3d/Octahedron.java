@@ -9,6 +9,7 @@ import java.util.List;
 import eu.mihosoft.vrl.v3d.ext.quickhull3d.HullUtil;
 import eu.mihosoft.vrl.v3d.parametrics.LengthParameter;
 import eu.mihosoft.vrl.v3d.parametrics.Parameter;
+import eu.mihosoft.vvecmath.Vector3d;
 
 public class Octahedron extends Primitive {
 
@@ -31,7 +32,7 @@ public class Octahedron extends Primitive {
      * dimensions {@code [1,1,1]}.
      */
     public Octahedron() {
-        center = new Vector3d(0, 0, 0);
+        center = Vector3d.xyz(0, 0, 0);
         radius = 1;
     }
 
@@ -42,7 +43,7 @@ public class Octahedron extends Primitive {
      * @param size size
      */
     public Octahedron(double size) {
-        center = new Vector3d(0, 0, 0);
+        center = Vector3d.xyz(0, 0, 0);
         radius = size;
     }
 
@@ -67,12 +68,12 @@ public class Octahedron extends Primitive {
     	double sqrt2_2 = Math.sqrt(2)/2;
     	
     	List<Vector3d> points = new ArrayList<>();
-    		points.add(new Vector3d(0,0,-1));
-			points.add(new Vector3d(0,0,+1));
-			points.add(new Vector3d(-sqrt2_2,-sqrt2_2,0));
-			points.add(new Vector3d(-sqrt2_2,+sqrt2_2,0));
-			points.add(new Vector3d(+sqrt2_2,-sqrt2_2,0));
-			points.add(new Vector3d(+sqrt2_2,+sqrt2_2,0));
+    		points.add(Vector3d.xyz(0,0,-1));
+			points.add(Vector3d.xyz(0,0,+1));
+			points.add(Vector3d.xyz(-sqrt2_2,-sqrt2_2,0));
+			points.add(Vector3d.xyz(-sqrt2_2,+sqrt2_2,0));
+			points.add(Vector3d.xyz(+sqrt2_2,-sqrt2_2,0));
+			points.add(Vector3d.xyz(+sqrt2_2,+sqrt2_2,0));
     	
 		List<Polygon> polygons = HullUtil.hull(points).scale(radius).getPolygons();
 

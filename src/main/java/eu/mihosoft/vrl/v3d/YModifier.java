@@ -5,6 +5,8 @@
  */
 package eu.mihosoft.vrl.v3d;
 
+import eu.mihosoft.vvecmath.Vector3d;
+
 // TODO: Auto-generated Javadoc
 /**
  * Modifies along y axis.
@@ -51,10 +53,10 @@ public class YModifier implements WeightFunction {
 
         if (bounds == null) {
             this.bounds = csg.getBounds();
-            sPerUnit = (max - min) / (bounds.getMax().y - bounds.getMin().y);
+            sPerUnit = (max - min) / (bounds.getMax().getY() - bounds.getMin().getY());
         }
 
-        double s = sPerUnit * (pos.y - bounds.getMin().y);
+        double s = sPerUnit * (pos.getY() - bounds.getMin().getY());
 
         if (centered) {
             s = s - (max - min) / 2.0;
