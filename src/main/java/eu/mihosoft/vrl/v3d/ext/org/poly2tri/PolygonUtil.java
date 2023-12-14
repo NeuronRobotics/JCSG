@@ -140,7 +140,13 @@ public class PolygonUtil {
 			}
 			concave = incoming.transformed(orentation2);
 			normal2 = concave.plane.normal;
-			orentationInv = orentation2.inverse();
+			try{
+				orentationInv = orentation2.inverse();
+			}catch (javax.vecmath.SingularMatrixException inex){
+				inex.printStackTrace();
+				reorent=false;
+				orentationInv=orentation2;
+			}
 			if(concave.plane.normal.z <0) {
 				Transform orentation3 = orentation2.rotx(180);
 				concave = incoming.transformed(orentation3);
