@@ -1,0 +1,9 @@
+<map id="eu.mihosoft.vrl.v3d.ext.openjfx.shape3d.SubdivisionMesh" name="eu.mihosoft.vrl.v3d.ext.openjfx.shape3d.SubdivisionMesh">
+<area shape="rect" id="node1" title=" " alt="" coords="932,103,1221,145"/>
+<area shape="rect" id="node2" href="$classeu_1_1mihosoft_1_1vrl_1_1v3d_1_1ext_1_1openjfx_1_1shape3d_1_1PolygonMesh.html" title=" " alt="" coords="431,27,720,69"/>
+<area shape="rect" id="node3" title=" " alt="" coords="5,5,183,32"/>
+<area shape="rect" id="node4" title=" " alt="" coords="12,65,176,92"/>
+<area shape="rect" id="node5" title=" " alt="" coords="380,99,771,141"/>
+<area shape="rect" id="node6" href="$enumeu_1_1mihosoft_1_1vrl_1_1v3d_1_1ext_1_1openjfx_1_1shape3d_1_1SubdivisionMesh_1_1MapBorderMode.html" title=" " alt="" coords="431,165,720,206"/>
+<area shape="rect" id="node7" href="$enumeu_1_1mihosoft_1_1vrl_1_1v3d_1_1ext_1_1openjfx_1_1shape3d_1_1SubdivisionMesh_1_1BoundaryMode.html" title=" " alt="" coords="431,230,720,271"/>
+</map>

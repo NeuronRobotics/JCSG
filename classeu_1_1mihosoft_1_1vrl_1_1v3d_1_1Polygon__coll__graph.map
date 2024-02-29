@@ -1,0 +1,11 @@
+<map id="eu.mihosoft.vrl.v3d.Polygon" name="eu.mihosoft.vrl.v3d.Polygon">
+<area shape="rect" id="node1" title=" " alt="" coords="877,204,1081,231"/>
+<area shape="rect" id="node2" href="$classeu_1_1mihosoft_1_1vrl_1_1v3d_1_1PropertyStorage.html" title=" " alt="" coords="565,49,772,90"/>
+<area shape="rect" id="node3" title=" " alt="" coords="263,5,431,32"/>
+<area shape="rect" id="node4" title=" " alt="" coords="319,56,375,83"/>
+<area shape="rect" id="node5" href="$classeu_1_1mihosoft_1_1vrl_1_1v3d_1_1Plane.html" title=" " alt="" coords="575,204,763,231"/>
+<area shape="rect" id="node6" href="$classeu_1_1mihosoft_1_1vrl_1_1v3d_1_1Vector3d.html" title=" " alt="" coords="243,204,452,231"/>
+<area shape="rect" id="node7" title=" " alt="" coords="5,204,193,231"/>
+<area shape="rect" id="node8" href="$interfaceeu_1_1mihosoft_1_1vrl_1_1v3d_1_1IPolygonDebugger.html" title=" " alt="" coords="243,255,451,297"/>
+<area shape="rect" id="node9" title=" " alt="" coords="573,255,764,297"/>
+</map>

@@ -1,0 +1,10 @@
+<map id="eu.mihosoft.vrl.v3d.CSG.updatePolygons" name="eu.mihosoft.vrl.v3d.CSG.updatePolygons">
+<area shape="rect" id="node1" title=" " alt="" coords="5,136,233,177"/>
+<area shape="rect" id="node2" href="$classeu_1_1mihosoft_1_1vrl_1_1v3d_1_1Debug3dProvider.html#ab4c5aec01219233ea3614736e93b570d" title=" " alt="" coords="304,37,515,79"/>
+<area shape="rect" id="node5" href="$classeu_1_1mihosoft_1_1vrl_1_1v3d_1_1Debug3dProvider.html#a781a80900a898f2fd863f43452c34c7b" title=" " alt="" coords="304,103,515,144"/>
+<area shape="rect" id="node7" href="$classeu_1_1mihosoft_1_1vrl_1_1v3d_1_1ext_1_1org_1_1poly2tri_1_1PolygonUtil.html#a4f0a3d01b5fb444eb672df5f30e53316" title=" " alt="" coords="281,168,537,209"/>
+<area shape="rect" id="node8" href="$classeu_1_1mihosoft_1_1vrl_1_1v3d_1_1Debug3dProvider.html#a1982b0bfea7de3f2e18c08b331c20325" title=" " alt="" coords="304,233,515,275"/>
+<area shape="rect" id="node3" href="$interfaceeu_1_1mihosoft_1_1vrl_1_1v3d_1_1IDebug3dProvider.html#a18f92f3f2315b1f85d622f7f0523cb67" title=" " alt="" coords="585,5,800,47"/>
+<area shape="rect" id="node4" href="$classeu_1_1mihosoft_1_1vrl_1_1v3d_1_1Debug3dProvider.html#a6f0c0b14f01aa8b4f22235564a2e54b6" title=" " alt="" coords="587,71,798,112"/>
+<area shape="rect" id="node6" href="$interfaceeu_1_1mihosoft_1_1vrl_1_1v3d_1_1IDebug3dProvider.html#aded391d96efb255292bfdbf06d79e0ae" title=" " alt="" coords="585,136,800,177"/>
+</map>

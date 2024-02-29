@@ -1,0 +1,5 @@
+<map id="eu.mihosoft.vrl.v3d.Dodecahedron" name="eu.mihosoft.vrl.v3d.Dodecahedron">
+<area shape="rect" id="node1" title=" " alt="" coords="5,155,252,181"/>
+<area shape="rect" id="node2" href="$classeu_1_1mihosoft_1_1vrl_1_1v3d_1_1Primitive.html" title=" " alt="" coords="23,80,234,107"/>
+<area shape="rect" id="node3" href="$interfaceeu_1_1mihosoft_1_1vrl_1_1v3d_1_1ItoCSG.html" title=" " alt="" coords="31,5,227,32"/>
+</map>

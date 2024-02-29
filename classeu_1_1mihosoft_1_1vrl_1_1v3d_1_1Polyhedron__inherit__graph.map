@@ -1,0 +1,5 @@
+<map id="eu.mihosoft.vrl.v3d.Polyhedron" name="eu.mihosoft.vrl.v3d.Polyhedron">
+<area shape="rect" id="node1" title=" " alt="" coords="5,155,231,181"/>
+<area shape="rect" id="node2" href="$classeu_1_1mihosoft_1_1vrl_1_1v3d_1_1Primitive.html" title=" " alt="" coords="13,80,223,107"/>
+<area shape="rect" id="node3" href="$interfaceeu_1_1mihosoft_1_1vrl_1_1v3d_1_1ItoCSG.html" title=" " alt="" coords="20,5,216,32"/>
+</map>

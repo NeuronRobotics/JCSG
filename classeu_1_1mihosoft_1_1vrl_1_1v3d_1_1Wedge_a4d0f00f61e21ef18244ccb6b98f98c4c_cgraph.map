@@ -1,0 +1,9 @@
+<map id="eu.mihosoft.vrl.v3d.Wedge.toPolygons" name="eu.mihosoft.vrl.v3d.Wedge.toPolygons">
+<area shape="rect" id="node1" title=" " alt="" coords="5,89,219,131"/>
+<area shape="rect" id="node2" href="$classeu_1_1mihosoft_1_1vrl_1_1v3d_1_1CSG.html#a1b1329bf7576afc6c4af69de1a3fb270" title=" " alt="" coords="288,5,492,47"/>
+<area shape="rect" id="node3" href="$classeu_1_1mihosoft_1_1vrl_1_1v3d_1_1Extrude.html#a685f71f959a080ac98fe2213ec7d69a8" title=" " alt="" coords="267,71,513,98"/>
+<area shape="rect" id="node6" href="$classeu_1_1mihosoft_1_1vrl_1_1v3d_1_1CSG.html#aeffc712d7a2e60ab51374258bbdf3389" title=" " alt="" coords="285,122,495,149"/>
+<area shape="rect" id="node7" href="$classeu_1_1mihosoft_1_1vrl_1_1v3d_1_1CSG.html#a4ed1cfb4abee0bc2b6db5e3cef925601" title=" " alt="" coords="286,173,494,199"/>
+<area shape="rect" id="node4" href="$interfaceeu_1_1mihosoft_1_1vrl_1_1v3d_1_1IExtrusion.html#a4e23800eb5c476e985bfd29c75628100" title=" " alt="" coords="561,42,832,69"/>
+<area shape="rect" id="node5" href="$classeu_1_1mihosoft_1_1vrl_1_1v3d_1_1Extrude.html#adc53652a62521181a8d52bf9f9c879b3" title=" " alt="" coords="583,93,810,135"/>
+</map>

@@ -1,0 +1,10 @@
+<map id="eu.mihosoft.vrl.v3d.CSG.move" name="eu.mihosoft.vrl.v3d.CSG.move">
+<area shape="rect" id="node1" title=" " alt="" coords="5,61,225,88"/>
+<area shape="rect" id="node2" href="$classeu_1_1mihosoft_1_1vrl_1_1v3d_1_1Vertex.html#a152cfd38ca3c2690100fc37de1166099" title=" " alt="" coords="273,61,501,88"/>
+<area shape="rect" id="node7" href="$classeu_1_1mihosoft_1_1vrl_1_1v3d_1_1Vertex.html#a590b7aecf34163e806481c75ecf15552" title=" " alt="" coords="549,5,776,32"/>
+<area shape="rect" id="node8" href="$classeu_1_1mihosoft_1_1vrl_1_1v3d_1_1Vertex.html#a130c0201b91bd41347b2902993e3aca1" title=" " alt="" coords="824,120,1052,147"/>
+<area shape="rect" id="node3" href="$classeu_1_1mihosoft_1_1vrl_1_1v3d_1_1Vector3d.html#ada59e0828c65c799f56f5dd498b8f789" title=" " alt="" coords="552,61,773,88"/>
+<area shape="rect" id="node4" href="$classeu_1_1mihosoft_1_1vrl_1_1v3d_1_1Vector3d.html#a2dc3dffe52efc30b6d67c5c5c012633a" title=" " alt="" coords="831,54,1045,95"/>
+<area shape="rect" id="node5" href="$classeu_1_1mihosoft_1_1vrl_1_1v3d_1_1Vector3d.html#a862e175731d66f0437a21545d10e40ad" title=" " alt="" coords="1100,36,1321,63"/>
+<area shape="rect" id="node6" href="$classeu_1_1mihosoft_1_1vrl_1_1v3d_1_1Vector3d.html#aa22d44493fe4b444027a2fecdd515462" title=" " alt="" coords="1101,87,1321,113"/>
+</map>
