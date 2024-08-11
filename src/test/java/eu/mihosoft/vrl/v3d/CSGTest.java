@@ -22,10 +22,9 @@ public class CSGTest {
                 .setColor(Color.BLUE);
         assertEquals(Color.BLUE, cube.getColor());
 
-        String colorAsString = Color.BLUE.getRed() + " " + Color.BLUE.getGreen() + " " + Color.BLUE.getBlue();
         cube.getPolygons().forEach(polygon -> {
             String polygonColorAsString = getColorAsString(polygon);
-            assertEquals("Expected the polygon to get the same color as the CSG", colorAsString, polygonColorAsString);
+            assertEquals("Expected the polygon to get the same color as the CSG", BLUE_COLOR_AS_STRING, polygonColorAsString);
         });
     }
 
@@ -49,6 +48,39 @@ public class CSGTest {
             } else {
                 assertEquals("Expected the right cube polygons to be red", RED_COLOR_AS_STRING, polygonColorAsString);
             }
+        });
+    }
+
+    @Test
+    public void setColor_OnCSGShouldChangeColorsOfAllPolygons() {
+        CSG cube = new Cube(10).toCSG()
+                .setColor(Color.BLUE);
+        assertEquals(Color.BLUE, cube.getColor());
+
+        cube.setColor(Color.RED);
+
+        cube.getPolygons().forEach(polygon -> {
+            String polygonColorAsString = getColorAsString(polygon);
+            assertEquals("Expected the cube polygons to be another color", RED_COLOR_AS_STRING, polygonColorAsString);
+        });
+    }
+
+    @Test
+    public void setColor_OnUnionedCSGShouldChangeColorsOfAllPolygons() {
+        CSG cube1 = new Cube(10).toCSG()
+                .setColor(Color.BLUE);
+
+        CSG cube2 = new Cube(10).toCSG()
+                .setColor(Color.RED)
+                .transformed(new Transform().translate(10, 0, 0));
+
+        CSG union = cube1.union(cube2);
+        assertEquals("Expected the new object to inherit the color from the latest unioned object", Color.RED, union.getColor());
+
+        union.setColor(Color.BLUE);
+        union.getPolygons().forEach(polygon -> {
+            String polygonColorAsString = getColorAsString(polygon);
+            assertEquals("Expected the cube polygons to be another color", BLUE_COLOR_AS_STRING, polygonColorAsString);
         });
     }
 }

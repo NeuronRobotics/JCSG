@@ -207,9 +207,12 @@ public class CSG implements IuserAPI {
 	 */
 	public CSG setColor(Color color) {
 		this.color = color;
-        getStorage().set(PropertyStorage.PROPERTY_MATERIAL_COLOR, color.getRed()
-                + " " + color.getGreen()
-                + " " + color.getBlue());
+		String colorAsString = color.getRed()
+				+ " " + color.getGreen()
+				+ " " + color.getBlue();
+
+		getStorage().set(PropertyStorage.PROPERTY_MATERIAL_COLOR, colorAsString);
+		polygons.forEach(p -> p.getStorage().set(PropertyStorage.PROPERTY_MATERIAL_COLOR, colorAsString));
 
 		if (current != null) {
 			PhongMaterial m = new PhongMaterial(getColor());
@@ -240,7 +243,6 @@ public class CSG implements IuserAPI {
 	public CSG setManipulator(Affine manipulator) {
 		if (manipulator == null)
 			return this;
-		Affine old = manipulator;
 		this.manipulator = manipulator;
 		if (current != null) {
 			current.getTransforms().clear();
@@ -775,7 +777,6 @@ public class CSG implements IuserAPI {
 		case POLYGON_BOUND:
 			return _unionPolygonBoundsOpt(csg).historySync(this).historySync(csg);
 		default:
-			// return _unionIntersectOpt(csg);
 			return _unionNoOpt(csg).historySync(this).historySync(csg);
 		}
 	}
@@ -2207,7 +2208,7 @@ public class CSG implements IuserAPI {
 					this.setParameter(vals, dyingCSG.getMapOfparametrics().get(param));
 			}
 		}
-		this.setColor(dyingCSG.getColor());
+		color = dyingCSG.getColor();
 		if (getName().length() == 0)
 			setName(dyingCSG.getName());
 		return this;
@@ -2831,10 +2832,6 @@ public class CSG implements IuserAPI {
 		return false;
 	}
 
-//	public CSG setIsGroupResult(boolean res) {
-//		getStorage().set("GroupResult", res);
-//		return this;
-//	}
 	public CSG addIsGroupResult(String res) {
 		if( !getStorage().getValue("GroupResult").isPresent()) {
 			getStorage().set("GroupResult", new HashSet<String>());
@@ -3110,8 +3107,6 @@ public class CSG implements IuserAPI {
 	    return tessellateXY(incoming, xSteps, ySteps, xGrid, yGrid, 0, 0, 0, 0);
 	}
 
-
-
 	/**
 	 * 
 	 * @param incoming Hexagon (with flats such that Y total is flat to flat distance)
@@ -3125,6 +3120,7 @@ public class CSG implements IuserAPI {
 		double x =(((y/Math.sqrt(3))))*(3/2);
 		return tessellateXY(incoming,xSteps,ySteps,x,y,0,0,0,y/2);
 	}
+
 	/**
 	 * 
 	 * @param incoming Hexagon (with flats such that Y total is flat to flat distance)
