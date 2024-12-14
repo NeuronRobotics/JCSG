@@ -33,11 +33,14 @@
  */
 package eu.mihosoft.vrl.v3d;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+
+import com.sun.xml.internal.bind.v2.schemagen.xmlschema.List;
 
 import javafx.scene.paint.Color;
 
@@ -121,6 +124,11 @@ public class PropertyStorage {
     		if(HashSet.class.isInstance(property)) {
     			HashSet<String> clonedSet =  new HashSet<String>();
     			clonedSet.addAll((HashSet<String>)property);
+    			property=clonedSet;	
+    		}
+    		if(ArrayList.class.isInstance(property)) {
+    			ArrayList<String> clonedSet =  new ArrayList<String>();
+    			clonedSet.addAll((ArrayList<String>)property);
     			property=clonedSet;	
     		}
 			set(o,property);
