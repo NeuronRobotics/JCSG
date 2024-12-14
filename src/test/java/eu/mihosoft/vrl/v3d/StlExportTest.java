@@ -12,8 +12,8 @@ public class StlExportTest {
 
 	@Test
 	public void makeBadSTL() throws IOException {
-		//Plane.setEPSILON(1.0e-11);
-		//Vector3d.setEXPORTEPSILON(10);
+		Plane.setEPSILON(1.0e-12);
+		Vector3d.setEXPORTEPSILON(1.0e-11);
 		CSG.setUseGPU(false);
 		CSG.setPreventNonManifoldTriangles(true);
 		CSG badExport2 = CSG.text(" A QUICK BROWN FOX JUMPS OVER THE LAZY DOG", 10,30,"Serif Regular").movey(30);
