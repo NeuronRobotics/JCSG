@@ -125,9 +125,10 @@ public class PropertyStorage {
     			property=clonedSet;	
     		}
     		if(ArrayList.class.isInstance(property)) {
-    			ArrayList<String> clonedSet =  new ArrayList<String>();
-    			clonedSet.addAll((ArrayList<String>)property);
-    			property=clonedSet;	
+    			Object clonedSet =  map.get(o);
+    			ArrayList<String> newList = clonedSet==null?new ArrayList<String>():(ArrayList<String>)clonedSet;
+    			newList.addAll((ArrayList<String>)property);
+    			property=newList;	
     		}
 			set(o,property);
     	}
