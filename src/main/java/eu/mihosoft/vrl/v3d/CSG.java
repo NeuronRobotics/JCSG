@@ -41,6 +41,7 @@ import eu.mihosoft.vrl.v3d.parametrics.IRegenerate;
 import eu.mihosoft.vrl.v3d.parametrics.LengthParameter;
 import eu.mihosoft.vrl.v3d.parametrics.Parameter;
 
+import java.awt.Font;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -62,7 +63,6 @@ import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.CullFace;
 import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.MeshView;
-import javafx.scene.text.Font;
 import javafx.scene.transform.Affine;
 
 /**
@@ -1257,7 +1257,7 @@ public class CSG implements IuserAPI {
 	 * @return the csg
 	 */
 	private CSG _differenceCSGBoundsOpt(CSG csg) {
-		CSG a1 = this._differenceNoOpt(csg.getBounds().toCSG());
+		CSG a1 = this._differenceNoOpt(csg.getBounds().toCSG().setColor(csg.getColor()));
 		CSG a2 = this.intersect(csg.getBounds().toCSG());
 		CSG result = a2._differenceNoOpt(csg)._unionIntersectOpt(a1).optimization(getOptType());
 		if (getName().length() != 0 && csg.getName().length() != 0) {
@@ -2969,7 +2969,7 @@ public class CSG implements IuserAPI {
 	}
 
 	public static CSG text(String text, double height, double fontSize) {
-		return text(text, height, fontSize, Font.getDefault().getName());
+		return text(text, height, fontSize, Font.SANS_SERIF);
 	}
 
 	public static CSG text(String text, double height) {
@@ -2977,15 +2977,8 @@ public class CSG implements IuserAPI {
 	}
 
 	public static CSG text(String text, double height, double fontSize, String fontType) {
-		javafx.scene.text.Font font = new javafx.scene.text.Font(fontType, fontSize);
-		if (!font.getName().toLowerCase().contains(fontType.toLowerCase())) {
-			String options = "";
-			for (String name : javafx.scene.text.Font.getFontNames()) {
-				options += name + "\n";
-			}
-			new Exception(options + "\nIs Not " + fontType + " instead got " + font.getName()).printStackTrace();
-		}
-		ArrayList<CSG> stuff = TextExtrude.text(height, text, font);
+		Font font = new Font(fontType, Font.PLAIN, (int)fontSize);
+		List<CSG> stuff = TextExtrude.text(height, text, font);
 		CSG back = null;
 		for (int i = 0; i < stuff.size(); i++) {
 			if (back == null)

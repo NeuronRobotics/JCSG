@@ -36,6 +36,22 @@ jobs:
              ls -al .
              sudo apt install gnupg1
 
+      - name: start xvfb
+        run:
+          Xvfb :0 &
+
+      - name: initialize the X11 DISPLAY variable
+        run:
+          export DISPLAY=:0
+
+      - name: Install libraries
+        run: |
+          sudo apt update
+          sudo apt install libgtk2.0-0
+
+      - name: Test with Gradle
+        run: xvfb-run -s '-screen 0 1024x768x24' ./gradlew test
+
       - name: Publish package
         run: bash publish.sh
         env:

@@ -29,7 +29,7 @@ public class CSGTest {
                 .transformed(new Transform().translate(10, 0, 0));
 
         CSG union = cube1.union(cube2);
-        assertEquals(CSG.getDefaultColor(), union.getColor());
+        assertEquals("Expected the new object to get the color from the unioned object", Color.RED, union.getColor());
 
         union.getPolygons().forEach(polygon -> {
             boolean isLeftCube = polygon.getPoints().stream().allMatch(p -> p.x <= 5);
@@ -51,7 +51,7 @@ public class CSGTest {
                 .transformed(new Transform().translate(10, 0, 0));
 
         CSG union = cube1.union(cube2).triangulate();
-        assertEquals(CSG.getDefaultColor(), union.getColor());
+        assertEquals("Expected the new object to get the color from the unioned object", Color.RED, union.getColor());
 
         union.getPolygons().forEach(polygon -> {
             boolean isLeftCube = polygon.getPoints().stream().allMatch(p -> p.x <= 5);
@@ -86,7 +86,7 @@ public class CSGTest {
                 .transformed(new Transform().translate(10, 0, 0));
 
         CSG union = cube1.union(cube2);
-        assertEquals("Expected the new object to get the default color", CSG.getDefaultColor(), union.getColor());
+        assertEquals("Expected the new object to get the color from the unioned object", Color.RED, union.getColor());
 
         union.setColor(Color.BLUE);
         union.getPolygons().forEach(polygon -> {
