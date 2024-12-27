@@ -33,6 +33,7 @@
  */
 package eu.mihosoft.vrl.v3d;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -122,6 +123,12 @@ public class PropertyStorage {
     			HashSet<String> clonedSet =  new HashSet<String>();
     			clonedSet.addAll((HashSet<String>)property);
     			property=clonedSet;	
+    		}
+    		if(ArrayList.class.isInstance(property)) {
+    			Object clonedSet =  map.get(o);
+    			ArrayList<String> newList = clonedSet==null?new ArrayList<String>():(ArrayList<String>)clonedSet;
+    			newList.addAll((ArrayList<String>)property);
+    			property=newList;	
     		}
 			set(o,property);
     	}

@@ -2570,6 +2570,9 @@ public class CSG implements IuserAPI {
 		regenerate = function;
 		return this;
 	}
+	public IRegenerate getRegenerate() {
+		return regenerate ;
+	}
 
 	public CSG regenerate() {
 		this.markForRegeneration = false;
@@ -3151,6 +3154,7 @@ public class CSG implements IuserAPI {
 
 	public CSG syncProperties(CSG dying) {
 		getStorage().syncProperties(dying.getStorage());
+		regenerate=dying.regenerate;
 		return this;
 	}
 
