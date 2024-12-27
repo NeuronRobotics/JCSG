@@ -1,6 +1,6 @@
 package eu.mihosoft.vrl.v3d.ext.quickhull3d;
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * Maintains a single-linked list of faces for use by QuickHull3D.
  */

@@ -21,7 +21,7 @@ public class StlLoadTest {
 			ThumbnailImage.setCullFaceValue(CullFace.NONE);
 			ThumbnailImage.writeImage(loaded,new File(file.getAbsolutePath()+".png")).join();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

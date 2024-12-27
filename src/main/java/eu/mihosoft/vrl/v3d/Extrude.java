@@ -46,7 +46,7 @@ import java.util.List;
 import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
 import eu.mihosoft.vrl.v3d.ext.quickhull3d.HullUtil;
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * Extrudes concave and convex polygons.
  *

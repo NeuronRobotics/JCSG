@@ -919,7 +919,7 @@ public class Edge {
 	}
 
 	public double length() {
-		// TODO Auto-generated method stub
+		// Auto-generated method stub
 		return p1.pos.minus(p2.pos).length();
 	}
 

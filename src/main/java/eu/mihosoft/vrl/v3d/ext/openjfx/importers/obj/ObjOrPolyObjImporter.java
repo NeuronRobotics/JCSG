@@ -35,7 +35,7 @@ import eu.mihosoft.vrl.v3d.ext.openjfx.importers.Importer;
 import java.io.IOException;
 import javafx.scene.Group;
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * object loader.
  */

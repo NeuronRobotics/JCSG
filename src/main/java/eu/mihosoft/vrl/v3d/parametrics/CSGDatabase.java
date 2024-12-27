@@ -136,7 +136,7 @@ public class CSGDatabase {
 				try {
 					Thread.sleep(10);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
+					// Auto-generated catch block
 					e.printStackTrace();
 				}
 				if((System.currentTimeMillis()-start)>500){
@@ -195,7 +195,7 @@ public class CSGDatabase {
 	            IOUtils.closeQuietly(out);
 	        }
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -213,7 +213,7 @@ public class CSGDatabase {
 			try {
 				dbFile.createNewFile();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
+				// Auto-generated catch block
 				e.printStackTrace();
 			}
 		CSGDatabase.dbFile = dbFile;

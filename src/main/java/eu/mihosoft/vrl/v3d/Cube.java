@@ -39,7 +39,7 @@ import java.util.List;
 import eu.mihosoft.vrl.v3d.parametrics.LengthParameter;
 import eu.mihosoft.vrl.v3d.parametrics.Parameter;
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * An axis-aligned solid cuboid defined by {@code center} and
  * {@code dimensions}.

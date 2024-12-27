@@ -31,7 +31,7 @@
  */
 package eu.mihosoft.vrl.v3d.ext.openjfx.shape3d.symbolic;
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * A 3D geometric point array that has the x, y, z coordinates of every point
  * as a function of other variables.

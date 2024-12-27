@@ -44,7 +44,7 @@ import java.util.Queue;
 import javafx.scene.shape.TriangleMesh;
 import javax.vecmath.Vector3f;
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  *  Util for converting Normals to Smoothing Groups.
  */

@@ -5,7 +5,7 @@
  */
 package eu.mihosoft.vrl.v3d;
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * Modifies along x axis.
  *

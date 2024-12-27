@@ -7,7 +7,7 @@ package eu.mihosoft.vrl.v3d;
 
 import com.google.gson.annotations.Expose;
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * Bounding box for CSGs.
  *

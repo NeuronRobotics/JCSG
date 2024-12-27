@@ -15,7 +15,7 @@ package eu.mihosoft.vrl.v3d.ext.quickhull3d;
 import java.util.*;
 import java.io.*;
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * Computes the convex hull of a set of three dimensional points.
  *

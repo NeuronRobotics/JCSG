@@ -27,7 +27,7 @@ public class SVGLoadTest {
 			ThumbnailImage.setCullFaceValue(CullFace.NONE);
 			ThumbnailImage.writeImage(parts,new File(svg.getAbsolutePath()+".png")).join();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -45,7 +45,7 @@ public class SVGLoadTest {
 			ThumbnailImage.setCullFaceValue(CullFace.NONE);
 			ThumbnailImage.writeImage(parts,new File(svg.getAbsolutePath()+".png")).join();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		

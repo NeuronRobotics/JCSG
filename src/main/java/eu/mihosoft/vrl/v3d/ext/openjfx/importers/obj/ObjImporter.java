@@ -55,7 +55,7 @@ import javafx.scene.shape.Mesh;
 import javafx.scene.shape.MeshView;
 import javafx.scene.shape.TriangleMesh;
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * Obj file reader.
  */

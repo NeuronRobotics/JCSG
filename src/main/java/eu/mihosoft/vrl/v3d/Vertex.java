@@ -35,7 +35,7 @@ package eu.mihosoft.vrl.v3d;
 
 import java.util.Objects;
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * Represents a vertex of a polygon. This class provides {@link #normal} so
  * primitives like {@link Cube} can return a smooth vertex normal, but

@@ -16,7 +16,7 @@ package eu.mihosoft.vrl.v3d.ext.quickhull3d;
 
 import java.util.*;
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * Basic triangular face used to form the hull.
  *

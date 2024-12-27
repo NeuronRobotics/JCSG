@@ -15,7 +15,7 @@ package eu.mihosoft.vrl.v3d.ext.quickhull3d;
 
 import java.util.Random;
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * A three-element vector. This class is actually a reduced version of the
  * Vector3d class contained in the author's matlib package (which was partly

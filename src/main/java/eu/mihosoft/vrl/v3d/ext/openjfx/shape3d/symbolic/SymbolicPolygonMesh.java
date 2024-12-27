@@ -34,7 +34,7 @@ package eu.mihosoft.vrl.v3d.ext.openjfx.shape3d.symbolic;
 import eu.mihosoft.vrl.v3d.ext.openjfx.shape3d.PolygonMesh;
 
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * Polygon mesh where the points are symbolic. That is, the values of the 
  * points depend on other variables and they can be updated appropriately.

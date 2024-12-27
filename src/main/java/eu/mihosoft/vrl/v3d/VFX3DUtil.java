@@ -38,7 +38,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.transform.Rotate;
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * Utility class that allows to visualize meshes created with null .
  *

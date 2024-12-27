@@ -1,6 +1,6 @@
 package eu.mihosoft.vrl.v3d.ext.quickhull3d;
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * Represents vertices of the hull, as well as the points from
  * which it is formed.

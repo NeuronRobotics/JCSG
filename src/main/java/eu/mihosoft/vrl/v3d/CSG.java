@@ -1616,7 +1616,7 @@ public class CSG implements IuserAPI {
 					try {
 						tr.join();
 					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
+						// Auto-generated catch block
 						e.printStackTrace();
 					}
 				totalAdded += 32;
@@ -1634,7 +1634,7 @@ public class CSG implements IuserAPI {
 			try {
 				t.join();
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
+				// Auto-generated catch block
 				e.printStackTrace();
 			}
 		progressMoniter.progressUpdate(polygons.size(),polygons.size(),"Manifold fix took " + (System.currentTimeMillis() - start),this);
@@ -1699,7 +1699,7 @@ public class CSG implements IuserAPI {
 			try {
 				Thread.sleep(1);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
+				// Auto-generated catch block
 				e.printStackTrace();
 			}
 		}

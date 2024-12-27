@@ -115,7 +115,7 @@ public class SVGLoad {
 
 		@Override
 		public void onShape(CSG newShape) {
-			// TODO Auto-generated method stub
+			// Auto-generated method stub
 
 		}
 	};
@@ -258,7 +258,7 @@ public class SVGLoad {
 			try {
 				loadAllGroups(resolution, new Transform());
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
+				// Auto-generated catch block
 				e.printStackTrace();
 			}
 
@@ -556,7 +556,7 @@ public class SVGLoad {
 								imageData = n.getNodeValue().split("/");
 
 							} catch (Exception e) {
-								// TODO Auto-generated catch block
+								// Auto-generated catch block
 								e.printStackTrace();
 							}
 					}

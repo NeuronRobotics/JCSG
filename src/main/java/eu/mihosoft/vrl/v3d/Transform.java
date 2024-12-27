@@ -36,7 +36,7 @@ package eu.mihosoft.vrl.v3d;
 import javax.vecmath.Matrix4d;
 import javax.vecmath.Quat4d;
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * Transform. Transformations (translation, rotation, scale) can be applied to
  * geometrical objects like {@link CSG}, {@link Polygon}, {@link Vertex} and

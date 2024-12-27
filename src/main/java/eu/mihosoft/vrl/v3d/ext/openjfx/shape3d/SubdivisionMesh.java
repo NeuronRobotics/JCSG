@@ -38,7 +38,7 @@ import eu.mihosoft.vrl.v3d.ext.openjfx.shape3d.symbolic.SymbolicSubdivisionBuild
 import java.util.ArrayList;
 import java.util.List;
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * Catmull Clark subdivision surface polygon mesh.
  */

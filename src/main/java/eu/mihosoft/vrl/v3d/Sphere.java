@@ -38,7 +38,7 @@ import java.util.List;
 
 import eu.mihosoft.vrl.v3d.parametrics.LengthParameter;
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * A solid sphere.
  *

@@ -23,7 +23,7 @@ import eu.mihosoft.vrl.v3d.Vector3d;
 ;
 
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * The Class STLLoader.
  */

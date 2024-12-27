@@ -35,7 +35,7 @@ import eu.mihosoft.vrl.v3d.ext.openjfx.shape3d.SubdivisionMesh;
 import java.util.Arrays;
 
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * The Class SubdividedPointArray.
  */

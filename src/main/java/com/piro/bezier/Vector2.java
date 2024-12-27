@@ -7,7 +7,7 @@ public class Vector2 {
 
 	public void set(double  x, double  y) {
 		this.x = x;
-		// TODO Auto-generated method stub
+		// Auto-generated method stub
 		this.y = y;
 		
 	}

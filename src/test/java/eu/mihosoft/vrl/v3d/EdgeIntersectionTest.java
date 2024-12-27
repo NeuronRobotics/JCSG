@@ -9,7 +9,7 @@ import java.util.Optional;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * The Class EdgeIntersectionTest.
  *

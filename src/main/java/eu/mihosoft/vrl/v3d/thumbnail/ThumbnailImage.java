@@ -181,7 +181,7 @@ public class ThumbnailImage {
 						Thread.sleep(16);
 						// com.neuronrobotics.sdk.common.Log.error("Waiting for image to write");
 					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
+						// Auto-generated catch block
 						e.printStackTrace();
 						break;
 					}

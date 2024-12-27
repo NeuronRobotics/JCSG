@@ -49,7 +49,7 @@ import javafx.scene.paint.Material;
 import javafx.scene.paint.PhongMaterial;
 
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /** Reader for OBJ file MTL material files. */
 public class MtlReader {
 

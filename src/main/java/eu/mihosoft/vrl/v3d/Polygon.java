@@ -40,7 +40,7 @@ import java.util.List;
 import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
 import javafx.scene.paint.Color;
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * Represents a convex polygon.
  *

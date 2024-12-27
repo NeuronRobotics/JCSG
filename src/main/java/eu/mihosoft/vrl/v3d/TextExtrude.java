@@ -31,7 +31,7 @@ import javafx.scene.text.Text;
 import eu.mihosoft.vrl.v3d.Vector3d;
 import java.util.*;
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * The Class Text.
  */

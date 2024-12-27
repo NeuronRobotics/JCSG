@@ -46,7 +46,7 @@ import java.util.RandomAccess;
 import java.util.Vector;
 
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * Resizable-array implementation of the  List&lt;Integer&gt;  interface.  Implements all optional list
  * operations, and doesn't permit  null s.  In addition to implementing the  List  interface, this class

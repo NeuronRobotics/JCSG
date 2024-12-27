@@ -34,7 +34,7 @@ package eu.mihosoft.vrl.v3d.ext.openjfx.shape3d.symbolic;
 import eu.mihosoft.vrl.v3d.ext.openjfx.shape3d.PolygonMesh;
 
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * The Class OriginalPointArray.
  */

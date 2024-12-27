@@ -42,7 +42,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * Utility class that binds simple mouse gestures to number properties so that
  * their values can be controlled with mouse drag events.

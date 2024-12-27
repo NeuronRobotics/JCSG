@@ -43,7 +43,7 @@ import java.util.Random;
 
 import com.google.gson.annotations.Expose;
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * 3D Vector3d.
  *
@@ -642,15 +642,15 @@ public class Vector3d extends javax.vecmath.Vector3d{
 
     }
 //    public double getX() {
-//		// TODO Auto-generated method stub
+//		// Auto-generated method stub
 //		return x;
 //	}
 //    public double getY() {
-//		// TODO Auto-generated method stub
+//		// Auto-generated method stub
 //		return y;
 //	}
 //	public double getZ() {
-//		// TODO Auto-generated method stub
+//		// Auto-generated method stub
 //		return z;
 //	}
 

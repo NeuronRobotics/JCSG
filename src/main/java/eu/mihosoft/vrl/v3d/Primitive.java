@@ -35,7 +35,7 @@ import java.util.List;
 
 import eu.mihosoft.vrl.v3d.parametrics.Parameter;
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * A primitive geometry.
  *

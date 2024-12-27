@@ -1,6 +1,6 @@
 package eu.mihosoft.vrl.v3d.ext.quickhull3d;
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * Simple example usage of QuickHull3D. Run as the command
  *  

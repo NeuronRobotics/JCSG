@@ -42,7 +42,7 @@ import java.util.Set;
 import javafx.geometry.Point2D;
 
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * Data structure builder for Catmull Clark subdivision surface.
  */

@@ -1,6 +1,6 @@
 package eu.mihosoft.vrl.v3d.ext.quickhull3d;
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * Exception thrown when QuickHull3D encounters an internal error.
  */

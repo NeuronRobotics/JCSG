@@ -48,7 +48,7 @@ import java.util.Map;
 
 import javax.vecmath.Point3f;
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * Loads a CSG from stl.
  * 

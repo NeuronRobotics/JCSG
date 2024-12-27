@@ -35,7 +35,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableFloatArray;
 import javafx.collections.ObservableIntegerArray;
 
-// TODO: Auto-generated Javadoc
+//  Auto-generated Javadoc
 /**
  * A Mesh where each face can be a Polygon
  * 
