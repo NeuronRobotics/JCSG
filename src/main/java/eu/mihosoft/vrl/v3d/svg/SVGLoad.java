@@ -637,15 +637,18 @@ public class SVGLoad {
 			point.transform(new Transform().rotZ(-180));
 			point.transform(new Transform().rotY(180));
 		}
-
+		
 		// //com.neuronrobotics.sdk.common.Log.error(" Path " + code);
 		Polygon poly = Polygon.fromPoints(p);
+		boolean hole = !Extrude.isCCW(poly);
 		if (getPolygonByLayers() == null)
 			setPolygonByLayers(new HashMap<String, List<Polygon>>());
 		if (getPolygonByLayers().get(encapsulatingLayer) == null)
 			getPolygonByLayers().put(encapsulatingLayer, new ArrayList<Polygon>());
 		List<Polygon> list = getPolygonByLayers().get(encapsulatingLayer);
+		
 		poly = Polygon.fromPoints(Extrude.toCCW(poly.getPoints()));
+		poly.setHole(hole);
 		if (c != null)
 			colors.put(poly, c);
 		list.add(poly);
@@ -699,6 +702,7 @@ public class SVGLoad {
 			ArrayList<CSG> parts = csgByLayers.get(key);
 			parts.clear();
 			for (Polygon p : getPolygonByLayers().get(key)) {
+				boolean isHole =p.isHole();
 				CSG newbit;
 				try {
 					newbit = Extrude.getExtrusionEngine().extrude(new Vector3d(0, 0, thickness), p);
@@ -707,6 +711,11 @@ public class SVGLoad {
 					}
 					if (colors.get(p) != null) {
 						newbit.setColor(colors.get(p));
+					}
+					if(isHole) {
+						//newbit=newbit.movez(negativeThickness?0.5:-0.5);
+						newbit.setIsHole(true);
+						newbit.setColor(Color.BLACK);
 					}
 					parts.add(newbit);
 				} catch (Exception ex) {

@@ -63,7 +63,7 @@ public final class Polygon {
      *  Note:  uses first three vertices to define the plane.
      */
     public  Plane plane;
-    
+     private boolean isHole = false;
 
     /**
      * Sets the storage.
@@ -191,7 +191,6 @@ public final class Polygon {
 			// throw runtimeException;
 			new RuntimeException("This polygon is colinear").printStackTrace();
 		}
-		
 	}
     /**
      * Constructor. Creates a new polygon that consists of the specified
@@ -746,6 +745,14 @@ public final class Polygon {
 			ret+=" "+v.pos.toStlString()+" , ";
 		}
 		return ret+" ] ";
+	}
+
+	public boolean isHole() {
+		return isHole;
+	}
+
+	public void setHole(boolean isHole) {
+		this.isHole = isHole;
 	}
 
 }

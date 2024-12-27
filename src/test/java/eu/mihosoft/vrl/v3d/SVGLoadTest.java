@@ -30,8 +30,22 @@ public class SVGLoadTest {
 			// Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		// fail("Not yet implemented");
+	}
+	@Test
+	public void inside() throws IOException {
+		JavaFXInitializer.go();
+		File svg = new File("InsideOutsideTest.svg");
+		if (!svg.exists())
+			throw new RuntimeException("Test file missing!" + svg.getAbsolutePath());
+		SVGLoad s = new SVGLoad(svg.toURI());
+		ArrayList<CSG>parts =run(s);
+		try {
+			ThumbnailImage.setCullFaceValue(CullFace.NONE);
+			ThumbnailImage.writeImage(parts,new File(svg.getAbsolutePath()+".png")).join();
+		} catch (InterruptedException e) {
+			// Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	@Test
 	public void adversarial() throws IOException {
@@ -82,7 +96,7 @@ public class SVGLoadTest {
 				//System.out.println("Adding layer: "+key);
 				ArrayList<CSG> csgs = extrudeLayerToCSG.get(key);
 				if(csgs.size()>0)
-					polys.add(CSG.unionAll(csgs));
+					polys.addAll(csgs);
 //				for(CSG c:extrudeLayerToCSG.get(key)) {
 //					polys.add(c);
 //				}
