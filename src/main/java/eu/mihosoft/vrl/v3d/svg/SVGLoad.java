@@ -715,7 +715,6 @@ public class SVGLoad {
 					if(isHole) {
 						//newbit=newbit.movez(negativeThickness?0.5:-0.5);
 						newbit.setIsHole(true);
-						newbit.setColor(Color.BLACK);
 					}
 					parts.add(newbit);
 				} catch (Exception ex) {
