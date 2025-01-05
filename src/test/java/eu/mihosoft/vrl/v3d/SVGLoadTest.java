@@ -15,6 +15,25 @@ import eu.mihosoft.vrl.v3d.thumbnail.ThumbnailImage;
 import javafx.scene.shape.CullFace;
 
 public class SVGLoadTest {
+	//Alexes_Bad.svg
+	@Test
+	public void Alexes_Bad() throws IOException {
+		JavaFXInitializer.go();
+		File svg = new File("Alexes_Bad.svg");
+		if (!svg.exists())
+			throw new RuntimeException("Test file missing!" + svg.getAbsolutePath());
+		SVGLoad s = new SVGLoad(svg.toURI());
+		ArrayList<CSG>parts =run(s);
+		if(parts.size()==0)
+			throw new RuntimeException("Failed to load");
+		try {
+			ThumbnailImage.setCullFaceValue(CullFace.NONE);
+			ThumbnailImage.writeImage(parts,new File(svg.getAbsolutePath()+".png")).join();
+		} catch (InterruptedException e) {
+			// Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	@Test
 	public void box() throws IOException {
 		JavaFXInitializer.go();

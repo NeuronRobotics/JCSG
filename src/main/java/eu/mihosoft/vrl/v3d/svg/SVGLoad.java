@@ -718,7 +718,7 @@ public class SVGLoad {
 					}
 					parts.add(newbit);
 				} catch (Exception ex) {
-					//ex.printStackTrace();
+					ex.printStackTrace();
 				}
 			}
 		}
