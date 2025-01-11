@@ -651,6 +651,7 @@ public class SVGLoad {
 		poly.setHole(hole);
 		if (c != null)
 			colors.put(poly, c);
+		poly.setColor(c);
 		list.add(poly);
 
 	}
@@ -724,6 +725,10 @@ public class SVGLoad {
 		}
 
 		return csgByLayers;
+	}
+	
+	public Color getColor(Polygon p) {
+		return colors.get(p);
 	}
 
 	public ArrayList<CSG> extrude(double t, double resolution) throws IOException {
