@@ -79,9 +79,47 @@ public class Extrude {
 		 */
 		public CSG extrude(Vector3d dir, Polygon polygon1) {
 
-			return Extrude.monotoneExtrude(dir, polygon1);
+			return monotoneExtrude(dir, polygon1);
 		}
+		private CSG monotoneExtrude(Vector3d dir, Polygon polygon1) {
+			List<Polygon> newPolygons = new ArrayList<>();
+			CSG extrude;
+			//polygon1=polygon1.flipped();
+			newPolygons.addAll(PolygonUtil.concaveToConvex(polygon1.flipped()));
+			Polygon polygon2 = polygon1.translated(dir);
 
+			int numvertices = polygon1.vertices.size();
+			//com.neuronrobotics.sdk.common.Log.error("Building Polygon "+polygon1.getPoints().size());
+			for (int i = 0; i < numvertices; i++) {
+
+				int nexti = (i + 1) % numvertices;
+
+				Vector3d bottomV1 = polygon1.vertices.get(i).pos;
+				Vector3d topV1 = polygon2.vertices.get(i).pos;
+				Vector3d bottomV2 = polygon1.vertices.get(nexti).pos;
+				Vector3d topV2 = polygon2.vertices.get(nexti).pos;
+				double distance = bottomV1.minus(bottomV2).magnitude();
+				if(Math.abs(distance)<Plane.getEPSILON()) {
+					//com.neuronrobotics.sdk.common.Log.error("Skipping invalid polygon "+i+" to "+nexti);
+					continue;
+				}
+				try {
+					newPolygons.add(Polygon.fromPoints(Arrays.asList(bottomV2, topV2, topV1), polygon1.getStorage()));
+					newPolygons.add(Polygon.fromPoints(Arrays.asList(bottomV2, topV1, bottomV1), polygon1.getStorage()));
+				}catch(Exception ex) {
+					//com.neuronrobotics.sdk.common.Log.error("Polygon has problems: ");
+					ex.printStackTrace();
+				}
+			}
+
+			polygon2 = polygon2.flipped();
+			List<Polygon> topPolygons = PolygonUtil.concaveToConvex(polygon2.flipped());
+
+			newPolygons.addAll(topPolygons);
+			extrude = CSG.fromPolygons(newPolygons);
+
+			return extrude;
+		}
 
 		@Override
 		public CSG extrude(Vector3d dir, List<Vector3d> points) {
@@ -564,22 +602,6 @@ public class Extrude {
 	public static CSG sweep(Polygon p, double angle, double z, double radius, int steps) {
 		return sweep(p, new Transform().rotX(angle).movex(z), new Transform().movey(radius), steps);
 	}
-	private static CSG monotoneExtrude(Vector3d dir, Polygon polygon1) {
-		List<Polygon> newPolygons = new ArrayList<>();
-		CSG extrude;
-		//polygon1=polygon1.flipped();
-		newPolygons.addAll(PolygonUtil.concaveToConvex(polygon1.flipped()));
-		Polygon polygon2 = polygon1.translated(dir);
-		newPolygons.addAll(monotoneExtrude(polygon1, polygon1));
-		polygon2 = polygon2.flipped();
-		List<Polygon> topPolygons = PolygonUtil.concaveToConvex(polygon2.flipped());
-
-		newPolygons.addAll(topPolygons);
-		extrude = CSG.fromPolygons(newPolygons);
-
-		return extrude;
-	}
-
 	public static List<Polygon> monotoneExtrude(Polygon polygon2, Polygon polygon1) {
 		List<Polygon> newPolygons = new ArrayList<>();
 
