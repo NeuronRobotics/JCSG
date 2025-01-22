@@ -363,7 +363,7 @@ public class Vector3d extends javax.vecmath.Vector3d{
      */
     private double roundToEpsilon(double value,double epsilon) {
         // Round to nearest multiple of epsilon
-        return ((double)Math.round(value / epsilon)) * epsilon;
+        return value;// ((double)Math.round(value / epsilon)) * epsilon;
     }
 	private String roundedValue(double v,double ep) {
 		return String.format(getExportString(), roundToEpsilon(v,ep));
