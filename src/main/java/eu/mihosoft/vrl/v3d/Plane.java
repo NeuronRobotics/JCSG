@@ -405,7 +405,8 @@ public class Plane {
 				if (ti != PlaneType.FRONT) {
 					b.add(ti != PlaneType.BACK ? vi.clone() : vi);
 				}
-				if (ti == PlaneType.SPANNING||tj==PlaneType.SPANNING) {
+				if ((ti == PlaneType.FRONT&& tj==PlaneType.BACK)||
+					(ti == PlaneType.BACK&& tj==PlaneType.FRONT)	) {
 					double t = (this.getDist() - this.getNormal().dot(vi.pos))
 							/ this.getNormal().dot(vj.pos.minus(vi.pos));
 					Vertex v = vi.interpolate(vj, t);
@@ -416,7 +417,7 @@ public class Plane {
 			try {
 				front.add(new Polygon(f, polygon.getStorage()).setColor(polygon.getColor()));
 			} catch (Exception ex) {
-				// ex.printStackTrace();
+				 ex.printStackTrace();
 				System.err.println("Pruning bad polygon Plane::splitPolygon");
 				// skip adding broken polygon here
 			}
@@ -424,7 +425,7 @@ public class Plane {
 			try {
 				back.add(new Polygon(b, polygon.getStorage()).setColor(polygon.getColor()));
 			} catch (Exception ex) {
-				// ex.printStackTrace();
+				 ex.printStackTrace();
 				System.err.println("Pruning bad polygon Plane::splitPolygon");
 			}
 
