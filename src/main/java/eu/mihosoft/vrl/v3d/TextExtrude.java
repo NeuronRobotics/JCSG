@@ -159,7 +159,7 @@ public class TextExtrude {
 		for (int i = 0; i < sections.size(); i++) {
 			for (CSG h : holes) {
 				try {
-					if (sections.get(i).touching(h)) {
+					if (sections.get(i).isBoundsTouching(h)) {
 						// println "Hole found "
 						CSG nl = sections.get(i).difference(h);
 
@@ -201,7 +201,7 @@ public class TextExtrude {
 
 // Below is AI slop
 	private static final double CURVE_SEGMENTS = 3; // Number of segments to approximate curves
-	private static final double POINT_EPSILON = 0.0001; // Distance threshold for considering points equal
+	private static final double POINT_EPSILON = Plane.getEPSILON(); // Distance threshold for considering points equal
 
 	/**
 	 * Converts a JavaFX Text object into a list of cleaned vector lists

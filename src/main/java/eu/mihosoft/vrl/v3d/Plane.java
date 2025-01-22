@@ -310,7 +310,12 @@ public class Plane {
 		setNormal(getNormal().negated());
 		setDist(-getDist());
 	}
-
+	private enum PlaneType{
+		COPLANAR,
+		FRONT,
+		BACK,
+		SPANNING
+	}
 	/**
 	 * Splits a {@link Polygon} by this plane if needed. After that it puts the
 	 * polygons or the polygon fragments in the appropriate lists ({@code front},
@@ -327,10 +332,10 @@ public class Plane {
 	 */
 	public void splitPolygon(Polygon polygon, List<Polygon> coplanarFront, List<Polygon> coplanarBack,
 			List<Polygon> front, List<Polygon> back) {
-		final int COPLANAR = 0;
-		final int FRONT = 1;
-		final int BACK = 2;
-		final int SPANNING = 3; // == some in the FRONT + some in the BACK
+//		final int COPLANAR = 0;
+//		final int FRONT = 1;
+//		final int BACK = 2;
+//		final int SPANNING = 3; // == some in the FRONT + some in the BACK
 		if (debugger != null && useDebugger) {
 //        	debugger.display(polygon);
 //        	debugger.display(coplanarFront);
@@ -354,25 +359,25 @@ public class Plane {
 				negEpsilon = t - Plane.getEPSILON();
 			}
 		}
-		int polygonType = 0;
-		List<Integer> types = new ArrayList<>();
+		PlaneType polygonType = PlaneType.COPLANAR;
+		List<PlaneType> types = new ArrayList<>();
 		boolean somePointsInfront = false;
 		boolean somePointsInBack = false;
 		for (int i = 0; i < polygon.vertices.size(); i++) {
 			double t = this.getNormal().dot(polygon.vertices.get(i).pos) - this.getDist();
-			int type = (t < negEpsilon) ? BACK : (t > posEpsilon) ? FRONT : COPLANAR;
-			if (type == BACK)
+			PlaneType type = (t < negEpsilon) ? PlaneType.BACK : (t > posEpsilon) ? PlaneType.FRONT : PlaneType.COPLANAR;
+			if (type == PlaneType.BACK)
 				somePointsInBack = true;
-			if (type == FRONT)
+			if (type == PlaneType.FRONT)
 				somePointsInfront = true;
 			types.add(type);
 		}
 		if (somePointsInBack && somePointsInfront)
-			polygonType = SPANNING;
+			polygonType = PlaneType.SPANNING;
 		else if (somePointsInBack) {
-			polygonType = BACK;
+			polygonType = PlaneType.BACK;
 		} else if (somePointsInfront)
-			polygonType = FRONT;
+			polygonType = PlaneType.FRONT;
 
 		// Put the polygon in the correct list, splitting it when necessary.
 		switch (polygonType) {
@@ -390,17 +395,17 @@ public class Plane {
 			List<Vertex> b = new ArrayList<>();
 			for (int i = 0; i < polygon.vertices.size(); i++) {
 				int j = (i + 1) % polygon.vertices.size();
-				int ti = types.get(i);
-				int tj = types.get(j);
+				PlaneType ti = types.get(i);
+				PlaneType tj = types.get(j);
 				Vertex vi = polygon.vertices.get(i);
 				Vertex vj = polygon.vertices.get(j);
-				if (ti != BACK) {
+				if (ti != PlaneType.BACK) {
 					f.add(vi);
 				}
-				if (ti != FRONT) {
-					b.add(ti != BACK ? vi.clone() : vi);
+				if (ti != PlaneType.FRONT) {
+					b.add(ti != PlaneType.BACK ? vi.clone() : vi);
 				}
-				if ((ti | tj) == SPANNING) {
+				if (ti == PlaneType.SPANNING||tj==PlaneType.SPANNING) {
 					double t = (this.getDist() - this.getNormal().dot(vi.pos))
 							/ this.getNormal().dot(vj.pos.minus(vi.pos));
 					Vertex v = vi.interpolate(vj, t);
@@ -408,26 +413,21 @@ public class Plane {
 					b.add(v.clone());
 				}
 			}
-			if (f.size() >= 3) {
-				try {
-					front.add(new Polygon(f, polygon.getStorage()).setColor(polygon.getColor()));
-				} catch (Exception ex) {
-					System.err.println("Pruning bad polygon Plane::splitPolygon");
-					// skip adding broken polygon here
-				}
-			} else {
-				// com.neuronrobotics.sdk.common.Log.error("Front Clip Fault!");
+			try {
+				front.add(new Polygon(f, polygon.getStorage()).setColor(polygon.getColor()));
+			} catch (Exception ex) {
+				// ex.printStackTrace();
+				System.err.println("Pruning bad polygon Plane::splitPolygon");
+				// skip adding broken polygon here
 			}
-			if (b.size() >= 3) {
-				try {
-					back.add(new Polygon(b, polygon.getStorage()).setColor(polygon.getColor()));
-				} catch (Exception ex) {
-					// ex.printStackTrace();
-					System.err.println("Pruning bad polygon Plane::splitPolygon");
-				}
-			} else {
-				// com.neuronrobotics.sdk.common.Log.error("Back Clip Fault!");
+
+			try {
+				back.add(new Polygon(b, polygon.getStorage()).setColor(polygon.getColor()));
+			} catch (Exception ex) {
+				// ex.printStackTrace();
+				System.err.println("Pruning bad polygon Plane::splitPolygon");
 			}
+
 			break;
 		}
 	}

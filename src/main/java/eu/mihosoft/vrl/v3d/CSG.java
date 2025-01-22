@@ -1053,16 +1053,9 @@ public class CSG implements IuserAPI {
 	 * @return the union of this csg and the specified csg
 	 */
 	private CSG _unionIntersectOpt(CSG csg) {
-		boolean intersects = false;
+		boolean intersects = getBounds().intersects(csg.getBounds());
 
-		Bounds bounds = csg.getBounds();
-
-		for (Polygon p : getPolygons()) {
-			if (bounds.intersects(p.getBounds())) {
-				intersects = true;
-				break;
-			}
-		}
+		
 
 		List<Polygon> allPolygons = new ArrayList<>();
 
@@ -1565,6 +1558,7 @@ public class CSG implements IuserAPI {
 		double tOL = 1.0e-11;
 
 		ArrayList<Thread> threads = new ArrayList<Thread>();
+		ArrayList<Polygon> markedForRemoval = new ArrayList<Polygon>();
 		for (int j = 0; j < polygons.size(); j++) {
 			int threadIndex = j;
 			Thread t = new Thread(() -> {
@@ -1589,6 +1583,15 @@ public class CSG implements IuserAPI {
 					}
 					for (int l = 0; l < polygons.size(); l++) {
 						Polygon ii = polygons.get(l);
+						boolean toRem=false;
+						for(int x=0;x<markedForRemoval.size();x++) {
+							if(ii==markedForRemoval.get(x)) {
+								toRem=true;
+								break;
+							}
+						}
+						if(toRem)
+							continue;
 						if (threadIndex != l) {
 							// every other polygon besides this one being tested
 							ArrayList<Vertex> vert = ii.vertices;
@@ -1609,6 +1612,15 @@ public class CSG implements IuserAPI {
 							}
 						}
 					}
+				}
+				try {
+					i.pruneDuplicatePoints();
+					i.validateAndInit();
+					List<Polygon> triangles = PolygonUtil.concaveToConvex(i);
+
+				}catch(Exception ex) {
+					System.out.println(ex.getMessage()+" problem with polygon, removing");
+					markedForRemoval.add(i);
 				}
 			});
 			if (threads.size() > 32) {
@@ -1783,11 +1795,11 @@ public class CSG implements IuserAPI {
 					toAdd.add(poly);
 				}
 			} catch (Throwable ex) {
-				//ex.printStackTrace();
+				ex.printStackTrace();
 				progressMoniter.progressUpdate(1, 1, "Pruning bad polygon CSG::updatePolygons " + p, null);
-//				try {PolygonUtil.concaveToConvex(p);} catch (Throwable ex2) {
-//					ex2.printStackTrace();
-//				}
+				try {PolygonUtil.concaveToConvex(p);} catch (Throwable ex2) {
+					ex2.printStackTrace();
+				}
 //				Debug3dProvider.setProvider(providerOf3d);
 //				//ex.printStackTrace();
 //				Debug3dProvider.clearScreen();
@@ -2612,9 +2624,7 @@ public class CSG implements IuserAPI {
 	public boolean touching(CSG incoming) {
 		// Fast bounding box overlap check, quick fail if not intersecting
 		// bounding boxes
-		if (this.getMaxX() > incoming.getMinX() && this.getMinX() < incoming.getMaxX()
-				&& this.getMaxY() > incoming.getMinY() && this.getMinY() < incoming.getMaxY()
-				&& this.getMaxZ() > incoming.getMinZ() && this.getMinZ() < incoming.getMaxZ()) {
+		if (isBoundsTouching(incoming)) {
 			// Run a full intersection
 			CSG inter = this.intersect(incoming);
 			if (inter.getPolygons().size() > 0) {
@@ -2623,6 +2633,10 @@ public class CSG implements IuserAPI {
 			}
 		}
 		return false;
+	}
+
+	public boolean isBoundsTouching(CSG incoming) {
+		return getBounds().isBoundsTouching(incoming.getBounds());
 	}
 
 	public static ICSGProgress getProgressMoniter() {
