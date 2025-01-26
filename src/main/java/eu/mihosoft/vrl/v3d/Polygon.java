@@ -434,9 +434,30 @@ public final class Polygon {
 		});
 
 		Vector3d a = this.vertices.get(0).pos;
+		
+		// old way
+//		this.plane.setNormal(Plane.computeNormal(this.vertices));
+//		this.plane.setDist(this.plane.getNormal().dot(a));
+		Vector3d old = Plane.computeNormal(this.vertices);
+		double old_dist = this.plane.getNormal().dot(a);
 
-		this.plane.setNormal(Plane.computeNormal(this.vertices));
+		// new way
+		this.plane.transformPlane(transform, a);
 		this.plane.setDist(this.plane.getNormal().dot(a));
+		
+		double tester_dist = Math.abs(old_dist)-Math.abs(this.plane.getDist());
+		if(Math.abs(tester_dist) > plane.getEPSILON())
+			System.out.println("DOH");
+		boolean tester_vect = this.plane.getNormal().test(old, plane.EPSILON);
+		if(!tester_vect) {
+			System.out.println("x_old = "+old.x);
+			System.out.println("x_new = "+this.plane.getNormal().x);
+			System.out.println("y_old = "+old.y);
+			System.out.println("y_new = "+this.plane.getNormal().y);
+			System.out.println("z_old = "+old.z);
+			System.out.println("z_new = "+this.plane.getNormal().z);
+			System.out.println("DOH");
+		}
 
 		if (transform.isMirror()) {
 			// the transformation includes mirroring. flip polygon

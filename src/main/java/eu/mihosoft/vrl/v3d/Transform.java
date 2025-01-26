@@ -717,4 +717,8 @@ public class Transform {
 		return new Transform().rotX(degreesToRotate.doubleValue()).apply(this);
 	}
 
+	public Transform copy() {
+		return new Transform().apply(this);
+	}
+
 }

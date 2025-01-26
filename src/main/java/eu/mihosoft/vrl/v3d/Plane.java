@@ -487,4 +487,19 @@ public class Plane {
 	public static void setEPSILON(double ePSILON) {
 		EPSILON = ePSILON;
 	}
+
+	public void transformPlane(Transform transform_in, Vector3d a) {
+		Transform trans_rot = transform_in.copy()//.inverse()
+												.movex(-transform_in.getX())
+												.movey(-transform_in.getY())
+												.movez(-transform_in.getZ());
+//		Transform trans_dist = new Transform().movex(transform_in.getX())
+//												.movey(transform_in.getY())
+//												.movez(transform_in.getZ());
+		Vector3d newNormal = this.normal.transformed(trans_rot);
+		newNormal = newNormal.negated();
+		this.setNormal(newNormal);
+		this.setDist(this.normal.dot(a));
+		
+	}
 }
