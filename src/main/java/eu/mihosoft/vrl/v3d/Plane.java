@@ -391,8 +391,8 @@ public class Plane {
 			back.add(polygon);
 			break;
 		case SPANNING:
-			List<Vertex> f = new ArrayList<>();
-			List<Vertex> b = new ArrayList<>();
+			ArrayList<Vertex> f = new ArrayList<>();
+			ArrayList<Vertex> b = new ArrayList<>();
 			for (int i = 0; i < polygon.vertices.size(); i++) {
 				int j = (i + 1) % polygon.vertices.size();
 				PlaneType ti = types.get(i);
@@ -415,17 +415,18 @@ public class Plane {
 				}
 			}
 			try {
-				front.add(new Polygon(f, polygon.getStorage()).setColor(polygon.getColor()));
+				Polygon.arePointsCoplanar(f,polygon.plane.getNormal());
+				front.add(new Polygon(f, polygon.getStorage(), true, polygon.plane).setColor(polygon.getColor()));
 			} catch (Exception ex) {
-				 ex.printStackTrace();
+				ex.printStackTrace();
 				System.err.println("Pruning bad polygon Plane::splitPolygon");
 				// skip adding broken polygon here
 			}
 
 			try {
-				back.add(new Polygon(b, polygon.getStorage()).setColor(polygon.getColor()));
+				back.add(new Polygon(b, polygon.getStorage(), true, polygon.plane).setColor(polygon.getColor()));
 			} catch (Exception ex) {
-				 ex.printStackTrace();
+				ex.printStackTrace();
 				System.err.println("Pruning bad polygon Plane::splitPolygon");
 			}
 

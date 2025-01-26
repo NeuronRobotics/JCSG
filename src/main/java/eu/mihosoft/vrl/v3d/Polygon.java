@@ -123,6 +123,23 @@ public final class Polygon {
 	 * @param vertices polygon vertices
 	 * @param shared   shared property
 	 */
+	public Polygon(List<Vertex> vertices, PropertyStorage shared, boolean allowDegenerate, Plane p) {
+		this.plane = p;
+		this.vertices = pruneDuplicatePoints(vertices);
+		this.shared = shared;
+
+		validateAndInit();
+	}
+
+	/**
+	 * Constructor. Creates a new polygon that consists of the specified vertices.
+	 *
+	 * Note: the vertices used to initialize a polygon must be coplanar and form a
+	 * convex loop.
+	 *
+	 * @param vertices polygon vertices
+	 * @param shared   shared property
+	 */
 	public Polygon(List<Vertex> vertices, PropertyStorage shared) {
 		this(vertices, shared, true);
 	}
@@ -166,7 +183,8 @@ public final class Polygon {
 	}
 
 	public void validateAndInit() {
-		this.plane = Plane.createFromPoints(vertices);
+		if(plane==null)
+			this.plane = Plane.createFromPoints(vertices);
 		for (Vertex v : vertices) {
 			v.normal = plane.getNormal();
 			// v.pos.roundToEpsilon();
@@ -184,9 +202,11 @@ public final class Polygon {
 
 		if (areAllPointsCollinear(vertices))
 			throw new RuntimeException("This polygon is colinear");
-		if(!arePointsCoplanar(vertices,plane.getNormal()))
-			throw new RuntimeException("All points are not on plane of epsilon "+Plane.getEPSILON());
-
+		if(!arePointsCoplanar(vertices,plane.getNormal())) {
+			this.plane = Plane.createFromPoints(vertices);
+			if(!arePointsCoplanar(vertices,plane.getNormal()))
+				throw new RuntimeException("All points are not on plane of epsilon "+Plane.getEPSILON());
+		}
 		setDegenerate(false);
 
 	}
@@ -295,7 +315,7 @@ public final class Polygon {
 		this.vertices.forEach((vertex) -> {
 			newVertices.add(vertex.clone());
 		});
-		return new Polygon(newVertices, getStorage(), true).setColor(color);
+		return new Polygon(newVertices, getStorage(), true, this.plane).setColor(color);
 	}
 
 	/**

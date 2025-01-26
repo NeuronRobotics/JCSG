@@ -1951,13 +1951,7 @@ public class CSG implements IuserAPI {
 		}
 
 		List<Polygon> newpolygons = this.getPolygons().stream().map(p -> {
-			try {
-				return p.transformed(transform);
-			} catch (Exception e) {
-				// e.printStackTrace();
-				System.err.println("Removing Polygon during transform");
-				return null;
-			}
+			return p.transformed(transform);
 		}).filter(Objects::nonNull).collect(Collectors.toList());
 
 		CSG csg = CSG.fromPolygons(newpolygons).optimization(getOptType());
