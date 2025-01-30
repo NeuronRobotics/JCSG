@@ -237,21 +237,27 @@ public class Cylinder extends Primitive {
                     startV,
                     cylPoint(axisX, axisY, axisZ, ray, s, startRadius, 0, t0, -1),
                     cylPoint(axisX, axisY, axisZ, ray, s, startRadius, 0, t1, -1)),
-                    properties
+                    properties,
+                    true,
+                    null
             ));
             polygons.add(new Polygon(Arrays.asList(
                     cylPoint(axisX, axisY, axisZ, ray, s, startRadius, 0, t1, 0),
                     cylPoint(axisX, axisY, axisZ, ray, s, startRadius, 0, t0, 0),
                     cylPoint(axisX, axisY, axisZ, ray, s, endRadius, 1, t0, 0),
                     cylPoint(axisX, axisY, axisZ, ray, s, endRadius, 1, t1, 0)),
-                    properties
+                    properties,
+                    true,
+                    null
             ));
             polygons.add(new Polygon(
                     Arrays.asList(
                             endV,
                             cylPoint(axisX, axisY, axisZ, ray, s, endRadius, 1, t1, 1),
                             cylPoint(axisX, axisY, axisZ, ray, s, endRadius, 1, t0, 1)),
-                    properties
+                    properties,
+                    true,
+                    null
             ));
         }
 

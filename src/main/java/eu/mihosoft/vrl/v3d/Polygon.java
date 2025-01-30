@@ -98,21 +98,21 @@ public final class Polygon {
 		return PolygonUtil.concaveToConvex(p);
 	}
 
-	/**
-	 * Constructor. Creates a new polygon that consists of the specified vertices.
-	 *
-	 * Note: the vertices used to initialize a polygon must be coplanar and form a
-	 * convex loop.
-	 *
-	 * @param vertices polygon vertices
-	 * @param shared   shared property
-	 */
-	public Polygon(List<Vertex> vertices, PropertyStorage shared, boolean allowDegenerate) {
-		this.vertices = pruneDuplicatePoints(vertices);
-		this.shared = shared;
-
-		validateAndInit();
-	}
+//	/**
+//	 * Constructor. Creates a new polygon that consists of the specified vertices.
+//	 *
+//	 * Note: the vertices used to initialize a polygon must be coplanar and form a
+//	 * convex loop.
+//	 *
+//	 * @param vertices polygon vertices
+//	 * @param shared   shared property
+//	 */
+//	public Polygon(List<Vertex> vertices, PropertyStorage shared, boolean allowDegenerate) {
+//		this.vertices = pruneDuplicatePoints(vertices);
+//		this.shared = shared;
+//
+//		validateAndInit();
+//	}
 
 	/**
 	 * Constructor. Creates a new polygon that consists of the specified vertices.
@@ -131,30 +131,30 @@ public final class Polygon {
 		validateAndInit();
 	}
 
-	/**
-	 * Constructor. Creates a new polygon that consists of the specified vertices.
-	 *
-	 * Note: the vertices used to initialize a polygon must be coplanar and form a
-	 * convex loop.
-	 *
-	 * @param vertices polygon vertices
-	 * @param shared   shared property
-	 */
-	public Polygon(List<Vertex> vertices, PropertyStorage shared) {
-		this(vertices, shared, true);
-	}
+//	/**
+//	 * Constructor. Creates a new polygon that consists of the specified vertices.
+//	 *
+//	 * Note: the vertices used to initialize a polygon must be coplanar and form a
+//	 * convex loop.
+//	 *
+//	 * @param vertices polygon vertices
+//	 * @param shared   shared property
+//	 */
+//	public Polygon(List<Vertex> vertices, PropertyStorage shared) {
+//		this(vertices, shared, true, null);
+//	}
 
-	/**
-	 * Constructor. Creates a new polygon that consists of the specified vertices.
-	 *
-	 * Note: the vertices used to initialize a polygon must be coplanar and form a
-	 * convex loop.
-	 *
-	 * @param vertices polygon vertices
-	 */
-	public Polygon(List<Vertex> vertices) {
-		this(vertices, new PropertyStorage(), true);
-	}
+//	/**
+//	 * Constructor. Creates a new polygon that consists of the specified vertices.
+//	 *
+//	 * Note: the vertices used to initialize a polygon must be coplanar and form a
+//	 * convex loop.
+//	 *
+//	 * @param vertices polygon vertices
+//	 */
+//	public Polygon(List<Vertex> vertices) {
+//		this(vertices, new PropertyStorage(), true, null);
+//	}
 
 	public void pruneDuplicatePoints() {
 		this.vertices = pruneDuplicatePoints(vertices);
@@ -185,6 +185,8 @@ public final class Polygon {
 	public void validateAndInit() {
 		if(plane==null)
 			this.plane = Plane.createFromPoints(vertices);
+		if(shared==null)
+			this.shared = new PropertyStorage();
 		for (Vertex v : vertices) {
 			v.normal = plane.getNormal();
 			// v.pos.roundToEpsilon();
@@ -291,18 +293,18 @@ public final class Polygon {
 		return true;
 	}
 
-	/**
-	 * Constructor. Creates a new polygon that consists of the specified vertices.
-	 *
-	 * Note: the vertices used to initialize a polygon must be coplanar and form a
-	 * convex loop.
-	 *
-	 * @param vertices polygon vertices
-	 *
-	 */
-	public Polygon(Vertex... vertices) {
-		this(Arrays.asList(vertices));
-	}
+//	/**
+//	 * Constructor. Creates a new polygon that consists of the specified vertices.
+//	 *
+//	 * Note: the vertices used to initialize a polygon must be coplanar and form a
+//	 * convex loop.
+//	 *
+//	 * @param vertices polygon vertices
+//	 *
+//	 */
+//	public Polygon(Vertex... vertices) {
+//		this(Arrays.asList(vertices));
+//	}
 
 	/*
 	 * (non-Javadoc)
@@ -445,19 +447,19 @@ public final class Polygon {
 		this.plane.transformPlane(transform, a);
 		this.plane.setDist(this.plane.getNormal().dot(a));
 		
-		double tester_dist = Math.abs(old_dist)-Math.abs(this.plane.getDist());
-		if(Math.abs(tester_dist) > plane.getEPSILON())
-			System.out.println("DOH");
-		boolean tester_vect = this.plane.getNormal().test(old, plane.EPSILON);
-		if(!tester_vect) {
-			System.out.println("x_old = "+old.x);
-			System.out.println("x_new = "+this.plane.getNormal().x);
-			System.out.println("y_old = "+old.y);
-			System.out.println("y_new = "+this.plane.getNormal().y);
-			System.out.println("z_old = "+old.z);
-			System.out.println("z_new = "+this.plane.getNormal().z);
-			System.out.println("DOH");
-		}
+//		double tester_dist = Math.abs(old_dist)-Math.abs(this.plane.getDist());
+//		if(Math.abs(tester_dist) > plane.getEPSILON())
+//			System.out.println("DOH");
+//		boolean tester_vect = this.plane.getNormal().test(old, plane.EPSILON);
+//		if(!tester_vect) {
+//			System.out.println("x_old = "+old.x);
+//			System.out.println("x_new = "+this.plane.getNormal().x);
+//			System.out.println("y_old = "+old.y);
+//			System.out.println("y_new = "+this.plane.getNormal().y);
+//			System.out.println("z_old = "+old.z);
+//			System.out.println("z_new = "+this.plane.getNormal().z);
+//			System.out.println("DOH");
+//		}
 
 		if (transform.isMirror()) {
 			// the transformation includes mirroring. flip polygon
@@ -553,7 +555,7 @@ public final class Polygon {
 			vertices.add(vertex);
 		}
 
-		return new Polygon(vertices, shared, allowDegenerate);
+		return new Polygon(vertices, shared, allowDegenerate, plane);
 	}
 
 	/**

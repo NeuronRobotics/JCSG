@@ -149,7 +149,7 @@ public class Cube extends Primitive {
                         (double) info[1][2]
                 )));
             }
-            polygons.add(new Polygon(vertices, properties));
+            polygons.add(new Polygon(vertices, properties, true, null));
         }
 
         if (!centered) {

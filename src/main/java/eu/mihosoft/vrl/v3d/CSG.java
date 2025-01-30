@@ -1747,7 +1747,7 @@ public class CSG implements IuserAPI {
 								newpoints.add(v2);
 						}
 					}
-					Polygon e2 = new Polygon(newpoints, ptoA.getStorage());
+					Polygon e2 = new Polygon(newpoints, ptoA.getStorage(), true, null);
 					try {
 						List<Polygon> t = PolygonUtil.concaveToConvex(e2);
 						for (Polygon poly : t) {

@@ -72,7 +72,7 @@ public class Toroid extends Primitive {
 			double b = Math.sin(rad) * crossSecRad;
 			vertices.add(new Vertex(new Vector3d(a,b), new Vector3d(-1, 0,0)));
 		}
-		Polygon poly = new Polygon(vertices, properties);
+		Polygon poly = new Polygon(vertices, properties, true, null);
 		ArrayList<Polygon> slices = new ArrayList<Polygon>();
 
 		for (int i = 0; i < numSlices; i++) {

@@ -212,14 +212,16 @@ public class PolygonUtil {
 					if (!cw) {
 						Collections.reverse(triPoints);
 					}
-					Polygon poly = new Polygon(triPoints, concave.getStorage(), true);
+					Polygon poly = new Polygon(triPoints, concave.getStorage(), true, concave.plane);
 					// poly = Extrude.toCCW(poly);
 					poly.plane.setNormal(concave.plane.getNormal());
 					boolean b = !Extrude.isCCW(poly);
 					if (cw != b) {
 						// System.err.println("Triangle not matching incoming");
 						Collections.reverse(triPoints);
-						poly = new Polygon(triPoints, concave.getStorage(), true);
+						Plane normal_flip = concave.plane.clone();
+						normal_flip.flip();
+						poly = new Polygon(triPoints, concave.getStorage(), true, normal_flip);
 						b = !Extrude.isCCW(poly);
 						if (cw != b) {
 							// com.neuronrobotics.sdk.common.Log.error("Error, polygon is reversed!");
@@ -410,7 +412,7 @@ public class PolygonUtil {
 		if (newPoints.size() < 3)
 			return null;
 
-		return new Polygon(newPoints);
+		return new Polygon(newPoints, incoming.getStorage(), true, incoming.plane);
 
 	}
 }
