@@ -169,6 +169,7 @@ public final class Polygon {
 			for (Vertex vx : newPoints) {
 				if (vx.pos.test(v.pos, Plane.getEPSILON())) {
 					duplicate = true;
+					break;
 				}
 			}
 			if (!duplicate) {
