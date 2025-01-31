@@ -201,7 +201,7 @@ public class PolygonUtil {
 		try {
 			triangles = makeTriangles(concave, cw);
 		} catch (java.lang.IllegalStateException ex) {
-			System.out.println("Polygon can not be triangulated \n"+concave);
+			System.err.println("Polygon can not be triangulated \n"+concave);
 			ex.printStackTrace();
 			throw new RuntimeException(ex);
 		}
