@@ -13,7 +13,7 @@ import javafx.scene.shape.CullFace;
 public class StlLoadTest {
 
 	@Test
-	public void test() throws IOException {
+	public void test() throws IOException, InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		String filename = "brokenSTL.STL";
 		File file = new File(filename);
 		CSG loaded = STL.file(file.toPath());

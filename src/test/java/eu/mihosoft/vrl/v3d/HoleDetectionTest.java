@@ -21,9 +21,13 @@ public class HoleDetectionTest {
 
     /**
      * Hole detection test.
+     * @throws PointsNotCoplainer 
+     * @throws PointsColinearException 
+     * @throws TooFewPointsException 
+     * @throws InvalidNormalException 
      */
     @Test
-    public void holeDetectionTest() {
+    public void holeDetectionTest() throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
         
         // one polygon with one hole
         Polygon p1 = Polygon.fromPoints(

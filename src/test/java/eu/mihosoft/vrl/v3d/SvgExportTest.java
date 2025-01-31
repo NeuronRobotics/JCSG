@@ -18,7 +18,7 @@ import eu.mihosoft.vrl.v3d.svg.SVGLoad;
 public class SvgExportTest {
 
 	@Test
-	public void slicetest() throws IOException {
+	public void slicetest() throws IOException, InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		double normalInsetDistance = 0;
 		Transform slicePlane = new Transform();
 
@@ -44,7 +44,7 @@ public class SvgExportTest {
 	}
 
 	@Test
-	public void test() throws IOException {
+	public void test() throws IOException, InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 
 		List<Polygon> polygons = new ArrayList<Polygon>();
 
@@ -70,7 +70,7 @@ public class SvgExportTest {
 	}
 
 	@Test
-	public void testSlices() throws IOException {
+	public void testSlices() throws IOException, InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 
 		List<Polygon> polygons = new ArrayList<Polygon>();
 
@@ -96,7 +96,7 @@ public class SvgExportTest {
 	}
 
 	@Test
-	public void testCSGSlices() throws IOException {
+	public void testCSGSlices() throws IOException, InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 
 		CSG carrot = new Cube(10, 10, 10).toCSG()
 				// .toXMin()
@@ -125,7 +125,7 @@ public class SvgExportTest {
       
   }   	
 	@Test
-	public void testManyCSGSlices() throws IOException {
+	public void testManyCSGSlices() throws IOException, InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 	// Create a CSG to slice
 	  CSG pin = new Cylinder(10, 100)
 	      .toCSG();

@@ -105,7 +105,11 @@ public class BezierPath {
 			case 'a':
 				break;
 			case 'Q':
-				path.curvetoQuadraticAbs(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens), nextFloat(tokens));
+				double f=nextFloat(tokens);
+				double s =nextFloat(tokens);
+				double t=nextFloat(tokens);
+				double e =nextFloat(tokens);
+				path.curvetoQuadraticAbs(f, s, t, e);
 				for (double i = resolution; i < 1; i += resolution) {
 					addingPoint(i);
 				}
@@ -175,7 +179,7 @@ public class BezierPath {
 
 	private boolean setThePoint(Vector3d eval) {
 		for(Vector3d v:plInternal) {
-			if(Math.abs(v.minus(eval).magnitude())<Plane.getEPSILON())
+			if(Math.abs(v.minus(eval).magnitude())<(Plane.getEPSILON()*3))
 				return false;
 		}
 		return plInternal.add(eval);
@@ -183,7 +187,8 @@ public class BezierPath {
 
 	static protected double  nextFloat(LinkedList<String> l) {
 		String s = l.removeFirst();
-		return Float.parseFloat(s);
+		
+		return Double.parseDouble(s);
 	}
 
 	/**
@@ -195,7 +200,7 @@ public class BezierPath {
 		if (interp < 0.001)
 			interp = (double ) 0.001;
 		if (interp > 0.9999)
-			interp = (double ) 0.9999;
+			interp = 1;
 
 		double curLength = path.curveLength * interp;
 		for (Iterator<Bezier> it = path.bezierSegs.iterator(); it.hasNext();) {

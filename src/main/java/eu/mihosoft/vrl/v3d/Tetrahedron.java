@@ -73,7 +73,13 @@ public class Tetrahedron extends Primitive {
 			points.add(new Vector3d(0,-1,+_1_sqrt2));
 			points.add(new Vector3d(0,+1,+_1_sqrt2));
     	
-		List<Polygon> polygons = HullUtil.hull(points).scale(radius/Math.sqrt(3)).getPolygons();
+		List<Polygon> polygons;
+		try {
+			polygons = HullUtil.hull(points).scale(radius/Math.sqrt(3)).getPolygons();
+		} catch (InvalidNormalException | TooFewPointsException | PointsColinearException | PointsNotCoplainer e) {
+			throw new RuntimeException(e);
+
+		}
 
         return polygons;
     }

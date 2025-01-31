@@ -283,7 +283,13 @@ public class Slice {
 								p.add(new Vector3d((it[0] * scaleX) + xOffset, (it[1] * scaleY) + yOffset, 0));
 							}
 
-							Polygon polyNew = Polygon.fromPoints(p);
+							Polygon polyNew;
+							try {
+								polyNew = Polygon.fromPoints(p);
+							} catch (InvalidNormalException | TooFewPointsException | PointsColinearException
+									| PointsNotCoplainer e) {
+								throw new RuntimeException(e);
+							}
 							polys.add(polyNew);
 							listOfPointsForThisPoly.clear();
 							if (pixelVersionOfPoints.size() > 0) {
@@ -304,7 +310,13 @@ public class Slice {
 				for (int[] it : listOfPointsForThisPoly) {
 					p.add(new Vector3d((it[0] * scaleX) + xOffset, (it[1] * scaleY) + yOffset, 0));
 				}
-				polys.add(Polygon.fromPoints(p));
+				try {
+					polys.add(Polygon.fromPoints(p));
+				} catch (InvalidNormalException | TooFewPointsException | PointsColinearException
+						| PointsNotCoplainer e) {
+					throw new RuntimeException(e);
+
+				}
 				// if(display)BowlerStudioController.getBowlerStudio() .addObject(polys, new
 				// File("."))
 			}
@@ -461,7 +473,7 @@ public class Slice {
 		return vertex.getZ() < SLICE_UPPER_BOUND && vertex.getZ() > SLICE_LOWER_BOUND;
 	}
 
-	public static List<Polygon> slice(CSG incoming, Transform slicePlane, double normalInsetDistance) {
+	public static List<Polygon> slice(CSG incoming, Transform slicePlane, double normalInsetDistance) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		try {
 			if(DefaultSliceImp.class.isInstance(sliceEngine)) {
 				// avoid concurrecy issues
@@ -479,7 +491,7 @@ public class Slice {
 		}
 	}
 
-	private static List<Polygon> sanatize(List<Polygon> slice) {
+	private static List<Polygon> sanatize(List<Polygon> slice) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		for (int i = 0; i < slice.size(); i++) {
 			Polygon me = slice.get(i);
 			boolean bad = !Extrude.isCCW(me);
@@ -495,10 +507,10 @@ public class Slice {
 		return slice;
 	}
 
-	public static List<Polygon> slice(CSG incoming) {
+	public static List<Polygon> slice(CSG incoming) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		return slice(incoming, new Transform(),0);
 	}
-	public static List<Polygon> slice(CSG incoming, double normalInsetDistance) {
+	public static List<Polygon> slice(CSG incoming, double normalInsetDistance) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		return slice(incoming, new Transform(),normalInsetDistance);
 	}
 	public static ISlice getSliceEngine() {

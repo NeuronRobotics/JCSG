@@ -73,7 +73,12 @@ public class Octahedron extends Primitive {
 			points.add(new Vector3d(+sqrt2_2,-sqrt2_2,0));
 			points.add(new Vector3d(+sqrt2_2,+sqrt2_2,0));
     	
-		List<Polygon> polygons = HullUtil.hull(points).scale(radius).getPolygons();
+		List<Polygon> polygons;
+		try {
+			polygons = HullUtil.hull(points).scale(radius).getPolygons();
+		} catch (InvalidNormalException | TooFewPointsException | PointsColinearException | PointsNotCoplainer e) {
+			throw new RuntimeException(e);
+		}
 
         return polygons;
     }

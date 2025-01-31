@@ -8,8 +8,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import eu.mihosoft.vrl.v3d.CSG;
+import eu.mihosoft.vrl.v3d.InvalidNormalException;
+import eu.mihosoft.vrl.v3d.PointsColinearException;
+import eu.mihosoft.vrl.v3d.PointsNotCoplainer;
 import eu.mihosoft.vrl.v3d.Polygon;
 import eu.mihosoft.vrl.v3d.Slice;
+import eu.mihosoft.vrl.v3d.TooFewPointsException;
 import eu.mihosoft.vrl.v3d.Transform;
 import eu.mihosoft.vrl.v3d.Vector3d;
 import eu.mihosoft.vrl.v3d.Vertex;
@@ -170,12 +174,12 @@ public class SVGExporter {
 		bw.write(output);
 		bw.close();
 	}
-	public static void export(CSG currentCsg, File defaultDir) throws IOException {
+	public static void export(CSG currentCsg, File defaultDir) throws IOException, InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		SVGExporter svg = new SVGExporter();
 		addCsg(currentCsg,svg);
 		write(svg.make(), defaultDir);
 	}
-	public static void export(List<CSG> currentCsg, File defaultDir) throws IOException {
+	public static void export(List<CSG> currentCsg, File defaultDir) throws IOException, InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		try {
 			eu.mihosoft.vrl.v3d.JavaFXInitializer.go();
 		} catch (Throwable t) {
@@ -198,7 +202,7 @@ public class SVGExporter {
 			//System.out.println("ERROR No UI engine availible, SVG slicing is GPU accelerated and will not work");
 		}
 	}
-	private static void addCsg(CSG currentCsg, SVGExporter svg) throws IOException {
+	private static void addCsg(CSG currentCsg, SVGExporter svg) throws IOException, InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		svg.setName(currentCsg.getName());
 		for(Transform slicePlane:currentCsg.getSlicePlanes()){
 			List<Polygon> polygons = Slice.slice(currentCsg.prepMfg(), slicePlane, 0);

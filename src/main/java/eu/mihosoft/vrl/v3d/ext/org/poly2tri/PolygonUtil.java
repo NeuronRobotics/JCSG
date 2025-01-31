@@ -35,8 +35,12 @@ package eu.mihosoft.vrl.v3d.ext.org.poly2tri;
 
 import eu.mihosoft.vrl.v3d.Debug3dProvider;
 import eu.mihosoft.vrl.v3d.Extrude;
+import eu.mihosoft.vrl.v3d.InvalidNormalException;
 import eu.mihosoft.vrl.v3d.Plane;
+import eu.mihosoft.vrl.v3d.PointsColinearException;
+import eu.mihosoft.vrl.v3d.PointsNotCoplainer;
 import eu.mihosoft.vrl.v3d.Polygon;
+import eu.mihosoft.vrl.v3d.TooFewPointsException;
 import eu.mihosoft.vrl.v3d.Transform;
 import eu.mihosoft.vrl.v3d.Vector3d;
 import eu.mihosoft.vrl.v3d.Vertex;
@@ -100,8 +104,12 @@ public class PolygonUtil {
 	 *
 	 * @param incoming the concave
 	 * @return the list
+	 * @throws PointsNotCoplainer 
+	 * @throws PointsColinearException 
+	 * @throws TooFewPointsException 
+	 * @throws InvalidNormalException 
 	 */
-	public static List<Polygon> concaveToConvex(Polygon incoming) {
+	public static List<Polygon> concaveToConvex(Polygon incoming) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		List<Polygon> result = new ArrayList<>();
 
 		if (incoming == null)
@@ -252,7 +260,7 @@ public class PolygonUtil {
 		return result;
 	}
 
-	private static Polygon checkForValidPolyOrentation(Vector3d normal, Polygon poly) {
+	private static Polygon checkForValidPolyOrentation(Vector3d normal, Polygon poly) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		Vector3d normal2 = poly.plane.getNormal();
 		Vector3d minus = normal.minus(normal2);
 		double length = minus.length();
@@ -394,7 +402,7 @@ public class PolygonUtil {
 //		return result;
 //	}
 
-	public static Polygon pruneDuplicatePoints(Polygon incoming) {
+	public static Polygon pruneDuplicatePoints(Polygon incoming) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		ArrayList<Vertex> newPoints = new ArrayList<Vertex>();
 		for (int i = 0; i < incoming.vertices.size(); i++) {
 			Vertex v = incoming.vertices.get(i);

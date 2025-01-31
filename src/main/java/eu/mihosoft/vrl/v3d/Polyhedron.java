@@ -68,8 +68,23 @@ public class Polyhedron extends Primitive {
 
         Function<List<Integer>, Polygon> faceListToPolygon
                 = (List<Integer> faceList) -> {
-                    return Polygon.fromPoints(faceList.stream().map(indexToPoint).
-                            collect(Collectors.toList()), properties);
+                    try {
+						return Polygon.fromPoints(faceList.stream().map(indexToPoint).
+						        collect(Collectors.toList()), properties);
+					} catch (InvalidNormalException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (TooFewPointsException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (PointsColinearException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (PointsNotCoplainer e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+                    throw new RuntimeException("Failed to make Polyhedron");
                 };
 
         return faces.stream().map(faceListToPolygon).

@@ -50,11 +50,11 @@ public class Toroid extends Primitive {
 	/** The properties. */
 	private final PropertyStorage properties = new PropertyStorage();
 	List<Polygon> polys;
-	public Toroid(double innerRadius, double OuterRadius) {
+	public Toroid(double innerRadius, double OuterRadius) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		this(innerRadius,OuterRadius,20,16);
 	}
 	
-	public Toroid(double innerRadius, double OuterRadius, int numSlices, int facets) {
+	public Toroid(double innerRadius, double OuterRadius, int numSlices, int facets) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		if (innerRadius < 0)
 			throw new RuntimeException("Inner radious must be positive");
 		if (innerRadius >= OuterRadius)

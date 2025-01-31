@@ -56,7 +56,7 @@ public class Parabola {
     return points;
   }
 
-  public static CSG coneByEquation(double Radius, double a, double b) {
+  public static CSG coneByEquation(double Radius, double a, double b) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
     ArrayList<Vector3d> points = new Parabola().fromEquation(Radius, a, b).getpoints();// upper
                                                                                        // right
                                                                                        // corner
@@ -71,17 +71,17 @@ public class Parabola {
     return eu.mihosoft.vrl.v3d.ext.quickhull3d.HullUtil.hull(pointsOut);
   }
   
-  public static CSG cone(double Radius, double height) {
+  public static CSG cone(double Radius, double height) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 	    return coneByHeight(Radius,height,0).rotx(90).toZMin();
   }
-  public static CSG cone(double Radius, double height, double b) {
+  public static CSG cone(double Radius, double height, double b) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		    return coneByHeight(Radius,height,b).rotx(90).toZMin();
   }
-  public static CSG coneByHeight(double Radius, double height) {
+  public static CSG coneByHeight(double Radius, double height) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
     return coneByHeight(Radius,height,0);
   }
   
-  public static CSG coneByHeight(double Radius, double height, double b) {
+  public static CSG coneByHeight(double Radius, double height, double b) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
     double a=(height-(b*Radius))/(Radius*Radius);
     ArrayList<Vector3d> points = new Parabola().fromEquation(Radius, a, b).getpoints();// upper
     // right
@@ -96,7 +96,7 @@ public class Parabola {
     return eu.mihosoft.vrl.v3d.ext.quickhull3d.HullUtil.hull(pointsOut);
   }
 
-  public static CSG coneByFocalLength(double Radius, double FocalLength) {
+  public static CSG coneByFocalLength(double Radius, double FocalLength) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
     ArrayList<Vector3d> points = new Parabola().fromFocalLength(Radius, FocalLength).getpoints();// upper
     // right
     // corner

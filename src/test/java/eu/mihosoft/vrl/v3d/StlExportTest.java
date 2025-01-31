@@ -11,7 +11,7 @@ import org.junit.Test;
 public class StlExportTest {
 
 	@Test
-	public void makeBadSTL() throws IOException {
+	public void makeBadSTL() throws IOException, InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		Plane.setEPSILON(1.0e-12);
 		Vector3d.setEXPORTEPSILON(1.0e-12);
 		CSG.setUseGPU(false);

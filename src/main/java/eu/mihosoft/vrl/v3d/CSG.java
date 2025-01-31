@@ -930,7 +930,12 @@ public class CSG implements IuserAPI {
 	 */
 	public CSG hull() {
 
-		return HullUtil.hull(this, getStorage()).historySync(this);
+		try {
+			return HullUtil.hull(this, getStorage()).historySync(this);
+		} catch (InvalidNormalException | TooFewPointsException | PointsColinearException | PointsNotCoplainer e) {
+			throw new RuntimeException(e);
+
+		}
 	}
 
 	public static CSG unionAll(CSG... csgs) {
@@ -948,7 +953,12 @@ public class CSG implements IuserAPI {
 
 	public static CSG hullAll(List<CSG> csgs) {
 		// CSG first = csgs.remove(0);
-		return HullUtil.hull(csgs);// first.hull(csgs);
+		try {
+			return HullUtil.hull(csgs);
+		} catch (InvalidNormalException | TooFewPointsException | PointsColinearException | PointsNotCoplainer e) {
+			throw new RuntimeException(e);
+
+		}// first.hull(csgs);
 	}
 
 	/**
@@ -1747,8 +1757,8 @@ public class CSG implements IuserAPI {
 								newpoints.add(v2);
 						}
 					}
-					Polygon e2 = new Polygon(newpoints, ptoA.getStorage(), true, null);
 					try {
+						Polygon e2 = new Polygon(newpoints, ptoA.getStorage(), true, ptoA.plane);
 						List<Polygon> t = PolygonUtil.concaveToConvex(e2);
 						for (Polygon poly : t) {
 							if (!poly.isDegenerate()) {
@@ -2268,7 +2278,11 @@ public class CSG implements IuserAPI {
 					}
 				}
 			}
-			bits.add(HullUtil.hull(plist));
+			try {
+				bits.add(HullUtil.hull(plist));
+			} catch (InvalidNormalException | TooFewPointsException | PointsColinearException | PointsNotCoplainer e) {
+				throw new RuntimeException(e);
+			}
 		}
 		return bits;
 	}

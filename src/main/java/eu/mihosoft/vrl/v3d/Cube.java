@@ -149,7 +149,21 @@ public class Cube extends Primitive {
                         (double) info[1][2]
                 )));
             }
-            polygons.add(new Polygon(vertices, properties, true, null));
+            try {
+				polygons.add(new Polygon(vertices, properties, true, null));
+			} catch (InvalidNormalException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (TooFewPointsException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (PointsColinearException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (PointsNotCoplainer e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
         }
 
         if (!centered) {

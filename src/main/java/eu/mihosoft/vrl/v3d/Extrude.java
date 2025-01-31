@@ -62,8 +62,12 @@ public class Extrude {
 		 * @param points path (convex or concave polygon without holes or intersections)
 		 *
 		 * @return a CSG object that consists of the extruded polygon
+		 * @throws PointsNotCoplainer 
+		 * @throws PointsColinearException 
+		 * @throws TooFewPointsException 
+		 * @throws InvalidNormalException 
 		 */
-		public CSG points(Vector3d dir, List<Vector3d> points) {
+		public CSG points(Vector3d dir, List<Vector3d> points) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 
 			List<Vector3d> newList = new ArrayList<>(points);
 
@@ -79,9 +83,13 @@ public class Extrude {
 		 */
 		public CSG extrude(Vector3d dir, Polygon polygon1) {
 
-			return monotoneExtrude(dir, polygon1);
+			try {
+				return monotoneExtrude(dir, polygon1);
+			} catch (InvalidNormalException | TooFewPointsException | PointsColinearException | PointsNotCoplainer e) {
+				throw new RuntimeException(e);
+			}
 		}
-		private CSG monotoneExtrude(Vector3d dir, Polygon polygon1) {
+		private CSG monotoneExtrude(Vector3d dir, Polygon polygon1) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 			List<Polygon> newPolygons = new ArrayList<>();
 			CSG extrude;
 			//polygon1=polygon1.flipped();
@@ -123,7 +131,22 @@ public class Extrude {
 
 		@Override
 		public CSG extrude(Vector3d dir, List<Vector3d> points) {
-			return points(dir, points);
+			try {
+				return points(dir, points);
+			} catch (InvalidNormalException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (TooFewPointsException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (PointsColinearException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (PointsNotCoplainer e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			throw new RuntimeException("Failed to extrude!");
 		}
 	};
 
@@ -134,11 +157,11 @@ public class Extrude {
 		throw new AssertionError("Don't instantiate me!", null);
 	}
 
-	public static CSG polygons(Polygon polygon1, Number zDistance) {
+	public static CSG polygons(Polygon polygon1, Number zDistance) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		return polygons(polygon1, polygon1.transformed(new Transform().movez(zDistance)));
 	}
 
-	public static CSG polygons(Polygon polygon1, Polygon polygon2) {
+	public static CSG polygons(Polygon polygon1, Polygon polygon2) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		// if(!isCCW(polygon1)) {
 		// polygon1=Polygon.fromPoints(toCCW(polygon1.getPoints()));
 		// }
@@ -178,7 +201,7 @@ public class Extrude {
 		return extrude;
 	}
 
-	public static ArrayList<CSG> polygons(eu.mihosoft.vrl.v3d.Polygon polygon1, ArrayList<Transform> transforms) {
+	public static ArrayList<CSG> polygons(eu.mihosoft.vrl.v3d.Polygon polygon1, ArrayList<Transform> transforms) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		if (transforms.size() == 1)
 			transforms.add(0, new Transform());
 		polygon1 = Polygon.fromPoints(toCCW(polygon1.getPoints()));
@@ -197,7 +220,7 @@ public class Extrude {
 
 	}
 
-	public static ArrayList<CSG> polygons(eu.mihosoft.vrl.v3d.Polygon polygon1, Transform... transformparts) {
+	public static ArrayList<CSG> polygons(eu.mihosoft.vrl.v3d.Polygon polygon1, Transform... transformparts) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 
 		return polygons(polygon1, (ArrayList<Transform>) Arrays.asList(transformparts));
 
@@ -227,8 +250,12 @@ public class Extrude {
 	 *
 	 * @param points the points
 	 * @return the list
+	 * @throws PointsNotCoplainer 
+	 * @throws PointsColinearException 
+	 * @throws TooFewPointsException 
+	 * @throws InvalidNormalException 
 	 */
-	public static List<Vector3d> toCCW(List<Vector3d> points) {
+	public static List<Vector3d> toCCW(List<Vector3d> points) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 
 		List<Vector3d> result = new ArrayList<>(points);
 
@@ -244,8 +271,12 @@ public class Extrude {
 	 *
 	 * @param points the points
 	 * @return the list
+	 * @throws PointsNotCoplainer 
+	 * @throws PointsColinearException 
+	 * @throws TooFewPointsException 
+	 * @throws InvalidNormalException 
 	 */
-	static List<Vector3d> toCW(List<Vector3d> points) {
+	static List<Vector3d> toCW(List<Vector3d> points) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 
 		List<Vector3d> result = new ArrayList<>(points);
 
@@ -579,7 +610,7 @@ public class Extrude {
 		return bezierToTransforms(path, path2, iterations, controlA, controlB);
 	}
 	
-	public static CSG sweep(Polygon p, Transform increment, Transform offset, int steps) {
+	public static CSG sweep(Polygon p, Transform increment, Transform offset, int steps) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		Polygon offsetP = p.transformed(offset);
 		List<Polygon> newPolygons = new ArrayList<>();
 		newPolygons.addAll(PolygonUtil.concaveToConvex(offsetP));
@@ -599,7 +630,7 @@ public class Extrude {
 		return CSG.fromPolygons(newPolygons);
 	}
 
-	public static CSG sweep(Polygon p, double angle, double z, double radius, int steps) {
+	public static CSG sweep(Polygon p, double angle, double z, double radius, int steps) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		return sweep(p, new Transform().rotX(angle).movex(z), new Transform().movey(radius), steps);
 	}
 	public static List<Polygon> monotoneExtrude(Polygon polygon2, Polygon polygon1) {
@@ -632,11 +663,11 @@ public class Extrude {
 		return revolve(slice, radius, 360.0, null, numSlices);
 	}
 
-	public static ArrayList<CSG> revolve(Polygon poly, int numSlices) {
+	public static ArrayList<CSG> revolve(Polygon poly, int numSlices) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		return revolve(poly, 0, numSlices);
 	}
 
-	public static ArrayList<CSG> revolve(Polygon poly, double radius, int numSlices) {
+	public static ArrayList<CSG> revolve(Polygon poly, double radius, int numSlices) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		ArrayList<CSG> parts = new ArrayList<CSG>();
 		ArrayList<Polygon> slices = new ArrayList<Polygon>();
 
@@ -686,7 +717,7 @@ public class Extrude {
 	}
 
 	public static ArrayList<CSG> bezier(CSG slice, ArrayList<Double> controlA, ArrayList<Double> controlB,
-			ArrayList<Double> endPoint, int numSlices) {
+			ArrayList<Double> endPoint, int numSlices) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		ArrayList<CSG> parts = new ArrayList<CSG>();
 
 		for (int i = 0; i < numSlices; i++) {
@@ -696,7 +727,7 @@ public class Extrude {
 	}
 
 	public static ArrayList<CSG> bezier(ArrayList<CSG> s, ArrayList<Double> controlA, ArrayList<Double> controlB,
-			ArrayList<Double> endPoint) {
+			ArrayList<Double> endPoint) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		ArrayList<CSG> slice = moveBezier(s, controlA, controlB, endPoint);
 
 		for (int i = 0; i < slice.size() - 1; i++) {
@@ -710,7 +741,7 @@ public class Extrude {
 		return slice;
 	}
 
-	public static ArrayList<CSG> hull(ArrayList<CSG> s, ArrayList<Transform> p) {
+	public static ArrayList<CSG> hull(ArrayList<CSG> s, ArrayList<Transform> p) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		ArrayList<CSG> slice = move(s, p);
 		for (int i = 0; i < slice.size() - 1; i++) {
 			// Polygon p1 =Slice.slice(slice.get(i), new Transform(), 0).get(0);
@@ -723,7 +754,7 @@ public class Extrude {
 		return slice;
 	}
 
-	public static ArrayList<CSG> hull(CSG c, ArrayList<Transform> p) {
+	public static ArrayList<CSG> hull(CSG c, ArrayList<Transform> p) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		ArrayList<CSG> s = new ArrayList<>();
 		for (int i = 0; i < p.size(); i++) {
 			s.add(c.clone());
@@ -731,12 +762,12 @@ public class Extrude {
 		return hull(s, p);
 	}
 
-	public static ArrayList<CSG> linear(ArrayList<CSG> s, ArrayList<Double> endPoint) {
+	public static ArrayList<CSG> linear(ArrayList<CSG> s, ArrayList<Double> endPoint) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		ArrayList<Double> start = (ArrayList<Double>) Arrays.asList(0.0, 0.0, 0.0);
 		return bezier(s, start, endPoint, endPoint);
 	}
 
-	public static ArrayList<CSG> linear(CSG s, ArrayList<Double> endPoint, int numSlices) {
+	public static ArrayList<CSG> linear(CSG s, ArrayList<Double> endPoint, int numSlices) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		ArrayList<Double> start = (ArrayList<Double>) Arrays.asList(0.0, 0.0, 0.0);
 
 		return bezier(s, start, endPoint, endPoint, numSlices);
@@ -790,7 +821,7 @@ public class Extrude {
 
 	}
 
-	public static Polygon toCCW(Polygon concave) {
+	public static Polygon toCCW(Polygon concave) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		if (!isCCW(concave)) {
 			List<Vector3d> points = concave.getPoints();
 			List<Vector3d> result = new ArrayList<>(points);

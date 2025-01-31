@@ -117,8 +117,12 @@ public class Edge {
 	 * @param points the points
 	 * @param plane  the plane
 	 * @return the polygon
+	 * @throws PointsNotCoplainer 
+	 * @throws PointsColinearException 
+	 * @throws TooFewPointsException 
+	 * @throws InvalidNormalException 
 	 */
-	public static Polygon toPolygon(List<Vector3d> points, Plane plane) {
+	public static Polygon toPolygon(List<Vector3d> points, Plane plane) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 
 //        List<Vector3d> points = edges.stream().().map(e -> e.p1.pos).
 //                collect(Collectors.toList());
@@ -141,8 +145,12 @@ public class Edge {
 	 * @param boundaryEdges the boundary edges
 	 * @param plane         the plane
 	 * @return the list
+	 * @throws PointsNotCoplainer 
+	 * @throws PointsColinearException 
+	 * @throws TooFewPointsException 
+	 * @throws InvalidNormalException 
 	 */
-	public static List<Polygon> toPolygons(List<Edge> boundaryEdges, Plane plane) {
+	public static List<Polygon> toPolygons(List<Edge> boundaryEdges, Plane plane) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 
 		List<Vector3d> boundaryPath = new ArrayList<>();
 
@@ -405,8 +413,12 @@ public class Edge {
 	 *
 	 * @param boundaryEdges boundary edges (all paths must be closed)
 	 * @return the list
+	 * @throws PointsNotCoplainer 
+	 * @throws PointsColinearException 
+	 * @throws TooFewPointsException 
+	 * @throws InvalidNormalException 
 	 */
-	public static List<Polygon> boundaryPaths(List<Edge> boundaryEdges) {
+	public static List<Polygon> boundaryPaths(List<Edge> boundaryEdges) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		List<Polygon> result = new ArrayList<>();
 
 		boolean[] used = new boolean[boundaryEdges.size()];
@@ -489,8 +501,12 @@ public class Edge {
 	 * @param boundaryEdges the boundary edges
 	 * @param plane         the plane
 	 * @return the list
+	 * @throws PointsNotCoplainer 
+	 * @throws PointsColinearException 
+	 * @throws TooFewPointsException 
+	 * @throws InvalidNormalException 
 	 */
-	public static List<Polygon> _toPolygons(List<Edge> boundaryEdges, Plane plane) {
+	public static List<Polygon> _toPolygons(List<Edge> boundaryEdges, Plane plane) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 
 		List<Vector3d> boundaryPath = new ArrayList<>();
 
@@ -746,8 +762,12 @@ public class Edge {
 	 *
 	 * @param csg the csg
 	 * @return the list
+	 * @throws PointsNotCoplainer 
+	 * @throws PointsColinearException 
+	 * @throws TooFewPointsException 
+	 * @throws InvalidNormalException 
 	 */
-	public static List<Polygon> boundaryPolygons(CSG csg) {
+	public static List<Polygon> boundaryPolygons(CSG csg) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		List<Polygon> result = new ArrayList<>();
 
 		for (List<Polygon> polygonGroup : searchPlaneGroups(csg.getPolygons())) {
@@ -823,8 +843,12 @@ public class Edge {
 	 *
 	 * @param planeGroup the plane group
 	 * @return the list
+	 * @throws PointsNotCoplainer 
+	 * @throws PointsColinearException 
+	 * @throws TooFewPointsException 
+	 * @throws InvalidNormalException 
 	 */
-	private static List<Polygon> boundaryPolygonsOfPlaneGroup(List<Polygon> planeGroup) {
+	private static List<Polygon> boundaryPolygonsOfPlaneGroup(List<Polygon> planeGroup) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 
 		List<Polygon> polygons = boundaryPathsWithHoles(boundaryPaths(boundaryEdgesOfPlaneGroup(planeGroup)));
 

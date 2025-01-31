@@ -414,21 +414,49 @@ public class Plane {
 					b.add(v.clone());
 				}
 			}
-			try {
+//			try {
 				Polygon.arePointsCoplanar(f,polygon.plane.getNormal());
+			try {
 				front.add(new Polygon(f, polygon.getStorage(), true, polygon.plane).setColor(polygon.getColor()));
-			} catch (Exception ex) {
-				ex.printStackTrace();
-				System.err.println("Pruning bad polygon Plane::splitPolygon");
-				// skip adding broken polygon here
+			} catch (InvalidNormalException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (TooFewPointsException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (PointsColinearException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (PointsNotCoplainer e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
+//			} catch (Exception ex) {
+//				ex.printStackTrace();
+//				System.err.println("Pruning bad polygon Plane::splitPolygon");
+//				// skip adding broken polygon here
+//			}
 
+//			try {
 			try {
 				back.add(new Polygon(b, polygon.getStorage(), true, polygon.plane).setColor(polygon.getColor()));
-			} catch (Exception ex) {
-				ex.printStackTrace();
-				System.err.println("Pruning bad polygon Plane::splitPolygon");
+			} catch (InvalidNormalException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (TooFewPointsException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (PointsColinearException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (PointsNotCoplainer e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
+//			} catch (Exception ex) {
+//				ex.printStackTrace();
+//				System.err.println("Pruning bad polygon Plane::splitPolygon");
+//			}
 
 			break;
 		}

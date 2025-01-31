@@ -63,8 +63,12 @@ public class STL {
 	 * @return CSG
 	 * @throws IOException if loading failed
 	 * @throws URISyntaxException the URI syntax exception
+	 * @throws PointsNotCoplainer 
+	 * @throws PointsColinearException 
+	 * @throws TooFewPointsException 
+	 * @throws InvalidNormalException 
 	 */
-    public static CSG file(URL path) throws IOException, URISyntaxException {
+    public static CSG file(URL path) throws IOException, URISyntaxException, InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
     	final URI uri =path.toURI();
     	Map<String, String> env = new HashMap<>(); 
     	env.put("create", "true");
@@ -79,8 +83,12 @@ public class STL {
 	 * @param path file path
 	 * @return CSG
 	 * @throws IOException if loading failed
+	 * @throws PointsNotCoplainer 
+	 * @throws PointsColinearException 
+	 * @throws TooFewPointsException 
+	 * @throws InvalidNormalException 
 	 */
-	public static CSG file(Path path) throws IOException {
+	public static CSG file(Path path) throws IOException, InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		STLLoader loader = new STLLoader();
 
 		List<Polygon> polygons = new ArrayList<>();

@@ -193,7 +193,13 @@ public class Sphere extends Primitive {
                         sphereVertex(center, radius, i / (double) getNumSlices(),
                                 (j + 1) / (double) getNumStacks())
                 );
-                polygons.add(new Polygon(vertices, getProperties(), true, null));
+                try {
+					polygons.add(new Polygon(vertices, getProperties(), true, null));
+				} catch (InvalidNormalException | TooFewPointsException | PointsColinearException
+						| PointsNotCoplainer e) {
+					throw new RuntimeException(e);
+
+				}
             }
         }
         return polygons;

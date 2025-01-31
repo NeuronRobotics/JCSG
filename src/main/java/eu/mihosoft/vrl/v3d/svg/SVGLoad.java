@@ -35,7 +35,11 @@ import com.piro.bezier.BezierPath;
 import eu.mihosoft.vrl.v3d.CSG;
 import eu.mihosoft.vrl.v3d.Edge;
 import eu.mihosoft.vrl.v3d.Extrude;
+import eu.mihosoft.vrl.v3d.InvalidNormalException;
+import eu.mihosoft.vrl.v3d.PointsColinearException;
+import eu.mihosoft.vrl.v3d.PointsNotCoplainer;
 import eu.mihosoft.vrl.v3d.Polygon;
+import eu.mihosoft.vrl.v3d.TooFewPointsException;
 import eu.mihosoft.vrl.v3d.Transform;
 import eu.mihosoft.vrl.v3d.Vector3d;
 import javafx.scene.paint.Color;
@@ -412,7 +416,7 @@ public class SVGLoad {
 	}
 
 	// SVGOMGElement
-	private void loadPath(Node pathNode, double resolution, Transform startingFrame, String encapsulatingLayer) {
+	private void loadPath(Node pathNode, double resolution, Transform startingFrame, String encapsulatingLayer) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		Transform newFrame;
 		// NodeList pathNodes = element.getElementsByTagName("path");
 		// Node transforms = element.getAttributes().getNamedItem("transform");
@@ -575,7 +579,7 @@ public class SVGLoad {
 	}
 
 	private void loadComposite(String code, double resolution, Transform startingFrame, String encapsulatingLayer,
-			Color c) {
+			Color c) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		// Count the occourences of M
 		int count = code.length() - code.replace("M", "").length();
 		if (count < 2) {
@@ -622,7 +626,7 @@ public class SVGLoad {
 	}
 
 	private void loadSingle(String code, double resolution, Transform startingFrame, String encapsulatingLayer,
-			Color c) {
+			Color c) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		if(encapsulatingLayer==null)
 			throw new RuntimeException("Layer Name can not be null");
 		// println code
@@ -691,7 +695,7 @@ public class SVGLoad {
 			negativeThickness = false;
 		}
 
-		toPolygons(0.001);
+		toPolygons(resolution);
 
 		for (String key : getPolygonByLayers().keySet()) {
 			if (targetLayer != null)

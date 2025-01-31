@@ -142,7 +142,12 @@ public class TextExtrude {
 		List<List<Vector3d>> outlines = extractOutlines(subtract);
 		double zOff = 0;
 		for (List<Vector3d> points : outlines) {
-			boolean hole = Extrude.isCCW(Polygon.fromPoints(points));
+			boolean hole=false;
+			try {
+				hole = Extrude.isCCW(Polygon.fromPoints(points));
+			} catch (InvalidNormalException | TooFewPointsException | PointsColinearException | PointsNotCoplainer e) {
+				throw new RuntimeException(e);
+			}
 			CSG newLetter = Extrude.points(new Vector3d(0, 0, dir), points).movez(zOff);
 
 			if (!hole)

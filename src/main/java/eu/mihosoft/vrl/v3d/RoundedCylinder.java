@@ -95,7 +95,12 @@ public class RoundedCylinder extends Primitive {
                       		.movez(-heightInc)
 			);
 		}
-		return HullUtil.hull(cylParts).toZMin().getPolygons();
+		try {
+			return HullUtil.hull(cylParts).toZMin().getPolygons();
+		} catch (InvalidNormalException | TooFewPointsException | PointsColinearException | PointsNotCoplainer e) {
+			throw new RuntimeException(e);
+
+		}
     }
 
     /* (non-Javadoc)
