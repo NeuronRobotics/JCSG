@@ -116,6 +116,11 @@ public class PolygonUtil {
 			return result;
 		if (incoming.vertices.size() < 3)
 			return result;
+		if(incoming.vertices.size()==3) {
+			ArrayList<Polygon> p =new ArrayList<Polygon>();
+			p.add(incoming);
+			return p;
+		}
 		Polygon concave = incoming;
 		Vector3d normalOfPlane = incoming.plane.getNormal();
 		boolean reorent = normalOfPlane.z < 1.0 - Plane.getEPSILON();
@@ -196,6 +201,8 @@ public class PolygonUtil {
 		try {
 			triangles = makeTriangles(concave, cw);
 		} catch (java.lang.IllegalStateException ex) {
+			System.out.println("Polygon can not be triangulated \n"+concave);
+			ex.printStackTrace();
 			throw new RuntimeException(ex);
 		}
 
