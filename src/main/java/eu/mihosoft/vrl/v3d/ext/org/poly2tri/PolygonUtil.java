@@ -196,11 +196,7 @@ public class PolygonUtil {
 		try {
 			triangles = makeTriangles(concave, cw);
 		} catch (java.lang.IllegalStateException ex) {
-			List<Vector3d> points = concave.getPoints();
-			List<Vector3d> r = new ArrayList<>(points);
-			Collections.reverse(r);
-			concave = Polygon.fromPoints(r);
-			triangles = makeTriangles(concave, cw);
+			throw new RuntimeException(ex);
 		}
 
 		ArrayList<Vertex> triPoints = new ArrayList<>();
