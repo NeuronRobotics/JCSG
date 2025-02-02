@@ -37,6 +37,8 @@ package eu.mihosoft.vrl.v3d;
 import java.util.ArrayList;
 import java.util.List;
 
+import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
+
 /**
  * Represents a plane in 3D space.
  *
@@ -417,7 +419,11 @@ public class Plane {
 //			try {
 				Polygon.arePointsCoplanar(f,polygon.plane.getNormal());
 			try {
-				front.add(new Polygon(f, polygon.getStorage(), true, polygon.plane).setColor(polygon.getColor()));
+				Polygon frontPoly = new Polygon(f, polygon.getStorage(), true, polygon.plane).setColor(polygon.getColor());
+				if(f.size()==3)
+					front.add(frontPoly);
+				else
+					front.addAll(PolygonUtil.concaveToConvex(frontPoly));
 			} catch (InvalidNormalException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -439,7 +445,11 @@ public class Plane {
 
 //			try {
 			try {
-				back.add(new Polygon(b, polygon.getStorage(), true, polygon.plane).setColor(polygon.getColor()));
+				Polygon backPoly = new Polygon(b, polygon.getStorage(), true, polygon.plane).setColor(polygon.getColor());
+				if(b.size()==3)
+					back.add(backPoly);
+				else
+					back.addAll(PolygonUtil.concaveToConvex(backPoly));
 			} catch (InvalidNormalException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

@@ -117,9 +117,8 @@ public class PolygonUtil {
 		if (incoming.vertices.size() < 3)
 			return result;
 		if(incoming.vertices.size()==3) {
-			ArrayList<Polygon> p =new ArrayList<Polygon>();
-			p.add(incoming);
-			return p;
+			result.add(incoming);
+			return result;
 		}
 		Polygon concave = incoming;
 		Vector3d normalOfPlane = incoming.plane.getNormal();
@@ -165,9 +164,10 @@ public class PolygonUtil {
 
 			Polygon tmp = incoming.transformed(orentation);
 
-			Vector3d tmpnorm = tmp.plane.getNormal();
-			double degreesToRotate2 = 90 + Math.toDegrees(Math.atan2(tmpnorm.z, tmpnorm.y));
-			Transform orentation2 = orentation.rotx(degreesToRotate2);// th triangulation function needs
+			//Vector3d tmpnorm = tmp.plane.getNormal();
+			double degreesToRotate2 = Math.toDegrees(Math.atan2(normalOfPlane.x, normalOfPlane.z));
+			Transform orentation2 = orentation.rotx(degreesToRotate2);
+			// th triangulation function needs
 			// the polygon on the xy plane
 			if (debug) {
 				Debug3dProvider.clearScreen();
