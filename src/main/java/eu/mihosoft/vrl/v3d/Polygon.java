@@ -65,6 +65,35 @@ public final class Polygon {
 	public Plane plane;
 	private boolean isHole = false;
 
+	public void addPoint(int index, Vertex vi) {
+
+		int index2 = (index - 1)%vertices.size();
+		if(index2<0)
+			index2=vertices.size()-1;
+		Vertex b = vertices.get(index2);
+		if (b.pos.test(vi, Plane.getEPSILON())) {
+			System.out.println("Point not added, touching " + vi);
+			return;
+		}
+		int index3 = (index)%vertices.size();
+		Vertex a = vertices.get(index3);
+		if (b.pos.test(vi, Plane.getEPSILON())) {
+			System.out.println("Point not added, touching " + vi);
+			return;
+		}
+
+		vertices.add(index, vi);
+		try {
+			validateAndInit();
+		} catch (InvalidNormalException | TooFewPointsException | PointsColinearException | PointsNotCoplainer e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public void addPoint(Vertex vi) {
+		addPoint(vertices.size(), vi);
+	}
+
 	/**
 	 * Sets the storage.
 	 *
@@ -79,12 +108,13 @@ public final class Polygon {
 	 *
 	 * @param points the points that define the polygon
 	 * @return the decomposed concave polygon (list of convex polygons)
-	 * @throws PointsNotCoplainer 
-	 * @throws PointsColinearException 
-	 * @throws TooFewPointsException 
-	 * @throws InvalidNormalException 
+	 * @throws PointsNotCoplainer
+	 * @throws PointsColinearException
+	 * @throws TooFewPointsException
+	 * @throws InvalidNormalException
 	 */
-	public static List<Polygon> fromConcavePoints(Vector3d... points) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
+	public static List<Polygon> fromConcavePoints(Vector3d... points)
+			throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		Polygon p = fromPoints(points);
 
 		return PolygonUtil.concaveToConvex(p);
@@ -95,12 +125,13 @@ public final class Polygon {
 	 *
 	 * @param points the points that define the polygon
 	 * @return the decomposed concave polygon (list of convex polygons)
-	 * @throws PointsNotCoplainer 
-	 * @throws PointsColinearException 
-	 * @throws TooFewPointsException 
-	 * @throws InvalidNormalException 
+	 * @throws PointsNotCoplainer
+	 * @throws PointsColinearException
+	 * @throws TooFewPointsException
+	 * @throws InvalidNormalException
 	 */
-	public static List<Polygon> fromConcavePoints(List<Vector3d> points) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
+	public static List<Polygon> fromConcavePoints(List<Vector3d> points)
+			throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		Polygon p = fromPoints(points);
 
 		return PolygonUtil.concaveToConvex(p);
@@ -130,12 +161,13 @@ public final class Polygon {
 	 *
 	 * @param vertices polygon vertices
 	 * @param shared   shared property
-	 * @throws PointsNotCoplainer 
-	 * @throws PointsColinearException 
-	 * @throws TooFewPointsException 
-	 * @throws InvalidNormalException 
+	 * @throws PointsNotCoplainer
+	 * @throws PointsColinearException
+	 * @throws TooFewPointsException
+	 * @throws InvalidNormalException
 	 */
-	public Polygon(List<Vertex> vertices, PropertyStorage shared, boolean allowDegenerate, Plane p) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
+	public Polygon(List<Vertex> vertices, PropertyStorage shared, boolean allowDegenerate, Plane p)
+			throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		this.plane = p;
 		this.vertices = pruneDuplicatePoints(vertices);
 		this.shared = shared;
@@ -195,10 +227,11 @@ public final class Polygon {
 
 	}
 
-	public void validateAndInit() throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
-		if(plane==null)
+	public void validateAndInit()
+			throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
+		if (plane == null)
 			this.plane = Plane.createFromPoints(vertices);
-		if(shared==null)
+		if (shared == null)
 			this.shared = new PropertyStorage();
 		for (Vertex v : vertices) {
 			v.normal = plane.getNormal();
@@ -217,16 +250,16 @@ public final class Polygon {
 
 		if (areAllPointsCollinear(vertices))
 			throw new PointsColinearException("This polygon is colinear");
-		if(!arePointsCoplanar(vertices,plane.getNormal())) {
+		if (!arePointsCoplanar(vertices, plane.getNormal())) {
 			this.plane = Plane.createFromPoints(vertices);
-			if(!arePointsCoplanar(vertices,plane.getNormal()))
-				throw new PointsNotCoplainer("All points are not on plane of epsilon "+Plane.getEPSILON());
+			if (!arePointsCoplanar(vertices, plane.getNormal()))
+				throw new PointsNotCoplainer("All points are not on plane of epsilon " + Plane.getEPSILON());
 		}
 		setDegenerate(false);
 
 	}
 
-	public static boolean arePointsCoplanar(ArrayList<Vertex> vertices,Vector3d normal) {
+	public static boolean arePointsCoplanar(ArrayList<Vertex> vertices, Vector3d normal) {
 		if (vertices.size() < 4) {
 			// Fewer than 4 points are always coplanar
 			return true;
@@ -247,7 +280,7 @@ public final class Polygon {
 		for (int i = 1; i < vertices.size(); i++) {
 			Vertex p = vertices.get(i);
 			double distanceToPlane = a * p.pos.x + b * p.pos.y + c * p.pos.z + d;
-			if (Math.abs(distanceToPlane) >Plane.getEPSILON()) {
+			if (Math.abs(distanceToPlane) > Plane.getEPSILON()) {
 				// Point is not on the plane
 				return false;
 			}
@@ -464,7 +497,7 @@ public final class Polygon {
 		});
 
 		Vector3d a = this.vertices.get(0).pos;
-		
+
 		// old way
 //		this.plane.setNormal(Plane.computeNormal(this.vertices));
 //		this.plane.setDist(this.plane.getNormal().dot(a));
@@ -474,7 +507,7 @@ public final class Polygon {
 		// new way
 		this.plane.transformPlane(transform, a);
 		this.plane.setDist(this.plane.getNormal().dot(a));
-		
+
 //		double tester_dist = Math.abs(old_dist)-Math.abs(this.plane.getDist());
 //		if(Math.abs(tester_dist) > plane.getEPSILON())
 //			System.out.println("DOH");
@@ -493,6 +526,11 @@ public final class Polygon {
 			// the transformation includes mirroring. flip polygon
 			flip();
 
+		}
+		try {
+			validateAndInit();
+		} catch (InvalidNormalException | TooFewPointsException | PointsColinearException | PointsNotCoplainer e) {
+			throw new RuntimeException(e);
 		}
 		return this;
 	}
@@ -533,12 +571,13 @@ public final class Polygon {
 	 * @param points the points that define the polygon
 	 * @param shared shared property storage
 	 * @return a polygon defined by the specified point list
-	 * @throws PointsNotCoplainer 
-	 * @throws PointsColinearException 
-	 * @throws TooFewPointsException 
-	 * @throws InvalidNormalException 
+	 * @throws PointsNotCoplainer
+	 * @throws PointsColinearException
+	 * @throws TooFewPointsException
+	 * @throws InvalidNormalException
 	 */
-	public static Polygon fromPoints(List<Vector3d> points, PropertyStorage shared) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
+	public static Polygon fromPoints(List<Vector3d> points, PropertyStorage shared)
+			throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		return fromPoints(points, shared, null, true);
 	}
 
@@ -547,12 +586,13 @@ public final class Polygon {
 	 *
 	 * @param points the points that define the polygon
 	 * @return a polygon defined by the specified point list
-	 * @throws PointsNotCoplainer 
-	 * @throws PointsColinearException 
-	 * @throws TooFewPointsException 
-	 * @throws InvalidNormalException 
+	 * @throws PointsNotCoplainer
+	 * @throws PointsColinearException
+	 * @throws TooFewPointsException
+	 * @throws InvalidNormalException
 	 */
-	public static Polygon fromPoints(List<Vector3d> points) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
+	public static Polygon fromPoints(List<Vector3d> points)
+			throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		return fromPoints(points, new PropertyStorage(), null, true);
 	}
 
@@ -561,16 +601,18 @@ public final class Polygon {
 	 *
 	 * @param points the points that define the polygon
 	 * @return a polygon defined by the specified point list
-	 * @throws PointsNotCoplainer 
-	 * @throws PointsColinearException 
-	 * @throws TooFewPointsException 
-	 * @throws InvalidNormalException 
+	 * @throws PointsNotCoplainer
+	 * @throws PointsColinearException
+	 * @throws TooFewPointsException
+	 * @throws InvalidNormalException
 	 */
-	public static Polygon fromPoints(Vector3d... points) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
+	public static Polygon fromPoints(Vector3d... points)
+			throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		return fromPoints(Arrays.asList(points), new PropertyStorage(), null, true);
 	}
 
-	public static Polygon fromPointsAllowDegenerate(List<Vector3d> vertices2) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
+	public static Polygon fromPointsAllowDegenerate(List<Vector3d> vertices2)
+			throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		return fromPoints(vertices2, new PropertyStorage(), null, true);
 	}
 
@@ -581,13 +623,14 @@ public final class Polygon {
 	 * @param shared the shared
 	 * @param plane  may be null
 	 * @return a polygon defined by the specified point list
-	 * @throws PointsNotCoplainer 
-	 * @throws PointsColinearException 
-	 * @throws TooFewPointsException 
-	 * @throws InvalidNormalException 
+	 * @throws PointsNotCoplainer
+	 * @throws PointsColinearException
+	 * @throws TooFewPointsException
+	 * @throws InvalidNormalException
 	 */
 	private static Polygon fromPoints(List<Vector3d> points, PropertyStorage shared, Plane plane,
-			boolean allowDegenerate) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
+			boolean allowDegenerate)
+			throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 
 		Vector3d normal = (plane != null) ? plane.getNormal().clone() : new Vector3d(0, 0, 0);
 
@@ -908,6 +951,7 @@ public final class Polygon {
 	public void setHole(boolean isHole) {
 		this.isHole = isHole;
 	}
+
 	public boolean isBoundsTouching(Polygon incoming) {
 		return getBounds().isBoundsTouching(incoming.getBounds());
 	}

@@ -203,6 +203,7 @@ public class PolygonUtil {
 		} catch (java.lang.IllegalStateException ex) {
 			System.err.println("Polygon can not be triangulated \n"+concave);
 			ex.printStackTrace();
+			concave.validateAndInit();
 			throw new RuntimeException(ex);
 		}
 
