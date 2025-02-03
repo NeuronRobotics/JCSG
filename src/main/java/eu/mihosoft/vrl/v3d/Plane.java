@@ -359,6 +359,8 @@ public class Plane {
 				negEpsilon = t - Plane.getEPSILON();
 			}
 		}
+		if(posEpsilon>0.0001||negEpsilon<-0.0001)
+			throw new RuntimeException("Faulty polygon epsilons!");
 		PlaneType polygonType = PlaneType.COPLANAR;
 		List<PlaneType> types = new ArrayList<>();
 		boolean somePointsInfront = false;
