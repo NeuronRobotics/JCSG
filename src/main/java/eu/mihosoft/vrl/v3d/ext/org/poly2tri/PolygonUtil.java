@@ -104,19 +104,20 @@ public class PolygonUtil {
 	 *
 	 * @param incoming the concave
 	 * @return the list
-	 * @throws PointsNotCoplainer 
-	 * @throws PointsColinearException 
-	 * @throws TooFewPointsException 
-	 * @throws InvalidNormalException 
+	 * @throws PointsNotCoplainer
+	 * @throws PointsColinearException
+	 * @throws TooFewPointsException
+	 * @throws InvalidNormalException
 	 */
-	public static List<Polygon> concaveToConvex(Polygon incoming) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
+	public static List<Polygon> concaveToConvex(Polygon incoming)
+			throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		List<Polygon> result = new ArrayList<>();
 
 		if (incoming == null)
 			return result;
 		if (incoming.vertices.size() < 3)
 			return result;
-		if(incoming.vertices.size()==3) {
+		if (incoming.vertices.size() == 3) {
 			result.add(incoming);
 			return result;
 		}
@@ -164,9 +165,10 @@ public class PolygonUtil {
 
 			Polygon tmp = incoming.transformed(orentation);
 
-			//Vector3d tmpnorm = tmp.plane.getNormal();
-			double degreesToRotate2 = Math.toDegrees(Math.atan2(normalOfPlane.x, normalOfPlane.z));
-			Transform orentation2 = orentation.rotx(degreesToRotate2);
+			Vector3d tmpnorm = tmp.plane.getNormal();
+			double degreesToRotate2 = 90 + Math.toDegrees(Math.atan2(tmpnorm.z, tmpnorm.y));
+			Transform orentation2 = orentation.rotx(degreesToRotate2);// th triangulation function needs
+
 			// th triangulation function needs
 			// the polygon on the xy plane
 			if (debug) {
@@ -199,11 +201,12 @@ public class PolygonUtil {
 		double zplane = concave.vertices.get(0).pos.z;
 
 		try {
+			concave.validateAndInit();
 			triangles = makeTriangles(concave, cw);
 		} catch (java.lang.IllegalStateException ex) {
-			System.err.println("Polygon can not be triangulated \n"+concave);
+			System.err.println("Polygon can not be triangulated \n" + concave);
 			ex.printStackTrace();
-			throw new RuntimeException(ex);
+			throw ex;
 		}
 
 		ArrayList<Vertex> triPoints = new ArrayList<>();
@@ -263,7 +266,8 @@ public class PolygonUtil {
 		return result;
 	}
 
-	private static Polygon checkForValidPolyOrentation(Vector3d normal, Polygon poly) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
+	private static Polygon checkForValidPolyOrentation(Vector3d normal, Polygon poly)
+			throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		Vector3d normal2 = poly.plane.getNormal();
 		Vector3d minus = normal.minus(normal2);
 		double length = minus.length();
@@ -273,12 +277,12 @@ public class PolygonUtil {
 			List<Vector3d> r = new ArrayList<>(points);
 			Collections.reverse(r);
 			Polygon fromPoints = Polygon.fromPoints(r);
-			double l = normal.minus( fromPoints.plane.getNormal()).length();
+			double l = normal.minus(fromPoints.plane.getNormal()).length();
 			if (l > d * 10 && l < (2 - d)) {
 //				throw new RuntimeException(
 //				"Error, the reorentation of the polygon resulted in a different normal than the triangles produced from it");
-			}else {
-				poly=fromPoints;
+			} else {
+				poly = fromPoints;
 
 			}
 		}
@@ -286,22 +290,26 @@ public class PolygonUtil {
 	}
 
 	private static Geometry makeTriangles(Polygon concave, boolean cw) {
-		Geometry triangles;
-		Polygon toTri = concave;
-//	if(cw) {
-//		toTri=Extrude.toCCW(concave);
-//	}
-		Coordinate[] coordinates = new Coordinate[toTri.vertices.size() + 1];
-		for (int i = 0; i < toTri.vertices.size(); i++) {
-			Vector3d v = toTri.vertices.get(i).pos;
-			coordinates[i] = new Coordinate(v.x, v.y, v.z);
+		try {
+			Geometry triangles;
+			Polygon toTri = concave;
+			Coordinate[] coordinates = new Coordinate[toTri.vertices.size() + 1];
+			for (int i = 0; i < toTri.vertices.size(); i++) {
+				Vector3d v = toTri.vertices.get(i).pos;
+				coordinates[i] = new Coordinate(v.x, v.y, v.z);
+			}
+			Vector3d v = toTri.vertices.get(0).pos;
+			coordinates[toTri.vertices.size()] = new Coordinate(v.x, v.y, v.z);
+			// use the default factory, which gives full double-precision
+			Geometry geom = new GeometryFactory().createPolygon(coordinates);
+			triangles = ConstrainedDelaunayTriangulator.triangulate(geom);
+			return triangles;
+		} catch (java.lang.IllegalStateException e) {
+			//  Auto-generated catch block
+			System.err.println("Failed to triangulate "+concave);
+			e.printStackTrace();
+			throw e;
 		}
-		Vector3d v = toTri.vertices.get(0).pos;
-		coordinates[toTri.vertices.size()] = new Coordinate(v.x, v.y, v.z);
-		// use the default factory, which gives full double-precision
-		Geometry geom = new GeometryFactory().createPolygon(coordinates);
-		triangles = ConstrainedDelaunayTriangulator.triangulate(geom);
-		return triangles;
 	}
 
 //	/**
@@ -405,7 +413,8 @@ public class PolygonUtil {
 //		return result;
 //	}
 
-	public static Polygon pruneDuplicatePoints(Polygon incoming) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
+	public static Polygon pruneDuplicatePoints(Polygon incoming)
+			throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		ArrayList<Vertex> newPoints = new ArrayList<Vertex>();
 		for (int i = 0; i < incoming.vertices.size(); i++) {
 			Vertex v = incoming.vertices.get(i);

@@ -129,7 +129,11 @@ final class Node {
 		polygonStream = polygons.stream();
 
 		polygonStream.forEach((polygon) -> {
-			polygon.flip();
+			try {
+				polygon.flip();
+			} catch (InvalidNormalException | TooFewPointsException | PointsColinearException | PointsNotCoplainer e) {
+				throw new RuntimeException(e);
+			}
 		});
 
 		if (this.plane == null && !polygons.isEmpty()) {

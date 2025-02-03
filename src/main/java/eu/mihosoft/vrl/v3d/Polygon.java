@@ -217,43 +217,32 @@ public final class Polygon {
 
 		if (areAllPointsCollinear(vertices))
 			throw new PointsColinearException("This polygon is colinear");
-		if(!arePointsCoplanar(vertices,plane.getNormal())) {
+		if(!arePointsCoplanar()) {
 			this.plane = Plane.createFromPoints(vertices);
-			if(!arePointsCoplanar(vertices,plane.getNormal()))
+			if(!arePointsCoplanar())
 				throw new PointsNotCoplainer("All points are not on plane of epsilon "+Plane.getEPSILON());
 		}
 		setDegenerate(false);
 
 	}
 
-	public static boolean arePointsCoplanar(ArrayList<Vertex> vertices,Vector3d normal) {
+	public boolean arePointsCoplanar() {
 		if (vertices.size() < 4) {
 			// Fewer than 4 points are always coplanar
 			return true;
 		}
 
-		// Select the first three points
-		Vertex p1 = vertices.get(0);
-
-		// Compute the normal vector using the cross product
-		double a = normal.x;
-		double b = normal.y;
-		double c = normal.z;
-
-		// Use the first point for the plane equation
-		double d = -(a * p1.pos.x + b * p1.pos.y + c * p1.pos.z);
-
-		// Check all other points
-		for (int i = 1; i < vertices.size(); i++) {
-			Vertex p = vertices.get(i);
-			double distanceToPlane = a * p.pos.x + b * p.pos.y + c * p.pos.z + d;
-			if (Math.abs(distanceToPlane) >Plane.getEPSILON()) {
-				// Point is not on the plane
+		for (int i = 0; i < vertices.size(); i++) {
+			double t = computeDistance( i);
+			if(Math.abs(t)>Plane.getEPSILON())
 				return false;
-			}
 		}
 
 		return true; // All points are coplanar
+	}
+
+	double computeDistance(int i) {
+		return plane.getNormal().dot(vertices.get(i).pos) - plane.getDist();
 	}
 
 	public boolean areAllPointsCollinear(ArrayList<eu.mihosoft.vrl.v3d.Vertex> vertices) {
@@ -352,15 +341,19 @@ public final class Polygon {
 	 * Flips this polygon.
 	 *
 	 * @return this polygon
+	 * @throws PointsNotCoplainer 
+	 * @throws PointsColinearException 
+	 * @throws TooFewPointsException 
+	 * @throws InvalidNormalException 
 	 */
-	public Polygon flip() {
+	public Polygon flip() throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		vertices.forEach((vertex) -> {
 			vertex.flip();
 		});
 		Collections.reverse(vertices);
 
 		plane.flip();
-
+		validateAndInit();
 		return this;
 	}
 
@@ -370,8 +363,12 @@ public final class Polygon {
 	 * Note: this polygon is not modified.
 	 *
 	 * @return a flipped copy of this polygon
+	 * @throws PointsNotCoplainer 
+	 * @throws PointsColinearException 
+	 * @throws TooFewPointsException 
+	 * @throws InvalidNormalException 
 	 */
-	public Polygon flipped() {
+	public Polygon flipped() throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		return clone().flip();
 	}
 
@@ -469,49 +466,56 @@ public final class Polygon {
 //		this.plane.setNormal(Plane.computeNormal(this.vertices));
 //		this.plane.setDist(this.plane.getNormal().dot(a));
 		Vector3d old = Plane.computeNormal(this.vertices);
-		double old_dist = this.plane.getNormal().dot(a);
+		double old_dist = plane.getNormal().dot(a);
 
 		// new way
 		this.plane.transformPlane(transform, a);
-		this.plane.setDist(this.plane.getNormal().dot(a));
+		this.plane.setDist(plane.getNormal().dot(a));
 		
-//		double tester_dist = Math.abs(old_dist)-Math.abs(this.plane.getDist());
+		double tester_dist = Math.abs(old_dist)-Math.abs(this.plane.getDist());
 //		if(Math.abs(tester_dist) > plane.getEPSILON())
-//			System.out.println("DOH");
-//		boolean tester_vect = this.plane.getNormal().test(old, plane.EPSILON);
-//		if(!tester_vect) {
-//			System.out.println("x_old = "+old.x);
-//			System.out.println("x_new = "+this.plane.getNormal().x);
-//			System.out.println("y_old = "+old.y);
-//			System.out.println("y_new = "+this.plane.getNormal().y);
-//			System.out.println("z_old = "+old.z);
-//			System.out.println("z_new = "+this.plane.getNormal().z);
-//			System.out.println("DOH");
-//		}
+//			throw new RuntimeException("distance calculation is incorrect");
 
-		if (transform.isMirror()) {
+		boolean mirror = transform.isMirror();
+		if (mirror) {
 			// the transformation includes mirroring. flip polygon
-			flip();
+			try {
+				flip();
+			} catch (InvalidNormalException | TooFewPointsException | PointsColinearException | PointsNotCoplainer e) {
+				throw new RuntimeException(e);
+			}
+			//this.plane.transformPlane(new Transform().rotX(180), a);
 
+		}
+		double ePSILON = plane.EPSILON;
+		Vector3d normal = plane.getNormal();
+		boolean tester_vect = normal.test(old, ePSILON);
+		if(!tester_vect) {
+			//throw new RuntimeException("Normal calculation is incorrect");
+		}
+		try {
+			validateAndInit();
+		} catch (InvalidNormalException | TooFewPointsException | PointsColinearException | PointsNotCoplainer e) {
+			throw new RuntimeException(e);
 		}
 		return this;
 	}
 
-//    public Vector3d computeNormal(List<Vertex> vertices) {
-//        Vector3d normal = new Vector3d(0, 0, 0);
-//        int n = vertices.size();
-//
-//        for (int i = 0; i < n; i++) {
-//            Vector3d current = vertices.get(i).pos;
-//            Vector3d next = vertices.get((i + 1) % n).pos;
-//            
-//            normal.x += (current.y - next.y) * (current.z + next.z);
-//            normal.y += (current.z - next.z) * (current.x + next.x);
-//            normal.z += (current.x - next.x) * (current.y + next.y);
-//        }
-//
-//        return normal.normalized();
-//    }
+    public Vector3d computeNormal(List<Vertex> vertices) {
+        Vector3d normal = new Vector3d(0, 0, 0);
+        int n = vertices.size();
+
+        for (int i = 0; i < n; i++) {
+            Vector3d current = vertices.get(i).pos;
+            Vector3d next = vertices.get((i + 1) % n).pos;
+            
+            normal.x += (current.y - next.y) * (current.z + next.z);
+            normal.y += (current.z - next.z) * (current.x + next.x);
+            normal.z += (current.x - next.x) * (current.y + next.y);
+        }
+
+        return normal.normalized();
+    }
 	/**
 	 * Returns a transformed copy of this polygon.
 	 *
