@@ -430,7 +430,10 @@ public class Vector3d extends javax.vecmath.Vector3d{
      */
     @Override
     public boolean equals(Object obj) {
-        return test(obj,Plane.EPSILON_Point);
+    	if (!Vector3d.class.isInstance(obj)) {
+            return false;
+        }
+        return test((Vector3d)obj,Plane.EPSILON_Point);
     }
     
     double distance(Vector3d v) {
@@ -438,7 +441,7 @@ public class Vector3d extends javax.vecmath.Vector3d{
     	return diff.magnitude();
     }
 
-	public boolean test(Object obj, double epsilon) {
+	public boolean test(Vector3d obj, double epsilon) {
 		if (obj == null) {
             return false;
         }
