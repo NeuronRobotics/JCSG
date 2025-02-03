@@ -1509,14 +1509,7 @@ public class CSG implements IuserAPI {
 			providerOf3d = Debug3dProvider.provider;
 		IDebug3dProvider start = Debug3dProvider.provider;
 		Debug3dProvider.setProvider(null);
-		if (preventNonManifoldTriangles) {
-			for (int i = 0; i < 2; i++)
-				if (isUseGPU()) {
-					runGPUMakeManifold();
-				} else {
-					runCPUMakeManifold();
-				}
-		}
+
 		try {
 			Stream<Polygon> polygonStream;
 			polygonStream = polygons.stream();
@@ -1556,6 +1549,14 @@ public class CSG implements IuserAPI {
 			t.printStackTrace();
 
 		}
+		if (preventNonManifoldTriangles) {
+			for (int i = 0; i < 2; i++)
+				if (isUseGPU()) {
+					runGPUMakeManifold();
+				} else {
+					runCPUMakeManifold();
+				}
+		}
 		Debug3dProvider.setProvider(start);
 		return this;
 	}
@@ -1565,8 +1566,7 @@ public class CSG implements IuserAPI {
 		System.err.println("Cleaning up the mesh by adding coincident points to the polygons they touch");
 
 		int totalAdded = 0;
-		double tOL = 1.0e-11;
-
+		double tOL =Plane.getEPSILON();//1.0e-9;
 		ArrayList<Thread> threads = new ArrayList<Thread>();
 		ArrayList<Polygon> markedForRemoval = new ArrayList<Polygon>();
 		for (int j = 0; j < polygons.size(); j++) {
@@ -1626,7 +1626,7 @@ public class CSG implements IuserAPI {
 				try {
 					i.pruneDuplicatePoints();
 					i.validateAndInit();
-					List<Polygon> triangles = PolygonUtil.concaveToConvex(i);
+					//List<Polygon> triangles = PolygonUtil.concaveToConvex(i);
 
 				}catch(Exception ex) {
 					System.out.println(ex.getMessage()+" problem with polygon, removing");

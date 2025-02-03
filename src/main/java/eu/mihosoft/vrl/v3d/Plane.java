@@ -37,6 +37,8 @@ package eu.mihosoft.vrl.v3d;
 import java.util.ArrayList;
 import java.util.List;
 
+import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
+
 /**
  * Represents a plane in 3D space.
  *
@@ -120,7 +122,7 @@ public class Plane {
 			normal.x += (current.y - next.y) * (current.z + next.z); // (y1-y2)(z1+z2)
 			normal.y += (current.z - next.z) * (current.x + next.x); // (z1-z2)(x1+x2)
 			normal.z += (current.x - next.x) * (current.y + next.y);
-			if (n >= 3) {
+			if (n >= 2) {
 				Vector3d normalized = normal.normalized();
 				if (isValidNormal(normalized, getEPSILON() / 10)) {
 					lastValid = normalized;
@@ -347,18 +349,18 @@ public class Plane {
 		double negEpsilon = -Plane.getEPSILON();
 		double posEpsilon = Plane.getEPSILON();
 		for (int i = 0; i < polygon.vertices.size(); i++) {
-			double t = polygon.plane.getNormal().dot(polygon.vertices.get(i).pos) - polygon.plane.getDist();
+			double t = polygon.computeDistance(i);
 			if (t > posEpsilon) {
-				// com.neuronrobotics.sdk.common.Log.error("Non flat polygon, increasing
-				// positive epsilon "+t);
+				System.err.println("Non flat polygon, increasing positive epsilon "+t);
 				posEpsilon = t + Plane.getEPSILON();
 			}
 			if (t < negEpsilon) {
-				// com.neuronrobotics.sdk.common.Log.error("Non flat polygon, decreasing
-				// negative epsilon "+t);
+				System.err.println("Non flat polygon, decreasing negative epsilon "+t);
 				negEpsilon = t - Plane.getEPSILON();
 			}
 		}
+		if(posEpsilon>0.0001||negEpsilon<-0.0001)
+			throw new RuntimeException("Faulty polygon epsilons!");
 		PlaneType polygonType = PlaneType.COPLANAR;
 		List<PlaneType> types = new ArrayList<>();
 		boolean somePointsInfront = false;
@@ -400,24 +402,31 @@ public class Plane {
 				Vertex vi = polygon.vertices.get(i);
 				Vertex vj = polygon.vertices.get(j);
 				if (ti != PlaneType.BACK) {
-					f.add(vi);
+					f.add(vi.clone());
 				}
 				if (ti != PlaneType.FRONT) {
-					b.add(ti != PlaneType.BACK ? vi.clone() : vi);
+					b.add(vi.clone());
 				}
 				if ((ti == PlaneType.FRONT&& tj==PlaneType.BACK)||
 					(ti == PlaneType.BACK&& tj==PlaneType.FRONT)	) {
 					double t = (this.getDist() - this.getNormal().dot(vi.pos))
 							/ this.getNormal().dot(vj.pos.minus(vi.pos));
+					if(t>1)
+						t=1;
+					if(t<0)
+						t=0;
 					Vertex v = vi.interpolate(vj, t);
 					f.add(v);
 					b.add(v.clone());
 				}
 			}
-//			try {
-				Polygon.arePointsCoplanar(f,polygon.plane.getNormal());
+				
 			try {
-				front.add(new Polygon(f, polygon.getStorage(), true, polygon.plane).setColor(polygon.getColor()));
+				Polygon frontPoly = new Polygon(f, polygon.getStorage(), true, polygon.plane).setColor(polygon.getColor());
+				if(f.size()==3)
+					front.add(frontPoly);
+				else
+					front.addAll(PolygonUtil.concaveToConvex(frontPoly));
 			} catch (InvalidNormalException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -430,16 +439,17 @@ public class Plane {
 			} catch (PointsNotCoplainer e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+			} catch (java.lang.IllegalStateException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-//			} catch (Exception ex) {
-//				ex.printStackTrace();
-//				System.err.println("Pruning bad polygon Plane::splitPolygon");
-//				// skip adding broken polygon here
-//			}
 
-//			try {
 			try {
-				back.add(new Polygon(b, polygon.getStorage(), true, polygon.plane).setColor(polygon.getColor()));
+				Polygon backPoly = new Polygon(b, polygon.getStorage(), true, polygon.plane).setColor(polygon.getColor());
+				if(b.size()==3)
+					back.add(backPoly);
+				else
+					back.addAll(PolygonUtil.concaveToConvex(backPoly));
 			} catch (InvalidNormalException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -452,11 +462,11 @@ public class Plane {
 			} catch (PointsNotCoplainer e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+			} catch (java.lang.IllegalStateException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-//			} catch (Exception ex) {
-//				ex.printStackTrace();
-//				System.err.println("Pruning bad polygon Plane::splitPolygon");
-//			}
+
 
 			break;
 		}
