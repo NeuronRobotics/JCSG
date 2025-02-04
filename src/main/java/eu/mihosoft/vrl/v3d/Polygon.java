@@ -52,7 +52,7 @@ import javafx.scene.paint.Color;
 public final class Polygon {
 
 	/** Polygon vertices. */
-	public ArrayList<eu.mihosoft.vrl.v3d.Vertex> vertices;
+	private ArrayList<eu.mihosoft.vrl.v3d.Vertex> vertices;
 	/**
 	 * Shared property (can be used for shared color etc.).
 	 */
@@ -64,8 +64,14 @@ public final class Polygon {
 	 */
 	public Plane plane;
 	private boolean isHole = false;
-
-	public void addPoint(int index, Vertex vi) {
+	
+	public int size() {
+		return vertices.size();
+	}
+	public Vertex get(int i) {
+		return vertices.get(i);
+	}
+	public void add(int index, Vertex vi) {
 
 		int index2 = (index - 1)%vertices.size();
 		if(index2<0)
@@ -90,8 +96,8 @@ public final class Polygon {
 		}
 	}
 
-	public void addPoint(Vertex vi) {
-		addPoint(vertices.size(), vi);
+	public void add(Vertex vi) {
+		add(vertices.size(), vi);
 	}
 
 	/**

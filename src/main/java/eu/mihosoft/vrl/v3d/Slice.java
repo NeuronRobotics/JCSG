@@ -201,7 +201,8 @@ public class Slice {
 
 			ArrayList<Vector3d> points = new ArrayList<>();
 			for (Polygon p : rawPolygons) {
-				for (Vertex v : p.vertices) {
+				for (int i = 0; i < p.size(); i++) {
+					Vertex v = p.get(i);
 					points.add(v.pos);
 				}
 			}
@@ -446,12 +447,12 @@ public class Slice {
 	 * @return True if this polygon is entirely in the z plane
 	 */
 	private static boolean isPolygonAtZero(Polygon polygon) {
-		// Return false if there is a vertex in this polygon which is not at
-		// zero
-		// Else, the polygon is at zero if every vertex in it is at zero
-		for (Vertex v : polygon.vertices)
+		//ArrayList<Vertex> vertices = polygon.vertices;
+		for (int i = 0; i < polygon.size(); i++) {
+			Vertex v = polygon.get(i);
 			if (!isVertexAtZero(v))
 				return false;
+		}
 
 		return true;
 	}

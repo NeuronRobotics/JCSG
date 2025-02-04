@@ -348,7 +348,7 @@ public class Plane {
 		// search for the epsilon values of the incoming plane
 		double negEpsilon = -Plane.getEPSILON();
 		double posEpsilon = Plane.getEPSILON();
-		for (int i = 0; i < polygon.vertices.size(); i++) {
+		for (int i = 0; i < polygon.size(); i++) {
 			double t = polygon.computeDistance(i);
 			if (t > posEpsilon) {
 				System.err.println("Non flat polygon, increasing positive epsilon "+t);
@@ -365,8 +365,8 @@ public class Plane {
 		List<PlaneType> types = new ArrayList<>();
 		boolean somePointsInfront = false;
 		boolean somePointsInBack = false;
-		for (int i = 0; i < polygon.vertices.size(); i++) {
-			double t = this.getNormal().dot(polygon.vertices.get(i).pos) - this.getDist();
+		for (int i = 0; i < polygon.size(); i++) {
+			double t = this.getNormal().dot(polygon.get(i).pos) - this.getDist();
 			PlaneType type = (t < negEpsilon) ? PlaneType.BACK : (t > posEpsilon) ? PlaneType.FRONT : PlaneType.COPLANAR;
 			if (type == PlaneType.BACK)
 				somePointsInBack = true;
@@ -395,12 +395,12 @@ public class Plane {
 		case SPANNING:
 			ArrayList<Vertex> f = new ArrayList<>();
 			ArrayList<Vertex> b = new ArrayList<>();
-			for (int i = 0; i < polygon.vertices.size(); i++) {
-				int j = (i + 1) % polygon.vertices.size();
+			for (int i = 0; i < polygon.size(); i++) {
+				int j = (i + 1) % polygon.size();
 				PlaneType ti = types.get(i);
 				PlaneType tj = types.get(j);
-				Vertex vi = polygon.vertices.get(i);
-				Vertex vj = polygon.vertices.get(j);
+				Vertex vi = polygon.get(i);
+				Vertex vj = polygon.get(j);
 				if (ti != PlaneType.BACK) {
 					f.add(vi.clone());
 				}

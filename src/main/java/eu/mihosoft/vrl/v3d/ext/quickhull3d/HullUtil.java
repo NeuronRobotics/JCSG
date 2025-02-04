@@ -34,43 +34,50 @@ public class HullUtil {
 	/**
 	 * Hull.
 	 *
-	 * @param points
-	 *            the points
+	 * @param points the points
 	 * @return the csg
-	 * @throws PointsNotCoplainer 
-	 * @throws PointsColinearException 
-	 * @throws TooFewPointsException 
-	 * @throws InvalidNormalException 
+	 * @throws PointsNotCoplainer
+	 * @throws PointsColinearException
+	 * @throws TooFewPointsException
+	 * @throws InvalidNormalException
 	 */
-	public static CSG hull(List<?> points) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
+	public static CSG hull(List<?> points)
+			throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		List<Vector3d> plist = new ArrayList<>();
 		if (Vector3d.class.isInstance(points.get(0))) {
 			points.stream().forEach((pobj) -> plist.add((Vector3d) pobj));
 			return hull(plist, new PropertyStorage());
 		}
 		if (CSG.class.isInstance(points.get(0))) {
-			for (Object csg : points)
-				((CSG) csg).getPolygons().forEach((p) -> p.vertices.forEach((v) -> plist.add(v.pos)));
+			for (int i = 0; i < points.size(); i++) {
+				CSG csg = (CSG) points.get(i);
+				for (int j = 0; j < csg.getPolygons().size(); j++) {
+					Polygon p = csg.getPolygons().get(j);
+					for (int k = 0; k < p.size(); k++) {
+						plist.add(p.get(k).pos);
+					}
+				}
+			}
 
 			return hull(plist, new PropertyStorage());
 		}
-		throw new RuntimeException("Objects in list are of unknown type: " + points.get(0).getClass().getName()+"\r\nExpected CSG or Vector3d ");
+		throw new RuntimeException("Objects in list are of unknown type: " + points.get(0).getClass().getName()
+				+ "\r\nExpected CSG or Vector3d ");
 	}
 
 	/**
 	 * Hull.
 	 *
-	 * @param points
-	 *            the points
-	 * @param storage
-	 *            the storage
+	 * @param points  the points
+	 * @param storage the storage
 	 * @return the csg
-	 * @throws PointsNotCoplainer 
-	 * @throws PointsColinearException 
-	 * @throws TooFewPointsException 
-	 * @throws InvalidNormalException 
+	 * @throws PointsNotCoplainer
+	 * @throws PointsColinearException
+	 * @throws TooFewPointsException
+	 * @throws InvalidNormalException
 	 */
-	public static CSG hull(List<Vector3d> points, PropertyStorage storage) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
+	public static CSG hull(List<Vector3d> points, PropertyStorage storage)
+			throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 
 		Point3d[] hullPoints = points.stream().map((vec) -> new Point3d(vec.x, vec.y, vec.z)).toArray(Point3d[]::new);
 
@@ -101,21 +108,24 @@ public class HullUtil {
 	/**
 	 * Hull.
 	 *
-	 * @param csg
-	 *            the csg
-	 * @param storage
-	 *            the storage
+	 * @param csg     the csg
+	 * @param storage the storage
 	 * @return the csg
-	 * @throws PointsNotCoplainer 
-	 * @throws PointsColinearException 
-	 * @throws TooFewPointsException 
-	 * @throws InvalidNormalException 
+	 * @throws PointsNotCoplainer
+	 * @throws PointsColinearException
+	 * @throws TooFewPointsException
+	 * @throws InvalidNormalException
 	 */
-	public static CSG hull(CSG csg, PropertyStorage storage) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
+	public static CSG hull(CSG csg, PropertyStorage storage)
+			throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 
 		List<Vector3d> points = new ArrayList<>(csg.getPolygons().size() * 3);
 
-		csg.getPolygons().forEach((p) -> p.vertices.forEach((v) -> points.add(v.pos)));
+		csg.getPolygons().forEach((p) -> {
+			for (int i = 0; i < p.size(); i++) {
+				points.add(p.get(i).pos);
+			}
+		});
 
 		return hull(points, storage);
 	}
@@ -123,20 +133,24 @@ public class HullUtil {
 	/**
 	 * Hull.
 	 *
-	 * @param csgList
-	 *            a list of csg
+	 * @param csgList a list of csg
 	 * @return the csg
-	 * @throws PointsNotCoplainer 
-	 * @throws PointsColinearException 
-	 * @throws TooFewPointsException 
-	 * @throws InvalidNormalException 
+	 * @throws PointsNotCoplainer
+	 * @throws PointsColinearException
+	 * @throws TooFewPointsException
+	 * @throws InvalidNormalException
 	 */
-	public static CSG hull(CSG... csgList) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
+	public static CSG hull(CSG... csgList)
+			throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 
 		List<Vector3d> points = new ArrayList<>();
-		for (CSG csg : csgList)
-			csg.getPolygons().forEach((p) -> p.vertices.forEach((v) -> points.add(v.pos)));
-
+		for (CSG csg : csgList) {
+			csg.getPolygons().forEach((p) -> {
+				for (int i = 0; i < p.size(); i++) {
+					points.add(p.get(i).pos);
+				}
+			});
+		}
 		return hull(points, new PropertyStorage());
 	}
 }

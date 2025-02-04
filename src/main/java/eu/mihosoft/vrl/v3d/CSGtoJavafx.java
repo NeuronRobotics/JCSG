@@ -23,15 +23,15 @@ public class CSGtoJavafx {
 
 		int counter = 0;
 		for (Polygon p : poly) {
-			if (p.vertices.size() >= 3) {
+			if (p.size() >= 3) {
 
 				// TODO: improve the triangulation?
 				//
 				// JavaOne requires triangular polygons.
 				// If our polygon has more vertices, create
 				// multiple triangles:
-				Vertex firstVertex = p.vertices.get(0);
-				for (int i = 0; i < p.vertices.size() - 2; i++) {
+				Vertex firstVertex = p.get(0);
+				for (int i = 0; i < p.size() - 2; i++) {
 
 					if (firstVertex.pos.x < minX) {
 						minX = firstVertex.pos.x;
@@ -59,7 +59,7 @@ public class CSGtoJavafx {
 					mesh.getTexCoords().addAll(0); // texture (not covered)
 					mesh.getTexCoords().addAll(0);
 
-					Vertex secondVertex = p.vertices.get(i + 1);
+					Vertex secondVertex = p.get(i + 1);
 
 					if (secondVertex.pos.x < minX) {
 						minX = secondVertex.pos.x;
@@ -87,7 +87,7 @@ public class CSGtoJavafx {
 					mesh.getTexCoords().addAll(0); // texture (not covered)
 					mesh.getTexCoords().addAll(0);
 
-					Vertex thirdVertex = p.vertices.get(i + 2);
+					Vertex thirdVertex = p.get(i + 2);
 
 					mesh.getPoints().addAll((float) thirdVertex.pos.x, (float) thirdVertex.pos.y,
 							(float) thirdVertex.pos.z);

@@ -115,9 +115,9 @@ public class PolygonUtil {
 
 		if (incoming == null)
 			return result;
-		if (incoming.vertices.size() < 3)
+		if (incoming.size() < 3)
 			return result;
-		if (incoming.vertices.size() == 3) {
+		if (incoming.size() == 3) {
 			result.add(incoming);
 			return result;
 		}
@@ -198,7 +198,7 @@ public class PolygonUtil {
 			// Debug3dProvider.clearScreen();
 		}
 		Geometry triangles;
-		double zplane = concave.vertices.get(0).pos.z;
+		double zplane = concave.get(0).pos.z;
 
 		try {
 			concave.validateAndInit();
@@ -294,13 +294,13 @@ public class PolygonUtil {
 		try {
 			Geometry triangles;
 			Polygon toTri = concave;
-			Coordinate[] coordinates = new Coordinate[toTri.vertices.size() + 1];
-			for (int i = 0; i < toTri.vertices.size(); i++) {
-				Vector3d v = toTri.vertices.get(i).pos;
+			Coordinate[] coordinates = new Coordinate[toTri.size() + 1];
+			for (int i = 0; i < toTri.size(); i++) {
+				Vector3d v = toTri.get(i).pos;
 				coordinates[i] = new Coordinate(v.x, v.y, v.z);
 			}
-			Vector3d v = toTri.vertices.get(0).pos;
-			coordinates[toTri.vertices.size()] = new Coordinate(v.x, v.y, v.z);
+			Vector3d v = toTri.get(0).pos;
+			coordinates[toTri.size()] = new Coordinate(v.x, v.y, v.z);
 			// use the default factory, which gives full double-precision
 			Geometry geom = new GeometryFactory().createPolygon(coordinates);
 			triangles = ConstrainedDelaunayTriangulator.triangulate(geom);
@@ -417,8 +417,8 @@ public class PolygonUtil {
 	public static Polygon pruneDuplicatePoints(Polygon incoming)
 			throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		ArrayList<Vertex> newPoints = new ArrayList<Vertex>();
-		for (int i = 0; i < incoming.vertices.size(); i++) {
-			Vertex v = incoming.vertices.get(i);
+		for (int i = 0; i < incoming.size(); i++) {
+			Vertex v = incoming.get(i);
 			boolean duplicate = false;
 			for (Vertex vx : newPoints) {
 				if (vx.pos.test(v.pos, Plane.EPSILON_duplicate)) {

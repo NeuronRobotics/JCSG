@@ -6,6 +6,8 @@
 
 package eu.mihosoft.vrl.v3d;
 
+import java.util.ArrayList;
+
 //  Auto-generated Javadoc
 /**
  * The Class Modifier.
@@ -33,9 +35,11 @@ final class Modifier {
      */
     void modify(CSG csg) {
         for(Polygon p : csg.getPolygons()) {
-            for(Vertex v : p.vertices) {
-                v.setWeight(function.eval(v.pos, csg));
-            }
+            //ArrayList<Vertex> vertices = p.vertices;
+			for (int i = 0; i < p.size(); i++) {
+				Vertex v = p.get(i);
+				v.setWeight(function.eval(v.pos, csg));
+			}
         }
     }
     

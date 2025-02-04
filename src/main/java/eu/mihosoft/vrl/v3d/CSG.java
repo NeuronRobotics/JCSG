@@ -1477,7 +1477,6 @@ public class CSG implements IuserAPI {
 			sb.append("solid v3d.csg\n");
 			for (Polygon p : getPolygons()) {
 				try {
-					Plane.computeNormal(p.vertices);
 					p.toStlString(sb);
 				} catch (Exception ex) {
 					System.out.println("Prune Polygon on export");
@@ -1575,16 +1574,16 @@ public class CSG implements IuserAPI {
 				Edge e = null;
 				// Test every polygon
 				Polygon i = polygons.get(threadIndex);
-				ArrayList<Vertex> vertices = i.vertices;
-				for (int k = 0; k < vertices.size(); k++) {
+				//ArrayList<Vertex> vertices = i.vertices;
+				for (int k = 0; k < i.size(); k++) {
 					// each point in the checking polygon
 					int now = k;
 					int next = k + 1;
-					if (next == vertices.size())
+					if (next == i.size())
 						next = 0;
 					// take the 2 points of this section of polygon to make an edge
-					Vertex p1 = vertices.get(now);
-					Vertex p2 = vertices.get(next);
+					Vertex p1 = i.get(now);
+					Vertex p2 = i.get(next);
 					if (e == null)
 						e = new Edge(p1, p2);
 					else {
@@ -1604,9 +1603,9 @@ public class CSG implements IuserAPI {
 							continue;
 						if (threadIndex != l) {
 							// every other polygon besides this one being tested
-							ArrayList<Vertex> vert = ii.vertices;
-							for (int iii = 0; iii < vert.size(); iii++) {
-								Vertex vi = vert.get(iii);
+							//ArrayList<Vertex> vert = ii.vertices;
+							for (int iii = 0; iii < ii.size(); iii++) {
+								Vertex vi = ii.get(iii);
 								// if they are coincident, move along
 								if (e.isThisPointOneOfMine(vi, tOL))
 									continue;
@@ -1615,7 +1614,7 @@ public class CSG implements IuserAPI {
 								// edge
 								if (e.contains(vi.pos, tOL)) {
 									// System.out.println("Inserting point "+vi);
-									vertices.add(next, vi);
+									i.add(next, vi);
 									e.setP2(vi);
 									// totalAdded++;
 								}
@@ -1626,7 +1625,7 @@ public class CSG implements IuserAPI {
 				try {
 					i.pruneDuplicatePoints();
 					i.validateAndInit();
-					//List<Polygon> triangles = PolygonUtil.concaveToConvex(i);
+					List<Polygon> triangles = PolygonUtil.concaveToConvex(i);
 
 				}catch(Exception ex) {
 					System.out.println(ex.getMessage()+" problem with polygon, removing");
@@ -1667,7 +1666,7 @@ public class CSG implements IuserAPI {
 		int roomForMore = 10;
 		int size = polygons.size();
 		for (int i = 0; i < size; i++) {
-			numberOfPoints += (polygons.get(i).vertices.size());
+			numberOfPoints += (polygons.get(i).size());
 		}
 		float[] pointData = new float[numberOfPoints * 3];
 		int[] startIndex = new int[size];
@@ -1678,10 +1677,10 @@ public class CSG implements IuserAPI {
 			insertions[i] = -1;
 		}
 		for (int polyIndex = 0; polyIndex < size; polyIndex++) {
-			sizes[polyIndex] = polygons.get(polyIndex).vertices.size();
+			sizes[polyIndex] = polygons.get(polyIndex).size();
 			startIndex[polyIndex] = runningPointIndex;
 			for (int ii = 0; ii < sizes[polyIndex]; ii++) {
-				Vector3d pos = polygons.get(polyIndex).vertices.get(ii).pos.clone()
+				Vector3d pos = polygons.get(polyIndex).get(ii).pos.clone()
 						.roundToEpsilon(Vector3d.getEXPORTEPSILON());
 				pointData[startIndex[polyIndex] + 0 + ii] = (float) pos.x;
 				pointData[startIndex[polyIndex] + 1 + ii] = (float) pos.y;
@@ -1750,7 +1749,9 @@ public class CSG implements IuserAPI {
 					// both list of points should be right hand, but since they are other polygons,
 					// that may not be the case, so sorting needs to take place
 					ArrayList<Vertex> newpoints = new ArrayList<Vertex>();
-					for (Vertex v : ptoA.vertices) {
+					//ArrayList<Vertex> vertices = ptoA.vertices;
+					for (int i = 0; i < ptoA.size(); i++) {
+						Vertex v = ptoA.get(i);
 						newpoints.add(v);
 						if (e.isThisPointOneOfMine(v, Plane.EPSILON_Point)) {
 							for (Vertex v2 : degen)
@@ -1793,7 +1794,7 @@ public class CSG implements IuserAPI {
 //			return;
 //		}
 
-		if (p.vertices.size() == 3) {
+		if (p.size() == 3) {
 			toAdd.add(p);
 		} else {
 			// //com.neuronrobotics.sdk.common.Log.error("Fixing error in STL " + name + "
@@ -1870,8 +1871,8 @@ public class CSG implements IuserAPI {
 
 		for (Polygon p : getPolygons()) {
 			List<Integer> polyIndices = new ArrayList<>();
-
-			p.vertices.stream().forEach((v) -> {
+			for(int i=0;i<p.size();i++) {
+				Vertex v = p.get(i);
 				if (!vertices.contains(v)) {
 					vertices.add(v);
 					v.toObjString(sb);
@@ -1879,7 +1880,8 @@ public class CSG implements IuserAPI {
 				} else {
 					polyIndices.add(vertices.indexOf(v) + 1);
 				}
-			});
+			}
+
 			indices.add(new PolygonStruct(getStorage(), polyIndices, " "));
 
 		}
@@ -2035,9 +2037,9 @@ public class CSG implements IuserAPI {
 
 		for (Polygon p : getPolygons()) {
 
-			for (int i = 0; i < p.vertices.size(); i++) {
+			for (int i = 0; i < p.size(); i++) {
 
-				Vertex vert = p.vertices.get(i);
+				Vertex vert = p.get(i);
 
 				if (vert.pos.x < minX) {
 					minX = vert.pos.x;
@@ -2270,10 +2272,14 @@ public class CSG implements IuserAPI {
 		ArrayList<CSG> bits = new ArrayList<>();
 		for (Polygon p : this.getPolygons()) {
 			List<Vector3d> plist = new ArrayList<>();
-			for (Vertex v : p.vertices) {
+			//ArrayList<Vertex> vertices = p.vertices;
+			for (int i = 0; i < p.size(); i++) {
+				Vertex v = p.get(i);
 				CSG newSHape = travelingShape.move(v);
 				for (Polygon np : newSHape.getPolygons()) {
-					for (Vertex nv : np.vertices) {
+					//ArrayList<Vertex> vertices = np.vertices;
+					for (int j = 0; j < np.size(); j++) {
+						Vertex nv = np.get(j);
 						plist.add(nv.pos);
 					}
 				}
@@ -2300,7 +2306,9 @@ public class CSG implements IuserAPI {
 	public ArrayList<CSG> minkowski(CSG travelingShape) {
 		HashMap<Vertex, CSG> map = new HashMap<>();
 		for (Polygon p : travelingShape.getPolygons()) {
-			for (Vertex v : p.vertices) {
+			//ArrayList<Vertex> vertices = p.vertices;
+			for (int i = 0; i < p.size(); i++) {
+				Vertex v = p.get(i);
 				if (map.get(v) == null)// use hashmap to avoid duplicate locations
 					map.put(v, this.move(v));
 			}

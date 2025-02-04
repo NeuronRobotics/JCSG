@@ -87,19 +87,19 @@ public class Toroid extends Primitive {
 			// println "Extruding "+i+" to "+next
 			Polygon polygon1=slices.get(j);
 			Polygon polygon2=slices.get(next);
-			if (polygon1.vertices.size() != polygon2.vertices.size()) {
+			if (polygon1.size() != polygon2.size()) {
 				throw new RuntimeException("These polygons do not match");
 			}
 	
-			int numvertices = polygon1.vertices.size();
+			int numvertices = polygon1.size();
 			for (int i = 0; i < numvertices; i++) {
 	
 				int nexti = (i + 1) % numvertices;
 	
-				Vector3d bottomV1 = polygon1.vertices.get(i).pos;
-				Vector3d topV1 = polygon2.vertices.get(i).pos;
-				Vector3d bottomV2 = polygon1.vertices.get(nexti).pos;
-				Vector3d topV2 = polygon2.vertices.get(nexti).pos;
+				Vector3d bottomV1 = polygon1.get(i).pos;
+				Vector3d topV1 = polygon2.get(i).pos;
+				Vector3d bottomV2 = polygon1.get(nexti).pos;
+				Vector3d topV2 = polygon2.get(nexti).pos;
 	
 				List<Vector3d> pPoints = Arrays.asList(bottomV2, topV2, topV1, bottomV1);
 	

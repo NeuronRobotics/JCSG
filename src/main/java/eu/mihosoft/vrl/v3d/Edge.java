@@ -82,8 +82,8 @@ public class Edge {
 	public static List<Edge> fromPolygon(Polygon poly) {
 		List<Edge> result = new ArrayList<>();
 
-		for (int i = 0; i < poly.vertices.size(); i++) {
-			Edge e = new Edge(poly.vertices.get(i), poly.vertices.get((i + 1) % poly.vertices.size()));
+		for (int i = 0; i < poly.size(); i++) {
+			Edge e = new Edge(poly.get(i), poly.get((i + 1) % poly.size()));
 
 			result.add(e);
 		}
@@ -123,19 +123,11 @@ public class Edge {
 	 * @throws InvalidNormalException 
 	 */
 	public static Polygon toPolygon(List<Vector3d> points, Plane plane) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
-
-//        List<Vector3d> points = edges.stream().().map(e -> e.p1.pos).
-//                collect(Collectors.toList());
 		Polygon p = Polygon.fromPoints(points);
-
-		p.vertices.stream().forEachOrdered((vertex) -> {
+		for(int i=0;i<p.size();i++) {
+			Vertex vertex = p.get(i);
 			vertex.normal = plane.getNormal().clone();
-		});
-
-//        // we try to detect wrong orientation by comparing normals
-//        if (p.plane.normal.angle(plane.normal) > 0.1) {
-//            p.flip();
-//        }
+		}
 		return p;
 	}
 
