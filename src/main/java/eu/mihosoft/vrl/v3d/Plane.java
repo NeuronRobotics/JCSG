@@ -360,7 +360,7 @@ public class Plane {
 			throw numberFormatException;
 		}
 		double length = normal.length();
-		if((length-getEPSILON())>1 ||(length+getEPSILON())<1 ) {
+		if(Math.abs(length-1)>getEPSILON() ) {
 			throw new NumberFormatException(" Normal Length must be 1, got "+length);
 		}
 	}

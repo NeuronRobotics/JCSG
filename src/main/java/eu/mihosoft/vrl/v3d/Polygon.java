@@ -289,19 +289,25 @@ public final class Polygon {
 		}
 		for (int i = 0; i < vertices.size(); i++) {
 			double t = computeDistance( i);
-			double d = Plane.getEPSILON()*10;
+			double d = Plane.getEPSILON();
 			if(Math.abs(t)>d) {
-				Vector3d normal = plane.getNormal();
-				Vector3d pos = vertices.get(i).pos;
-				double dist = plane.getDist();
-				double dot = normal.dot(pos);
-				double nt= dot - dist;
-				System.err.println("Coplainer fail: "+this);
-				System.err.println("Non flat polygon! This points distance from the plane is "+nt+" dot:"+dot+" planeDist:"+dist+" computed t "+t);
-				return false;
+				if(t>0)
+					setPosEpsilon(t);
+				if(t<0)
+					setNegEpsilon(t);
+//				Vector3d normal = plane.getNormal();
+//				Vector3d pos = vertices.get(i).pos;
+//				double dist = plane.getDist();
+//				double dot = normal.dot(pos);
+//				double nt= dot - dist;
+//				System.err.println("Coplainer fail: "+this);
+//				System.err.println("Non flat polygon! This points distance from the plane is "+nt+" dot:"+dot+" planeDist:"+dist+" computed t "+t);
+//				return false;
 			}
 		}
-
+		double epCheck = 1.0e-6;
+		if(posEpsilon>epCheck || negEpsilon < -epCheck)
+			return false;
 		return true; // All points are coplanar
 	}
 
