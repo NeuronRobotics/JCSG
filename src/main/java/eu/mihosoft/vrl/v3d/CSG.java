@@ -1784,17 +1784,6 @@ public class CSG implements IuserAPI {
 				try {PolygonUtil.concaveToConvex(p);} catch (Throwable ex2) {
 					ex2.printStackTrace();
 				}
-//				Debug3dProvider.setProvider(providerOf3d);
-//				//ex.printStackTrace();
-//				Debug3dProvider.clearScreen();
-//				Debug3dProvider.addObject(p);
-//				try {
-//					List<Polygon> triangles = PolygonUtil.concaveToConvex(p);
-//					toAdd.addAll(triangles);
-//				}catch(java.lang.IllegalStateException ise) {
-//					ise.printStackTrace();
-//				}
-//				Debug3dProvider.setProvider(null);
 			}
 
 		}
