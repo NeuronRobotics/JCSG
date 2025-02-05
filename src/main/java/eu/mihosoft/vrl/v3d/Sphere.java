@@ -194,7 +194,7 @@ public class Sphere extends Primitive {
                                 (j + 1) / (double) getNumStacks())
                 );
                 try {
-					polygons.add(new Polygon(vertices, getProperties(), true, null));
+					polygons.add(new Polygon(vertices, getProperties(),  null));
 				} catch (InvalidNormalException | TooFewPointsException | PointsColinearException
 						| PointsNotCoplainer e) {
 					throw new RuntimeException(e);

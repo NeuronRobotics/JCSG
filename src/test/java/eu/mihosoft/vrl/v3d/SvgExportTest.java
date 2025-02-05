@@ -60,8 +60,8 @@ public class SvgExportTest {
 		vertices2.add(new Vertex(new Vector3d(75, 75), new Vector3d(0, 0)));
 		vertices2.add(new Vertex(new Vector3d(50, 75), new Vector3d(0, 0)));
 
-		Polygon outline2 = new Polygon(vertices2, null, true, null);
-		Polygon outline = new Polygon(vertices, null, true, null);
+		Polygon outline2 = new Polygon(vertices2, null,  null);
+		Polygon outline = new Polygon(vertices, null,  null);
 		polygons.add(outline2);
 		polygons.add(outline);
 		
@@ -86,8 +86,8 @@ public class SvgExportTest {
 		vertices2.add(new Vertex(new Vector3d(75, 75), new Vector3d(0, 0)));
 		vertices2.add(new Vertex(new Vector3d(50, 75), new Vector3d(0, 0)));
 
-		Polygon outline2 = new Polygon(vertices2, null, true, null);
-		Polygon outline = new Polygon(vertices, null, true, null);
+		Polygon outline2 = new Polygon(vertices2, null, null);
+		Polygon outline = new Polygon(vertices, null,  null);
 		polygons.add(outline2);
 		polygons.add(outline);
 

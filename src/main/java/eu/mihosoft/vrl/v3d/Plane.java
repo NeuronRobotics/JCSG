@@ -280,7 +280,7 @@ public class Plane {
 			}
 				
 			try {
-				Polygon frontPoly = new Polygon(f, polygon.getStorage(), true, polygon.plane).setColor(polygon.getColor());
+				Polygon frontPoly = new Polygon(f, polygon.getStorage(),  polygon.plane).setColor(polygon.getColor());
 				if(f.size()==3)
 					front.add(frontPoly);
 				else
@@ -303,7 +303,7 @@ public class Plane {
 			}
 
 			try {
-				Polygon backPoly = new Polygon(b, polygon.getStorage(), true, polygon.plane).setColor(polygon.getColor());
+				Polygon backPoly = new Polygon(b, polygon.getStorage(),  polygon.plane).setColor(polygon.getColor());
 				if(b.size()==3)
 					back.add(backPoly);
 				else

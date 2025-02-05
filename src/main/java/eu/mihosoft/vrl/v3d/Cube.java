@@ -150,7 +150,7 @@ public class Cube extends Primitive {
                 )));
             }
             try {
-				polygons.add(new Polygon(vertices, properties, true, null));
+				polygons.add(new Polygon(vertices, properties,  null));
 			} catch (InvalidNormalException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

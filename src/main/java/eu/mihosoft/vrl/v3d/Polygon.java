@@ -66,6 +66,30 @@ public final class Polygon {
 	private boolean isHole = false;
 	private boolean allowDegenerate;
 	
+	/**
+	 * Constructor. Creates a new polygon that consists of the specified vertices.
+	 *
+	 * Note: the vertices used to initialize a polygon must be coplanar and form a
+	 * convex loop.
+	 *
+	 * @param vertices polygon vertices
+	 * @param shared   shared property
+	 * @throws PointsNotCoplainer
+	 * @throws PointsColinearException
+	 * @throws TooFewPointsException
+	 * @throws InvalidNormalException
+	 */
+	public Polygon(List<Vertex> vertices, PropertyStorage shared,  Plane p)
+			throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
+		this.allowDegenerate = allowDegenerate;
+		if(p!=null)
+			plane=p.clone();
+		this.vertices = pruneDuplicatePoints(vertices);
+		this.shared = shared;
+
+		validateAndInit();
+	}
+	
 	public int size() {
 		return vertices.size();
 	}
@@ -160,29 +184,7 @@ public final class Polygon {
 //		validateAndInit();
 //	}
 
-	/**
-	 * Constructor. Creates a new polygon that consists of the specified vertices.
-	 *
-	 * Note: the vertices used to initialize a polygon must be coplanar and form a
-	 * convex loop.
-	 *
-	 * @param vertices polygon vertices
-	 * @param shared   shared property
-	 * @throws PointsNotCoplainer
-	 * @throws PointsColinearException
-	 * @throws TooFewPointsException
-	 * @throws InvalidNormalException
-	 */
-	public Polygon(List<Vertex> vertices, PropertyStorage shared, boolean allowDegenerate, Plane p)
-			throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
-		this.allowDegenerate = allowDegenerate;
-		if(p!=null)
-			plane=p.clone();
-		this.vertices = pruneDuplicatePoints(vertices);
-		this.shared = shared;
 
-		validateAndInit();
-	}
 
 //	/**
 //	 * Constructor. Creates a new polygon that consists of the specified vertices.
@@ -394,7 +396,7 @@ public final class Polygon {
 			newVertices.add(vertices.get(i).clone());
 		}
 		try {
-			return new Polygon(newVertices, getStorage(), true, this.plane).setColor(color);
+			return new Polygon(newVertices, getStorage(),  this.plane).setColor(color);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		} 
@@ -583,7 +585,7 @@ public final class Polygon {
 	 */
 	public static Polygon fromPoints(List<Vector3d> points, PropertyStorage shared)
 			throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
-		return fromPoints(points, shared, null, true);
+		return fromPoints(points, shared, null);
 	}
 
 	/**
@@ -598,7 +600,7 @@ public final class Polygon {
 	 */
 	public static Polygon fromPoints(List<Vector3d> points)
 			throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
-		return fromPoints(points, new PropertyStorage(), null, true);
+		return fromPoints(points, new PropertyStorage(), null);
 	}
 
 	/**
@@ -613,12 +615,12 @@ public final class Polygon {
 	 */
 	public static Polygon fromPoints(Vector3d... points)
 			throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
-		return fromPoints(Arrays.asList(points), new PropertyStorage(), null, true);
+		return fromPoints(Arrays.asList(points), new PropertyStorage(), null);
 	}
 
 	public static Polygon fromPointsAllowDegenerate(List<Vector3d> vertices2)
 			throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
-		return fromPoints(vertices2, new PropertyStorage(), null, true);
+		return fromPoints(vertices2, new PropertyStorage(), null);
 	}
 
 	/**
@@ -633,8 +635,7 @@ public final class Polygon {
 	 * @throws TooFewPointsException
 	 * @throws InvalidNormalException
 	 */
-	private static Polygon fromPoints(List<Vector3d> points, PropertyStorage shared, Plane plane,
-			boolean allowDegenerate)
+	private static Polygon fromPoints(List<Vector3d> points, PropertyStorage shared, Plane plane)
 			throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		if(plane==null){
 			plane = Plane.createFromPointsVector3d(points);
@@ -647,7 +648,7 @@ public final class Polygon {
 			vertices.add(vertex);
 		}
 
-		return new Polygon(vertices, shared, allowDegenerate, plane);
+		return new Polygon(vertices, shared, plane);
 	}
 
 	/**
