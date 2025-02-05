@@ -263,7 +263,21 @@ public final class Polygon {
 				throw new PointsNotCoplainer("All points are not on plane of epsilon "+Plane.getEPSILON());
 		}
 		setDegenerate(false);
-
+		setNegEpsilon(-Plane.getEPSILON());
+		setPosEpsilon(Plane.getEPSILON());
+		for (int i = 0; i < size(); i++) {
+			double t = computeDistance(i);
+			if (t > getPosEpsilon()) {
+				System.err.println("Non flat polygon, increasing positive epsilon "+t);
+				setPosEpsilon(t + Plane.getEPSILON());
+			}
+			if (t < getNegEpsilon()) {
+				System.err.println("Non flat polygon, decreasing negative epsilon "+t);
+				setNegEpsilon(t - Plane.getEPSILON());
+			}
+		}
+		if(posEpsilon>0.001||negEpsilon<-0.001)
+			throw new RuntimeException("Faulty polygon epsilons!");
 	}
 
 
@@ -282,7 +296,11 @@ public final class Polygon {
 	}
 
 	double computeDistance(int i) {
-		return plane.getNormal().dot(vertices.get(i).pos) - plane.getDist();
+		Vector3d normal = plane.getNormal();
+		Vector3d pos = vertices.get(i).pos;
+		double dist = plane.getDist();
+		double dot = Math.abs( normal.dot(pos));
+		return dot - dist;
 	}
 
 	public boolean areAllPointsCollinear(ArrayList<eu.mihosoft.vrl.v3d.Vertex> vertices) {
@@ -432,11 +450,6 @@ public final class Polygon {
 
 		if (this.vertices.size() == 3) {
 
-			// TODO: improve the triangulation?
-			//
-			// STL requires triangular polygons.
-			// If our polygon has more vertices, create
-			// multiple triangles:
 			String firstVertexStl = this.vertices.get(0).toStlString();
 
 			sb.append("  facet normal ").append(this.plane.getNormal().toStlString()).append("\n")
@@ -496,11 +509,14 @@ public final class Polygon {
 	 */
 	public Polygon transform(Transform transform) {
 
-		this.vertices.stream().forEach((v) -> {
-			v.transform(transform);
-		});
+//		this.vertices.stream().forEach((v) -> {
+//			v.transform(transform);
+//		});
+		for(int i=0;i<size();i++) {
+			get(i).transform(transform);
+		}
 
-		Vector3d a = this.vertices.get(0).pos;
+		Vector3d a = get(0).pos;
 
 		// old way
 //		this.plane.setNormal(Plane.computeNormal(this.vertices));
@@ -638,14 +654,14 @@ public final class Polygon {
 	private static Polygon fromPoints(List<Vector3d> points, PropertyStorage shared, Plane plane,
 			boolean allowDegenerate)
 			throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
-
-		Vector3d normal = (plane != null) ? plane.getNormal().clone() : new Vector3d(0, 0, 0);
-
+		if(plane==null){
+			plane = Plane.createFromPointsVector3d(points);
+		}
 		List<Vertex> vertices = new ArrayList<>();
 
 		for (Vector3d p : points) {
 			Vector3d vec = p.clone();
-			Vertex vertex = new Vertex(vec, normal);
+			Vertex vertex = new Vertex(vec, plane.getNormal());
 			vertices.add(vertex);
 		}
 
@@ -880,6 +896,8 @@ public final class Polygon {
 	private boolean valid = true;
 	private boolean degenerate = false;
 	private Color color;
+	private double negEpsilon;
+	private double posEpsilon;
 
 	public void setDegenerate(boolean degenerate) {
 		this.degenerate = degenerate;
@@ -961,5 +979,17 @@ public final class Polygon {
 
 	public boolean isBoundsTouching(Polygon incoming) {
 		return getBounds().isBoundsTouching(incoming.getBounds());
+	}
+	public double getNegEpsilon() {
+		return negEpsilon;
+	}
+	public void setNegEpsilon(double negEpsilon) {
+		this.negEpsilon = negEpsilon;
+	}
+	public double getPosEpsilon() {
+		return posEpsilon;
+	}
+	public void setPosEpsilon(double posEpsilon) {
+		this.posEpsilon = posEpsilon;
 	}
 }

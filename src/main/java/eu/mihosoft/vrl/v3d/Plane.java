@@ -104,8 +104,28 @@ public class Plane {
 		Vector3d n = computeNormal(vertices);
 		return new Plane(n, n.dot(a));
 	}
-
+	/**
+	 * Creates a plane defined by the the specified points.
+	 *
+	 * @param a first point
+	 * @param b second point
+	 * @param c third point
+	 * @return a plane
+	 */
+	public static Plane createFromPointsVector3d(List<Vector3d> vertices) {
+		Vector3d a = vertices.get(0);
+		Vector3d n = computeNormalVector3d(vertices);
+		return new Plane(n, n.dot(a));
+	}
 	public static Vector3d computeNormal(List<Vertex> vertices) {
+		ArrayList<Vector3d> points = new ArrayList<Vector3d>();
+		for(int i=0;i<vertices.size();i++) {
+			points.add(vertices.get(i).pos);
+		}
+		return computeNormalVector3d(points);
+	}
+	
+	public static Vector3d computeNormalVector3d(List<Vector3d> vertices) {
 		if (vertices == null || vertices.size() < 3) {
 			return new Vector3d(0, 0, 1); // Default normal for degenerate cases
 		}
@@ -115,8 +135,8 @@ public class Plane {
 		int n = vertices.size();
 		Vector3d lastValid = null;
 		for (int i = 0; i < n; i++) {
-			Vector3d current = vertices.get(i).pos;
-			Vector3d next = vertices.get((i + 1) % n).pos;
+			Vector3d current = vertices.get(i);
+			Vector3d next = vertices.get((i + 1) % n);
 
 			// Correct Newell's Method formulas
 			normal.x += (current.y - next.y) * (current.z + next.z); // (y1-y2)(z1+z2)
@@ -133,23 +153,7 @@ public class Plane {
 			return lastValid;
 		}
 		throw new RuntimeException("Mesh has problems, can not work around it");
-//	    // Second attempt: Find three non-colinear points
-//	   
-//	    normal = findNormalFromNonColinearPoints(vertices);
-//	    if (normal != null) {
-//	    	 System.err.println("findNormalFromNonColinearPoints ");
-//	        return normal;
-//	    }
-//	    // Third attempt: Find principal direction
-//	    normal = findPrincipalDirection(vertices);
-//	    if (normal != null) {
-//		    System.err.println("findPrincipalDirection ");
-//
-//	        return normal;
-//	    }
-//	    System.err.println("determineStatisticalNormal ");
-//	    // Final fallback: Use statistical approach
-//	    return determineStatisticalNormal(vertices);
+
 	}
 
 	private static boolean isValidNormal(Vector3d normal, double epsilon) {
@@ -346,21 +350,9 @@ public class Plane {
 //        	debugger.display(back);
 		}
 		// search for the epsilon values of the incoming plane
-		double negEpsilon = -Plane.getEPSILON();
-		double posEpsilon = Plane.getEPSILON();
-		for (int i = 0; i < polygon.size(); i++) {
-			double t = polygon.computeDistance(i);
-			if (t > posEpsilon) {
-				System.err.println("Non flat polygon, increasing positive epsilon "+t);
-				posEpsilon = t + Plane.getEPSILON();
-			}
-			if (t < negEpsilon) {
-				System.err.println("Non flat polygon, decreasing negative epsilon "+t);
-				negEpsilon = t - Plane.getEPSILON();
-			}
-		}
-		if(posEpsilon>0.0001||negEpsilon<-0.0001)
-			throw new RuntimeException("Faulty polygon epsilons!");
+		double negEpsilon =polygon.getNegEpsilon();
+		double posEpsilon = polygon.getPosEpsilon();
+
 		PlaneType polygonType = PlaneType.COPLANAR;
 		List<PlaneType> types = new ArrayList<>();
 		boolean somePointsInfront = false;
