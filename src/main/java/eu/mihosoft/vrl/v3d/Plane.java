@@ -86,7 +86,7 @@ public class Plane {
 	 * @param normal plane normal
 	 * @param dist   distance from origin
 	 */
-	public Plane(Vector3d normal, double dist) {
+	private Plane(Vector3d normal, double dist) {
 		this.setNormal(normal.normalized());
 		this.setDist(dist);
 	}
@@ -127,7 +127,7 @@ public class Plane {
 	
 	public static Vector3d computeNormalVector3d(List<Vector3d> vertices) {
 		if (vertices == null || vertices.size() < 3) {
-			return new Vector3d(0, 0, 1); // Default normal for degenerate cases
+			throw new RuntimeException("Failed to compute normal!");
 		}
 
 		// First attempt: Newell's method
@@ -142,7 +142,7 @@ public class Plane {
 			normal.x += (current.y - next.y) * (current.z + next.z); // (y1-y2)(z1+z2)
 			normal.y += (current.z - next.z) * (current.x + next.x); // (z1-z2)(x1+x2)
 			normal.z += (current.x - next.x) * (current.y + next.y);
-			if (n >= 2) {
+			if (i >= 2) {
 				Vector3d normalized = normal.normalized();
 				if (isValidNormal(normalized, getEPSILON() / 10)) {
 					lastValid = normalized;
@@ -150,7 +150,7 @@ public class Plane {
 			}
 		}
 		if (isValidNormal(lastValid, getEPSILON() / 10)) {
-			return lastValid;
+			return lastValid.normalized();
 		}
 		throw new RuntimeException("Mesh has problems, can not work around it");
 
@@ -420,19 +420,19 @@ public class Plane {
 				else
 					front.addAll(PolygonUtil.concaveToConvex(frontPoly));
 			} catch (InvalidNormalException e) {
-				// TODO Auto-generated catch block
+				//  Auto-generated catch block
 				e.printStackTrace();
 			} catch (TooFewPointsException e) {
-				// TODO Auto-generated catch block
+				//  Auto-generated catch block
 				e.printStackTrace();
 			} catch (PointsColinearException e) {
-				// TODO Auto-generated catch block
+				//  Auto-generated catch block
 				e.printStackTrace();
 			} catch (PointsNotCoplainer e) {
-				// TODO Auto-generated catch block
+				//  Auto-generated catch block
 				e.printStackTrace();
 			} catch (java.lang.IllegalStateException e) {
-				// TODO Auto-generated catch block
+				//  Auto-generated catch block
 				e.printStackTrace();
 			}
 
@@ -443,19 +443,19 @@ public class Plane {
 				else
 					back.addAll(PolygonUtil.concaveToConvex(backPoly));
 			} catch (InvalidNormalException e) {
-				// TODO Auto-generated catch block
+				//  Auto-generated catch block
 				e.printStackTrace();
 			} catch (TooFewPointsException e) {
-				// TODO Auto-generated catch block
+				//  Auto-generated catch block
 				e.printStackTrace();
 			} catch (PointsColinearException e) {
-				// TODO Auto-generated catch block
+				//  Auto-generated catch block
 				e.printStackTrace();
 			} catch (PointsNotCoplainer e) {
-				// TODO Auto-generated catch block
+				//  Auto-generated catch block
 				e.printStackTrace();
 			} catch (java.lang.IllegalStateException e) {
-				// TODO Auto-generated catch block
+				//  Auto-generated catch block
 				e.printStackTrace();
 			}
 
@@ -486,12 +486,16 @@ public class Plane {
 
 	public void setNormal(Vector3d normal) {
 		if (Double.isFinite(normal.x) && Double.isFinite(normal.y) && Double.isFinite(normal.z))
-			this.normal = normal.normalized();
+			this.normal = normal;
 		else {
 
 			NumberFormatException numberFormatException = new NumberFormatException();
 			// numberFormatException.printStackTrace();
 			throw numberFormatException;
+		}
+		double length = normal.length();
+		if((length-getEPSILON())>1 ||(length+getEPSILON())<1 ) {
+			throw new NumberFormatException(" Normal Length must be 1, got "+length);
 		}
 	}
 
