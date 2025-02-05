@@ -1759,20 +1759,11 @@ public class CSG implements IuserAPI {
 //	}
 
 	private CSG updatePolygons(ArrayList<Polygon> toAdd, Polygon p) {
-		// p=PolygonUtil.pruneDuplicatePoints(p);
 		if (p == null)
 			return this;
-//		if(p.isDegenerate()) {
-//			degenerates.add(p);
-//			return;
-//		}
-
 		if (p.size() == 3) {
 			toAdd.add(p);
 		} else {
-			// //com.neuronrobotics.sdk.common.Log.error("Fixing error in STL " + name + "
-			// polygon# " + i + "
-			// number of vertices " + p.vertices.size());
 			try {
 				List<Polygon> triangles = PolygonUtil.concaveToConvex(p);
 				for (Polygon poly : triangles) {
