@@ -64,6 +64,7 @@ public final class Polygon {
 	 */
 	public Plane plane;
 	private boolean isHole = false;
+	private boolean allowDegenerate;
 	
 	public int size() {
 		return vertices.size();
@@ -174,6 +175,7 @@ public final class Polygon {
 	 */
 	public Polygon(List<Vertex> vertices, PropertyStorage shared, boolean allowDegenerate, Plane p)
 			throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
+		this.allowDegenerate = allowDegenerate;
 		this.plane = p;
 		this.vertices = pruneDuplicatePoints(vertices);
 		this.shared = shared;
@@ -258,26 +260,24 @@ public final class Polygon {
 			throw new PointsColinearException("This polygon is colinear");
 
 		if(!arePointsCoplanar()) {
-			this.plane = Plane.createFromPoints(vertices);
-			if(!arePointsCoplanar())
-				throw new PointsNotCoplainer("All points are not on plane of epsilon "+Plane.getEPSILON());
+			throw new PointsNotCoplainer("All points are not on plane of epsilon "+Plane.getEPSILON());
 		}
 		setDegenerate(false);
 		setNegEpsilon(-Plane.getEPSILON());
 		setPosEpsilon(Plane.getEPSILON());
-		for (int i = 0; i < size(); i++) {
-			double t = computeDistance(i);
-			if (t > getPosEpsilon()) {
-				System.err.println("Non flat polygon, increasing positive epsilon "+t);
-				setPosEpsilon(t + Plane.getEPSILON());
-			}
-			if (t < getNegEpsilon()) {
-				System.err.println("Non flat polygon, decreasing negative epsilon "+t);
-				setNegEpsilon(t - Plane.getEPSILON());
-			}
-		}
-		if(posEpsilon>0.001||negEpsilon<-0.001)
-			throw new RuntimeException("Faulty polygon epsilons!");
+//		for (int i = 0; i < size(); i++) {
+//			double t = computeDistance(i);
+//			if (t > getPosEpsilon()) {
+//				System.err.println("Non flat polygon, increasing positive epsilon "+t);
+//				setPosEpsilon(t + Plane.getEPSILON());
+//			}
+//			if (t < getNegEpsilon()) {
+//				System.err.println("Non flat polygon, decreasing negative epsilon "+t);
+//				setNegEpsilon(t - Plane.getEPSILON());
+//			}
+//		}
+//		if(posEpsilon>0.001||negEpsilon<-0.001)
+//			throw new RuntimeException("Faulty polygon epsilons!");
 	}
 
 
@@ -288,8 +288,16 @@ public final class Polygon {
 		}
 		for (int i = 0; i < vertices.size(); i++) {
 			double t = computeDistance( i);
-			if(Math.abs(t)>Plane.getEPSILON())
+			if(Math.abs(t)>Plane.getEPSILON()) {
+				Vector3d normal = plane.getNormal();
+				Vector3d pos = vertices.get(i).pos;
+				double dist = plane.getDist();
+				double dot = normal.dot(pos);
+				double nt= dot - dist;
+				System.err.println("Coplainer fail: "+this);
+				System.err.println("Non flat polygon! This points distance from the plane is "+nt+" dot:"+dot+" planeDist:"+dist+" computed t "+t);
 				return false;
+			}
 		}
 
 		return true; // All points are coplanar
@@ -299,7 +307,7 @@ public final class Polygon {
 		Vector3d normal = plane.getNormal();
 		Vector3d pos = vertices.get(i).pos;
 		double dist = plane.getDist();
-		double dot = Math.abs( normal.dot(pos));
+		double dot =  normal.dot(pos);
 		return dot - dist;
 	}
 
@@ -374,9 +382,9 @@ public final class Polygon {
 	@Override
 	public Polygon clone() {
 		List<Vertex> newVertices = new ArrayList<>();
-		this.vertices.forEach((vertex) -> {
-			newVertices.add(vertex.clone());
-		});
+		for(int i=0;i<vertices.size();i++) {
+			newVertices.add(vertices.get(i).clone());
+		}
 		try {
 			return new Polygon(newVertices, getStorage(), true, this.plane).setColor(color);
 		} catch (InvalidNormalException e) {

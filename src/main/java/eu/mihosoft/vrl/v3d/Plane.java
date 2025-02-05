@@ -486,7 +486,7 @@ public class Plane {
 
 	public void setNormal(Vector3d normal) {
 		if (Double.isFinite(normal.x) && Double.isFinite(normal.y) && Double.isFinite(normal.z))
-			this.normal = normal;
+			this.normal = normal.normalized();
 		else {
 
 			NumberFormatException numberFormatException = new NumberFormatException();
