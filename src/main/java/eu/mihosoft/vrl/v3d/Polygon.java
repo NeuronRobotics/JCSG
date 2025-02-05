@@ -387,20 +387,10 @@ public final class Polygon {
 		}
 		try {
 			return new Polygon(newVertices, getStorage(), true, this.plane).setColor(color);
-		} catch (InvalidNormalException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (TooFewPointsException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (PointsColinearException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (PointsNotCoplainer e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		throw new RuntimeException("Clone Failed!");
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		} 
+		
 	}
 
 	/**
@@ -479,16 +469,7 @@ public final class Polygon {
 	 * @return this polygon
 	 */
 	public Polygon translate(Vector3d v) {
-		vertices.forEach((vertex) -> {
-			vertex.pos = vertex.pos.plus(v);
-		});
-
-		Vector3d a = this.vertices.get(0).pos;
-		Vector3d b = this.vertices.get(1).pos;
-		Vector3d c = this.vertices.get(2).pos;
-
-		this.plane.setNormal(b.minus(a).cross(c.minus(a)));
-
+		transform(new Transform().move(v));
 		return this;
 	}
 
