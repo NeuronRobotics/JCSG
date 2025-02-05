@@ -289,7 +289,8 @@ public final class Polygon {
 		}
 		for (int i = 0; i < vertices.size(); i++) {
 			double t = computeDistance( i);
-			if(Math.abs(t)>Plane.getEPSILON()) {
+			double d = Plane.getEPSILON()*10;
+			if(Math.abs(t)>d) {
 				Vector3d normal = plane.getNormal();
 				Vector3d pos = vertices.get(i).pos;
 				double dist = plane.getDist();
