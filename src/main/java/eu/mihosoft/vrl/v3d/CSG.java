@@ -1503,42 +1503,23 @@ public class CSG implements IuserAPI {
 		//// com.neuronrobotics.sdk.common.Log.error("CSG triangulating for " +
 		//// name+"..");
 		ArrayList<Polygon> toAdd = new ArrayList<Polygon>();
-		ArrayList<Polygon> degenerates = new ArrayList<Polygon>();
 		if (providerOf3d == null && Debug3dProvider.provider != null)
 			providerOf3d = Debug3dProvider.provider;
 		IDebug3dProvider start = Debug3dProvider.provider;
 		Debug3dProvider.setProvider(null);
-
+		if (preventNonManifoldTriangles) {
+			for (int i = 0; i < 2; i++)
+				if (isUseGPU()) {
+					runGPUMakeManifold();
+				} else {
+					runCPUMakeManifold();
+				}
+		}
 		try {
 			Stream<Polygon> polygonStream;
 			polygonStream = polygons.stream();
-			// TODO this should work in paralell but throws immpossible NPE's instead.
-//			if (getPolygons().size() > 200) {
-//				polygonStream = polygons.parallelStream();
-//			}
-			polygonStream.forEach(p -> updatePolygons(toAdd, degenerates, p));
-//			for (int i = 0; i < polygons.size(); i++) {
-//				Polygon p = polygons.get(i);
-//				updatePolygons(toAdd, degenerates, p);
-//			}
+			polygonStream.forEach(p -> updatePolygons(toAdd, p));
 
-			if (degenerates.size() > 0) {
-				//
-				// Debug3dProvider.setProvider(providerOf3d);
-
-				if (fix) {
-					Debug3dProvider.clearScreen();
-					Stream<Polygon> degenStreeam;
-					degenStreeam = polygons.stream(); // this operation is read-modify-write and can not be done in
-														// parallel
-					// com.neuronrobotics.sdk.common.Log.error("Found "+degenerates.size()+"
-					// degenerate triangles, Attempting to fix");
-					degenStreeam.forEach(p -> fixDegenerates(toAdd, p));
-				} else {
-					needsDegeneratesPruned = true;
-					toAdd.addAll(degenerates);
-				}
-			}
 			if (toAdd.size() > 0) {
 				setPolygons(toAdd);
 			}
@@ -1547,14 +1528,6 @@ public class CSG implements IuserAPI {
 		} catch (Throwable t) {
 			t.printStackTrace();
 
-		}
-		if (preventNonManifoldTriangles) {
-			for (int i = 0; i < 2; i++)
-				if (isUseGPU()) {
-					runGPUMakeManifold();
-				} else {
-					runCPUMakeManifold();
-				}
 		}
 		Debug3dProvider.setProvider(start);
 		return this;
@@ -1727,65 +1700,65 @@ public class CSG implements IuserAPI {
 		System.out.println("Data processed!");
 	}
 
-	private CSG fixDegenerates(ArrayList<Polygon> toAdd, Polygon p) {
-		Debug3dProvider.clearScreen();
-		Debug3dProvider.addObject(p);
-		ArrayList<Vertex> degen = p.getDegeneratePoints();
-		Edge longEdge = p.getLongEdge();
-		ArrayList<Polygon> polygonsSharing = new ArrayList<Polygon>();
-		ArrayList<Polygon> polygonsSharingFixed = new ArrayList<Polygon>();
+//	private CSG fixDegenerates(ArrayList<Polygon> toAdd, Polygon p) {
+//		Debug3dProvider.clearScreen();
+//		Debug3dProvider.addObject(p);
+//		//ArrayList<Vertex> degen = p.getDegeneratePoints();
+//		Edge longEdge = p.getLongEdge();
+//		ArrayList<Polygon> polygonsSharing = new ArrayList<Polygon>();
+//		ArrayList<Polygon> polygonsSharingFixed = new ArrayList<Polygon>();
+//
+//		for (Polygon ptoA : toAdd) {
+//			ArrayList<Edge> edges = ptoA.edges();
+//			for (Edge e : edges) {
+//				if (e.equals(longEdge)) {
+//					//// com.neuronrobotics.sdk.common.Log.error("Degenerate Mate Found!");
+//					polygonsSharing.add(ptoA);
+//					Debug3dProvider.addObject(ptoA);
+//					// TODO inject the points into the found edge
+//					// upstream reparirs to mesh generation made this code effectivly unreachable
+//					// in case that turns out to be false, pick up here
+//					// the points in degen need to be inserted into the matching polygons
+//					// both list of points should be right hand, but since they are other polygons,
+//					// that may not be the case, so sorting needs to take place
+//					ArrayList<Vertex> newpoints = new ArrayList<Vertex>();
+//					//ArrayList<Vertex> vertices = ptoA.vertices;
+//					for (int i = 0; i < ptoA.size(); i++) {
+//						Vertex v = ptoA.get(i);
+//						newpoints.add(v);
+//						if (e.isThisPointOneOfMine(v, Plane.EPSILON_Point)) {
+//							for (Vertex v2 : degen)
+//								newpoints.add(v2);
+//						}
+//					}
+//					try {
+//						Polygon e2 = new Polygon(newpoints, ptoA.getStorage(), true, ptoA.plane);
+//						List<Polygon> t = PolygonUtil.concaveToConvex(e2);
+//						for (Polygon poly : t) {
+//							if (!poly.isDegenerate()) {
+//								polygonsSharingFixed.add(poly);
+//							}
+//
+//						}
+//					} catch (Exception ex) {
+//						ex.printStackTrace();
+//						// retriangulation failed, ok, whatever man, moving on...
+//					}
+//				}
+//			}
+//		}
+//		if (polygonsSharing.size() == 0) {
+//			//// com.neuronrobotics.sdk.common.Log.error("Error! Degenerate triangle does
+//			//// not share edge with any triangle");
+//		}
+//		if (polygonsSharingFixed.size() > 0) {
+//			toAdd.removeAll(polygonsSharing);
+//			toAdd.addAll(polygonsSharingFixed);
+//		}
+//		return this;
+//	}
 
-		for (Polygon ptoA : toAdd) {
-			ArrayList<Edge> edges = ptoA.edges();
-			for (Edge e : edges) {
-				if (e.equals(longEdge)) {
-					//// com.neuronrobotics.sdk.common.Log.error("Degenerate Mate Found!");
-					polygonsSharing.add(ptoA);
-					Debug3dProvider.addObject(ptoA);
-					// TODO inject the points into the found edge
-					// upstream reparirs to mesh generation made this code effectivly unreachable
-					// in case that turns out to be false, pick up here
-					// the points in degen need to be inserted into the matching polygons
-					// both list of points should be right hand, but since they are other polygons,
-					// that may not be the case, so sorting needs to take place
-					ArrayList<Vertex> newpoints = new ArrayList<Vertex>();
-					//ArrayList<Vertex> vertices = ptoA.vertices;
-					for (int i = 0; i < ptoA.size(); i++) {
-						Vertex v = ptoA.get(i);
-						newpoints.add(v);
-						if (e.isThisPointOneOfMine(v, Plane.EPSILON_Point)) {
-							for (Vertex v2 : degen)
-								newpoints.add(v2);
-						}
-					}
-					try {
-						Polygon e2 = new Polygon(newpoints, ptoA.getStorage(), true, ptoA.plane);
-						List<Polygon> t = PolygonUtil.concaveToConvex(e2);
-						for (Polygon poly : t) {
-							if (!poly.isDegenerate()) {
-								polygonsSharingFixed.add(poly);
-							}
-
-						}
-					} catch (Exception ex) {
-						ex.printStackTrace();
-						// retriangulation failed, ok, whatever man, moving on...
-					}
-				}
-			}
-		}
-		if (polygonsSharing.size() == 0) {
-			//// com.neuronrobotics.sdk.common.Log.error("Error! Degenerate triangle does
-			//// not share edge with any triangle");
-		}
-		if (polygonsSharingFixed.size() > 0) {
-			toAdd.removeAll(polygonsSharing);
-			toAdd.addAll(polygonsSharingFixed);
-		}
-		return this;
-	}
-
-	private CSG updatePolygons(ArrayList<Polygon> toAdd, ArrayList<Polygon> degenerates, Polygon p) {
+	private CSG updatePolygons(ArrayList<Polygon> toAdd, Polygon p) {
 		// p=PolygonUtil.pruneDuplicatePoints(p);
 		if (p == null)
 			return this;

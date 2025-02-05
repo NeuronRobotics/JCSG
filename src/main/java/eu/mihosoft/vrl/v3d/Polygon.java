@@ -62,7 +62,7 @@ public final class Polygon {
 	 *
 	 * Note: uses first three vertices to define the plane.
 	 */
-	public Plane plane;
+	public Plane plane=null;
 	private boolean isHole = false;
 	private boolean allowDegenerate;
 	
@@ -176,7 +176,8 @@ public final class Polygon {
 	public Polygon(List<Vertex> vertices, PropertyStorage shared, boolean allowDegenerate, Plane p)
 			throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		this.allowDegenerate = allowDegenerate;
-		this.plane = p;
+		if(p!=null)
+			plane=p.clone();
 		this.vertices = pruneDuplicatePoints(vertices);
 		this.shared = shared;
 
@@ -245,7 +246,7 @@ public final class Polygon {
 			v.normal = plane.getNormal();
 			// v.pos.roundToEpsilon();
 		}
-		setDegenerate(true);
+		//setDegenerate(true);
 		if (Vector3d.ZERO.equals(plane.getNormal())) {
 			valid = false;
 			throw new InvalidNormalException(
@@ -262,7 +263,7 @@ public final class Polygon {
 		if(!arePointsCoplanar()) {
 			throw new PointsNotCoplainer("All points are not on plane of epsilon "+Plane.getEPSILON());
 		}
-		setDegenerate(false);
+		//setDegenerate(false);
 		setNegEpsilon(-Plane.getEPSILON());
 		setPosEpsilon(Plane.getEPSILON());
 //		for (int i = 0; i < size(); i++) {
@@ -547,21 +548,6 @@ public final class Polygon {
 		return this;
 	}
 
-    public Vector3d computeNormal(List<Vertex> vertices) {
-        Vector3d normal = new Vector3d(0, 0, 0);
-        int n = vertices.size();
-
-        for (int i = 0; i < n; i++) {
-            Vector3d current = vertices.get(i).pos;
-            Vector3d next = vertices.get((i + 1) % n).pos;
-            
-            normal.x += (current.y - next.y) * (current.z + next.z);
-            normal.y += (current.z - next.z) * (current.x + next.x);
-            normal.z += (current.x - next.x) * (current.y + next.y);
-        }
-
-        return normal.normalized();
-    }
 	/**
 	 * Returns a transformed copy of this polygon.
 	 *
@@ -888,34 +874,33 @@ public final class Polygon {
 	private double negEpsilon;
 	private double posEpsilon;
 
-	public void setDegenerate(boolean degenerate) {
-		this.degenerate = degenerate;
-	}
+//	public void setDegenerate(boolean degenerate) {
+//		this.degenerate = degenerate;
+//	}
+//
+//	public boolean isDegenerate() {
+//
+//		return degenerate;
+//	}
 
-	public boolean isDegenerate() {
-
-		return degenerate;
-	}
-
-	public ArrayList<Vertex> getDegeneratePoints() {
-		ArrayList<Vertex> back = new ArrayList<Vertex>();
-		if (!isDegenerate())
-			return back;
-		Edge longEdge = getLongEdge();
-		for (int i = 0; i < vertices.size(); i++) {
-			Vertex vertex = vertices.get(i);
-			if (vertex != longEdge.getP1() && vertex != longEdge.getP2()) {
-				back.add(vertex);
-			}
-		}
-		if (back.size() == 0)
-			throw new RuntimeException("Failed to find the degenerate point in the polygon");
-		return back;
-	}
+//	public ArrayList<Vertex> getDegeneratePoints() {
+//		ArrayList<Vertex> back = new ArrayList<Vertex>();
+//		if (!isDegenerate())
+//			return back;
+//		Edge longEdge = getLongEdge();
+//		for (int i = 0; i < vertices.size(); i++) {
+//			Vertex vertex = vertices.get(i);
+//			if (vertex != longEdge.getP1() && vertex != longEdge.getP2()) {
+//				back.add(vertex);
+//			}
+//		}
+//		if (back.size() == 0)
+//			throw new RuntimeException("Failed to find the degenerate point in the polygon");
+//		return back;
+//	}
 
 	public Edge getLongEdge() {
-		if (!isDegenerate())
-			return null;
+
 		ArrayList<Edge> e = edges();
 		Edge longEdge = e.get(0);
 		for (int i = 1; i < e.size(); i++) {
