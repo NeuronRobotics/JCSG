@@ -162,7 +162,7 @@ final class Node {
 	 * Recursively removes all polygons in the {@link polygons} list that are
 	 * contained within this BSP tree.
 	 *
-	 * Note: polygons are splitted if necessary.
+	 * Note: polygons are split if necessary.
 	 *
 	 * @param polygons the polygons to clip
 	 *
