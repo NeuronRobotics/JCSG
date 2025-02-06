@@ -104,6 +104,7 @@ public class Plane {
 		Vector3d n = computeNormal(vertices);
 		return new Plane(n, n.dot(a));
 	}
+
 	/**
 	 * Creates a plane defined by the the specified points.
 	 *
@@ -117,14 +118,15 @@ public class Plane {
 		Vector3d n = computeNormalVector3d(vertices);
 		return new Plane(n, n.dot(a));
 	}
+
 	public static Vector3d computeNormal(List<Vertex> vertices) {
 		ArrayList<Vector3d> points = new ArrayList<Vector3d>();
-		for(int i=0;i<vertices.size();i++) {
+		for (int i = 0; i < vertices.size(); i++) {
 			points.add(vertices.get(i).pos);
 		}
 		return computeNormalVector3d(points);
 	}
-	
+
 	public static Vector3d computeNormalVector3d(List<Vector3d> vertices) {
 		if (vertices == null || vertices.size() < 3) {
 			throw new RuntimeException("Failed to compute normal!");
@@ -144,12 +146,12 @@ public class Plane {
 			normal.z += (current.x - next.x) * (current.y + next.y);
 			if (i >= 2) {
 				Vector3d normalized = normal.normalized();
-				if (isValidNormal(normalized, getEPSILON() )) {
+				if (isValidNormal(normalized, getEPSILON())) {
 					lastValid = normalized;
 				}
 			}
 		}
-		if (isValidNormal(lastValid, getEPSILON() )) {
+		if (isValidNormal(lastValid, getEPSILON())) {
 			return lastValid.normalized();
 		}
 		throw new RuntimeException("Mesh has problems, can not work around it");
@@ -159,11 +161,10 @@ public class Plane {
 	private static boolean isValidNormal(Vector3d normal, double epsilon) {
 		if (Double.isFinite(normal.x) && Double.isFinite(normal.y) && Double.isFinite(normal.z)) {
 			double lengthSquared = Math.abs(normal.length());
-			return Math.abs(lengthSquared - 1)<=epsilon;
+			return Math.abs(lengthSquared - 1) <= epsilon;
 		}
 		return false;
 	}
-
 
 	/*
 	 * (non-Javadoc)
@@ -182,12 +183,11 @@ public class Plane {
 		setNormal(getNormal().negated());
 		setDist(-getDist());
 	}
-	private enum PlaneType{
-		COPLANAR,
-		FRONT,
-		BACK,
-		SPANNING
+
+	private enum PlaneType {
+		COPLANAR, FRONT, BACK, SPANNING
 	}
+
 	/**
 	 * Splits a {@link Polygon} by this plane if needed. After that it puts the
 	 * polygons or the polygon fragments in the appropriate lists ({@code front},
@@ -216,7 +216,7 @@ public class Plane {
 //        	debugger.display(back);
 		}
 		// search for the epsilon values of the incoming plane
-		double negEpsilon =polygon.getNegEpsilon();
+		double negEpsilon = polygon.getNegEpsilon();
 		double posEpsilon = polygon.getPosEpsilon();
 
 		PlaneType polygonType = PlaneType.COPLANAR;
@@ -225,7 +225,8 @@ public class Plane {
 		boolean somePointsInBack = false;
 		for (int i = 0; i < polygon.size(); i++) {
 			double t = this.getNormal().dot(polygon.get(i).pos) - this.getDist();
-			PlaneType type = (t < negEpsilon) ? PlaneType.BACK : (t > posEpsilon) ? PlaneType.FRONT : PlaneType.COPLANAR;
+			PlaneType type = (t < negEpsilon) ? PlaneType.BACK
+					: (t > posEpsilon) ? PlaneType.FRONT : PlaneType.COPLANAR;
 			if (type == PlaneType.BACK)
 				somePointsInBack = true;
 			if (type == PlaneType.FRONT)
@@ -265,66 +266,73 @@ public class Plane {
 				if (ti != PlaneType.FRONT) {
 					b.add(vi.clone());
 				}
-				if ((ti == PlaneType.FRONT&& tj==PlaneType.BACK)||
-					(ti == PlaneType.BACK&& tj==PlaneType.FRONT)	) {
+				if ((ti == PlaneType.FRONT && tj == PlaneType.BACK)
+						|| (ti == PlaneType.BACK && tj == PlaneType.FRONT)) {
 					double t = (this.getDist() - this.getNormal().dot(vi.pos))
 							/ this.getNormal().dot(vj.pos.minus(vi.pos));
-					if(t>1)
-						t=1;
-					if(t<0)
-						t=0;
+					if (t > 1)
+						t = 1;
+					if (t < 0)
+						t = 0;
 					Vertex v = vi.interpolate(vj, t);
 					f.add(v);
 					b.add(v.clone());
 				}
 			}
-				
+
 			try {
-				Polygon frontPoly = new Polygon(f, polygon.getStorage(),  polygon.plane).setColor(polygon.getColor());
-				if(f.size()==3)
+				Polygon frontPoly = new Polygon(f, polygon.getStorage(), polygon.plane).setColor(polygon.getColor());
+				if (f.size() == 3)
 					front.add(frontPoly);
 				else
-					front.addAll(PolygonUtil.concaveToConvex(frontPoly));
+					try {
+						front.addAll(PolygonUtil.concaveToConvex(frontPoly));
+					} catch (Exception e) {
+						throw e;
+					}
 			} catch (InvalidNormalException e) {
-				//  Auto-generated catch block
+				// Auto-generated catch block
 				e.printStackTrace();
 			} catch (TooFewPointsException e) {
-				//  Auto-generated catch block
+				// Auto-generated catch block
 				e.printStackTrace();
 			} catch (PointsColinearException e) {
-				//  Auto-generated catch block
+				// Auto-generated catch block
 				e.printStackTrace();
 			} catch (PointsNotCoplainer e) {
-				//  Auto-generated catch block
+				// Auto-generated catch block
 				e.printStackTrace();
 			} catch (java.lang.IllegalStateException e) {
-				//  Auto-generated catch block
+				// Auto-generated catch block
 				e.printStackTrace();
 			}
 
 			try {
-				Polygon backPoly = new Polygon(b, polygon.getStorage(),  polygon.plane).setColor(polygon.getColor());
-				if(b.size()==3)
+				Polygon backPoly = new Polygon(b, polygon.getStorage(), polygon.plane).setColor(polygon.getColor());
+				if (b.size() == 3)
 					back.add(backPoly);
 				else
-					back.addAll(PolygonUtil.concaveToConvex(backPoly));
+					try {
+						back.addAll(PolygonUtil.concaveToConvex(backPoly));
+					} catch (Exception e) {
+						throw e;
+					}
 			} catch (InvalidNormalException e) {
-				//  Auto-generated catch block
+				// Auto-generated catch block
 				e.printStackTrace();
 			} catch (TooFewPointsException e) {
-				//  Auto-generated catch block
+				// Auto-generated catch block
 				e.printStackTrace();
 			} catch (PointsColinearException e) {
-				//  Auto-generated catch block
+				// Auto-generated catch block
 				e.printStackTrace();
 			} catch (PointsNotCoplainer e) {
-				//  Auto-generated catch block
+				// Auto-generated catch block
 				e.printStackTrace();
 			} catch (java.lang.IllegalStateException e) {
-				//  Auto-generated catch block
+				// Auto-generated catch block
 				e.printStackTrace();
 			}
-
 
 			break;
 		}
@@ -360,8 +368,8 @@ public class Plane {
 			throw numberFormatException;
 		}
 		double length = normal.length();
-		if(Math.abs(length-1)>getEPSILON() ) {
-			throw new NumberFormatException(" Normal Length must be 1, got "+length);
+		if (Math.abs(length - 1) > getEPSILON()) {
+			throw new NumberFormatException(" Normal Length must be 1, got " + length);
 		}
 	}
 
@@ -389,8 +397,8 @@ public class Plane {
 	}
 
 	public void transformPlane(Transform transform_in, Vector3d a) {
-		Transform trans_rot = transform_in.copy()//.inverse()
-								.setToOrigin();
+		Transform trans_rot = transform_in.copy()// .inverse()
+				.setToOrigin();
 //		Transform trans_dist = new Transform().movex(transform_in.getX())
 //												.movey(transform_in.getY())
 //												.movez(transform_in.getZ());
@@ -398,6 +406,6 @@ public class Plane {
 		newNormal = newNormal.negated();
 		this.setNormal(newNormal.normalized());
 		this.setDist(this.normal.dot(a));
-		
+
 	}
 }

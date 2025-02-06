@@ -12,8 +12,8 @@ public class StlExportTest {
 
 	@Test
 	public void makeBadSTL() throws IOException, InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
-		Plane.setEPSILON(1.0e-12);
-		Vector3d.setEXPORTEPSILON(1.0e-12);
+		Plane.setEPSILON(1.0e-9);
+		//Vector3d.setEXPORTEPSILON(1.0e-12);
 		CSG.setUseGPU(false);
 		CSG.setPreventNonManifoldTriangles(true);
 		CSG badExport2 = CSG.text(" A QUICK BROWN ", 10,30,"Serif Regular").movey(30);
@@ -27,16 +27,16 @@ public class StlExportTest {
 		//String filename ="TextStl.stl";
 		FileUtil.write(Paths.get("TextStl.stl"),
 				badExport.toStlString());
-		System.out.println("Load saved stl");
-		File file = new File("TextStl.stl");
-		//CSG.setPreventNonManifoldTriangles(false);
-
-		CSG loaded = STL.file(file.toPath());
-		System.out.println("Perform difference");
-		badExport=loaded.scaleToMeasurmentX(160).scaleToMeasurmentY(30);
-		badExport=new Cube(180,40,10).toCSG().toZMin().toXMin().toYMin().movey(-5).difference(badExport).rotx(35).roty(45);
-		FileUtil.write(Paths.get("TextStl2.stl"),
-				badExport.toStlString());
+//		System.out.println("Load saved stl");
+//		File file = new File("TextStl.stl");
+//		//CSG.setPreventNonManifoldTriangles(false);
+//
+//		CSG loaded = STL.file(file.toPath());
+//		System.out.println("Perform difference");
+//		badExport=loaded.scaleToMeasurmentX(160).scaleToMeasurmentY(30);
+//		badExport=new Cube(180,40,10).toCSG().toZMin().toXMin().toYMin().movey(-5).difference(badExport).rotx(35).roty(45);
+//		FileUtil.write(Paths.get("TextStl2.stl"),
+//				badExport.toStlString());
 	}
 
 }

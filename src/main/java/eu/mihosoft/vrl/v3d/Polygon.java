@@ -223,7 +223,8 @@ public final class Polygon {
 			boolean duplicate = false;
 			for (Vertex vx : newPoints) {
 				if (vx.pos.test(v.pos, Plane.getEPSILON())) {
-					System.out.println("Found duplicate "+this);
+//					if(incoming.size()==3)
+//						System.out.println("Found duplicate ");
 					duplicate = true;
 					break;
 				}
@@ -266,22 +267,8 @@ public final class Polygon {
 		if(!arePointsCoplanar()) {
 			throw new PointsNotCoplainer("All points are not on plane of epsilon "+Plane.getEPSILON());
 		}
-		//setDegenerate(false);
 		setNegEpsilon(-Plane.getEPSILON());
 		setPosEpsilon(Plane.getEPSILON());
-//		for (int i = 0; i < size(); i++) {
-//			double t = computeDistance(i);
-//			if (t > getPosEpsilon()) {
-//				System.err.println("Non flat polygon, increasing positive epsilon "+t);
-//				setPosEpsilon(t + Plane.getEPSILON());
-//			}
-//			if (t < getNegEpsilon()) {
-//				System.err.println("Non flat polygon, decreasing negative epsilon "+t);
-//				setNegEpsilon(t - Plane.getEPSILON());
-//			}
-//		}
-//		if(posEpsilon>0.001||negEpsilon<-0.001)
-//			throw new RuntimeException("Faulty polygon epsilons!");
 	}
 
 
@@ -294,10 +281,10 @@ public final class Polygon {
 			double t = computeDistance( i);
 			double d = Plane.getEPSILON();
 			if(Math.abs(t)>d) {
-				if(t>0)
-					setPosEpsilon(t);
-				if(t<0)
-					setNegEpsilon(t);
+//				if(t>0)
+//					setPosEpsilon(t);
+//				if(t<0)
+//					setNegEpsilon(t);
 //				Vector3d normal = plane.getNormal();
 //				Vector3d pos = vertices.get(i).pos;
 //				double dist = plane.getDist();
@@ -305,12 +292,12 @@ public final class Polygon {
 //				double nt= dot - dist;
 //				System.err.println("Coplainer fail: "+this);
 //				System.err.println("Non flat polygon! This points distance from the plane is "+nt+" dot:"+dot+" planeDist:"+dist+" computed t "+t);
-//				return false;
+				return false;
 			}
 		}
-		double epCheck = 1.0e-6;
-		if(posEpsilon>epCheck || negEpsilon < -epCheck)
-			return false;
+//		double epCheck = 1.0e-6;
+//		if(posEpsilon>epCheck || negEpsilon < -epCheck)
+//			return false;
 		return true; // All points are coplanar
 	}
 

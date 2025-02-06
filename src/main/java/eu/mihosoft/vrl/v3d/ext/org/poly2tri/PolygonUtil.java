@@ -60,7 +60,7 @@ import org.locationtech.jts.triangulate.polygon.PolygonTriangulator;
  * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
  */
 public class PolygonUtil {
-
+	private static final double TriangleScale = 100000000000.0;
 	/**
 	 * Instantiates a new polygon util.
 	 */
@@ -122,6 +122,7 @@ public class PolygonUtil {
 			return result;
 		}
 		Polygon concave = incoming;
+		boolean cw = !Extrude.isCCW(concave);
 		Vector3d normalOfPlane = incoming.plane.getNormal();
 		boolean reorent = normalOfPlane.z < 1.0 - Plane.getEPSILON();
 		Transform orentationInv = null;
@@ -159,9 +160,9 @@ public class PolygonUtil {
 
 		}
 
-		boolean cw = !Extrude.isCCW(concave);
-		if (cw)
-			concave = Extrude.toCCW(concave);
+
+//		if (cw)
+//			concave = Extrude.toCCW(concave);
 		if (debug) {
 			Debug3dProvider.clearScreen();
 			Debug3dProvider.addObject(concave);
@@ -190,7 +191,7 @@ public class PolygonUtil {
 				throw new RuntimeException("Failed to triangulate");
 			for (int j = 0; j < 3; j++) {
 				Coordinate tp = coords[j];
-				Vector3d pos = new Vector3d(tp.getX(), tp.getY(), zplane);
+				Vector3d pos = new Vector3d(tp.getX()/TriangleScale, tp.getY()/TriangleScale, zplane);
 				triPoints.add(new Vertex(pos, normal));
 
 				if (counter == 2) {
@@ -267,10 +268,10 @@ public class PolygonUtil {
 			Coordinate[] coordinates = new Coordinate[toTri.size() + 1];
 			for (int i = 0; i < toTri.size(); i++) {
 				Vector3d v = toTri.get(i).pos;
-				coordinates[i] = new Coordinate(v.x, v.y, v.z);
+				coordinates[i] = new Coordinate(v.x*TriangleScale, v.y*TriangleScale, v.z*TriangleScale);
 			}
 			Vector3d v = toTri.get(0).pos;
-			coordinates[toTri.size()] = new Coordinate(v.x, v.y, v.z);
+			coordinates[toTri.size()] = new Coordinate(v.x*TriangleScale, v.y*TriangleScale, v.z*TriangleScale);
 			// use the default factory, which gives full double-precision
 			Geometry geom = new GeometryFactory().createPolygon(coordinates);
 			triangles = ConstrainedDelaunayTriangulator.triangulate(geom);
@@ -278,7 +279,7 @@ public class PolygonUtil {
 		} catch (java.lang.IllegalStateException e) {
 			//  Auto-generated catch block
 			System.err.println("Failed to triangulate "+concave);
-			e.printStackTrace();
+			//e.printStackTrace();
 			throw e;
 		}
 	}
