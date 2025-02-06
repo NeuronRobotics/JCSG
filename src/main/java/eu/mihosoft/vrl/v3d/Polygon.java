@@ -215,7 +215,7 @@ public final class Polygon {
 		this.vertices = pruneDuplicatePoints(vertices);
 	}
 
-	public static ArrayList<Vertex> pruneDuplicatePoints(List<Vertex> incoming) {
+	public  ArrayList<Vertex> pruneDuplicatePoints(List<Vertex> incoming) {
 		// return incoming;
 		ArrayList<Vertex> newPoints = new ArrayList<Vertex>();
 		for (int i = 0; i < incoming.size(); i++) {
@@ -223,6 +223,7 @@ public final class Polygon {
 			boolean duplicate = false;
 			for (Vertex vx : newPoints) {
 				if (vx.pos.test(v.pos, Plane.getEPSILON())) {
+					System.out.println("Found duplicate "+this);
 					duplicate = true;
 					break;
 				}
