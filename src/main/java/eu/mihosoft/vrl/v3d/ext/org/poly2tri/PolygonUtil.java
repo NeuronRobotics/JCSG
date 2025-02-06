@@ -129,37 +129,7 @@ public class PolygonUtil {
 		Vector3d normal = concave.plane.getNormal().clone();
 
 		if (reorent) {
-			// System.err.println("\n\nIncoming polygon " + incoming);
-//			reorent=true;
-//			double degreesToRotate = Math.toDegrees(Math.atan2(normalOfPlane.x, normalOfPlane.z));
-//			Transform orentation = new Transform().roty(degreesToRotate);
-//			Transform orentation_inv = new Transform().roty(-degreesToRotate);
-//
-//			Polygon tmp = incoming.transformed(orentation);
-//			//System.err.println("StInvage 1 polygon "+tmp);
-//			Vector3d tmpNorm = tmp.plane.getNormal();
-//			double degreesToRotate2 =  Math.toDegrees(Math.atan2( tmpNorm.y,tmpNorm.z));
-//			Transform rotx = new Transform().rotx(degreesToRotate2);
-//			Transform rotx_inv= new Transform().rotx(-degreesToRotate2);
-//
-//			Transform orentation2 =rotx.apply(orentation );// th triangulation function needs
-//			// the polygon on the xy plane
-//			if (debug) {
-//				Debug3dProvider.clearScreen();
-//				Debug3dProvider.addObject(incoming);
-//			}
-//			concave = incoming.transformed(orentation2);
-//			System.err.println("NormalAdjusted polygon "+concave);
-//			if (concave.plane.getNormal().z < 0) {
-//				Transform rotx2 = new Transform().rotx(180);
-//				Transform rotx2_inv = new Transform().rotx(180);
-//
-//				orentation2 = rotx2.apply(orentation2);
-//				concave = incoming.transformed(orentation2);
-//				System.err.println("Flipping Reorenting polygon "+concave);
-//
-//			}
-//			orentationInv  =orentation2.invert();
+
 			double degreesToRotate = Math.toDegrees(Math.atan2(normalOfPlane.x, normalOfPlane.z));
 			Transform orentation = new Transform().roty(degreesToRotate);
 
