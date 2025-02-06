@@ -98,7 +98,19 @@ public class PolygonUtil {
 //
 //		return result;
 //	}
-
+	/**
+	 * triangulate
+	 *
+	 * @param incoming the concave
+	 * @return the list
+	 * @throws PointsNotCoplainer
+	 * @throws PointsColinearException
+	 * @throws TooFewPointsException
+	 * @throws InvalidNormalException
+	 */
+	public static List<Polygon> triangulate(Polygon incoming) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer{
+		return concaveToConvex(incoming,false);
+	}
 	/**
 	 * Concave to convex.
 	 *
@@ -109,7 +121,20 @@ public class PolygonUtil {
 	 * @throws TooFewPointsException
 	 * @throws InvalidNormalException
 	 */
-	public static List<Polygon> concaveToConvex(Polygon incoming)
+	public static List<Polygon> concaveToConvex(Polygon incoming) throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer{
+		return concaveToConvex(incoming,true);
+	}
+	/**
+	 * Concave to convex.
+	 *
+	 * @param incoming the concave
+	 * @return the list
+	 * @throws PointsNotCoplainer
+	 * @throws PointsColinearException
+	 * @throws TooFewPointsException
+	 * @throws InvalidNormalException
+	 */
+	public static List<Polygon> concaveToConvex(Polygon incoming,boolean toConcaveFirst)
 			throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		List<Polygon> result = new ArrayList<>();
 
@@ -160,9 +185,9 @@ public class PolygonUtil {
 
 		}
 
-
-//		if (cw)
-//			concave = Extrude.toCCW(concave);
+		if(toConcaveFirst)
+			if (cw)
+				concave = Extrude.toCCW(concave);
 		if (debug) {
 			Debug3dProvider.clearScreen();
 			Debug3dProvider.addObject(concave);

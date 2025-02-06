@@ -286,7 +286,7 @@ public class Plane {
 					front.add(frontPoly);
 				else
 					try {
-						front.addAll(PolygonUtil.concaveToConvex(frontPoly));
+						front.addAll(PolygonUtil.triangulate(frontPoly));
 					} catch (Exception e) {
 						throw e;
 					}
@@ -313,7 +313,7 @@ public class Plane {
 					back.add(backPoly);
 				else
 					try {
-						back.addAll(PolygonUtil.concaveToConvex(backPoly));
+						back.addAll(PolygonUtil.triangulate(backPoly));
 					} catch (Exception e) {
 						throw e;
 					}

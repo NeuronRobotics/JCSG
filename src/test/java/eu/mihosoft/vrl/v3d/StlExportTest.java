@@ -15,7 +15,7 @@ public class StlExportTest {
 		Plane.setEPSILON(1.0e-9);
 		//Vector3d.setEXPORTEPSILON(1.0e-12);
 		CSG.setUseGPU(false);
-		CSG.setPreventNonManifoldTriangles(true);
+		CSG.setPreventNonManifoldTriangles(false);
 		CSG badExport2 = CSG.text(" A QUICK BROWN ", 10,30,"Serif Regular").movey(30);
 		System.out.println("First text loaded");
 		CSG badExport = CSG.text("THis is some text a", 10);

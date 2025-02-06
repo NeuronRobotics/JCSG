@@ -291,25 +291,7 @@ public class TextExtrude {
 				cleaned.add(point);
 		}
 		// Remove redundant points that form zero-area triangles
-		return removeRedundantPoints(cleaned);
-	}
-
-	/**
-	 * Remove points that form zero-area triangles with their neighbors
-	 */
-	private static List<Vector3d> removeRedundantPoints(List<Vector3d> points) {
-		if (points.size() < 3)
-			return points;
-
-		List<Vector3d> result = new ArrayList<>();
-		int size = points.size();
-
-		for (int i = 0; i < size; i++) {
-			Vector3d curr = points.get(i);
-			result.add(curr);
-		}
-
-		return result;
+		return cleaned;
 	}
 
 
