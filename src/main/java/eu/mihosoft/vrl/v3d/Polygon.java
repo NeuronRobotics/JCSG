@@ -64,7 +64,6 @@ public final class Polygon {
 	 */
 	public Plane plane=null;
 	private boolean isHole = false;
-	private boolean allowDegenerate;
 	
 	/**
 	 * Constructor. Creates a new polygon that consists of the specified vertices.
@@ -81,7 +80,6 @@ public final class Polygon {
 	 */
 	public Polygon(List<Vertex> vertices, PropertyStorage shared,  Plane p)
 			throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
-		this.allowDegenerate = allowDegenerate;
 		if(p!=null)
 			plane=p.clone();
 		this.vertices = pruneDuplicatePoints(vertices);
@@ -230,7 +228,6 @@ public final class Polygon {
 				}
 			}
 			if (!duplicate) {
-				// v.pos.roundToEpsilon();
 				newPoints.add(v);
 			}
 
@@ -239,7 +236,7 @@ public final class Polygon {
 		return newPoints;
 
 	}
-
+	private boolean throwErrorExceptions = false;
 	public void validateAndInit()
 			throws InvalidNormalException, TooFewPointsException, PointsColinearException, PointsNotCoplainer {
 		if (plane == null)
@@ -248,27 +245,42 @@ public final class Polygon {
 			this.shared = new PropertyStorage();
 		for (Vertex v : vertices) {
 			v.normal = plane.getNormal();
-			// v.pos.roundToEpsilon();
+			//v.pos.roundToEpsilon(Plane.getEPSILON());
 		}
 		//setDegenerate(true);
 		if (Vector3d.ZERO.equals(plane.getNormal())) {
 			valid = false;
-			throw new InvalidNormalException(
+			InvalidNormalException e= new InvalidNormalException(
 					"Normal is zero! Probably, duplicate points have been specified!\n\n" + toStlString());
+			e.printStackTrace();
+			if(throwErrorExceptions)
+				throw e;
 		}
 
 		if (vertices.size() < 3) {
-			throw new TooFewPointsException("Invalid polygon: at least 3 vertices expected, got: " + vertices.size());
+			TooFewPointsException e= new TooFewPointsException("Invalid polygon: at least 3 vertices expected, got: " + vertices.size());
+			e.printStackTrace();
+			if(throwErrorExceptions)
+				throw e;
 		}
 
-		if (areAllPointsCollinear(vertices))
-			throw new PointsColinearException("This polygon is colinear");
+		if (areAllPointsCollinear(vertices)) {
+			PointsColinearException e= new PointsColinearException("This polygon is colinear");
+			e.printStackTrace();
+			if(throwErrorExceptions)
+				throw e;
+		}
 
 		if(!arePointsCoplanar()) {
-			throw new PointsNotCoplainer("All points are not on plane of epsilon "+Plane.getEPSILON());
+			PointsNotCoplainer e= new PointsNotCoplainer("All points are not on plane of epsilon "+Plane.getEPSILON());
+			e.printStackTrace();
+			if(throwErrorExceptions)
+				throw e;
 		}
-		setNegEpsilon(-Plane.getEPSILON());
-		setPosEpsilon(Plane.getEPSILON());
+
+			
+//		setNegEpsilon(-Plane.getEPSILON());
+//		setPosEpsilon(Plane.getEPSILON());
 	}
 
 

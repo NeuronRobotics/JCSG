@@ -204,10 +204,10 @@ public class Plane {
 	 */
 	public void splitPolygon(Polygon polygon, List<Polygon> coplanarFront, List<Polygon> coplanarBack,
 			List<Polygon> front, List<Polygon> back) {
-//		final int COPLANAR = 0;
-//		final int FRONT = 1;
-//		final int BACK = 2;
-//		final int SPANNING = 3; // == some in the FRONT + some in the BACK
+		final int COPLANAR = 0;
+		final int FRONT = 1;
+		final int BACK = 2;
+		final int SPANNING = 3; // == some in the FRONT + some in the BACK
 		if (debugger != null && useDebugger) {
 //        	debugger.display(polygon);
 //        	debugger.display(coplanarFront);
@@ -219,26 +219,25 @@ public class Plane {
 		double negEpsilon = polygon.getNegEpsilon();
 		double posEpsilon = polygon.getPosEpsilon();
 
-		PlaneType polygonType = PlaneType.COPLANAR;
-		List<PlaneType> types = new ArrayList<>();
+		int polygonType = 0;
+		List<Integer> types = new ArrayList<>();
 		boolean somePointsInfront = false;
 		boolean somePointsInBack = false;
 		for (int i = 0; i < polygon.size(); i++) {
 			double t = this.getNormal().dot(polygon.get(i).pos) - this.getDist();
-			PlaneType type = (t < negEpsilon) ? PlaneType.BACK
-					: (t > posEpsilon) ? PlaneType.FRONT : PlaneType.COPLANAR;
-			if (type == PlaneType.BACK)
+			int type = (t < negEpsilon) ? BACK : (t > posEpsilon) ? FRONT : COPLANAR;
+			if (type == BACK)
 				somePointsInBack = true;
-			if (type == PlaneType.FRONT)
+			if (type == FRONT)
 				somePointsInfront = true;
 			types.add(type);
 		}
 		if (somePointsInBack && somePointsInfront)
-			polygonType = PlaneType.SPANNING;
+			polygonType = SPANNING;
 		else if (somePointsInBack) {
-			polygonType = PlaneType.BACK;
+			polygonType = BACK;
 		} else if (somePointsInfront)
-			polygonType = PlaneType.FRONT;
+			polygonType = FRONT;
 
 		// Put the polygon in the correct list, splitting it when necessary.
 		switch (polygonType) {
@@ -252,88 +251,88 @@ public class Plane {
 			back.add(polygon);
 			break;
 		case SPANNING:
-			ArrayList<Vertex> f = new ArrayList<>();
-			ArrayList<Vertex> b = new ArrayList<>();
+			List<Vertex> f = new ArrayList<>();
+			List<Vertex> b = new ArrayList<>();
 			for (int i = 0; i < polygon.size(); i++) {
 				int j = (i + 1) % polygon.size();
-				PlaneType ti = types.get(i);
-				PlaneType tj = types.get(j);
+				int ti = types.get(i);
+				int tj = types.get(j);
 				Vertex vi = polygon.get(i);
 				Vertex vj = polygon.get(j);
-				if (ti != PlaneType.BACK) {
-					f.add(vi.clone());
+				if (ti != BACK) {
+					f.add(vi);
 				}
-				if (ti != PlaneType.FRONT) {
-					b.add(vi.clone());
+				if (ti != FRONT) {
+					b.add(ti != BACK ? vi.clone() : vi);
 				}
-				if ((ti == PlaneType.FRONT && tj == PlaneType.BACK)
-						|| (ti == PlaneType.BACK && tj == PlaneType.FRONT)) {
+				if ((ti | tj) == SPANNING) {
 					double t = (this.getDist() - this.getNormal().dot(vi.pos))
 							/ this.getNormal().dot(vj.pos.minus(vi.pos));
-					if (t > 1)
-						t = 1;
-					if (t < 0)
-						t = 0;
 					Vertex v = vi.interpolate(vj, t);
 					f.add(v);
 					b.add(v.clone());
 				}
 			}
-
-			try {
-				Polygon frontPoly = new Polygon(f, polygon.getStorage(), polygon.plane).setColor(polygon.getColor());
-				if (f.size() == 3)
-					front.add(frontPoly);
-				else
-					try {
-						front.addAll(PolygonUtil.triangulate(frontPoly));
-					} catch (Exception e) {
-						throw e;
-					}
-			} catch (InvalidNormalException e) {
-				// Auto-generated catch block
-				e.printStackTrace();
-			} catch (TooFewPointsException e) {
-				// Auto-generated catch block
-				e.printStackTrace();
-			} catch (PointsColinearException e) {
-				// Auto-generated catch block
-				e.printStackTrace();
-			} catch (PointsNotCoplainer e) {
-				// Auto-generated catch block
-				e.printStackTrace();
-			} catch (java.lang.IllegalStateException e) {
-				// Auto-generated catch block
-				e.printStackTrace();
+			if (f.size() >= 3) {
+				try {
+					Polygon frontPoly = new Polygon(f, polygon.getStorage(), polygon.plane).setColor(polygon.getColor());
+					if (f.size() == 3)
+						front.add(frontPoly);
+					else
+						try {
+							front.addAll(PolygonUtil.triangulate(frontPoly));
+						} catch (Exception e) {
+							throw e;
+						}
+				} catch (InvalidNormalException e) {
+					// Auto-generated catch block
+					e.printStackTrace();
+				} catch (TooFewPointsException e) {
+					// Auto-generated catch block
+					e.printStackTrace();
+				} catch (PointsColinearException e) {
+					// Auto-generated catch block
+					e.printStackTrace();
+				} catch (PointsNotCoplainer e) {
+					// Auto-generated catch block
+					e.printStackTrace();
+				} catch (java.lang.IllegalStateException e) {
+					// Auto-generated catch block
+					e.printStackTrace();
+				}
+			} else {
+				// com.neuronrobotics.sdk.common.Log.error("Front Clip Fault!");
 			}
-
-			try {
-				Polygon backPoly = new Polygon(b, polygon.getStorage(), polygon.plane).setColor(polygon.getColor());
-				if (b.size() == 3)
-					back.add(backPoly);
-				else
-					try {
-						back.addAll(PolygonUtil.triangulate(backPoly));
-					} catch (Exception e) {
-						throw e;
-					}
-			} catch (InvalidNormalException e) {
-				// Auto-generated catch block
-				e.printStackTrace();
-			} catch (TooFewPointsException e) {
-				// Auto-generated catch block
-				e.printStackTrace();
-			} catch (PointsColinearException e) {
-				// Auto-generated catch block
-				e.printStackTrace();
-			} catch (PointsNotCoplainer e) {
-				// Auto-generated catch block
-				e.printStackTrace();
-			} catch (java.lang.IllegalStateException e) {
-				// Auto-generated catch block
-				e.printStackTrace();
+			if (b.size() >= 3) {
+				try {
+					Polygon backPoly = new Polygon(b, polygon.getStorage(), polygon.plane).setColor(polygon.getColor());
+					if (b.size() == 3)
+						back.add(backPoly);
+					else
+						try {
+							back.addAll(PolygonUtil.triangulate(backPoly));
+						} catch (Exception e) {
+							throw e;
+						}
+				} catch (InvalidNormalException e) {
+					// Auto-generated catch block
+					e.printStackTrace();
+				} catch (TooFewPointsException e) {
+					// Auto-generated catch block
+					e.printStackTrace();
+				} catch (PointsColinearException e) {
+					// Auto-generated catch block
+					e.printStackTrace();
+				} catch (PointsNotCoplainer e) {
+					// Auto-generated catch block
+					e.printStackTrace();
+				} catch (java.lang.IllegalStateException e) {
+					// Auto-generated catch block
+					e.printStackTrace();
+				}
+			} else {
+				// com.neuronrobotics.sdk.common.Log.error("Back Clip Fault!");
 			}
-
 			break;
 		}
 	}
