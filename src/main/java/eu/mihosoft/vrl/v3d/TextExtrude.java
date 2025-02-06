@@ -206,7 +206,6 @@ public class TextExtrude {
 
 // Below is AI slop
 	private static final double CURVE_SEGMENTS = 3; // Number of segments to approximate curves
-	private static final double POINT_EPSILON = Plane.getEPSILON(); // Distance threshold for considering points equal
 
 	/**
 	 * Converts a JavaFX Text object into a list of cleaned vector lists
@@ -281,15 +280,15 @@ public class TextExtrude {
 			return outline;
 
 		List<Vector3d> cleaned = new ArrayList<>();
-		Vector3d prevPoint = null;
-
-		// Process all points
-		for (Vector3d point : outline) {
-			if (prevPoint == null || !isNearlyEqual(prevPoint, point)) {
-				// Only add point if it's significantly different from the previous point
-				cleaned.add(point);
-				prevPoint = point;
+		for (int i = 0; i < outline.size(); i++) {
+			Vector3d point = outline.get(i);
+			boolean touching=false;
+			for(Vector3d v:cleaned) {
+				if(v.test(point, Plane.getEPSILON()))
+					touching=true;
 			}
+			if(!touching)
+				cleaned.add(point);
 		}
 		// Remove redundant points that form zero-area triangles
 		return removeRedundantPoints(cleaned);
@@ -313,9 +312,6 @@ public class TextExtrude {
 		return result;
 	}
 
-	private static boolean isNearlyEqual(Vector3d v1, Vector3d v2) {
-		return v1.minus(v2).length() < POINT_EPSILON;
-	}
 
 	// Bezier curve methods remain the same
 	private static List<Vector3d> approximateCubicCurve(Vector3d start, Vector3d control1, Vector3d control2,
