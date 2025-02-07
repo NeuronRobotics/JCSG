@@ -88,6 +88,17 @@ public class Plane {
 		this.setNormal(normal.normalized());
 		this.setDist(dist);
 	}
+	/**
+	 * Constructor. Creates a new plane defined by its normal vector and the
+	 * distance to the origin.
+	 *
+	 * @param normal plane normal
+	 * @param dist   distance from origin
+	 */
+	public Plane(Vector3d normal, List<Vertex> vertices) {
+		this.setNormal(normal.normalized());
+		this.setDist(normal.dot(vertices.get(0).pos));
+	}
 
 	/**
 	 * Creates a plane defined by the the specified points.
