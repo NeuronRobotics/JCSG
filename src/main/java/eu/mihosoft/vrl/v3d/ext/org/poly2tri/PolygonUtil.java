@@ -94,14 +94,22 @@ public class PolygonUtil {
 //
 //		return result;
 //	}
-
 	/**
 	 * Concave to convex.
 	 *
 	 * @param incoming the concave
 	 * @return the list
 	 */
-	public static List<Polygon> concaveToConvex(Polygon incoming) {
+	public static List<Polygon> concaveToConvex(Polygon incoming){
+		return concaveToConvex(incoming,true);
+	}
+	/**
+	 * Concave to convex.
+	 *
+	 * @param incoming the concave
+	 * @return the list
+	 */
+	public static List<Polygon> concaveToConvex(Polygon incoming, boolean toCCW) {
 		List<Polygon> result = new ArrayList<>();
 
 		if (incoming == null)
@@ -175,7 +183,7 @@ public class PolygonUtil {
 		}
 
 		boolean cw = !Extrude.isCCW(concave);
-		if (cw)
+		if (cw&&toCCW)
 			concave = Extrude.toCCW(concave);
 		if (debug) {
 			Debug3dProvider.clearScreen();

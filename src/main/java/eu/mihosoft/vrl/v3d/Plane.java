@@ -421,7 +421,8 @@ public class Plane {
 			}
 			if (f.size() >= 3) {
 				try {
-					front.add(new Polygon(f, polygon.getStorage(),false,polygon.plane).setColor(polygon.getColor()));
+					Polygon fpoly = new Polygon(f, polygon.getStorage(),false,polygon.plane).setColor(polygon.getColor());
+					front.add(fpoly);
 				} catch (Exception ex) {
 					System.err.println("Pruning bad polygon Plane::splitPolygon");
 					// skip adding broken polygon here
@@ -431,7 +432,8 @@ public class Plane {
 			}
 			if (b.size() >= 3) {
 				try {
-					back.add(new Polygon(b, polygon.getStorage(),false,polygon.plane).setColor(polygon.getColor()));
+					Polygon bpoly = new Polygon(b, polygon.getStorage(),false,polygon.plane).setColor(polygon.getColor());
+					back.add(bpoly);
 				} catch (Exception ex) {
 					// ex.printStackTrace();
 					System.err.println("Pruning bad polygon Plane::splitPolygon");
