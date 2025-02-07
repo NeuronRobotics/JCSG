@@ -56,7 +56,7 @@ import org.locationtech.jts.triangulate.polygon.PolygonTriangulator;
  * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
  */
 public class PolygonUtil {
-
+	private static final double triangleScale=1000.0;
 	/**
 	 * Instantiates a new polygon util.
 	 */
@@ -205,7 +205,7 @@ public class PolygonUtil {
 				throw new RuntimeException("Failed to triangulate");
 			for (int j = 0; j < 3; j++) {
 				Coordinate tp = coords[j];
-				Vector3d pos = new Vector3d(tp.getX(), tp.getY(), zplane);
+				Vector3d pos = new Vector3d(tp.getX()/triangleScale, tp.getY()/triangleScale, zplane);
 				triPoints.add(new Vertex(pos, normal));
 
 				if (counter == 2) {
@@ -281,10 +281,10 @@ public class PolygonUtil {
 		Coordinate[] coordinates = new Coordinate[toTri.getVertices().size() + 1];
 		for (int i = 0; i < toTri.getVertices().size(); i++) {
 			Vector3d v = toTri.getVertices().get(i).pos;
-			coordinates[i] = new Coordinate(v.x, v.y, v.z);
+			coordinates[i] = new Coordinate(v.x*triangleScale, v.y*triangleScale, v.z*triangleScale);
 		}
 		Vector3d v = toTri.getVertices().get(0).pos;
-		coordinates[toTri.getVertices().size()] = new Coordinate(v.x, v.y, v.z);
+		coordinates[toTri.getVertices().size()] = new Coordinate(v.x*triangleScale, v.y*triangleScale, v.z*triangleScale);
 		// use the default factory, which gives full double-precision
 		Geometry geom = new GeometryFactory().createPolygon(coordinates);
 		triangles = ConstrainedDelaunayTriangulator.triangulate(geom);
