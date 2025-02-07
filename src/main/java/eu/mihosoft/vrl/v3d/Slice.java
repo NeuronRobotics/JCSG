@@ -201,7 +201,7 @@ public class Slice {
 
 			ArrayList<Vector3d> points = new ArrayList<>();
 			for (Polygon p : rawPolygons) {
-				for (Vertex v : p.vertices) {
+				for (Vertex v : p.getVertices()) {
 					points.add(v.pos);
 				}
 			}
@@ -437,7 +437,7 @@ public class Slice {
 		// Return false if there is a vertex in this polygon which is not at
 		// zero
 		// Else, the polygon is at zero if every vertex in it is at zero
-		for (Vertex v : polygon.vertices)
+		for (Vertex v : polygon.getVertices())
 			if (!isVertexAtZero(v))
 				return false;
 

@@ -86,18 +86,18 @@ public class Extrude {
 			CSG extrude;
 			//polygon1=polygon1.flipped();
 			newPolygons.addAll(PolygonUtil.concaveToConvex(polygon1.flipped()));
-			Polygon polygon2 = polygon1.translated(dir);
+			Polygon polygon2 = polygon1.transformed(new Transform().move(dir));
 
-			int numvertices = polygon1.vertices.size();
+			int numvertices = polygon1.getVertices().size();
 			//com.neuronrobotics.sdk.common.Log.error("Building Polygon "+polygon1.getPoints().size());
 			for (int i = 0; i < numvertices; i++) {
 
 				int nexti = (i + 1) % numvertices;
 
-				Vector3d bottomV1 = polygon1.vertices.get(i).pos;
-				Vector3d topV1 = polygon2.vertices.get(i).pos;
-				Vector3d bottomV2 = polygon1.vertices.get(nexti).pos;
-				Vector3d topV2 = polygon2.vertices.get(nexti).pos;
+				Vector3d bottomV1 = polygon1.getVertices().get(i).pos;
+				Vector3d topV1 = polygon2.getVertices().get(i).pos;
+				Vector3d bottomV2 = polygon1.getVertices().get(nexti).pos;
+				Vector3d topV2 = polygon2.getVertices().get(nexti).pos;
 				double distance = bottomV1.minus(bottomV2).magnitude();
 				if(Math.abs(distance)<Plane.getEPSILON()) {
 					//com.neuronrobotics.sdk.common.Log.error("Skipping invalid polygon "+i+" to "+nexti);
@@ -149,19 +149,19 @@ public class Extrude {
 		List<Polygon> newPolygons = new ArrayList<>();
 		CSG extrude;
 		newPolygons.addAll(PolygonUtil.concaveToConvex(polygon1.flipped()));
-		if (polygon1.vertices.size() != polygon2.vertices.size()) {
+		if (polygon1.getVertices().size() != polygon2.getVertices().size()) {
 			throw new RuntimeException("These polygons do not match");
 		}
 
-		int numvertices = polygon1.vertices.size();
+		int numvertices = polygon1.getVertices().size();
 		for (int i = 0; i < numvertices; i++) {
 
 			int nexti = (i + 1) % numvertices;
 
-			Vector3d bottomV1 = polygon1.vertices.get(i).pos;
-			Vector3d topV1 = polygon2.vertices.get(i).pos;
-			Vector3d bottomV2 = polygon1.vertices.get(nexti).pos;
-			Vector3d topV2 = polygon2.vertices.get(nexti).pos;
+			Vector3d bottomV1 = polygon1.getVertices().get(i).pos;
+			Vector3d topV1 = polygon2.getVertices().get(i).pos;
+			Vector3d bottomV2 = polygon1.getVertices().get(nexti).pos;
+			Vector3d topV2 = polygon2.getVertices().get(nexti).pos;
 
 			List<Vector3d> pPoints = Arrays.asList(bottomV2, topV2, topV1, bottomV1);
 
@@ -266,15 +266,15 @@ public class Extrude {
 
 		// thanks to Sepp Reiter for explaining me the algorithm!
 
-		if (polygon.vertices.size() < 3) {
+		if (polygon.getVertices().size() < 3) {
 			throw new IllegalArgumentException("Only polygons with at least 3 vertices are supported!");
 		}
 
 		// search highest left vertex
 		int highestLeftVertexIndex = 0;
-		Vertex highestLeftVertex = polygon.vertices.get(0);
-		for (int i = 0; i < polygon.vertices.size(); i++) {
-			Vertex v = polygon.vertices.get(i);
+		Vertex highestLeftVertex = polygon.getVertices().get(0);
+		for (int i = 0; i < polygon.getVertices().size(); i++) {
+			Vertex v = polygon.getVertices().get(i);
 
 			if (v.pos.y > highestLeftVertex.pos.y) {
 				highestLeftVertex = v;
@@ -286,13 +286,13 @@ public class Extrude {
 		}
 
 		// determine next and previous vertex indices
-		int nextVertexIndex = (highestLeftVertexIndex + 1) % polygon.vertices.size();
+		int nextVertexIndex = (highestLeftVertexIndex + 1) % polygon.getVertices().size();
 		int prevVertexIndex = highestLeftVertexIndex - 1;
 		if (prevVertexIndex < 0) {
-			prevVertexIndex = polygon.vertices.size() - 1;
+			prevVertexIndex = polygon.getVertices().size() - 1;
 		}
-		Vertex nextVertex = polygon.vertices.get(nextVertexIndex);
-		Vertex prevVertex = polygon.vertices.get(prevVertexIndex);
+		Vertex nextVertex = polygon.getVertices().get(nextVertexIndex);
+		Vertex prevVertex = polygon.getVertices().get(prevVertexIndex);
 
 		// edge 1
 		double a1 = normalizedX(highestLeftVertex.pos, nextVertex.pos);
@@ -309,12 +309,12 @@ public class Extrude {
 			selectedVIndex = prevVertexIndex;
 		}
 
-		if (selectedVIndex == 0 && highestLeftVertexIndex == polygon.vertices.size() - 1) {
-			selectedVIndex = polygon.vertices.size();
+		if (selectedVIndex == 0 && highestLeftVertexIndex == polygon.getVertices().size() - 1) {
+			selectedVIndex = polygon.getVertices().size();
 		}
 
-		if (highestLeftVertexIndex == 0 && selectedVIndex == polygon.vertices.size() - 1) {
-			highestLeftVertexIndex = polygon.vertices.size();
+		if (highestLeftVertexIndex == 0 && selectedVIndex == polygon.getVertices().size() - 1) {
+			highestLeftVertexIndex = polygon.getVertices().size();
 		}
 
 		// indicates whether edge points from highestLeftVertexIndex towards
@@ -605,16 +605,16 @@ public class Extrude {
 	public static List<Polygon> monotoneExtrude(Polygon polygon2, Polygon polygon1) {
 		List<Polygon> newPolygons = new ArrayList<>();
 
-		int numvertices = polygon1.vertices.size();
+		int numvertices = polygon1.getVertices().size();
 
 		for (int i = 0; i < numvertices; i++) {
 
 			int nexti = (i + 1) % numvertices;
 
-			Vector3d bottomV1 = polygon1.vertices.get(i).pos;
-			Vector3d topV1 = polygon2.vertices.get(i).pos;
-			Vector3d bottomV2 = polygon1.vertices.get(nexti).pos;
-			Vector3d topV2 = polygon2.vertices.get(nexti).pos;
+			Vector3d bottomV1 = polygon1.getVertices().get(i).pos;
+			Vector3d topV1 = polygon2.getVertices().get(i).pos;
+			Vector3d bottomV2 = polygon1.getVertices().get(nexti).pos;
+			Vector3d topV2 = polygon2.getVertices().get(nexti).pos;
 			double distance = bottomV1.minus(bottomV2).magnitude();
 			if (Math.abs(distance) < Plane.getEPSILON()) {
 				continue;

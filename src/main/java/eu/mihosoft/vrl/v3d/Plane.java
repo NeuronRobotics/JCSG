@@ -341,8 +341,8 @@ public class Plane {
 		// search for the epsilon values of the incoming plane
 		double negEpsilon = -Plane.getEPSILON();
 		double posEpsilon = Plane.getEPSILON();
-		for (int i = 0; i < polygon.vertices.size(); i++) {
-			double t = polygon.plane.getNormal().dot(polygon.vertices.get(i).pos) - polygon.plane.getDist();
+		for (int i = 0; i < polygon.getVertices().size(); i++) {
+			double t = polygon.plane.getNormal().dot(polygon.getVertices().get(i).pos) - polygon.plane.getDist();
 			if (t > posEpsilon) {
 				// com.neuronrobotics.sdk.common.Log.error("Non flat polygon, increasing
 				// positive epsilon "+t);
@@ -358,8 +358,8 @@ public class Plane {
 		List<Integer> types = new ArrayList<>();
 		boolean somePointsInfront = false;
 		boolean somePointsInBack = false;
-		for (int i = 0; i < polygon.vertices.size(); i++) {
-			double t = this.getNormal().dot(polygon.vertices.get(i).pos) - this.getDist();
+		for (int i = 0; i < polygon.getVertices().size(); i++) {
+			double t = this.getNormal().dot(polygon.getVertices().get(i).pos) - this.getDist();
 			int type = (t < negEpsilon) ? BACK : (t > posEpsilon) ? FRONT : COPLANAR;
 			if (type == BACK)
 				somePointsInBack = true;
@@ -388,12 +388,12 @@ public class Plane {
 		case SPANNING:
 			List<Vertex> f = new ArrayList<>();
 			List<Vertex> b = new ArrayList<>();
-			for (int i = 0; i < polygon.vertices.size(); i++) {
-				int j = (i + 1) % polygon.vertices.size();
+			for (int i = 0; i < polygon.getVertices().size(); i++) {
+				int j = (i + 1) % polygon.getVertices().size();
 				int ti = types.get(i);
 				int tj = types.get(j);
-				Vertex vi = polygon.vertices.get(i);
-				Vertex vj = polygon.vertices.get(j);
+				Vertex vi = polygon.getVertices().get(i);
+				Vertex vj = polygon.getVertices().get(j);
 				if (ti != BACK) {
 					f.add(vi);
 				}
@@ -410,7 +410,7 @@ public class Plane {
 			}
 			if (f.size() >= 3) {
 				try {
-					front.add(new Polygon(f, polygon.getStorage()).setColor(polygon.getColor()));
+					front.add(new Polygon(f, polygon.getStorage(),false,polygon.plane).setColor(polygon.getColor()));
 				} catch (Exception ex) {
 					System.err.println("Pruning bad polygon Plane::splitPolygon");
 					// skip adding broken polygon here
@@ -420,7 +420,7 @@ public class Plane {
 			}
 			if (b.size() >= 3) {
 				try {
-					back.add(new Polygon(b, polygon.getStorage()).setColor(polygon.getColor()));
+					back.add(new Polygon(b, polygon.getStorage(),false,polygon.plane).setColor(polygon.getColor()));
 				} catch (Exception ex) {
 					// ex.printStackTrace();
 					System.err.println("Pruning bad polygon Plane::splitPolygon");
@@ -484,5 +484,18 @@ public class Plane {
 
 	public static void setEPSILON(double ePSILON) {
 		EPSILON = ePSILON;
+	}
+
+	public void transformPlane(Transform transform_in, Vector3d a) {
+		Transform trans_rot = transform_in.copy()// .inverse()
+				.setToOrigin();
+//		Transform trans_dist = new Transform().movex(transform_in.getX())
+//												.movey(transform_in.getY())
+//												.movez(transform_in.getZ());
+		Vector3d newNormal = this.normal.transformed(trans_rot);
+		newNormal = newNormal.negated();
+		this.setNormal(newNormal.normalized());
+		this.setDist(this.normal.dot(a));
+
 	}
 }

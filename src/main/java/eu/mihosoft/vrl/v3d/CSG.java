@@ -1474,7 +1474,7 @@ public class CSG implements IuserAPI {
 			sb.append("solid v3d.csg\n");
 			for (Polygon p : getPolygons()) {
 				try {
-					Plane.computeNormal(p.vertices);
+					Plane.computeNormal(p.getVertices());
 					p.toStlString(sb);
 				} catch (Exception ex) {
 					System.out.println("Prune Polygon on export");
@@ -1571,7 +1571,7 @@ public class CSG implements IuserAPI {
 				Edge e = null;
 				// Test every polygon
 				Polygon i = polygons.get(threadIndex);
-				ArrayList<Vertex> vertices = i.vertices;
+				List<Vertex> vertices = i.getVertices();
 				for (int k = 0; k < vertices.size(); k++) {
 					// each point in the checking polygon
 					int now = k;
@@ -1591,7 +1591,7 @@ public class CSG implements IuserAPI {
 						Polygon ii = polygons.get(l);
 						if (threadIndex != l) {
 							// every other polygon besides this one being tested
-							ArrayList<Vertex> vert = ii.vertices;
+							List<Vertex> vert = ii.getVertices();
 							for (int iii = 0; iii < vert.size(); iii++) {
 								Vertex vi = vert.get(iii);
 								// if they are coincident, move along
@@ -1602,7 +1602,7 @@ public class CSG implements IuserAPI {
 								// edge
 								if (e.contains(vi.pos, tOL)) {
 									// System.out.println("Inserting point "+vi);
-									vertices.add(next, vi);
+									i.add(next, vi);
 									e.setP2(vi);
 									// totalAdded++;
 								}
@@ -1645,7 +1645,7 @@ public class CSG implements IuserAPI {
 		int roomForMore = 10;
 		int size = polygons.size();
 		for (int i = 0; i < size; i++) {
-			numberOfPoints += (polygons.get(i).vertices.size());
+			numberOfPoints += (polygons.get(i).getVertices().size());
 		}
 		float[] pointData = new float[numberOfPoints * 3];
 		int[] startIndex = new int[size];
@@ -1656,10 +1656,10 @@ public class CSG implements IuserAPI {
 			insertions[i] = -1;
 		}
 		for (int polyIndex = 0; polyIndex < size; polyIndex++) {
-			sizes[polyIndex] = polygons.get(polyIndex).vertices.size();
+			sizes[polyIndex] = polygons.get(polyIndex).getVertices().size();
 			startIndex[polyIndex] = runningPointIndex;
 			for (int ii = 0; ii < sizes[polyIndex]; ii++) {
-				Vector3d pos = polygons.get(polyIndex).vertices.get(ii).pos.clone()
+				Vector3d pos = polygons.get(polyIndex).getVertices().get(ii).pos.clone()
 						.roundToEpsilon(Vector3d.getEXPORTEPSILON());
 				pointData[startIndex[polyIndex] + 0 + ii] = (float) pos.x;
 				pointData[startIndex[polyIndex] + 1 + ii] = (float) pos.y;
@@ -1728,7 +1728,7 @@ public class CSG implements IuserAPI {
 					// both list of points should be right hand, but since they are other polygons,
 					// that may not be the case, so sorting needs to take place
 					ArrayList<Vertex> newpoints = new ArrayList<Vertex>();
-					for (Vertex v : ptoA.vertices) {
+					for (Vertex v : ptoA.getVertices()) {
 						newpoints.add(v);
 						if (e.isThisPointOneOfMine(v, Plane.EPSILON_Point)) {
 							for (Vertex v2 : degen)
@@ -1771,7 +1771,7 @@ public class CSG implements IuserAPI {
 //			return;
 //		}
 
-		if (p.vertices.size() == 3) {
+		if (p.getVertices().size() == 3) {
 			toAdd.add(p);
 		} else {
 			// //com.neuronrobotics.sdk.common.Log.error("Fixing error in STL " + name + "
@@ -1849,7 +1849,7 @@ public class CSG implements IuserAPI {
 		for (Polygon p : getPolygons()) {
 			List<Integer> polyIndices = new ArrayList<>();
 
-			p.vertices.stream().forEach((v) -> {
+			p.getVertices().stream().forEach((v) -> {
 				if (!vertices.contains(v)) {
 					vertices.add(v);
 					v.toObjString(sb);
@@ -2019,9 +2019,9 @@ public class CSG implements IuserAPI {
 
 		for (Polygon p : getPolygons()) {
 
-			for (int i = 0; i < p.vertices.size(); i++) {
+			for (int i = 0; i < p.getVertices().size(); i++) {
 
-				Vertex vert = p.vertices.get(i);
+				Vertex vert = p.getVertices().get(i);
 
 				if (vert.pos.x < minX) {
 					minX = vert.pos.x;
@@ -2254,10 +2254,10 @@ public class CSG implements IuserAPI {
 		ArrayList<CSG> bits = new ArrayList<>();
 		for (Polygon p : this.getPolygons()) {
 			List<Vector3d> plist = new ArrayList<>();
-			for (Vertex v : p.vertices) {
+			for (Vertex v : p.getVertices()) {
 				CSG newSHape = travelingShape.move(v);
 				for (Polygon np : newSHape.getPolygons()) {
-					for (Vertex nv : np.vertices) {
+					for (Vertex nv : np.getVertices()) {
 						plist.add(nv.pos);
 					}
 				}
@@ -2280,7 +2280,7 @@ public class CSG implements IuserAPI {
 	public ArrayList<CSG> minkowski(CSG travelingShape) {
 		HashMap<Vertex, CSG> map = new HashMap<>();
 		for (Polygon p : travelingShape.getPolygons()) {
-			for (Vertex v : p.vertices) {
+			for (Vertex v : p.getVertices()) {
 				if (map.get(v) == null)// use hashmap to avoid duplicate locations
 					map.put(v, this.move(v));
 			}

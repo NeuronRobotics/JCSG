@@ -33,7 +33,7 @@ final class Modifier {
      */
     void modify(CSG csg) {
         for(Polygon p : csg.getPolygons()) {
-            for(Vertex v : p.vertices) {
+            for(Vertex v : p.getVertices()) {
                 v.setWeight(function.eval(v.pos, csg));
             }
         }

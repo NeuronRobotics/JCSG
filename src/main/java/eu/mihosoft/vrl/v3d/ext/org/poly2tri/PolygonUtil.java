@@ -106,7 +106,7 @@ public class PolygonUtil {
 
 		if (incoming == null)
 			return result;
-		if (incoming.vertices.size() < 3)
+		if (incoming.getVertices().size() < 3)
 			return result;
 		Polygon concave = incoming;
 		Vector3d normalOfPlane = incoming.plane.getNormal();
@@ -183,7 +183,7 @@ public class PolygonUtil {
 			// Debug3dProvider.clearScreen();
 		}
 		Geometry triangles;
-		double zplane = concave.vertices.get(0).pos.z;
+		double zplane = concave.getVertices().get(0).pos.z;
 
 		try {
 			triangles = makeTriangles(concave, cw);
@@ -212,14 +212,14 @@ public class PolygonUtil {
 					if (!cw) {
 						Collections.reverse(triPoints);
 					}
-					Polygon poly = new Polygon(triPoints, concave.getStorage(), true);
+					Polygon poly = new Polygon(triPoints, concave.getStorage(), true,concave.plane);
 					// poly = Extrude.toCCW(poly);
 					poly.plane.setNormal(concave.plane.getNormal());
 					boolean b = !Extrude.isCCW(poly);
 					if (cw != b) {
 						// System.err.println("Triangle not matching incoming");
 						Collections.reverse(triPoints);
-						poly = new Polygon(triPoints, concave.getStorage(), true);
+						poly = new Polygon(triPoints, concave.getStorage(), true,concave.plane);
 						b = !Extrude.isCCW(poly);
 						if (cw != b) {
 							// com.neuronrobotics.sdk.common.Log.error("Error, polygon is reversed!");
@@ -278,13 +278,13 @@ public class PolygonUtil {
 //	if(cw) {
 //		toTri=Extrude.toCCW(concave);
 //	}
-		Coordinate[] coordinates = new Coordinate[toTri.vertices.size() + 1];
-		for (int i = 0; i < toTri.vertices.size(); i++) {
-			Vector3d v = toTri.vertices.get(i).pos;
+		Coordinate[] coordinates = new Coordinate[toTri.getVertices().size() + 1];
+		for (int i = 0; i < toTri.getVertices().size(); i++) {
+			Vector3d v = toTri.getVertices().get(i).pos;
 			coordinates[i] = new Coordinate(v.x, v.y, v.z);
 		}
-		Vector3d v = toTri.vertices.get(0).pos;
-		coordinates[toTri.vertices.size()] = new Coordinate(v.x, v.y, v.z);
+		Vector3d v = toTri.getVertices().get(0).pos;
+		coordinates[toTri.getVertices().size()] = new Coordinate(v.x, v.y, v.z);
 		// use the default factory, which gives full double-precision
 		Geometry geom = new GeometryFactory().createPolygon(coordinates);
 		triangles = ConstrainedDelaunayTriangulator.triangulate(geom);
@@ -394,8 +394,8 @@ public class PolygonUtil {
 
 	public static Polygon pruneDuplicatePoints(Polygon incoming) {
 		ArrayList<Vertex> newPoints = new ArrayList<Vertex>();
-		for (int i = 0; i < incoming.vertices.size(); i++) {
-			Vertex v = incoming.vertices.get(i);
+		for (int i = 0; i < incoming.getVertices().size(); i++) {
+			Vertex v = incoming.getVertices().get(i);
 			boolean duplicate = false;
 			for (Vertex vx : newPoints) {
 				if (vx.pos.test(v.pos, Plane.EPSILON_duplicate)) {

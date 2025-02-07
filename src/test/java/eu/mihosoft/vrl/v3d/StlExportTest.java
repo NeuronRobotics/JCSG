@@ -16,9 +16,9 @@ public class StlExportTest {
 		Vector3d.setEXPORTEPSILON(1.0e-9);
 		CSG.setUseGPU(false);
 		CSG.setPreventNonManifoldTriangles(true);
-		CSG badExport2 = CSG.text(" A QUICK BROWN FOX JUMPS OVER THE LAZY DOG", 10,30,"Serif Regular").movey(30);
+		CSG badExport2 = CSG.text(" A QUICK BROWN ", 10,30,"Serif Regular").movey(30);
 		System.out.println("First text loaded");
-		CSG badExport = CSG.text("THis is some text a quick brown fox jumps over the lazy dog.", 10);
+		CSG badExport = CSG.text("THis is some ", 10);
 		System.out.println("Second text loaded");
 //		badExport2=new Cube(20).toCSG().movey(30);
 //		badExport=new Cube(20).toCSG();

@@ -42,7 +42,7 @@ public class Fillet extends Primitive {
 
     ArrayList<CSG> parts = new ArrayList<>();
     for (Polygon p : polys) {
-      int size = p.vertices.size();
+      int size = p.getVertices().size();
       for (int i = 0; i < size; i++) {
         // if(i>1)
         // continue;
@@ -52,9 +52,9 @@ public class Fillet extends Primitive {
         int nextNext = next + 1;
         if (nextNext == size)
           nextNext = 0;
-        Vector3d position0 = p.vertices.get(i).pos;
-        Vector3d position1 = p.vertices.get(next).pos;
-        Vector3d position2 = p.vertices.get(nextNext).pos;
+        Vector3d position0 = p.getVertices().get(i).pos;
+        Vector3d position1 = p.getVertices().get(next).pos;
+        Vector3d position2 = p.getVertices().get(nextNext).pos;
         Vector3d seg1 = position0.minus(position1);
         Vector3d seg2 = position2.minus(position1);
         double len = seg1.magnitude();

@@ -52,7 +52,7 @@ import javafx.scene.paint.Color;
 public final class Polygon {
 
     /** Polygon vertices. */
-    public final ArrayList<Vertex> vertices;
+    private final ArrayList<Vertex> vertices;
     /**
      * Shared property (can be used for shared color etc.).
      */
@@ -62,7 +62,7 @@ public final class Polygon {
      *
      *  Note:  uses first three vertices to define the plane.
      */
-    public  Plane plane;
+    public  Plane plane=null;
      private boolean isHole = false;
 
     /**
@@ -108,11 +108,11 @@ public final class Polygon {
      * @param vertices polygon vertices
      * @param shared shared property
      */
-    public Polygon(List<Vertex> vertices, PropertyStorage shared, boolean allowDegenerate) {
+    public Polygon(List<Vertex> vertices, PropertyStorage shared, boolean allowDegenerate, Plane p) {
         this.vertices = pruneDuplicatePoints(vertices);
         this.shared = shared;
-	    this.plane = Plane.createFromPoints(
-	                vertices);
+	    if(p!=null)
+	    	plane=p.clone();
 
         validateAndInit(allowDegenerate);
     }
@@ -127,7 +127,7 @@ public final class Polygon {
      * @param shared shared property
      */
     public Polygon(List<Vertex> vertices, PropertyStorage shared) {
-        this(vertices,shared,true);
+        this(vertices,shared,true,null);
     }
     /**
      * Constructor. Creates a new polygon that consists of the specified
@@ -139,7 +139,7 @@ public final class Polygon {
      * @param vertices polygon vertices
      */
     public Polygon(List<Vertex> vertices) {
-    	this(vertices,new PropertyStorage(),true);
+    	this(vertices,new PropertyStorage(),true,null);
     }
     public static ArrayList<Vertex> pruneDuplicatePoints(List<Vertex> incoming) {
     	//return incoming;
@@ -165,7 +165,10 @@ public final class Polygon {
 		}
 	}
 	private void validateAndInit( boolean allowDegenerate) {
-		for (Vertex v : vertices) {
+		if(plane==null)
+			this.plane = Plane.createFromPoints(
+	                vertices);
+		for (Vertex v : getVertices()) {
 			v.normal = plane.getNormal();
 			//v.pos.roundToEpsilon();
 		}
@@ -176,13 +179,13 @@ public final class Polygon {
 					"Normal is zero! Probably, duplicate points have been specified!\n\n" + toStlString());
 		}
 
-		if (vertices.size() < 3) {
-			throw new RuntimeException("Invalid polygon: at least 3 vertices expected, got: " + vertices.size());
+		if (getVertices().size() < 3) {
+			throw new RuntimeException("Invalid polygon: at least 3 vertices expected, got: " + getVertices().size());
 		}
 
-		Edge e = new Edge(vertices.get(0), vertices.get(1));
-		for (int i = 2; i < vertices.size(); i++) {
-			if (!e.colinear(vertices.get(i).pos)) {
+		Edge e = new Edge(getVertices().get(0), getVertices().get(1));
+		for (int i = 2; i < getVertices().size(); i++) {
+			if (!e.colinear(getVertices().get(i).pos)) {
 				setDegenerate(false);
 				return;
 			}
@@ -212,10 +215,10 @@ public final class Polygon {
     @Override
     public Polygon clone() {
         List<Vertex> newVertices = new ArrayList<>();
-        this.vertices.forEach((vertex) -> {
+        this.getVertices().forEach((vertex) -> {
             newVertices.add(vertex.clone());
         });
-        return new Polygon(newVertices, getStorage(),true).setColor(color);
+        return new Polygon(newVertices, getStorage(),true,null).setColor(color);
     }
 
     /**
@@ -224,10 +227,10 @@ public final class Polygon {
      * @return this polygon
      */
     public Polygon flip() {
-        vertices.forEach((vertex) -> {
+        getVertices().forEach((vertex) -> {
             vertex.flip();
         });
-        Collections.reverse(vertices);
+        Collections.reverse(getVertices());
 
         plane.flip();
 
@@ -263,23 +266,23 @@ public final class Polygon {
      */
     public StringBuilder toStlString(StringBuilder sb) {
 
-        if (this.vertices.size() == 3) {
+        if (this.getVertices().size() == 3) {
 
             // TODO: improve the triangulation?
             //
             // STL requires triangular polygons.
             // If our polygon has more vertices, create
             // multiple triangles:
-			String firstVertexStl = this.vertices.get(0).toStlString();
+			String firstVertexStl = this.getVertices().get(0).toStlString();
 
 			sb.append("  facet normal ").append(this.plane.getNormal().toStlString()).append("\n")
 					.append("    outer loop\n").append("      ").append(firstVertexStl).append("\n").append("      ");
-			this.vertices.get( 1).toStlString(sb).append("\n").append("      ");
-			this.vertices.get(2).toStlString(sb).append("\n")
+			this.getVertices().get( 1).toStlString(sb).append("\n").append("      ");
+			this.getVertices().get(2).toStlString(sb).append("\n")
 			.append("    endloop\n").append("  endfacet\n");
 
         }else {
-        	throw new RuntimeException("Polygon must be a triangle before STL can be made "+vertices.size());
+        	throw new RuntimeException("Polygon must be a triangle before STL can be made "+getVertices().size());
         }
 
         return sb;
@@ -291,32 +294,32 @@ public final class Polygon {
      * @param v the vector that defines the translation
      * @return this polygon
      */
-    public Polygon translate(Vector3d v) {
-        vertices.forEach((vertex) -> {
-            vertex.pos = vertex.pos.plus(v);
-        });
+//    public Polygon translate(Vector3d v) {
+//        getVertices().forEach((vertex) -> {
+//            vertex.pos = vertex.pos.plus(v);
+//        });
+//
+//        Vector3d a = this.getVertices().get(0).pos;
+//        Vector3d b = this.getVertices().get(1).pos;
+//        Vector3d c = this.getVertices().get(2).pos;
+//
+//        this.plane.setNormal(b.minus(a).cross(c.minus(a)));
+//
+//        return this;
+//    }
 
-        Vector3d a = this.vertices.get(0).pos;
-        Vector3d b = this.vertices.get(1).pos;
-        Vector3d c = this.vertices.get(2).pos;
-
-        this.plane.setNormal(b.minus(a).cross(c.minus(a)));
-
-        return this;
-    }
-
-    /**
-     * Returns a translated copy of this polygon.
-     *
-     *  Note:  this polygon is not modified
-     *
-     * @param v the vector that defines the translation
-     *
-     * @return a translated copy of this polygon
-     */
-    public Polygon translated(Vector3d v) {
-        return clone().translate(v);
-    }
+//    /**
+//     * Returns a translated copy of this polygon.
+//     *
+//     *  Note:  this polygon is not modified
+//     *
+//     * @param v the vector that defines the translation
+//     *
+//     * @return a translated copy of this polygon
+//     */
+//    public Polygon translated(Vector3d v) {
+//        return clone().translate(v);
+//    }
 
     /**
      * Applies the specified transformation to this polygon.
@@ -330,16 +333,17 @@ public final class Polygon {
      */
     public Polygon transform(Transform transform) {
 
-        this.vertices.stream().forEach(
+        this.getVertices().stream().forEach(
                 (v) -> {
                     v.transform(transform);
                 }
         );
 
-        Vector3d a = this.vertices.get(0).pos;
+        Vector3d a = this.getVertices().get(0).pos;
 
-        this.plane.setNormal(Plane.computeNormal(this.vertices));
-        this.plane.setDist(this.plane.getNormal().dot(a));
+//        this.plane.setNormal(Plane.computeNormal(this.getVertices()));
+//        this.plane.setDist(this.plane.getNormal().dot(a));
+        plane.transformPlane(transform, a);
 
         if (transform.isMirror()) {
             // the transformation includes mirroring. flip polygon
@@ -434,7 +438,7 @@ public final class Polygon {
             vertices.add(vertex);
         }
 
-        return new Polygon(vertices, shared,allowDegenerate);
+        return new Polygon(vertices, shared,allowDegenerate,null);
     }
 
     /**
@@ -451,9 +455,9 @@ public final class Polygon {
         double maxY = Double.NEGATIVE_INFINITY;
         double maxZ = Double.NEGATIVE_INFINITY;
 
-        for (int i = 0; i < vertices.size(); i++) {
+        for (int i = 0; i < getVertices().size(); i++) {
 
-            Vertex vert = vertices.get(i);
+            Vertex vert = getVertices().get(i);
 
             if (vert.pos.x < minX) {
                 minX = vert.pos.x;
@@ -494,12 +498,12 @@ public final class Polygon {
         double px = p.x;
         double py = p.y;
         boolean oddNodes = false;
-        double x2 = vertices.get(vertices.size() - 1).pos.x;
-        double y2 = vertices.get(vertices.size() - 1).pos.y;
+        double x2 = getVertices().get(getVertices().size() - 1).pos.x;
+        double y2 = getVertices().get(getVertices().size() - 1).pos.y;
         double x1, y1;
-        for (int i = 0; i < vertices.size(); x2 = x1, y2 = y1, ++i) {
-            x1 = vertices.get(i).pos.x;
-            y1 = vertices.get(i).pos.y;
+        for (int i = 0; i < getVertices().size(); x2 = x1, y2 = y1, ++i) {
+            x1 = getVertices().get(i).pos.x;
+            y1 = getVertices().get(i).pos.y;
             if (((y1 < py) && (y2 >= py))
                     || (y1 >= py) && (y2 < py)) {
                 if ((py - y1) / (y2 - y1)
@@ -519,7 +523,7 @@ public final class Polygon {
      */
     public boolean contains(Polygon p) {
         
-        for (Vertex v : p.vertices) {
+        for (Vertex v : p.getVertices()) {
             if (!contains(v.pos)) {
                 return false;
             }
@@ -548,7 +552,7 @@ public final class Polygon {
 
 	public List<Vector3d> getPoints() {
 		ArrayList<Vector3d> p =new ArrayList<>();
-		for(Vertex v:vertices) {
+		for(Vertex v:getVertices()) {
 			p.add(v.pos);
 		}
 		return p;
@@ -693,8 +697,8 @@ public final class Polygon {
 		if(!isDegenerate())
 			return back;
 		Edge longEdge = getLongEdge();
-		for(int i=0;i<vertices.size();i++) {
-			Vertex vertex = vertices.get(i);
+		for(int i=0;i<getVertices().size();i++) {
+			Vertex vertex = getVertices().get(i);
 			if(vertex!= longEdge.getP1()&& vertex!=longEdge.getP2() ) {
 				back.add(vertex);
 			}
@@ -720,13 +724,13 @@ public final class Polygon {
 
 	public ArrayList<Edge> edges() {
 		ArrayList<Edge> e=new  ArrayList<Edge>();
-		for(int i=0;i<vertices.size();i++) {
+		for(int i=0;i<getVertices().size();i++) {
 			int i1 = i;
 			int i2=i+1;
-			if(i2==vertices.size()) {
+			if(i2==getVertices().size()) {
 				i2=0;
 			}
-			e.add(new Edge(vertices.get(i1),vertices.get(i2)));
+			e.add(new Edge(getVertices().get(i1),getVertices().get(i2)));
 		}
 		return e;
 	}
@@ -740,8 +744,8 @@ public final class Polygon {
 	}
 	@Override
 	public String toString() {
-		String ret="# points="+vertices.size()+" normal="+plane.getNormal().toStlString()+" [ ";
-		for(Vertex v:vertices) {
+		String ret="# points="+getVertices().size()+" normal="+plane.getNormal().toStlString()+" [ ";
+		for(Vertex v:getVertices()) {
 			ret+=" "+v.pos.toStlString()+" , ";
 		}
 		return ret+" ] ";
@@ -753,6 +757,19 @@ public final class Polygon {
 
 	public void setHole(boolean isHole) {
 		this.isHole = isHole;
+	}
+
+	/**
+	 * @return the vertices
+	 */
+	public List<Vertex> getVertices() {
+		return vertices;
+	}
+	
+	public Polygon add(int index, Vertex v) {
+		vertices.add(index,v);
+		
+		return this;
 	}
 
 }

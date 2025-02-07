@@ -716,5 +716,27 @@ public class Transform {
 	public Transform rotx(Number degreesToRotate) {
 		return new Transform().rotX(degreesToRotate.doubleValue()).apply(this);
 	}
+	
+
+	public Transform copy() {
+		return new Transform().apply(this);
+	}
+	public Transform setToOrigin() {
+		return set(0,0,0);
+	}
+	public Transform setZ(Number z) {
+		return set(0,0,z);
+	}
+	public Transform setY(Number y) {
+		return set(0,y,0);
+	}
+	public Transform setX(Number x) {
+		return set(x,0,0);
+	}
+	public Transform set(Number x, Number y, Number z) {
+		javax.vecmath.Vector3d t1 = new javax.vecmath.Vector3d();
+		getInternalMatrix().get(t1);
+		return new Transform().translate(x.doubleValue()-t1.x,y.doubleValue()-t1.y,z.doubleValue()-t1.z).apply(this);
+	}
 
 }
