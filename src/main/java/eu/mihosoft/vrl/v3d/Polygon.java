@@ -772,4 +772,53 @@ public final class Polygon {
 		return this;
 	}
 
+	public boolean areAllPointsCollinear() {
+		// If we have 2 or fewer points, they're always collinear
+		if (vertices.size() <= 2) {
+			return true;
+		}
+
+		// Get first two points to establish a direction vector
+		Vertex p1 = vertices.get(0);
+		Vertex p2 = vertices.get(1);
+
+		// Calculate the direction vector between first two points
+		double[] directionVector = { p2.getX() - p1.getX(), p2.getY() - p1.getY(), p2.getZ() - p1.getZ() };
+
+		// Normalize the direction vector
+		double length = Math.sqrt(directionVector[0] * directionVector[0] + directionVector[1] * directionVector[1]
+				+ directionVector[2] * directionVector[2]);
+		double ep = Plane.getEPSILON();
+		if (length < ep) { // If points are effectively identical
+			return false;
+		}
+
+		directionVector[0] /= length;
+		directionVector[1] /= length;
+		directionVector[2] /= length;
+
+		// Check each subsequent point
+		for (int i = 2; i < vertices.size(); i++) {
+			Vertex p = vertices.get(i);
+
+			// Vector from first point to current point
+			double[] currentVector = { p.getX() - p1.getX(), p.getY() - p1.getY(), p.getZ() - p1.getZ() };
+
+			// Calculate cross product
+			double[] crossProduct = { directionVector[1] * currentVector[2] - directionVector[2] * currentVector[1],
+					directionVector[2] * currentVector[0] - directionVector[0] * currentVector[2],
+					directionVector[0] * currentVector[1] - directionVector[1] * currentVector[0] };
+
+			// Calculate magnitude of cross product
+			double magnitude = Math.sqrt(crossProduct[0] * crossProduct[0] + crossProduct[1] * crossProduct[1]
+					+ crossProduct[2] * crossProduct[2]);
+
+			// If magnitude is not close to zero, points are not collinear
+			if (magnitude > ep) {
+				return false;
+			}
+		}
+
+		return true;
+	}
 }

@@ -1498,14 +1498,11 @@ public class CSG implements IuserAPI {
 		if (triangulated)
 			return this;
 
-		//// com.neuronrobotics.sdk.common.Log.error("CSG triangulating for " +
-		//// name+"..");
-		ArrayList<Polygon> toAdd = new ArrayList<Polygon>();
-		ArrayList<Polygon> degenerates = new ArrayList<Polygon>();
 		if (providerOf3d == null && Debug3dProvider.provider != null)
 			providerOf3d = Debug3dProvider.provider;
 		IDebug3dProvider start = Debug3dProvider.provider;
 		Debug3dProvider.setProvider(null);
+		//performTriangulation();
 		if (preventNonManifoldTriangles) {
 			for (int i = 0; i < 2; i++)
 				if (isUseGPU()) {
@@ -1514,47 +1511,22 @@ public class CSG implements IuserAPI {
 					runCPUMakeManifold();
 				}
 		}
-		try {
-			Stream<Polygon> polygonStream;
-			polygonStream = polygons.stream();
-			// TODO this should work in paralell but throws immpossible NPE's instead.
-//			if (getPolygons().size() > 200) {
-//				polygonStream = polygons.parallelStream();
-//			}
-			polygonStream.forEach(p -> updatePolygons(toAdd, degenerates, p));
-//			for (int i = 0; i < polygons.size(); i++) {
-//				Polygon p = polygons.get(i);
-//				updatePolygons(toAdd, degenerates, p);
-//			}
-
-			if (degenerates.size() > 0) {
-				//
-				// Debug3dProvider.setProvider(providerOf3d);
-
-				if (fix) {
-					Debug3dProvider.clearScreen();
-					Stream<Polygon> degenStreeam;
-					degenStreeam = polygons.stream(); // this operation is read-modify-write and can not be done in
-														// parallel
-					// com.neuronrobotics.sdk.common.Log.error("Found "+degenerates.size()+"
-					// degenerate triangles, Attempting to fix");
-					degenStreeam.forEach(p -> fixDegenerates(toAdd, p));
-				} else {
-					needsDegeneratesPruned = true;
-					toAdd.addAll(degenerates);
-				}
-			}
-			if (toAdd.size() > 0) {
-				setPolygons(toAdd);
-			}
-			// now all polygons are definantly triangles
-			triangulated = true;
-		} catch (Throwable t) {
-			t.printStackTrace();
-
-		}
+		performTriangulation();
+		// now all polygons are definantly triangles
+		triangulated = true;
 		Debug3dProvider.setProvider(start);
 		return this;
+	}
+
+	private void performTriangulation() {
+		ArrayList<Polygon> toAdd = new ArrayList<Polygon>();
+
+		Stream<Polygon> polygonStream;
+		polygonStream = polygons.stream();
+		polygonStream.forEach(p -> updatePolygons(toAdd, p));
+		if (toAdd.size() > 0) {
+			setPolygons(toAdd);
+		}
 	}
 
 	private void runCPUMakeManifold() {
@@ -1706,99 +1678,28 @@ public class CSG implements IuserAPI {
 		System.out.println("Data processed!");
 	}
 
-	private CSG fixDegenerates(ArrayList<Polygon> toAdd, Polygon p) {
-		Debug3dProvider.clearScreen();
-		Debug3dProvider.addObject(p);
-		ArrayList<Vertex> degen = p.getDegeneratePoints();
-		Edge longEdge = p.getLongEdge();
-		ArrayList<Polygon> polygonsSharing = new ArrayList<Polygon>();
-		ArrayList<Polygon> polygonsSharingFixed = new ArrayList<Polygon>();
-
-		for (Polygon ptoA : toAdd) {
-			ArrayList<Edge> edges = ptoA.edges();
-			for (Edge e : edges) {
-				if (e.equals(longEdge)) {
-					//// com.neuronrobotics.sdk.common.Log.error("Degenerate Mate Found!");
-					polygonsSharing.add(ptoA);
-					Debug3dProvider.addObject(ptoA);
-					// TODO inject the points into the found edge
-					// upstream reparirs to mesh generation made this code effectivly unreachable
-					// in case that turns out to be false, pick up here
-					// the points in degen need to be inserted into the matching polygons
-					// both list of points should be right hand, but since they are other polygons,
-					// that may not be the case, so sorting needs to take place
-					ArrayList<Vertex> newpoints = new ArrayList<Vertex>();
-					for (Vertex v : ptoA.getVertices()) {
-						newpoints.add(v);
-						if (e.isThisPointOneOfMine(v, Plane.EPSILON_Point)) {
-							for (Vertex v2 : degen)
-								newpoints.add(v2);
-						}
-					}
-					Polygon e2 = new Polygon(newpoints, ptoA.getStorage());
-					try {
-						List<Polygon> t = PolygonUtil.concaveToConvex(e2);
-						for (Polygon poly : t) {
-							if (!poly.isDegenerate()) {
-								polygonsSharingFixed.add(poly);
-							}
-
-						}
-					} catch (Exception ex) {
-						ex.printStackTrace();
-						// retriangulation failed, ok, whatever man, moving on...
-					}
-				}
-			}
-		}
-		if (polygonsSharing.size() == 0) {
-			//// com.neuronrobotics.sdk.common.Log.error("Error! Degenerate triangle does
-			//// not share edge with any triangle");
-		}
-		if (polygonsSharingFixed.size() > 0) {
-			toAdd.removeAll(polygonsSharing);
-			toAdd.addAll(polygonsSharingFixed);
-		}
-		return this;
-	}
-
-	private CSG updatePolygons(ArrayList<Polygon> toAdd, ArrayList<Polygon> degenerates, Polygon p) {
-		// p=PolygonUtil.pruneDuplicatePoints(p);
+	private CSG updatePolygons(ArrayList<Polygon> toAdd, Polygon p) {
 		if (p == null)
 			return this;
-//		if(p.isDegenerate()) {
-//			degenerates.add(p);
-//			return;
-//		}
+
 
 		if (p.getVertices().size() == 3) {
 			toAdd.add(p);
 		} else {
-			// //com.neuronrobotics.sdk.common.Log.error("Fixing error in STL " + name + "
-			// polygon# " + i + "
-			// number of vertices " + p.vertices.size());
+
 			try {
-				List<Polygon> triangles = PolygonUtil.concaveToConvex(p);
-				for (Polygon poly : triangles) {
-					toAdd.add(poly);
+				if(!p.areAllPointsCollinear()) {
+					List<Polygon> triangles = PolygonUtil.concaveToConvex(p);
+					for (Polygon poly : triangles) {
+						toAdd.add(poly);
+					}
+				}else {
+					System.err.println("Polygon is colinear, removing "+p);
 				}
 			} catch (Throwable ex) {
-				//ex.printStackTrace();
+				System.err.println("Failed to triangulate "+p);
+				ex.printStackTrace();
 				progressMoniter.progressUpdate(1, 1, "Pruning bad polygon CSG::updatePolygons " + p, null);
-//				try {PolygonUtil.concaveToConvex(p);} catch (Throwable ex2) {
-//					ex2.printStackTrace();
-//				}
-//				Debug3dProvider.setProvider(providerOf3d);
-//				//ex.printStackTrace();
-//				Debug3dProvider.clearScreen();
-//				Debug3dProvider.addObject(p);
-//				try {
-//					List<Polygon> triangles = PolygonUtil.concaveToConvex(p);
-//					toAdd.addAll(triangles);
-//				}catch(java.lang.IllegalStateException ise) {
-//					ise.printStackTrace();
-//				}
-//				Debug3dProvider.setProvider(null);
 			}
 
 		}
@@ -3439,4 +3340,9 @@ public class CSG implements IuserAPI {
 	public static void setUseGPU(boolean useGPU) {
 		CSG.useGPU = useGPU;
 	}
+
+	public boolean isBoundsTouching(CSG incoming) {
+		return getBounds().isBoundsTouching(incoming.getBounds());
+	}
+
 }
