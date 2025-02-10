@@ -435,7 +435,7 @@ public class Vector3d extends javax.vecmath.Vector3d{
     	if (!Vector3d.class.isInstance(obj)) {
             return false;
         }
-        return test((Vector3d)obj,Plane.getEPSILON());
+        return test((Vector3d)obj,Plane.getEPSILON()*100);
     }
     
     double distance(Vector3d v) {
