@@ -52,7 +52,7 @@ import javafx.scene.paint.Color;
 public final class Polygon {
 
     /** Polygon vertices. */
-    private final ArrayList<Vertex> vertices;
+    private ArrayList<Vertex> vertices;
     /**
      * Shared property (can be used for shared color etc.).
      */
@@ -165,6 +165,7 @@ public final class Polygon {
 		}
 	}
 	private void validateAndInit( boolean allowDegenerate) {
+		vertices=pruneDuplicatePoints(vertices);
 		if(plane==null)
 			this.plane = Plane.createFromPoints(
 	                vertices);
@@ -767,6 +768,9 @@ public final class Polygon {
 	}
 	
 	public Polygon add(int index, Vertex v) {
+//		for(Vertex vr:vertices)
+//			if(vr.pos.test(v.pos, Plane.getEPSILON()))
+//				return this;
 		vertices.add(index,v);
 		
 		return this;
@@ -783,35 +787,24 @@ public final class Polygon {
 		Vertex p2 = vertices.get(1);
 
 		// Calculate the direction vector between first two points
-		double[] directionVector = { p2.getX() - p1.getX(), p2.getY() - p1.getY(), p2.getZ() - p1.getZ() };
-
+		Vector3d direction = p1.pos.minus(p2.pos);
 		// Normalize the direction vector
-		double length = Math.sqrt(directionVector[0] * directionVector[0] + directionVector[1] * directionVector[1]
-				+ directionVector[2] * directionVector[2]);
+		double length = direction.length();
 		double ep = Plane.getEPSILON();
 		if (length < ep) { // If points are effectively identical
 			return false;
 		}
-
-		directionVector[0] /= length;
-		directionVector[1] /= length;
-		directionVector[2] /= length;
+		direction.normalize();
 
 		// Check each subsequent point
 		for (int i = 2; i < vertices.size(); i++) {
 			Vertex p = vertices.get(i);
 
-			// Vector from first point to current point
-			double[] currentVector = { p.getX() - p1.getX(), p.getY() - p1.getY(), p.getZ() - p1.getZ() };
-
 			// Calculate cross product
-			double[] crossProduct = { directionVector[1] * currentVector[2] - directionVector[2] * currentVector[1],
-					directionVector[2] * currentVector[0] - directionVector[0] * currentVector[2],
-					directionVector[0] * currentVector[1] - directionVector[1] * currentVector[0] };
+			Vector3d cross = direction.cross(p.pos);
 
 			// Calculate magnitude of cross product
-			double magnitude = Math.sqrt(crossProduct[0] * crossProduct[0] + crossProduct[1] * crossProduct[1]
-					+ crossProduct[2] * crossProduct[2]);
+			double magnitude = Math.abs(cross.length());
 
 			// If magnitude is not close to zero, points are not collinear
 			if (magnitude > ep) {

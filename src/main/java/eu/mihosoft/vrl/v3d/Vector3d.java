@@ -363,7 +363,7 @@ public class Vector3d extends javax.vecmath.Vector3d{
      */
     private double roundToEpsilon(double value,double epsilon) {
         // Round to nearest multiple of epsilon
-        return ((double)Math.round(value / epsilon)) * epsilon;
+        return  ((double)Math.round(value / epsilon)) * epsilon;
     }
 	private String roundedValue(double v,double ep) {
 		return String.format(getExportString(), roundToEpsilon(v,ep));
@@ -430,10 +430,22 @@ public class Vector3d extends javax.vecmath.Vector3d{
      */
     @Override
     public boolean equals(Object obj) {
-        return test(obj,Plane.EPSILON_Point);
+    	if(this==obj)
+    		return true;
+    	if (!Vector3d.class.isInstance(obj)) {
+            return false;
+        }
+        return test((Vector3d)obj,Plane.getEPSILON());
+    }
+    
+    double distance(Vector3d v) {
+    	Vector3d diff = v.minus(this);
+    	return diff.magnitude();
     }
 
-	public boolean test(Object obj, double epsilon) {
+	public boolean test(Vector3d obj, double epsilon) {
+		if(this==obj)
+			return true;
 		if (obj == null) {
             return false;
         }
@@ -441,15 +453,10 @@ public class Vector3d extends javax.vecmath.Vector3d{
             return false;
         }
         final Vector3d other = (Vector3d) obj;
-        if (abs(this.x - other.x) > epsilon) {
-            return false;
-        }
-        if (abs(this.y - other.y) > epsilon) {
-            return false;
-        }
-        if (abs(this.z - other.z) > epsilon) {
-            return false;
-        }
+        double distance =distance(other);
+        double abs = Math.abs(distance);
+		if(abs>epsilon)
+        	return false;
         return true;
 	}
 
