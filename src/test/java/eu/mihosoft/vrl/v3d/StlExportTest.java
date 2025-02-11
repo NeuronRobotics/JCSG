@@ -12,8 +12,8 @@ public class StlExportTest {
 
 	@Test
 	public void makeBadSTL() throws IOException {
-		Plane.setEPSILON(1.0e-12);
-		Vector3d.setEXPORTEPSILON(1.0e-9);
+		Plane.setEPSILON(1.0e-9);
+		Vector3d.setEXPORTEPSILON(1.0e-10);
 		CSG.setUseGPU(false);
 		CSG.setPreventNonManifoldTriangles(true);
 		CSG badExport2 = CSG.text(" A QUICK BROWN ", 10,30,"Serif Regular").movey(30);
@@ -23,28 +23,30 @@ public class StlExportTest {
 //		badExport2=new Cube(20).toCSG().movey(30);
 //		badExport=new Cube(20).toCSG();
 		
-		badExport=badExport.union(badExport2);
+		badExport=badExport.union(badExport2).scaleToMeasurmentX(160).scaleToMeasurmentY(30);
+		CSG inMem = badExport;
 		//String filename ="TextStl.stl";
-		FileUtil.write(Paths.get("TextStl.stl"),
+		FileUtil.write(Paths.get("1-TextStl.stl"),
 				badExport.toStlString());
 		System.out.println("Load saved stl");
-		File file = new File("TextStl.stl");
+		File file = new File("1-TextStl.stl");
 		CSG loaded = STL.file(file.toPath());
-		FileUtil.write(Paths.get("TextLoadedStl.stl"),
+		FileUtil.write(Paths.get("2-TextLoadedStl.stl"),
 				loaded.toStlString());
 		System.out.println("Perform scale");
-		badExport=loaded.scaleToMeasurmentX(160).scaleToMeasurmentY(30);
-		FileUtil.write(Paths.get("TextScaledStl.stl"),
+		badExport=loaded;
+		FileUtil.write(Paths.get("3-TextScaledStl.stl"),
 				badExport.toStlString());
 		System.out.println("Perform difference");
 		CSG movey = new Cube(180,40,10).toCSG().toZMin().toXMin().toYMin().movey(-5);
-		movey.triangulate();
+		FileUtil.write(Paths.get("4-InMemTextDifferencedStl.stl"),
+				movey.difference(inMem).toStlString());
 		CSG difference = movey.difference(badExport);
-		FileUtil.write(Paths.get("TextDifferencedStl.stl"),
+		FileUtil.write(Paths.get("5-TextDifferencedStl.stl"),
 				difference.toStlString());
 		System.out.println("Perform Rotate");
 		badExport=difference.rotx(35).roty(45);
-		FileUtil.write(Paths.get("TextDiffRotatedStl.stl"),
+		FileUtil.write(Paths.get("6-TextDiffRotatedStl.stl"),
 				badExport.toStlString());
 	}
 
