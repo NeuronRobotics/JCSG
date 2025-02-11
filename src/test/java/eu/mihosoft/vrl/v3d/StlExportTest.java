@@ -30,10 +30,21 @@ public class StlExportTest {
 		System.out.println("Load saved stl");
 		File file = new File("TextStl.stl");
 		CSG loaded = STL.file(file.toPath());
-		System.out.println("Perform difference");
+		FileUtil.write(Paths.get("TextLoadedStl.stl"),
+				loaded.toStlString());
+		System.out.println("Perform scale");
 		badExport=loaded.scaleToMeasurmentX(160).scaleToMeasurmentY(30);
-		badExport=new Cube(180,40,10).toCSG().toZMin().toXMin().toYMin().movey(-5).difference(badExport).rotx(35).roty(45);
-		FileUtil.write(Paths.get("TextStl2.stl"),
+		FileUtil.write(Paths.get("TextScaledStl.stl"),
+				badExport.toStlString());
+		System.out.println("Perform difference");
+		CSG movey = new Cube(180,40,10).toCSG().toZMin().toXMin().toYMin().movey(-5);
+		movey.triangulate();
+		CSG difference = movey.difference(badExport);
+		FileUtil.write(Paths.get("TextDifferencedStl.stl"),
+				difference.toStlString());
+		System.out.println("Perform Rotate");
+		badExport=difference.rotx(35).roty(45);
+		FileUtil.write(Paths.get("TextDiffRotatedStl.stl"),
 				badExport.toStlString());
 	}
 
