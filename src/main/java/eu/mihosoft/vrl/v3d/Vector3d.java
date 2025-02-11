@@ -432,7 +432,11 @@ public class Vector3d extends javax.vecmath.Vector3d{
     public boolean equals(Object obj) {
     	if(this==obj)
     		return true;
+//    	if(Vertex.class.isInstance(obj)) {
+//    		return equals(((Vertex)obj).pos);
+//    	}
     	if (!Vector3d.class.isInstance(obj)) {
+    		System.err.println("Test fail, "+obj.getClass()+" is not a Vector3d");
             return false;
         }
         return test((Vector3d)obj,Plane.getEPSILON());
