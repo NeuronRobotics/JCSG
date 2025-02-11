@@ -37,6 +37,8 @@ package eu.mihosoft.vrl.v3d;
 import java.util.ArrayList;
 import java.util.List;
 
+import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
+
 /**
  * Represents a plane in 3D space.
  *
@@ -422,7 +424,7 @@ public class Plane {
 			if (f.size() >= 3) {
 				try {
 					Polygon fpoly = new Polygon(f, polygon.getStorage(),false,polygon.plane).setColor(polygon.getColor());
-					front.add(fpoly);
+					add(front,fpoly);
 				} catch (Exception ex) {
 					System.err.println("Pruning bad polygon Plane::splitPolygon");
 					// skip adding broken polygon here
@@ -433,7 +435,7 @@ public class Plane {
 			if (b.size() >= 3) {
 				try {
 					Polygon bpoly = new Polygon(b, polygon.getStorage(),false,polygon.plane).setColor(polygon.getColor());
-					back.add(bpoly);
+					add(back,bpoly);
 				} catch (Exception ex) {
 					// ex.printStackTrace();
 					System.err.println("Pruning bad polygon Plane::splitPolygon");
@@ -442,6 +444,15 @@ public class Plane {
 				// com.neuronrobotics.sdk.common.Log.error("Back Clip Fault!");
 			}
 			break;
+		}
+	}
+	private static void add(List<Polygon> l,Polygon p) {
+		try {
+			// test triangulation of new polygon before adding
+			PolygonUtil.concaveToConvex(p);
+			l.add(p);
+		}catch(Exception ex) {
+			ex.printStackTrace();
 		}
 	}
 
