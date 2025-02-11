@@ -40,6 +40,7 @@ import java.util.*;
 public class TextExtrude {
 	private static final String default_font = "FreeSerif";
 	private final static int POINTS_CURVE = 10;
+	private static final double CURVE_SEGMENTS = 4; // Number of segments to approximate curves
 
 	private final String text;
 	// private List<Vector3d> points;
@@ -200,7 +201,6 @@ public class TextExtrude {
 	}
 
 // Below is AI slop
-	private static final double CURVE_SEGMENTS = 2; // Number of segments to approximate curves
 	//private static final double POINT_EPSILON = 0.0001; // Distance threshold for considering points equal
 
 	/**
