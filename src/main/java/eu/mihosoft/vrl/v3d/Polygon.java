@@ -146,16 +146,16 @@ public final class Polygon {
 		ArrayList<Vertex> newPoints = new ArrayList<Vertex>();
 		for (int i = 0; i < incoming.size(); i++) {
 			Vertex v = incoming.get(i);
-//			boolean duplicate = false;
-//			for (Vertex vx : newPoints) {
-//				if (vx.pos.test(v.pos,	1.0e-4)) {
-//					duplicate = true;
-//				}
-//			}
-//			if (!duplicate) {
-				//v.pos.roundToEpsilon();
+			//v.pos.roundToEpsilon(Plane.getEPSILON());
+			boolean duplicate = false;
+			for (Vertex vx : newPoints) {
+				if (vx.pos.test(v.pos,	Plane.getEPSILON())) {
+					//duplicate = true;
+				}
+			}
+			if (!duplicate) {
 				newPoints.add(v);
-			//}
+			}
 
 		}
 		try {
