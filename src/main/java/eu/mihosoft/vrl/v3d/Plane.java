@@ -56,7 +56,7 @@ public class Plane {
 
 	public static double EPSILON = 1.0e-9;
 	public static double EPSILON_Point = getEPSILON();
-	public static double EPSILON_duplicate = 1.0e-4;
+	//public static double EPSILON_duplicate = 1.0e-4;
 	/**
 	 * XY plane.
 	 */
