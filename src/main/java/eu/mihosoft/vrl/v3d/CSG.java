@@ -1520,10 +1520,15 @@ public class CSG implements IuserAPI {
 
 	private void performTriangulation() {
 		ArrayList<Polygon> toAdd = new ArrayList<Polygon>();
-
-		Stream<Polygon> polygonStream;
-		polygonStream = polygons.stream();
-		polygonStream.forEach(p -> updatePolygons(toAdd, p));
+		int failedPolys = 0;
+		for(int i=0;i<polygons.size();i++) {
+			Polygon p = polygons.get(i);
+			CSG ret = updatePolygons(toAdd, p);
+			if(ret ==null)
+				failedPolys++;
+		}
+		if(failedPolys>0)
+			System.out.println("Pruned "+failedPolys+" polygons from CSG "+getName());
 		if (toAdd.size() > 0) {
 			setPolygons(toAdd);
 		}
@@ -1695,11 +1700,13 @@ public class CSG implements IuserAPI {
 					}
 				}else {
 					System.err.println("Polygon is colinear, removing "+p);
+					return null;
 				}
 			} catch (Throwable ex) {
-				System.err.println("Failed to triangulate "+p);
-				ex.printStackTrace();
+//				System.err.println("Failed to triangulate "+p);
+//				ex.printStackTrace();
 				progressMoniter.progressUpdate(1, 1, "Pruning bad polygon CSG::updatePolygons " + p, null);
+				return null;
 			}
 
 		}
