@@ -84,12 +84,14 @@ public class STL {
 		STLLoader loader = new STLLoader();
 
 		List<Polygon> polygons = new ArrayList<>();
-		List<Vector3d> vertices = new ArrayList<>();
-		for (Vector3d p : loader.parse(path.toFile())) {
+		List<Vertex> vertices = new ArrayList<>();
+		for (Vertex p : loader.parse(path.toFile())) {
 			vertices.add(p);
 			if (vertices.size() == 3) {
 				try {
-					polygons.add(Polygon.fromPointsAllowDegenerate(vertices));
+					
+					Plane pl = new Plane(vertices.get(0).normal, vertices);
+					polygons.add(new Polygon(vertices, null, false, pl));
 				} catch (RuntimeException ex) {
 					//ex.printStackTrace();
 					System.err.println("Pruning polygon loading STL::file");

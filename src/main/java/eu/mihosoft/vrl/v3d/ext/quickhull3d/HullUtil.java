@@ -41,7 +41,7 @@ public class HullUtil {
 		}
 		if (CSG.class.isInstance(points.get(0))) {
 			for (Object csg : points)
-				((CSG) csg).getPolygons().forEach((p) -> p.vertices.forEach((v) -> plist.add(v.pos)));
+				((CSG) csg).getPolygons().forEach((p) -> p.getVertices().forEach((v) -> plist.add(v.pos)));
 
 			return hull(plist, new PropertyStorage());
 		}
@@ -98,7 +98,7 @@ public class HullUtil {
 
 		List<Vector3d> points = new ArrayList<>(csg.getPolygons().size() * 3);
 
-		csg.getPolygons().forEach((p) -> p.vertices.forEach((v) -> points.add(v.pos)));
+		csg.getPolygons().forEach((p) -> p.getVertices().forEach((v) -> points.add(v.pos)));
 
 		return hull(points, storage);
 	}
@@ -114,7 +114,7 @@ public class HullUtil {
 
 		List<Vector3d> points = new ArrayList<>();
 		for (CSG csg : csgList)
-			csg.getPolygons().forEach((p) -> p.vertices.forEach((v) -> points.add(v.pos)));
+			csg.getPolygons().forEach((p) -> p.getVertices().forEach((v) -> points.add(v.pos)));
 
 		return hull(points, new PropertyStorage());
 	}

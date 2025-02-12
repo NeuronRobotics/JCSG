@@ -37,6 +37,8 @@ package eu.mihosoft.vrl.v3d;
 import java.util.ArrayList;
 import java.util.List;
 
+import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
+
 /**
  * Represents a plane in 3D space.
  *
@@ -54,7 +56,7 @@ public class Plane {
 
 	public static double EPSILON = 1.0e-9;
 	public static double EPSILON_Point = getEPSILON();
-	public static double EPSILON_duplicate = 1.0e-4;
+	//public static double EPSILON_duplicate = 1.0e-4;
 	/**
 	 * XY plane.
 	 */
@@ -87,6 +89,17 @@ public class Plane {
 	public Plane(Vector3d normal, double dist) {
 		this.setNormal(normal.normalized());
 		this.setDist(dist);
+	}
+	/**
+	 * Constructor. Creates a new plane defined by its normal vector and the
+	 * distance to the origin.
+	 *
+	 * @param normal plane normal
+	 * @param dist   distance from origin
+	 */
+	public Plane(Vector3d normal, List<Vertex> vertices) {
+		this.setNormal(normal.normalized());
+		this.setDist(normal.dot(vertices.get(0).pos));
 	}
 
 	/**
@@ -341,8 +354,8 @@ public class Plane {
 		// search for the epsilon values of the incoming plane
 		double negEpsilon = -Plane.getEPSILON();
 		double posEpsilon = Plane.getEPSILON();
-		for (int i = 0; i < polygon.vertices.size(); i++) {
-			double t = polygon.plane.getNormal().dot(polygon.vertices.get(i).pos) - polygon.plane.getDist();
+		for (int i = 0; i < polygon.getVertices().size(); i++) {
+			double t = polygon.plane.getNormal().dot(polygon.getVertices().get(i).pos) - polygon.plane.getDist();
 			if (t > posEpsilon) {
 				// com.neuronrobotics.sdk.common.Log.error("Non flat polygon, increasing
 				// positive epsilon "+t);
@@ -358,8 +371,8 @@ public class Plane {
 		List<Integer> types = new ArrayList<>();
 		boolean somePointsInfront = false;
 		boolean somePointsInBack = false;
-		for (int i = 0; i < polygon.vertices.size(); i++) {
-			double t = this.getNormal().dot(polygon.vertices.get(i).pos) - this.getDist();
+		for (int i = 0; i < polygon.getVertices().size(); i++) {
+			double t = this.getNormal().dot(polygon.getVertices().get(i).pos) - this.getDist();
 			int type = (t < negEpsilon) ? BACK : (t > posEpsilon) ? FRONT : COPLANAR;
 			if (type == BACK)
 				somePointsInBack = true;
@@ -388,12 +401,12 @@ public class Plane {
 		case SPANNING:
 			List<Vertex> f = new ArrayList<>();
 			List<Vertex> b = new ArrayList<>();
-			for (int i = 0; i < polygon.vertices.size(); i++) {
-				int j = (i + 1) % polygon.vertices.size();
+			for (int i = 0; i < polygon.getVertices().size(); i++) {
+				int j = (i + 1) % polygon.getVertices().size();
 				int ti = types.get(i);
 				int tj = types.get(j);
-				Vertex vi = polygon.vertices.get(i);
-				Vertex vj = polygon.vertices.get(j);
+				Vertex vi = polygon.getVertices().get(i);
+				Vertex vj = polygon.getVertices().get(j);
 				if (ti != BACK) {
 					f.add(vi);
 				}
@@ -410,7 +423,8 @@ public class Plane {
 			}
 			if (f.size() >= 3) {
 				try {
-					front.add(new Polygon(f, polygon.getStorage()).setColor(polygon.getColor()));
+					Polygon fpoly = new Polygon(f, polygon.getStorage(),false,polygon.plane).setColor(polygon.getColor());
+					add(front,fpoly);
 				} catch (Exception ex) {
 					System.err.println("Pruning bad polygon Plane::splitPolygon");
 					// skip adding broken polygon here
@@ -420,7 +434,8 @@ public class Plane {
 			}
 			if (b.size() >= 3) {
 				try {
-					back.add(new Polygon(b, polygon.getStorage()).setColor(polygon.getColor()));
+					Polygon bpoly = new Polygon(b, polygon.getStorage(),false,polygon.plane).setColor(polygon.getColor());
+					add(back,bpoly);
 				} catch (Exception ex) {
 					// ex.printStackTrace();
 					System.err.println("Pruning bad polygon Plane::splitPolygon");
@@ -429,6 +444,15 @@ public class Plane {
 				// com.neuronrobotics.sdk.common.Log.error("Back Clip Fault!");
 			}
 			break;
+		}
+	}
+	private static void add(List<Polygon> l,Polygon p) {
+		try {
+			// test triangulation of new polygon before adding
+			PolygonUtil.concaveToConvex(p);
+			l.add(p);
+		}catch(Exception ex) {
+			ex.printStackTrace();
 		}
 	}
 
@@ -484,5 +508,18 @@ public class Plane {
 
 	public static void setEPSILON(double ePSILON) {
 		EPSILON = ePSILON;
+	}
+
+	public void transformPlane(Transform transform_in, Vector3d a) {
+		Transform trans_rot = transform_in.copy()// .inverse()
+				.setToOrigin();
+//		Transform trans_dist = new Transform().movex(transform_in.getX())
+//												.movey(transform_in.getY())
+//												.movez(transform_in.getZ());
+		Vector3d newNormal = this.normal.transformed(trans_rot);
+		newNormal = newNormal.negated();
+		this.setNormal(newNormal.normalized());
+		this.setDist(this.normal.dot(a));
+
 	}
 }

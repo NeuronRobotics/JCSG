@@ -1474,7 +1474,7 @@ public class CSG implements IuserAPI {
 			sb.append("solid v3d.csg\n");
 			for (Polygon p : getPolygons()) {
 				try {
-					Plane.computeNormal(p.vertices);
+					Plane.computeNormal(p.getVertices());
 					p.toStlString(sb);
 				} catch (Exception ex) {
 					System.out.println("Prune Polygon on export");
@@ -1498,14 +1498,11 @@ public class CSG implements IuserAPI {
 		if (triangulated)
 			return this;
 
-		//// com.neuronrobotics.sdk.common.Log.error("CSG triangulating for " +
-		//// name+"..");
-		ArrayList<Polygon> toAdd = new ArrayList<Polygon>();
-		ArrayList<Polygon> degenerates = new ArrayList<Polygon>();
 		if (providerOf3d == null && Debug3dProvider.provider != null)
 			providerOf3d = Debug3dProvider.provider;
 		IDebug3dProvider start = Debug3dProvider.provider;
 		Debug3dProvider.setProvider(null);
+		//performTriangulation();
 		if (preventNonManifoldTriangles) {
 			for (int i = 0; i < 2; i++)
 				if (isUseGPU()) {
@@ -1514,47 +1511,27 @@ public class CSG implements IuserAPI {
 					runCPUMakeManifold();
 				}
 		}
-		try {
-			Stream<Polygon> polygonStream;
-			polygonStream = polygons.stream();
-			// TODO this should work in paralell but throws immpossible NPE's instead.
-//			if (getPolygons().size() > 200) {
-//				polygonStream = polygons.parallelStream();
-//			}
-			polygonStream.forEach(p -> updatePolygons(toAdd, degenerates, p));
-//			for (int i = 0; i < polygons.size(); i++) {
-//				Polygon p = polygons.get(i);
-//				updatePolygons(toAdd, degenerates, p);
-//			}
-
-			if (degenerates.size() > 0) {
-				//
-				// Debug3dProvider.setProvider(providerOf3d);
-
-				if (fix) {
-					Debug3dProvider.clearScreen();
-					Stream<Polygon> degenStreeam;
-					degenStreeam = polygons.stream(); // this operation is read-modify-write and can not be done in
-														// parallel
-					// com.neuronrobotics.sdk.common.Log.error("Found "+degenerates.size()+"
-					// degenerate triangles, Attempting to fix");
-					degenStreeam.forEach(p -> fixDegenerates(toAdd, p));
-				} else {
-					needsDegeneratesPruned = true;
-					toAdd.addAll(degenerates);
-				}
-			}
-			if (toAdd.size() > 0) {
-				setPolygons(toAdd);
-			}
-			// now all polygons are definantly triangles
-			triangulated = true;
-		} catch (Throwable t) {
-			t.printStackTrace();
-
-		}
+		performTriangulation();
+		// now all polygons are definantly triangles
+		triangulated = true;
 		Debug3dProvider.setProvider(start);
 		return this;
+	}
+
+	private void performTriangulation() {
+		ArrayList<Polygon> toAdd = new ArrayList<Polygon>();
+		int failedPolys = 0;
+		for(int i=0;i<polygons.size();i++) {
+			Polygon p = polygons.get(i);
+			CSG ret = updatePolygons(toAdd, p);
+			if(ret ==null)
+				failedPolys++;
+		}
+		if(failedPolys>0)
+			System.out.println("Pruned "+failedPolys+" polygons from CSG "+getName());
+		if (toAdd.size() > 0) {
+			setPolygons(toAdd);
+		}
 	}
 
 	private void runCPUMakeManifold() {
@@ -1571,7 +1548,7 @@ public class CSG implements IuserAPI {
 				Edge e = null;
 				// Test every polygon
 				Polygon i = polygons.get(threadIndex);
-				ArrayList<Vertex> vertices = i.vertices;
+				List<Vertex> vertices = i.getVertices();
 				for (int k = 0; k < vertices.size(); k++) {
 					// each point in the checking polygon
 					int now = k;
@@ -1591,7 +1568,7 @@ public class CSG implements IuserAPI {
 						Polygon ii = polygons.get(l);
 						if (threadIndex != l) {
 							// every other polygon besides this one being tested
-							ArrayList<Vertex> vert = ii.vertices;
+							List<Vertex> vert = ii.getVertices();
 							for (int iii = 0; iii < vert.size(); iii++) {
 								Vertex vi = vert.get(iii);
 								// if they are coincident, move along
@@ -1602,7 +1579,7 @@ public class CSG implements IuserAPI {
 								// edge
 								if (e.contains(vi.pos, tOL)) {
 									// System.out.println("Inserting point "+vi);
-									vertices.add(next, vi);
+									i.add(next, vi);
 									e.setP2(vi);
 									// totalAdded++;
 								}
@@ -1645,7 +1622,7 @@ public class CSG implements IuserAPI {
 		int roomForMore = 10;
 		int size = polygons.size();
 		for (int i = 0; i < size; i++) {
-			numberOfPoints += (polygons.get(i).vertices.size());
+			numberOfPoints += (polygons.get(i).getVertices().size());
 		}
 		float[] pointData = new float[numberOfPoints * 3];
 		int[] startIndex = new int[size];
@@ -1656,10 +1633,10 @@ public class CSG implements IuserAPI {
 			insertions[i] = -1;
 		}
 		for (int polyIndex = 0; polyIndex < size; polyIndex++) {
-			sizes[polyIndex] = polygons.get(polyIndex).vertices.size();
+			sizes[polyIndex] = polygons.get(polyIndex).getVertices().size();
 			startIndex[polyIndex] = runningPointIndex;
 			for (int ii = 0; ii < sizes[polyIndex]; ii++) {
-				Vector3d pos = polygons.get(polyIndex).vertices.get(ii).pos.clone()
+				Vector3d pos = polygons.get(polyIndex).getVertices().get(ii).pos.clone()
 						.roundToEpsilon(Vector3d.getEXPORTEPSILON());
 				pointData[startIndex[polyIndex] + 0 + ii] = (float) pos.x;
 				pointData[startIndex[polyIndex] + 1 + ii] = (float) pos.y;
@@ -1706,99 +1683,30 @@ public class CSG implements IuserAPI {
 		System.out.println("Data processed!");
 	}
 
-	private CSG fixDegenerates(ArrayList<Polygon> toAdd, Polygon p) {
-		Debug3dProvider.clearScreen();
-		Debug3dProvider.addObject(p);
-		ArrayList<Vertex> degen = p.getDegeneratePoints();
-		Edge longEdge = p.getLongEdge();
-		ArrayList<Polygon> polygonsSharing = new ArrayList<Polygon>();
-		ArrayList<Polygon> polygonsSharingFixed = new ArrayList<Polygon>();
-
-		for (Polygon ptoA : toAdd) {
-			ArrayList<Edge> edges = ptoA.edges();
-			for (Edge e : edges) {
-				if (e.equals(longEdge)) {
-					//// com.neuronrobotics.sdk.common.Log.error("Degenerate Mate Found!");
-					polygonsSharing.add(ptoA);
-					Debug3dProvider.addObject(ptoA);
-					// TODO inject the points into the found edge
-					// upstream reparirs to mesh generation made this code effectivly unreachable
-					// in case that turns out to be false, pick up here
-					// the points in degen need to be inserted into the matching polygons
-					// both list of points should be right hand, but since they are other polygons,
-					// that may not be the case, so sorting needs to take place
-					ArrayList<Vertex> newpoints = new ArrayList<Vertex>();
-					for (Vertex v : ptoA.vertices) {
-						newpoints.add(v);
-						if (e.isThisPointOneOfMine(v, Plane.EPSILON_Point)) {
-							for (Vertex v2 : degen)
-								newpoints.add(v2);
-						}
-					}
-					Polygon e2 = new Polygon(newpoints, ptoA.getStorage());
-					try {
-						List<Polygon> t = PolygonUtil.concaveToConvex(e2);
-						for (Polygon poly : t) {
-							if (!poly.isDegenerate()) {
-								polygonsSharingFixed.add(poly);
-							}
-
-						}
-					} catch (Exception ex) {
-						ex.printStackTrace();
-						// retriangulation failed, ok, whatever man, moving on...
-					}
-				}
-			}
-		}
-		if (polygonsSharing.size() == 0) {
-			//// com.neuronrobotics.sdk.common.Log.error("Error! Degenerate triangle does
-			//// not share edge with any triangle");
-		}
-		if (polygonsSharingFixed.size() > 0) {
-			toAdd.removeAll(polygonsSharing);
-			toAdd.addAll(polygonsSharingFixed);
-		}
-		return this;
-	}
-
-	private CSG updatePolygons(ArrayList<Polygon> toAdd, ArrayList<Polygon> degenerates, Polygon p) {
-		// p=PolygonUtil.pruneDuplicatePoints(p);
+	private CSG updatePolygons(ArrayList<Polygon> toAdd, Polygon p) {
 		if (p == null)
 			return this;
-//		if(p.isDegenerate()) {
-//			degenerates.add(p);
-//			return;
-//		}
 
-		if (p.vertices.size() == 3) {
+
+		if (p.getVertices().size() == 3) {
 			toAdd.add(p);
 		} else {
-			// //com.neuronrobotics.sdk.common.Log.error("Fixing error in STL " + name + "
-			// polygon# " + i + "
-			// number of vertices " + p.vertices.size());
+
 			try {
-				List<Polygon> triangles = PolygonUtil.concaveToConvex(p);
-				for (Polygon poly : triangles) {
-					toAdd.add(poly);
+				if(!p.areAllPointsCollinear()) {
+					List<Polygon> triangles = PolygonUtil.concaveToConvex(p);
+					for (Polygon poly : triangles) {
+						toAdd.add(poly);
+					}
+				}else {
+					System.err.println("Polygon is colinear, removing "+p);
+					return null;
 				}
 			} catch (Throwable ex) {
-				//ex.printStackTrace();
+//				System.err.println("Failed to triangulate "+p);
+//				ex.printStackTrace();
 				progressMoniter.progressUpdate(1, 1, "Pruning bad polygon CSG::updatePolygons " + p, null);
-//				try {PolygonUtil.concaveToConvex(p);} catch (Throwable ex2) {
-//					ex2.printStackTrace();
-//				}
-//				Debug3dProvider.setProvider(providerOf3d);
-//				//ex.printStackTrace();
-//				Debug3dProvider.clearScreen();
-//				Debug3dProvider.addObject(p);
-//				try {
-//					List<Polygon> triangles = PolygonUtil.concaveToConvex(p);
-//					toAdd.addAll(triangles);
-//				}catch(java.lang.IllegalStateException ise) {
-//					ise.printStackTrace();
-//				}
-//				Debug3dProvider.setProvider(null);
+				return null;
 			}
 
 		}
@@ -1849,7 +1757,7 @@ public class CSG implements IuserAPI {
 		for (Polygon p : getPolygons()) {
 			List<Integer> polyIndices = new ArrayList<>();
 
-			p.vertices.stream().forEach((v) -> {
+			p.getVertices().stream().forEach((v) -> {
 				if (!vertices.contains(v)) {
 					vertices.add(v);
 					v.toObjString(sb);
@@ -2019,9 +1927,9 @@ public class CSG implements IuserAPI {
 
 		for (Polygon p : getPolygons()) {
 
-			for (int i = 0; i < p.vertices.size(); i++) {
+			for (int i = 0; i < p.getVertices().size(); i++) {
 
-				Vertex vert = p.vertices.get(i);
+				Vertex vert = p.getVertices().get(i);
 
 				if (vert.pos.x < minX) {
 					minX = vert.pos.x;
@@ -2254,10 +2162,10 @@ public class CSG implements IuserAPI {
 		ArrayList<CSG> bits = new ArrayList<>();
 		for (Polygon p : this.getPolygons()) {
 			List<Vector3d> plist = new ArrayList<>();
-			for (Vertex v : p.vertices) {
+			for (Vertex v : p.getVertices()) {
 				CSG newSHape = travelingShape.move(v);
 				for (Polygon np : newSHape.getPolygons()) {
-					for (Vertex nv : np.vertices) {
+					for (Vertex nv : np.getVertices()) {
 						plist.add(nv.pos);
 					}
 				}
@@ -2280,7 +2188,7 @@ public class CSG implements IuserAPI {
 	public ArrayList<CSG> minkowski(CSG travelingShape) {
 		HashMap<Vertex, CSG> map = new HashMap<>();
 		for (Polygon p : travelingShape.getPolygons()) {
-			for (Vertex v : p.vertices) {
+			for (Vertex v : p.getVertices()) {
 				if (map.get(v) == null)// use hashmap to avoid duplicate locations
 					map.put(v, this.move(v));
 			}
@@ -3439,4 +3347,9 @@ public class CSG implements IuserAPI {
 	public static void setUseGPU(boolean useGPU) {
 		CSG.useGPU = useGPU;
 	}
+
+	public boolean isBoundsTouching(CSG incoming) {
+		return getBounds().isBoundsTouching(incoming.getBounds());
+	}
+
 }

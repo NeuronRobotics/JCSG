@@ -131,14 +131,14 @@ public class SVGExporter {
 		String color = colorNames.get(colorTicker);
 		String section = "  <polyline points=\"";
 
-		for (Vertex v : p.vertices) {
+		for (Vertex v : p.getVertices()) {
 			Vector3d position = v.pos.transformed(new Transform().rotX(180));
 			double x = (position.x * Scale);
 			double y = (position.y * Scale)+VueBoxSize;
 			section += x + "," + y + " ";
 		}
 		// Close loop
-		Vector3d position = p.vertices.get(0).pos.transformed(new Transform().rotX(180));
+		Vector3d position = p.getVertices().get(0).pos.transformed(new Transform().rotX(180));
 		double x = (position.x * Scale);
 		double y = (position.y * Scale)+VueBoxSize;
 		section += x + "," + y + " ";

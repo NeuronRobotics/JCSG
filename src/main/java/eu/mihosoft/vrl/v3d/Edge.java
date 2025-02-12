@@ -82,8 +82,8 @@ public class Edge {
 	public static List<Edge> fromPolygon(Polygon poly) {
 		List<Edge> result = new ArrayList<>();
 
-		for (int i = 0; i < poly.vertices.size(); i++) {
-			Edge e = new Edge(poly.vertices.get(i), poly.vertices.get((i + 1) % poly.vertices.size()));
+		for (int i = 0; i < poly.getVertices().size(); i++) {
+			Edge e = new Edge(poly.getVertices().get(i), poly.getVertices().get((i + 1) % poly.getVertices().size()));
 
 			result.add(e);
 		}
@@ -124,7 +124,7 @@ public class Edge {
 //                collect(Collectors.toList());
 		Polygon p = Polygon.fromPoints(points);
 
-		p.vertices.stream().forEachOrdered((vertex) -> {
+		p.getVertices().stream().forEachOrdered((vertex) -> {
 			vertex.normal = plane.getNormal().clone();
 		});
 

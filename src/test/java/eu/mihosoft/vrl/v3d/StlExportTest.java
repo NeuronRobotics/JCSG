@@ -12,28 +12,41 @@ public class StlExportTest {
 
 	@Test
 	public void makeBadSTL() throws IOException {
-		Plane.setEPSILON(1.0e-12);
-		Vector3d.setEXPORTEPSILON(1.0e-9);
+		Plane.setEPSILON(1.0e-9);
+		Vector3d.setEXPORTEPSILON(1.0e-10);
 		CSG.setUseGPU(false);
 		CSG.setPreventNonManifoldTriangles(true);
-		CSG badExport2 = CSG.text(" A QUICK BROWN FOX JUMPS OVER THE LAZY DOG", 10,30,"Serif Regular").movey(30);
+		CSG badExport2 = CSG.text(" A QUICK BROWN ", 10,30,"Serif Regular").movey(30);
 		System.out.println("First text loaded");
-		CSG badExport = CSG.text("THis is some text a quick brown fox jumps over the lazy dog.", 10);
+		CSG badExport = CSG.text("THis is some ", 10);
 		System.out.println("Second text loaded");
 //		badExport2=new Cube(20).toCSG().movey(30);
 //		badExport=new Cube(20).toCSG();
 		
-		badExport=badExport.union(badExport2);
+		badExport=badExport.union(badExport2).scaleToMeasurmentX(160).scaleToMeasurmentY(30);
+		CSG inMem = badExport;
 		//String filename ="TextStl.stl";
-		FileUtil.write(Paths.get("TextStl.stl"),
+		FileUtil.write(Paths.get("1-TextStl.stl"),
 				badExport.toStlString());
 		System.out.println("Load saved stl");
-		File file = new File("TextStl.stl");
+		File file = new File("1-TextStl.stl");
 		CSG loaded = STL.file(file.toPath());
+		FileUtil.write(Paths.get("2-TextLoadedStl.stl"),
+				loaded.toStlString());
+		System.out.println("Perform scale");
+		badExport=loaded;
+		FileUtil.write(Paths.get("3-TextScaledStl.stl"),
+				badExport.toStlString());
 		System.out.println("Perform difference");
-		badExport=loaded.scaleToMeasurmentX(160).scaleToMeasurmentY(30);
-		badExport=new Cube(180,40,10).toCSG().toZMin().toXMin().toYMin().movey(-5).difference(badExport).rotx(35).roty(45);
-		FileUtil.write(Paths.get("TextStl2.stl"),
+		CSG movey = new Cube(180,40,10).toCSG().toZMin().toXMin().toYMin().movey(-5);
+		FileUtil.write(Paths.get("4-InMemTextDifferencedStl.stl"),
+				movey.difference(inMem).toStlString());
+		CSG difference = movey.difference(badExport);
+		FileUtil.write(Paths.get("5-TextDifferencedStl.stl"),
+				difference.toStlString());
+		System.out.println("Perform Rotate");
+		badExport=difference.rotx(35).roty(45);
+		FileUtil.write(Paths.get("6-TextDiffRotatedStl.stl"),
 				badExport.toStlString());
 	}
 

@@ -19,6 +19,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 
 import eu.mihosoft.vrl.v3d.Vector3d;
+import eu.mihosoft.vrl.v3d.Vertex;
 
 ;
 
@@ -60,10 +61,10 @@ public class STLLoader {
 
 	/** The vertices. */
 	// attributes of the currently read mesh
-	private ArrayList<Vector3d> vertices = new ArrayList<>();
+	private ArrayList<Vertex> vertices = new ArrayList<>();
 
 	/** The normal. */
-	private Vector3d normal = new Vector3d(0.0f, 0.0f, 0.0f); // to be used for file checking
+	//private Vector3d normal = new Vector3d(0.0f, 0.0f, 0.0f); // to be used for file checking
 
 	/** The fis. */
 	private FileInputStream fis;
@@ -79,7 +80,7 @@ public class STLLoader {
 	 * @return the array list
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	public ArrayList<Vector3d> parse(File f) throws IOException {
+	public ArrayList<Vertex> parse(File f) throws IOException {
 		vertices.clear();
 
 		// determine if this is a binary or ASCII STL
@@ -132,6 +133,7 @@ public class STLLoader {
 		}
 		vertices = new ArrayList<>();
 		try {
+			Vector3d normal = new Vector3d(0, 0,0);
 			while ((line = in.readLine()) != null) {
 				String[] numbers = line.trim().split("\\s+");
 				if (numbers[0].equals("vertex")) {
@@ -139,7 +141,7 @@ public class STLLoader {
 					double y = parseDouble(numbers[2]);
 					double z = parseDouble(numbers[3]);
 					Vector3d vertex = new Vector3d(x, y, z);
-					vertices.add(vertex);
+					vertices.add(new Vertex(vertex, normal));
 				} else if (numbers[0].equals("facet") && numbers[1].equals("normal")) {
 					normal.x = parseDouble(numbers[2]);
 					normal.y = parseDouble(numbers[3]);
@@ -160,7 +162,7 @@ public class STLLoader {
 	 * @param f the f
 	 */
 	private void parseBinary(File f) {
-		vertices = new ArrayList<Vector3d>();
+		vertices = new ArrayList<Vertex>();
 		try {
 			fis = new FileInputStream(f);
 			for (int h = 0; h < 84; h++) {
@@ -171,6 +173,7 @@ public class STLLoader {
 				for (int tb = 0; tb < 50; tb++) {
 					tri[tb] = (byte) fis.read();
 				}
+				Vector3d normal = new Vector3d(0, 0,0);
 				normal.x = leBytesToFloat(tri[0], tri[1], tri[2], tri[3]);
 				normal.y = leBytesToFloat(tri[4], tri[5], tri[6], tri[7]);
 				normal.z = leBytesToFloat(tri[8], tri[9], tri[10], tri[11]);
@@ -180,7 +183,7 @@ public class STLLoader {
 					double py = leBytesToFloat(tri[j + 4], tri[j + 5], tri[j + 6], tri[j + 7]);
 					double pz = leBytesToFloat(tri[j + 8], tri[j + 9], tri[j + 10], tri[j + 11]);
 					Vector3d p = new Vector3d(px, py, pz);
-					vertices.add(p);
+					vertices.add(new Vertex(p, normal));
 				}
 			}
 			fis.close();

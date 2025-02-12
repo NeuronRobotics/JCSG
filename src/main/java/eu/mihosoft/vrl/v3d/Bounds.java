@@ -151,7 +151,7 @@ public class Bounds {
      * box; {@code false} otherwise
      */
     public boolean contains(Polygon p) {
-        return p.vertices.stream().allMatch(v -> contains(v));
+        return p.getVertices().stream().allMatch(v -> contains(v));
     }
 
     /**
@@ -327,6 +327,11 @@ public class Bounds {
 	 */
 	public double getTotalZ() {
 		return (-this.getMinZ() + this.getMaxZ());
+	}
+	public boolean isBoundsTouching(Bounds incoming) {
+		return this.getMaxX() > incoming.getMinX() && this.getMinX() < incoming.getMaxX()
+				&& this.getMaxY() > incoming.getMinY() && this.getMinY() < incoming.getMaxY()
+				&& this.getMaxZ() > incoming.getMinZ() && this.getMinZ() < incoming.getMaxZ();
 	}
 
 }
