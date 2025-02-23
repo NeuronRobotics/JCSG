@@ -65,7 +65,7 @@ public abstract class Primitive implements ItoCSG{
     	if(parametrics!=null)
     		for(Parameter p:parametrics)
     			tmp.setParameter(p);
-    	tmp.triangulate();
+    	//tmp.triangulate();
         return tmp;
     }
     

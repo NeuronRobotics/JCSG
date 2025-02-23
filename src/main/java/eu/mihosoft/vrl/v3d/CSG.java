@@ -1504,7 +1504,7 @@ public class CSG implements IuserAPI {
 		Debug3dProvider.setProvider(null);
 		//performTriangulation();
 		if (preventNonManifoldTriangles) {
-			for (int i = 0; i < 2; i++)
+			//for (int i = 0; i < 1; i++)
 				if (isUseGPU()) {
 					runGPUMakeManifold();
 				} else {
@@ -1536,7 +1536,7 @@ public class CSG implements IuserAPI {
 
 	private void runCPUMakeManifold() {
 		long start = System.currentTimeMillis();
-		System.err.println("Cleaning up the mesh by adding coincident points to the polygons they touch");
+		//System.err.println("Cleaning up the mesh by adding coincident points to the polygons they touch");
 
 		int totalAdded = 0;
 		double tOL = 1.0e-11;
@@ -1614,7 +1614,7 @@ public class CSG implements IuserAPI {
 				// Auto-generated catch block
 				e.printStackTrace();
 			}
-		progressMoniter.progressUpdate(polygons.size(),polygons.size(),"Manifold fix took " + (System.currentTimeMillis() - start),this);
+		//progressMoniter.progressUpdate(polygons.size(),polygons.size(),"Manifold fix took " + (System.currentTimeMillis() - start),this);
 	}
 
 	private void runGPUMakeManifold() {
