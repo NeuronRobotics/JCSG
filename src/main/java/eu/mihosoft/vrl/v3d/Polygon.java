@@ -112,7 +112,7 @@ public final class Polygon {
         this.vertices = pruneDuplicatePoints(vertices);
         this.shared = shared;
 	    if(p!=null)
-	    	plane=p.clone();
+	    	setPlane(p.clone());
 
         validateAndInit(allowDegenerate);
     }
@@ -166,15 +166,15 @@ public final class Polygon {
 	}
 	private void validateAndInit( boolean allowDegenerate) {
 		vertices=pruneDuplicatePoints(vertices);
-		if(plane==null)
-			this.plane = Plane.createFromPoints(
-	                vertices);
+		if(getPlane()==null)
+			this.setPlane(Plane.createFromPoints(
+	                vertices));
 		for (Vertex v : getVertices()) {
-			v.normal = plane.getNormal();
+			v.normal = getPlane().getNormal();
 			//v.pos.roundToEpsilon();
 		}
 		setDegenerate(true);
-		if (Vector3d.ZERO.equals(plane.getNormal())) {
+		if (Vector3d.ZERO.equals(getPlane().getNormal())) {
 			valid = false;
 			throw new RuntimeException(
 					"Normal is zero! Probably, duplicate points have been specified!\n\n" + toStlString());
@@ -233,7 +233,7 @@ public final class Polygon {
         });
         Collections.reverse(getVertices());
 
-        plane.flip();
+        getPlane().flip();
 
         return this;
     }
@@ -276,7 +276,7 @@ public final class Polygon {
             // multiple triangles:
 			String firstVertexStl = this.getVertices().get(0).toStlString();
 
-			sb.append("  facet normal ").append(this.plane.getNormal().toStlString()).append("\n")
+			sb.append("  facet normal ").append(this.getPlane().getNormal().toStlString()).append("\n")
 					.append("    outer loop\n").append("      ").append(firstVertexStl).append("\n").append("      ");
 			this.getVertices().get( 1).toStlString(sb).append("\n").append("      ");
 			this.getVertices().get(2).toStlString(sb).append("\n")
@@ -344,7 +344,7 @@ public final class Polygon {
 
 //        this.plane.setNormal(Plane.computeNormal(this.getVertices()));
 //        this.plane.setDist(this.plane.getNormal().dot(a));
-        plane.transformPlane(transform, a);
+        getPlane().transformPlane(transform, a);
 
         if (transform.isMirror()) {
             // the transformation includes mirroring. flip polygon
@@ -745,7 +745,7 @@ public final class Polygon {
 	}
 	@Override
 	public String toString() {
-		String ret="# points="+getVertices().size()+" normal="+plane.getNormal().toStlString()+" [ ";
+		String ret="# points="+getVertices().size()+" normal="+getPlane().getNormal().toStlString()+" [ ";
 		for(Vertex v:getVertices()) {
 			ret+=" "+v.pos.toStlString()+" , ";
 		}
@@ -813,5 +813,13 @@ public final class Polygon {
 		}
 
 		return true;
+	}
+
+	public Plane getPlane() {
+		return plane;
+	}
+
+	public void setPlane(Plane plane) {
+		this.plane = plane;
 	}
 }

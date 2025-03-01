@@ -355,7 +355,7 @@ public class Plane {
 		double negEpsilon = -Plane.getEPSILON();
 		double posEpsilon = Plane.getEPSILON();
 		for (int i = 0; i < polygon.getVertices().size(); i++) {
-			double t = polygon.plane.getNormal().dot(polygon.getVertices().get(i).pos) - polygon.plane.getDist();
+			double t = polygon.getPlane().getNormal().dot(polygon.getVertices().get(i).pos) - polygon.getPlane().getDist();
 			if (t > posEpsilon) {
 				// com.neuronrobotics.sdk.common.Log.error("Non flat polygon, increasing
 				// positive epsilon "+t);
@@ -390,7 +390,7 @@ public class Plane {
 		// Put the polygon in the correct list, splitting it when necessary.
 		switch (polygonType) {
 		case COPLANAR:
-			(this.getNormal().dot(polygon.plane.getNormal()) > 0 ? coplanarFront : coplanarBack).add(polygon);
+			(this.getNormal().dot(polygon.getPlane().getNormal()) > 0 ? coplanarFront : coplanarBack).add(polygon);
 			break;
 		case FRONT:
 			front.add(polygon);
@@ -423,7 +423,7 @@ public class Plane {
 			}
 			if (f.size() >= 3) {
 				try {
-					Polygon fpoly = new Polygon(f, polygon.getStorage(),false,polygon.plane).setColor(polygon.getColor());
+					Polygon fpoly = new Polygon(f, polygon.getStorage(),false,polygon.getPlane()).setColor(polygon.getColor());
 					add(front,fpoly);
 				} catch (Exception ex) {
 					System.err.println("Pruning bad polygon Plane::splitPolygon");
@@ -434,7 +434,7 @@ public class Plane {
 			}
 			if (b.size() >= 3) {
 				try {
-					Polygon bpoly = new Polygon(b, polygon.getStorage(),false,polygon.plane).setColor(polygon.getColor());
+					Polygon bpoly = new Polygon(b, polygon.getStorage(),false,polygon.getPlane()).setColor(polygon.getColor());
 					add(back,bpoly);
 				} catch (Exception ex) {
 					// ex.printStackTrace();

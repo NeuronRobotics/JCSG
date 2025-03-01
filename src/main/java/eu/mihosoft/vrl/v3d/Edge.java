@@ -897,8 +897,8 @@ public class Edge {
 					continue;
 				}
 
-				Vector3d nOuter = pOuter.plane.getNormal();
-				Vector3d nInner = pInner.plane.getNormal();
+				Vector3d nOuter = pOuter.getPlane().getNormal();
+				Vector3d nInner = pInner.getPlane().getNormal();
 
 				double angle = nOuter.angle(nInner);
 

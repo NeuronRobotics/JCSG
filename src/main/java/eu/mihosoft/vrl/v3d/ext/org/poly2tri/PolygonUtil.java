@@ -35,11 +35,14 @@ package eu.mihosoft.vrl.v3d.ext.org.poly2tri;
 
 import eu.mihosoft.vrl.v3d.Debug3dProvider;
 import eu.mihosoft.vrl.v3d.Extrude;
+import eu.mihosoft.vrl.v3d.Node;
 import eu.mihosoft.vrl.v3d.Plane;
 import eu.mihosoft.vrl.v3d.Polygon;
 import eu.mihosoft.vrl.v3d.Transform;
 import eu.mihosoft.vrl.v3d.Vector3d;
 import eu.mihosoft.vrl.v3d.Vertex;
+import javafx.scene.paint.Color;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -50,13 +53,289 @@ import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.triangulate.polygon.ConstrainedDelaunayTriangulator;
 import org.locationtech.jts.triangulate.polygon.PolygonTriangulator;
 
+import earcut4j.Earcut;
+
 /**
  * The Class PolygonUtil.
  *
  * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
  */
 public class PolygonUtil {
-	private static final double triangleScale=1000.0;
+	private static final double triangleScale = 1000.0;
+
+	/**
+	 * Checks if two polygons overlap in 3D space.
+	 * 
+	 * @param polygon1 First polygon to check
+	 * @param polygon2 Second polygon to check
+	 * @return true if the polygons overlap, false otherwise
+	 */
+	public static boolean doPolygonsOverlap(Polygon polygon1, Polygon polygon2) {
+		// Check if both polygons are in the same plane
+		if (!areCoplanar(polygon1, polygon2)) {
+			// If they're not coplanar, check for intersection between edges and faces
+			return checkEdgeFaceIntersections(polygon1, polygon2);
+		} else {
+			// If they're coplanar, check for 2D polygon intersection
+			return checkCoplanarIntersection(polygon1, polygon2);
+		}
+	}
+
+	/**
+	 * Checks if two polygons are coplanar (lie in the same plane).
+	 */
+	private static boolean areCoplanar(Polygon polygon1, Polygon polygon2) {
+		// Get the normals of both polygons using the built-in plane.normal
+		Vector3d normal1 = polygon1.getPlane().getNormal();
+		Vector3d normal2 = polygon2.getPlane().getNormal();
+
+		// Check if normals are parallel (same or opposite direction)
+		double dotProduct = normal1.dot(normal2);
+		boolean normalsParallel = Math.abs(Math.abs(dotProduct) - 1.0) < Plane.getEPSILON();
+
+		if (!normalsParallel) {
+			return false;
+		}
+
+		// If normals are parallel, check if polygons are in the same plane
+		// by checking if a point from polygon2 lies on the plane of polygon1
+		Vector3d point1 = polygon1.getVertices().get(0).pos;
+		Vector3d point2 = polygon2.getVertices().get(0).pos;
+
+		// Calculate distance from point2 to the plane of polygon1
+		double distance = normal1.dot(point2.minus(point1));
+
+		return Math.abs(distance) < Plane.getEPSILON();
+	}
+
+	/**
+	 * Checks if two coplanar polygons intersect.
+	 */
+	private static boolean checkCoplanarIntersection(Polygon polygon1, Polygon polygon2) {
+		// Get the plane normal and determine primary projection plane
+		Vector3d normal = polygon1.getPlane().getNormal();
+		int dominantAxis = getDominantAxis(normal);
+
+		// Project the vertices to the appropriate 2D plane
+		List<Vector3d> projected1 = projectPolygonVertices(polygon1, dominantAxis);
+		List<Vector3d> projected2 = projectPolygonVertices(polygon2, dominantAxis);
+
+		// Check if any edge of polygon1 intersects with any edge of polygon2
+		for (int i = 0; i < projected1.size(); i++) {
+			Vector3d p1 = projected1.get(i);
+			Vector3d p2 = projected1.get((i + 1) % projected1.size());
+
+			for (int j = 0; j < projected2.size(); j++) {
+				Vector3d q1 = projected2.get(j);
+				Vector3d q2 = projected2.get((j + 1) % projected2.size());
+
+				if (doLineSegmentsIntersect(p1, p2, q1, q2, dominantAxis)) {
+					return true;
+				}
+			}
+		}
+
+		// Check if one polygon is inside the other
+		return isPointInPolygon(projected1.get(0), projected2, dominantAxis)
+				|| isPointInPolygon(projected2.get(0), projected1, dominantAxis);
+	}
+
+	/**
+	 * Projects polygon vertices while preserving their 3D positions, but zeroing
+	 * out the dominant axis coordinate for 2D intersection testing.
+	 */
+	private static List<Vector3d> projectPolygonVertices(Polygon polygon, int dominantAxis) {
+		List<Vector3d> projectedVertices = new ArrayList<>();
+
+		for (Vertex vertex : polygon.getVertices()) {
+			Vector3d pos = vertex.pos;
+			projectedVertices.add(pos);
+		}
+
+		return projectedVertices;
+	}
+
+	/**
+	 * Gets the dominant axis of a vector (the axis with the largest absolute
+	 * value).
+	 */
+	private static int getDominantAxis(Vector3d vector) {
+		double absX = Math.abs(vector.x);
+		double absY = Math.abs(vector.y);
+		double absZ = Math.abs(vector.z);
+
+		if (absX >= absY && absX >= absZ) {
+			return 0; // X is dominant
+		} else if (absY >= absX && absY >= absZ) {
+			return 1; // Y is dominant
+		} else {
+			return 2; // Z is dominant
+		}
+	}
+
+	/**
+	 * Returns the two non-dominant coordinates for a given dominant axis.
+	 */
+	private static double[] getNonDominantCoordinates(Vector3d v, int dominantAxis) {
+		switch (dominantAxis) {
+		case 0: // X dominant, return Y,Z
+			return new double[] { v.y, v.z };
+		case 1: // Y dominant, return X,Z
+			return new double[] { v.x, v.z };
+		case 2: // Z dominant, return X,Y
+		default:
+			return new double[] { v.x, v.y };
+		}
+	}
+
+	/**
+	 * Checks if two line segments intersect in the projected 2D plane.
+	 */
+	private static boolean doLineSegmentsIntersect(Vector3d p1, Vector3d p2, Vector3d q1, Vector3d q2,
+			int dominantAxis) {
+		// Extract the 2D coordinates based on dominant axis
+		double[] p1Coords = getNonDominantCoordinates(p1, dominantAxis);
+		double[] p2Coords = getNonDominantCoordinates(p2, dominantAxis);
+		double[] q1Coords = getNonDominantCoordinates(q1, dominantAxis);
+		double[] q2Coords = getNonDominantCoordinates(q2, dominantAxis);
+
+		// Compute orientations needed for the general case of the algorithm
+		int o1 = orientation(p1Coords, p2Coords, q1Coords);
+		int o2 = orientation(p1Coords, p2Coords, q2Coords);
+		int o3 = orientation(q1Coords, q2Coords, p1Coords);
+		int o4 = orientation(q1Coords, q2Coords, p2Coords);
+
+		// General case
+		if (o1 != o2 && o3 != o4) {
+			return true;
+		}
+
+		// Special cases for collinear segments
+		if (o1 == 0 && onSegment(p1Coords, q1Coords, p2Coords))
+			return true;
+		if (o2 == 0 && onSegment(p1Coords, q2Coords, p2Coords))
+			return true;
+		if (o3 == 0 && onSegment(q1Coords, p1Coords, q2Coords))
+			return true;
+		if (o4 == 0 && onSegment(q1Coords, p2Coords, q2Coords))
+			return true;
+
+		return false;
+	}
+
+	/**
+	 * Helper function for line segment intersection algorithm. Determines the
+	 * orientation of triplet (p, q, r). Returns 0 if collinear, 1 if clockwise, 2
+	 * if counterclockwise.
+	 */
+	private static int orientation(double[] p, double[] q, double[] r) {
+		double val = (q[1] - p[1]) * (r[0] - q[0]) - (q[0] - p[0]) * (r[1] - q[1]);
+
+		if (Math.abs(val) < 1e-10)
+			return 0; // collinear
+		return (val > 0) ? 1 : 2; // clockwise or counterclockwise
+	}
+
+	/**
+	 * Checks if point q lies on line segment pr.
+	 */
+	private static boolean onSegment(double[] p, double[] q, double[] r) {
+		return q[0] <= Math.max(p[0], r[0]) && q[0] >= Math.min(p[0], r[0]) && q[1] <= Math.max(p[1], r[1])
+				&& q[1] >= Math.min(p[1], r[1]);
+	}
+
+	/**
+	 * Checks if a point is inside a polygon using the ray casting algorithm.
+	 */
+	private static boolean isPointInPolygon(Vector3d point, List<Vector3d> polygon, int dominantAxis) {
+		double[] pointCoords = getNonDominantCoordinates(point, dominantAxis);
+		boolean inside = false;
+		int n = polygon.size();
+
+		for (int i = 0, j = n - 1; i < n; j = i++) {
+			double[] iCoords = getNonDominantCoordinates(polygon.get(i), dominantAxis);
+			double[] jCoords = getNonDominantCoordinates(polygon.get(j), dominantAxis);
+
+			if (((iCoords[1] > pointCoords[1]) != (jCoords[1] > pointCoords[1]))
+					&& (pointCoords[0] < (jCoords[0] - iCoords[0]) * (pointCoords[1] - iCoords[1])
+							/ (jCoords[1] - iCoords[1]) + iCoords[0])) {
+				inside = !inside;
+			}
+		}
+
+		return inside;
+	}
+
+	/**
+	 * Checks for intersections between edges of one polygon and the face of
+	 * another.
+	 */
+	private static boolean checkEdgeFaceIntersections(Polygon polygon1, Polygon polygon2) {
+		// Check if any edge of polygon1 intersects the face of polygon2
+		List<Vertex> vertices1 = polygon1.getVertices();
+
+		for (int i = 0; i < vertices1.size(); i++) {
+			Vector3d v1 = vertices1.get(i).pos;
+			Vector3d v2 = vertices1.get((i + 1) % vertices1.size()).pos;
+
+			if (doesLineIntersectPolygon(v1, v2, polygon2)) {
+				return true;
+			}
+		}
+
+		// Check if any edge of polygon2 intersects the face of polygon1
+		List<Vertex> vertices2 = polygon2.getVertices();
+
+		for (int i = 0; i < vertices2.size(); i++) {
+			Vector3d v1 = vertices2.get(i).pos;
+			Vector3d v2 = vertices2.get((i + 1) % vertices2.size()).pos;
+
+			if (doesLineIntersectPolygon(v1, v2, polygon1)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Checks if a line segment intersects with a polygon.
+	 */
+	private static boolean doesLineIntersectPolygon(Vector3d lineStart, Vector3d lineEnd, Polygon polygon) {
+		// Get polygon normal from the plane
+		Vector3d normal = polygon.getPlane().getNormal();
+		Vector3d polygonPoint = polygon.getVertices().get(0).pos;
+
+		// Calculate the parameters for the line-plane intersection
+		Vector3d lineDirection = lineEnd.minus(lineStart);
+		double denominatorTerm = normal.dot(lineDirection);
+
+		// If the line is parallel to the plane, no intersection
+		if (Math.abs(denominatorTerm) < 1e-10) {
+			return false;
+		}
+
+		// Calculate the t value at the intersection point
+		double t = normal.dot(polygonPoint.minus(lineStart)) / denominatorTerm;
+
+		// Check if the intersection point is on the line segment
+		if (t < 0 || t > 1) {
+			return false;
+		}
+
+		// Calculate the intersection point
+		Vector3d intersectionPoint = lineStart.plus(lineDirection.times(t));
+
+		// Check if the intersection point is inside the polygon
+		int dominantAxis = getDominantAxis(normal);
+		List<Vector3d> polygonVertices = new ArrayList<>();
+		for (Vertex vertex : polygon.getVertices()) {
+			polygonVertices.add(vertex.pos);
+		}
+
+		return isPointInPolygon(intersectionPoint, polygonVertices, dominantAxis);
+	}
+
 	/**
 	 * Instantiates a new polygon util.
 	 */
@@ -100,9 +379,10 @@ public class PolygonUtil {
 	 * @param incoming the concave
 	 * @return the list
 	 */
-	public static List<Polygon> concaveToConvex(Polygon incoming){
-		return concaveToConvex(incoming,true);
+	public static List<Polygon> concaveToConvex(Polygon incoming) {
+		return concaveToConvex(incoming, true);
 	}
+
 	/**
 	 * Concave to convex.
 	 *
@@ -117,50 +397,20 @@ public class PolygonUtil {
 		if (incoming.getVertices().size() < 3)
 			return result;
 		Polygon concave = incoming;
-		Vector3d normalOfPlane = incoming.plane.getNormal();
+		Vector3d normalOfPlane = incoming.getPlane().getNormal();
 		boolean reorent = normalOfPlane.z < 1.0 - Plane.getEPSILON();
 		Transform orentationInv = null;
 		boolean debug = false;
-		Vector3d normal = concave.plane.getNormal().clone();
+		Vector3d normal = concave.getPlane().getNormal().clone();
 
 		if (reorent) {
-			// System.err.println("\n\nIncoming polygon " + incoming);
-//			reorent=true;
-//			double degreesToRotate = Math.toDegrees(Math.atan2(normalOfPlane.x, normalOfPlane.z));
-//			Transform orentation = new Transform().roty(degreesToRotate);
-//			Transform orentation_inv = new Transform().roty(-degreesToRotate);
-//
-//			Polygon tmp = incoming.transformed(orentation);
-//			//System.err.println("StInvage 1 polygon "+tmp);
-//			Vector3d tmpNorm = tmp.plane.getNormal();
-//			double degreesToRotate2 =  Math.toDegrees(Math.atan2( tmpNorm.y,tmpNorm.z));
-//			Transform rotx = new Transform().rotx(degreesToRotate2);
-//			Transform rotx_inv= new Transform().rotx(-degreesToRotate2);
-//
-//			Transform orentation2 =rotx.apply(orentation );// th triangulation function needs
-//			// the polygon on the xy plane
-//			if (debug) {
-//				Debug3dProvider.clearScreen();
-//				Debug3dProvider.addObject(incoming);
-//			}
-//			concave = incoming.transformed(orentation2);
-//			System.err.println("NormalAdjusted polygon "+concave);
-//			if (concave.plane.getNormal().z < 0) {
-//				Transform rotx2 = new Transform().rotx(180);
-//				Transform rotx2_inv = new Transform().rotx(180);
-//
-//				orentation2 = rotx2.apply(orentation2);
-//				concave = incoming.transformed(orentation2);
-//				System.err.println("Flipping Reorenting polygon "+concave);
-//
-//			}
-//			orentationInv  =orentation2.invert();
+
 			double degreesToRotate = Math.toDegrees(Math.atan2(normalOfPlane.x, normalOfPlane.z));
 			Transform orentation = new Transform().roty(degreesToRotate);
 
 			Polygon tmp = incoming.transformed(orentation);
 
-			Vector3d tmpnorm = tmp.plane.getNormal();
+			Vector3d tmpnorm = tmp.getPlane().getNormal();
 			double degreesToRotate2 = 90 + Math.toDegrees(Math.atan2(tmpnorm.z, tmpnorm.y));
 			Transform orentation2 = orentation.rotx(degreesToRotate2);// th triangulation function needs
 			// the polygon on the xy plane
@@ -170,7 +420,7 @@ public class PolygonUtil {
 			}
 			concave = incoming.transformed(orentation2);
 			orentationInv = orentation2.inverse();
-			if (concave.plane.getNormal().z < 0) {
+			if (concave.getPlane().getNormal().z < 0) {
 				Transform orentation3 = orentation2.rotx(180);
 				concave = incoming.transformed(orentation3);
 				orentationInv = orentation3.inverse();
@@ -183,26 +433,128 @@ public class PolygonUtil {
 		}
 
 		boolean cw = !Extrude.isCCW(concave);
-		if (cw&&toCCW)
+		if (cw && toCCW)
 			concave = Extrude.toCCW(concave);
 		if (debug) {
 			Debug3dProvider.clearScreen();
 			Debug3dProvider.addObject(concave);
 			// Debug3dProvider.clearScreen();
 		}
-		Geometry triangles;
 		double zplane = concave.getVertices().get(0).pos.z;
 
 		try {
-			triangles = makeTriangles(concave, cw);
+			makeTriangles(concave, cw, result, zplane, normal, debug, orentationInv, reorent, incoming.getColor());
 		} catch (java.lang.IllegalStateException ex) {
-			List<Vector3d> points = concave.getPoints();
-			List<Vector3d> r = new ArrayList<>(points);
-			Collections.reverse(r);
-			concave = Polygon.fromPoints(r);
-			triangles = makeTriangles(concave, cw);
+			makeTrianglesEarcutMethod(incoming, result, concave, cw);
 		}
 
+		return result;
+	}
+
+	private static void makeTrianglesEarcutMethod(Polygon incoming, List<Polygon> result, Polygon concave, boolean cw) {
+		// System.err.println("Failed to triangulate "+concave);
+		Polygon p = incoming;
+		int size = p.getVertices().size();
+		int sizeOfVect = 3;
+		double[] points = new double[size * sizeOfVect];
+
+		for (int i = 0; i < size; i++) {
+			Vector3d v = p.getVertices().get(i).pos;
+			points[i * sizeOfVect + 0] = v.x;
+			points[i * sizeOfVect + 1] = v.y;
+			points[i * sizeOfVect + 2] = v.z;
+		}
+		List<Integer> triangles = Earcut.earcut(points, null, sizeOfVect);
+		int numTri = triangles.size() / 3;
+
+		for (int i = 0; i < numTri; i++) {
+			int p1 = triangles.get(i * 3 + 0);
+			int p2 = triangles.get(i * 3 + 1);
+			int p3 = triangles.get(i * 3 + 2);
+			ArrayList<Vertex> tripoints = new ArrayList<Vertex>();
+			tripoints.add(p.getVertices().get(p1));
+			tripoints.add(p.getVertices().get(p2));
+			tripoints.add(p.getVertices().get(p3));
+
+			if (tripoints.size() == 3) {
+
+				Polygon poly = new Polygon(tripoints, p.getStorage(), false, p.getPlane());
+				boolean b = !Extrude.isCCW(poly);
+				if (cw != b) {
+					// System.err.println("Triangle not matching incoming");
+					Collections.reverse(tripoints);
+					poly = new Polygon(tripoints, p.getStorage(), true, p.getPlane());
+					b = !Extrude.isCCW(poly);
+					if (cw != b) {
+						// com.neuronrobotics.sdk.common.Log.error("Error, polygon is reversed!");
+					}
+				}
+//					if (reorent) {
+//						poly = poly.transform(orentationInv);
+//
+//						poly = checkForValidPolyOrentation(normal, poly);
+//					}
+				result.add(poly);
+			}
+		}
+		// check result for overlapping polygons
+//		int startSize = result.size();
+//		ArrayList <Polygon> aP = new ArrayList<>();
+//		ArrayList <Polygon> bP= new ArrayList<>();
+//		aP.addAll(result);
+//		bP.addAll(result);
+//		Node a = new Node(aP);
+//		Node b = new Node(bP);
+//		a.clipTo(b);
+//		b.clipTo(a);
+//		result = new ArrayList<>();;
+//		result.addAll(a.allPolygons());
+		
+
+		return;// no overlapping polygons to remove!
+	
+	}
+
+	private static Polygon checkForValidPolyOrentation(Vector3d normal, Polygon poly) {
+		Vector3d normal2 = poly.getPlane().getNormal();
+		Vector3d minus = normal.minus(normal2);
+		double length = minus.length();
+		double d = 1.0e-3;
+		if (length > d * 10 && length < (2 - d)) {
+			List<Vector3d> points = poly.getPoints();
+			List<Vector3d> r = new ArrayList<>(points);
+			Collections.reverse(r);
+			Polygon fromPoints = Polygon.fromPoints(r);
+			double l = normal.minus(fromPoints.getPlane().getNormal()).length();
+			if (l > d * 10 && l < (2 - d)) {
+//				throw new RuntimeException(
+//				"Error, the reorentation of the polygon resulted in a different normal than the triangles produced from it");
+			} else {
+				poly = fromPoints;
+
+			}
+		}
+		return poly;
+	}
+
+	private static Geometry makeTriangles(Polygon concave, boolean cw, List<Polygon> result, double zplane,
+			Vector3d normal, boolean debug, Transform orentationInv, boolean reorent, Color color) {
+		Geometry triangles;
+		Polygon toTri = concave;
+//	if(cw) {
+//		toTri=Extrude.toCCW(concave);
+//	}
+		Coordinate[] coordinates = new Coordinate[toTri.getVertices().size() + 1];
+		for (int i = 0; i < toTri.getVertices().size(); i++) {
+			Vector3d v = toTri.getVertices().get(i).pos;
+			coordinates[i] = new Coordinate(v.x * triangleScale, v.y * triangleScale, v.z * triangleScale);
+		}
+		Vector3d v = toTri.getVertices().get(0).pos;
+		coordinates[toTri.getVertices().size()] = new Coordinate(v.x * triangleScale, v.y * triangleScale,
+				v.z * triangleScale);
+		// use the default factory, which gives full double-precision
+		Geometry geom = new GeometryFactory().createPolygon(coordinates);
+		triangles = ConstrainedDelaunayTriangulator.triangulate(geom);
 		ArrayList<Vertex> triPoints = new ArrayList<>();
 
 		for (int i = 0; i < triangles.getNumGeometries(); i++) {
@@ -213,21 +565,21 @@ public class PolygonUtil {
 				throw new RuntimeException("Failed to triangulate");
 			for (int j = 0; j < 3; j++) {
 				Coordinate tp = coords[j];
-				Vector3d pos = new Vector3d(tp.getX()/triangleScale, tp.getY()/triangleScale, zplane);
+				Vector3d pos = new Vector3d(tp.getX() / triangleScale, tp.getY() / triangleScale, zplane);
 				triPoints.add(new Vertex(pos, normal));
 
 				if (counter == 2) {
 					if (!cw) {
 						Collections.reverse(triPoints);
 					}
-					Polygon poly = new Polygon(triPoints, concave.getStorage(), true,concave.plane);
+					Polygon poly = new Polygon(triPoints, concave.getStorage(), true, concave.getPlane());
 					// poly = Extrude.toCCW(poly);
-					poly.plane.setNormal(concave.plane.getNormal());
+					poly.getPlane().setNormal(concave.getPlane().getNormal());
 					boolean b = !Extrude.isCCW(poly);
 					if (cw != b) {
 						// System.err.println("Triangle not matching incoming");
 						Collections.reverse(triPoints);
-						poly = new Polygon(triPoints, concave.getStorage(), true,concave.plane);
+						poly = new Polygon(triPoints, concave.getStorage(), true, concave.getPlane());
 						b = !Extrude.isCCW(poly);
 						if (cw != b) {
 							// com.neuronrobotics.sdk.common.Log.error("Error, polygon is reversed!");
@@ -245,7 +597,7 @@ public class PolygonUtil {
 						poly = checkForValidPolyOrentation(normal, poly);
 					}
 					// poly.plane.setNormal(normalOfPlane);
-					poly.setColor(incoming.getColor());
+					poly.setColor(color);
 					result.add(poly);
 					counter = 0;
 					triPoints = new ArrayList<>();
@@ -255,49 +607,7 @@ public class PolygonUtil {
 			}
 		}
 
-		return result;
-	}
-
-	private static Polygon checkForValidPolyOrentation(Vector3d normal, Polygon poly) {
-		Vector3d normal2 = poly.plane.getNormal();
-		Vector3d minus = normal.minus(normal2);
-		double length = minus.length();
-		double d = 1.0e-3;
-		if (length > d * 10 && length < (2 - d)) {
-			List<Vector3d> points = poly.getPoints();
-			List<Vector3d> r = new ArrayList<>(points);
-			Collections.reverse(r);
-			Polygon fromPoints = Polygon.fromPoints(r);
-			double l = normal.minus( fromPoints.plane.getNormal()).length();
-			if (l > d * 10 && l < (2 - d)) {
-//				throw new RuntimeException(
-//				"Error, the reorentation of the polygon resulted in a different normal than the triangles produced from it");
-			}else {
-				poly=fromPoints;
-
-			}
-		}
-		return poly;
-	}
-
-	private static Geometry makeTriangles(Polygon concave, boolean cw) {
-		Geometry triangles;
-		Polygon toTri = concave;
-//	if(cw) {
-//		toTri=Extrude.toCCW(concave);
-//	}
-		Coordinate[] coordinates = new Coordinate[toTri.getVertices().size() + 1];
-		for (int i = 0; i < toTri.getVertices().size(); i++) {
-			Vector3d v = toTri.getVertices().get(i).pos;
-			coordinates[i] = new Coordinate(v.x*triangleScale, v.y*triangleScale, v.z*triangleScale);
-		}
-		Vector3d v = toTri.getVertices().get(0).pos;
-		coordinates[toTri.getVertices().size()] = new Coordinate(v.x*triangleScale, v.y*triangleScale, v.z*triangleScale);
-		// use the default factory, which gives full double-precision
-		Geometry geom = new GeometryFactory().createPolygon(coordinates);
-		triangles = ConstrainedDelaunayTriangulator.triangulate(geom);
 		return triangles;
 	}
-
 
 }

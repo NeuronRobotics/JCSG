@@ -46,7 +46,7 @@ import java.util.stream.Stream;
  * the front and/or back subtrees. This is not a leafy BSP tree since there is
  * no distinction between internal and leaf nodes.
  */
-final class Node {
+public final class Node {
 
 	/**
 	 * Polygons.
@@ -133,7 +133,7 @@ final class Node {
 		});
 
 		if (this.plane == null && !polygons.isEmpty()) {
-			this.plane = polygons.get(0).plane.clone();
+			this.plane = polygons.get(0).getPlane().clone();
 		} else if (this.plane == null && polygons.isEmpty()) {
 
 			//com.neuronrobotics.sdk.common.Log.error("Please fix me! I don't know what to do?");
@@ -265,7 +265,7 @@ final class Node {
 		}
 
 		if (this.plane == null) {
-			this.plane = polygons.get(0).plane.clone();
+			this.plane = polygons.get(0).getPlane().clone();
 		}
 		//this.polygons.add(polygons.get(0));
 
