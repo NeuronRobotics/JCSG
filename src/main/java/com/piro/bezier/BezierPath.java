@@ -6,8 +6,10 @@ import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import eu.mihosoft.vrl.v3d.Edge;
 import eu.mihosoft.vrl.v3d.Plane;
 import eu.mihosoft.vrl.v3d.Vector3d;
+import eu.mihosoft.vrl.v3d.Vertex;
 
 public class BezierPath {
 
@@ -174,9 +176,19 @@ public class BezierPath {
 	}
 
 	private boolean setThePoint(Vector3d eval) {
+		int end = plInternal.size()-1;
+
 		for(Vector3d v:plInternal) {
-			if(Math.abs(v.minus(eval).magnitude())<Plane.getEPSILON())
+			if(Math.abs(v.minus(eval).magnitude())<Plane.getEPSILON()) {
 				return false;
+			}
+		}
+		if(plInternal.size()>1) {
+			Edge e = new Edge(new Vertex(plInternal.get(end-1),null), new Vertex(plInternal.get(end),null));
+			if(e.colinear(eval)) {
+				plInternal.set(end, eval);
+				return true;
+			}
 		}
 		return plInternal.add(eval);
 	}
