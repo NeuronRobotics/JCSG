@@ -52,7 +52,7 @@ import com.google.gson.annotations.Expose;
 public class Vector3d extends javax.vecmath.Vector3d{
     
 
-    private static  String exportString = "%.16f";
+    private static  String exportString = "%.10f";
 
 	private static  double EXPORTEPSILON =1.0e-10;
 
@@ -200,6 +200,7 @@ public class Vector3d extends javax.vecmath.Vector3d{
         return new Vector3d(x * a, y * a, z * a);
     }
 
+  
     /**
      * Returns the product of this vector and the specified vector.
      *
@@ -417,14 +418,9 @@ public class Vector3d extends javax.vecmath.Vector3d{
         return clone().transform(transform, amount);
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
-    @Override
     public String toString() {
-        return "[" + x + ", " + y + ", " + z + "]";
+    	return "["+toStlString().replaceAll(" ", " , ")+"]";
     }
-
     /* (non-Javadoc)
      * @see java.lang.Object#equals(java.lang.Object)
      */
@@ -446,7 +442,9 @@ public class Vector3d extends javax.vecmath.Vector3d{
     	Vector3d diff = v.minus(this);
     	return diff.magnitude();
     }
-
+    public boolean test(Vector3d obj) {
+    	return test(obj, Plane.getEPSILON());
+    }
 	public boolean test(Vector3d obj, double epsilon) {
 		if(this==obj)
 			return true;
