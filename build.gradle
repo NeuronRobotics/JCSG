@@ -17,14 +17,14 @@ version = props."app.version"
 // BEGIN AI SLOP
 
 nexusStaging {
-    serverUrl = "https://oss.sonatype.org/service/local/"
-    username = System.getenv("MAVEN_USERNAME")
-    password = System.getenv("MAVEN_PASSWORD")
-    packageGroup = "com.neuronrobotics" // Replace with your actual package group
+	serverUrl = "https://oss.sonatype.org/service/local/"
+	username = System.getenv("MAVEN_USERNAME")
+	password = System.getenv("MAVEN_PASSWORD")
+	packageGroup = "com.neuronrobotics" // Replace with your actual package group
 }
 
 task closeAndReleaseSeparately {
-    dependsOn tasks.releaseRepository
+	dependsOn tasks.releaseRepository
 }
 
 tasks.releaseRepository.dependsOn tasks.closeRepository
@@ -36,15 +36,15 @@ tasks.closeRepository.logging.level = LogLevel.INFO
 tasks.releaseRepository.logging.level = LogLevel.INFO
 
 tasks.getStagingProfile.doFirst {
-    println "Executing getStagingProfile task"
+	println "Executing getStagingProfile task"
 }
 
 tasks.closeRepository.doFirst {
-    println "Executing closeRepository task"
+	println "Executing closeRepository task"
 }
 
 tasks.releaseRepository.doFirst {
-    println "Executing releaseRepository task"
+	println "Executing releaseRepository task"
 }
 
 // END AI SLOP
@@ -61,128 +61,134 @@ task sourcesJar(type: Jar) {
 
 
 repositories {
-    mavenCentral()
+	mavenCentral()
 	mavenLocal()
+	//	maven {
+	//		url 'https://maven.imagej.net/content/repositories/public/'
+	//	}
 }
 
 // javadoc is way too strict for my taste.
 if (JavaVersion.current().isJava8Compatible()) {
-    allprojects {
-        tasks.withType(Javadoc) {
-            options.addStringOption("encoding", "UTF-8")
-            options.addStringOption('Xdoclint:none', '-quiet')
-        }
-    }
+	allprojects {
+		tasks.withType(Javadoc) {
+			options.addStringOption("encoding", "UTF-8")
+			options.addStringOption('Xdoclint:none', '-quiet')
+		}
+	}
 }
 //home/hephaestus/.m2/repository/net/jsdia/jsdi_lib/4.5.0-SNAPSHOT/jsdi_lib-4.5.0-SNAPSHOT.pom
 //home/hephaestus/.m2/repository/net/jsdai/jsdai_lib/4.5.0-SNAPSHOT/jsdai_lib-4.5.0-SNAPSHOT.pom
 //home/hephaestus/.m2/repository/net/jsdia/jsdai_lib/4.5.0-SNAPSHOT/jsdai_lib-4.5.0-SNAPSHOT.pom
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
-    
-    classifier = 'javadoc'
-    from javadoc.destinationDir
+
+	classifier = 'javadoc'
+	from javadoc.destinationDir
 }
 
 artifacts {
-    archives jar
-    archives javadocJar
-    archives sourcesJar
+	archives jar
+	archives javadocJar
+	archives sourcesJar
 }
 
 dependencies {
-    testImplementation group: 'junit', name: 'junit', version: '4.0'
-    implementation 'commons-io:commons-io:2.7'
-    implementation group:'com.googlecode.json-simple', name:'json-simple', version:'1.1'
+	testImplementation group: 'junit', name: 'junit', version: '4.0'
+	implementation 'commons-io:commons-io:2.7'
+	implementation group:'com.googlecode.json-simple', name:'json-simple', version:'1.1'
 
-    implementation 'com.google.code.gson:gson:2.8.9'
-    implementation group: 'eu.mihosoft.vvecmath', name: 'vvecmath', version: '0.4.0'
-    implementation group: 'javax.vecmath', name: 'vecmath', version: '1.5.2'
+	implementation 'com.google.code.gson:gson:2.8.9'
+	implementation group: 'eu.mihosoft.vvecmath', name: 'vvecmath', version: '0.4.0'
+	implementation group: 'javax.vecmath', name: 'vecmath', version: '1.5.2'
 
-    implementation 'org.slf4j:slf4j-simple:1.6.1'
+	implementation 'org.slf4j:slf4j-simple:1.6.1'
 
-    implementation group: 'org.apache.xmlgraphics', name: 'batik-all', version: '1.17'
+	implementation group: 'org.apache.xmlgraphics', name: 'batik-all', version: '1.17'
 
-    implementation fileTree (dir: 'libs', includes: ['kabeja*.jar'])
-	
+	implementation fileTree (dir: 'libs', includes: ['kabeja*.jar'])
+
 	// triangulation algorithm
-	implementation group: 'org.locationtech.jts', name: 'jts-core', version: '1.19.0'
+	implementation group: 'org.locationtech.jts', name: 'jts-core', version: '1.20.0'// https://mvnrepository.com/artifact/org.orbisgis/poly2tri
+	implementation group: 'org.orbisgis', name: 'poly2tri', version: '0.7.0'
+
 	// alternate triangulation
-	implementation "io.github.earcut4j:earcut4j:2.2.2"
-	
+	//implementation "io.github.earcut4j:earcut4j:2.2.2"
+	// alt 3 for triangulation
+	//implementation group: 'com.github.jdiemke.delaunay-triangulator', name: 'DelaunayTriangulator', version: 'v1.0.0'
+
 	implementation 'com.google.code.gson:gson:2.5'
-	
+
 	implementation 'com.aparapi:aparapi:3.0.2'
-	
 }
 
 Date buildTimeAndDate = new Date()
 ext {
-    buildDate = new java.text.SimpleDateFormat('yyyy-MM-dd').format(buildTimeAndDate)
-    buildTime = new java.text.SimpleDateFormat('HH:mm:ss.SSSZ').format(buildTimeAndDate)
+	buildDate = new java.text.SimpleDateFormat('yyyy-MM-dd').format(buildTimeAndDate)
+	buildTime = new java.text.SimpleDateFormat('HH:mm:ss.SSSZ').format(buildTimeAndDate)
 }
 
 
 
 
 publishing {
-	
-		repositories {
-			maven {
-				name = "OSSRH"
-				url = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-				credentials {
-					username = System.getenv("MAVEN_USERNAME")
-					password = System.getenv("MAVEN_PASSWORD")
-				}
-			}
-		}
-		publications {
-			mavenJava(MavenPublication) {
-				from components.java
-				pom {
-					name= 'JCSG'
-					packaging ='jar'
-					// optionally artifactId can be defined here
-					description ='A Java based CSG Cad library'
-					url= 'https://github.com/NeuronRobotics/JCSG'
-	
-					scm {
-						connection 			='scm:git:https://github.com/NeuronRobotics/JCSG'
-						developerConnection ='scm:git:https://github.com/NeuronRobotics/JCSG'
-						url ='https://github.com/NeuronRobotics/JCSG'
-					}
-	
-					licenses {
-						license {
-							name= 'The Apache License, Version 2.0'
-							url ='http://www.apache.org/licenses/LICENSE-2.0.txt'
-						}
-					}
-	
-					developers {
-						developer {
-							id ='madhephaestus'
-							name= 'Kevin Harrington'
-							email= 'kharrington@neuronrobotics.com'
-						}
-					}
-				}
+
+	repositories {
+		maven {
+			name = "OSSRH"
+			url = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+			credentials {
+				username = System.getenv("MAVEN_USERNAME")
+				password = System.getenv("MAVEN_PASSWORD")
 			}
 		}
 	}
-	java {
-		withJavadocJar()
-		withSourcesJar()
-	}
-	
-	signing {
-		sign publishing.publications.mavenJava
-	}
-	
-	
-	javadoc {
-		if(JavaVersion.current().isJava9Compatible()) {
-			options.addBooleanOption('html5', true)
+	publications {
+		mavenJava(MavenPublication) {
+			from components.java
+			pom {
+				name= 'JCSG'
+				packaging ='jar'
+				// optionally artifactId can be defined here
+				description ='A Java based CSG Cad library'
+				url= 'https://github.com/NeuronRobotics/JCSG'
+
+				scm {
+					connection 			='scm:git:https://github.com/NeuronRobotics/JCSG'
+					developerConnection ='scm:git:https://github.com/NeuronRobotics/JCSG'
+					url ='https://github.com/NeuronRobotics/JCSG'
+				}
+
+				licenses {
+					license {
+						name= 'The Apache License, Version 2.0'
+						url ='http://www.apache.org/licenses/LICENSE-2.0.txt'
+					}
+				}
+
+				developers {
+					developer {
+						id ='madhephaestus'
+						name= 'Kevin Harrington'
+						email= 'kharrington@neuronrobotics.com'
+					}
+				}
+			}
 		}
 	}
+}
+java {
+	withJavadocJar()
+	withSourcesJar()
+}
+
+signing {
+	sign publishing.publications.mavenJava
+}
+
+
+javadoc {
+	if(JavaVersion.current().isJava9Compatible()) {
+		options.addBooleanOption('html5', true)
+	}
+}
