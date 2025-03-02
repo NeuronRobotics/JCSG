@@ -107,7 +107,7 @@ dependencies {
 
 	// triangulation algorithm
 	implementation group: 'org.locationtech.jts', name: 'jts-core', version: '1.20.0'// https://mvnrepository.com/artifact/org.orbisgis/poly2tri
-	implementation group: 'org.orbisgis', name: 'poly2tri', version: '0.7.0'
+	//implementation group: 'org.orbisgis', name: 'poly2tri', version: '0.7.0'
 
 	// alternate triangulation
 	//implementation "io.github.earcut4j:earcut4j:2.2.2"
