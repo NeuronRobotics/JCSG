@@ -63,9 +63,6 @@ task sourcesJar(type: Jar) {
 repositories {
 	mavenCentral()
 	mavenLocal()
-	//	maven {
-	//		url 'https://maven.imagej.net/content/repositories/public/'
-	//	}
 }
 
 // javadoc is way too strict for my taste.
@@ -120,6 +117,7 @@ dependencies {
 	implementation 'com.google.code.gson:gson:2.5'
 
 	implementation 'com.aparapi:aparapi:3.0.2'
+	
 }
 
 Date buildTimeAndDate = new Date()
