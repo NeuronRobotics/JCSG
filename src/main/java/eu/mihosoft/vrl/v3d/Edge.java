@@ -535,6 +535,13 @@ public class Edge {
 	public boolean colinear(Vector3d p) {
 		return colinear(p, Plane.EPSILON_Point);
 	}
+	
+	public boolean colinear(Edge p) {
+		return colinear(p.getP1().pos, Plane.EPSILON_Point) && colinear(p.getP2().pos, Plane.EPSILON_Point);
+	}
+	
+	
+	
 
 	public boolean colinear(Vector3d p, double TOL) {
 
@@ -563,7 +570,7 @@ public class Edge {
 	}
 
 	/**
-	 * Determines whether the specified point lies on tthis edge.
+	 * Determines whether the specified point lies on this edge.
 	 *
 	 * @param p   point to check
 	 * @param TOL tolerance
@@ -571,24 +578,66 @@ public class Edge {
 	 *         <code>false</code> otherwise
 	 */
 	public boolean contains(Vector3d p, double TOL) {
-
-		double x = p.x;
-		double x1 = this.p1.pos.x;
-		double x2 = this.p2.pos.x;
-
-		double y = p.y;
-		double y1 = this.p1.pos.y;
-		double y2 = this.p2.pos.y;
-
-		double z = p.z;
-		double z1 = this.p1.pos.z;
-		double z2 = this.p2.pos.z;
-
-		double AB = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1) + (z2 - z1) * (z2 - z1));
-		double AP = Math.sqrt((x - x1) * (x - x1) + (y - y1) * (y - y1) + (z - z1) * (z - z1));
-		double PB = Math.sqrt((x2 - x) * (x2 - x) + (y2 - y) * (y2 - y) + (z2 - z) * (z2 - z));
-
-		return Math.abs(AB - (AP + PB)) < TOL;
+	    // Extract coordinates once for better performance
+	    double pointX = p.x;
+	    double pointY = p.y;
+	    double pointZ = p.z;
+	    
+	    double edge1X = this.p1.pos.x;
+	    double edge1Y = this.p1.pos.y;
+	    double edge1Z = this.p1.pos.z;
+	    
+	    double edge2X = this.p2.pos.x;
+	    double edge2Y = this.p2.pos.y;
+	    double edge2Z = this.p2.pos.z;
+	    
+	    // Calculate vector components for edge and point-to-edge1 vectors
+	    double vEdgeX = edge2X - edge1X;
+	    double vEdgeY = edge2Y - edge1Y;
+	    double vEdgeZ = edge2Z - edge1Z;
+	    
+	    double vToPointX = pointX - edge1X;
+	    double vToPointY = pointY - edge1Y;
+	    double vToPointZ = pointZ - edge1Z;
+	    
+	    // Calculate squared edge length (avoid sqrt until necessary)
+	    double edgeLengthSq = vEdgeX * vEdgeX + vEdgeY * vEdgeY + vEdgeZ * vEdgeZ;
+	    
+	    // Handle degenerate edge case (zero or near-zero length)
+	    if (edgeLengthSq < TOL * TOL) {
+	        // For a zero-length edge, check if point is at the edge position
+	        double distanceToPointSq = 
+	            vToPointX * vToPointX + 
+	            vToPointY * vToPointY + 
+	            vToPointZ * vToPointZ;
+	        
+	        return distanceToPointSq < TOL * TOL;
+	    }
+	    
+	    // Calculate cross product for collinearity check
+	    double crossX = vToPointY * vEdgeZ - vToPointZ * vEdgeY;
+	    double crossY = vToPointZ * vEdgeX - vToPointX * vEdgeZ;
+	    double crossZ = vToPointX * vEdgeY - vToPointY * vEdgeX;
+	    
+	    // Calculate squared magnitude of cross product
+	    double crossMagnitudeSq = crossX * crossX + crossY * crossY + crossZ * crossZ;
+	    
+	    // Normalize by the squared length of the edge to make tolerance scale-independent
+	    double normalizedCrossMagnitudeSq = crossMagnitudeSq / edgeLengthSq;
+	    
+	    // Check collinearity - if not collinear, return false
+	    if (normalizedCrossMagnitudeSq > TOL * TOL) {
+	        return false;
+	    }
+	    
+	    // Check if the point is within the bounds of the edge using dot product
+	    double dotProduct = vEdgeX * vToPointX + vEdgeY * vToPointY + vEdgeZ * vToPointZ;
+	    
+	    // t represents how far along the edge the closest point to p is (projected position)
+	    double t = dotProduct / edgeLengthSq;
+	    
+	    // If 0 ≤ t ≤ 1, the point is within the bounds of the edge
+	    return t >= 0 && t <= 1;
 	}
 
 	/**
@@ -652,8 +701,7 @@ public class Edge {
 
 	@Override
 	public String toString() {
-		return "[[" + this.p1.getX() + ", " + this.p1.getY() + ", " + this.p1.getZ() + "]" + ", [" + this.p2.getX()
-				+ ", " + this.p2.getY() + ", " + this.p2.getZ() + "]]";
+		return "[[" + p1.toString() + "]" + ", [" + p2.toString()+ "]]";
 	}
 
 	/**
@@ -739,6 +787,24 @@ public class Edge {
 			// intersection point outside of segment
 			return Optional.empty();
 		}
+	}
+	/**
+	 * REturn the crossing point
+	 * if they share points, then its not crossing
+	 * if the do not touch, they are not crossing
+	 * if the intersection is not contained withing the lines, they are not crossing
+	 * @param e
+	 * @return
+	 */
+	public Optional<Vector3d> getCrossingPoint(Edge e) {
+		try {
+			getCommonPoint(e);
+			// if a common point exists, they are not crossed
+			return Optional.empty();
+		}catch(Exception ex) {
+			//check the common point now
+		}
+		return getIntersection(e);
 	}
 
 	/**
@@ -857,14 +923,23 @@ public class Edge {
 
 		// we don't consider edges with shared end-points since we are only
 		// interested in "false-boundary-edge"-cases
-		boolean sharedEndPoints = e.getP1().pos.equals(fbe.getP1().pos) || e.getP1().pos.equals(fbe.getP2().pos)
-				|| e.getP2().pos.equals(fbe.getP1().pos) || e.getP2().pos.equals(fbe.getP2().pos);
+		boolean sharedEndPointsp1 = e.getP1().pos.test(fbe.getP1().pos) || e.getP1().pos.test(fbe.getP2().pos);
+				
+		boolean sharedP2= e.getP2().pos.test(fbe.getP1().pos) || e.getP2().pos.test(fbe.getP2().pos);
 
-		if (sharedEndPoints) {
-			return false;
+		boolean containsP2 = fbe.contains(e.getP2().pos);
+		boolean containsP1 = fbe.contains(e.getP1().pos);
+
+		if(containsP2||containsP1) {
+			//System.out.println("Edge Contains point!");
 		}
-
-		return fbe.contains(e.getP1().pos) || fbe.contains(e.getP2().pos);
+		if ((!sharedP2) && containsP2) {
+			return true;
+		}
+		if ((!sharedEndPointsp1) && containsP1) {
+			return true;
+		}
+		return false;//fbe.contains(e.getP1().pos) || fbe.contains(e.getP2().pos);
 	}
 
 	/**
@@ -930,5 +1005,31 @@ public class Edge {
 	public void setP2(Vertex p2) {
 		this.p2 = p2;
 	}
-
+	
+	/**
+	 * 
+	 * @param test2
+	 * @return the point the edges have in common
+	 * @throws Exception 
+	 */
+	public Vertex getCommonPoint(Edge test2) throws Exception {
+		if(p1.pos.test(test2.getP1().pos) || p1.pos.test(test2.getP2().pos))
+			return p1;
+		if(p2.pos.test(test2.getP1().pos) || p2.pos.test(test2.getP2().pos))
+			return p2;
+		throw new Exception("Threse edges do not touch");
+	}
+	/**
+	 * 
+	 * @param test2
+	 * @return the point the edges have in common
+	 * @throws Exception 
+	 */
+	public Vertex getOppisitePoint(Vertex test) throws Exception {
+		if(p1.pos.test(test.pos))
+			return p2;
+		if(p2.pos.test(test.pos))
+			return p1;
+		throw new Exception("Threse edges do not touch");
+	}
 }
