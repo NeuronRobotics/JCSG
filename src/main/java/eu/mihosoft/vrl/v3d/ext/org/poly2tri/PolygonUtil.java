@@ -33,7 +33,9 @@
  */
 package eu.mihosoft.vrl.v3d.ext.org.poly2tri;
 
+import eu.mihosoft.vrl.v3d.CSG;
 import eu.mihosoft.vrl.v3d.Debug3dProvider;
+import eu.mihosoft.vrl.v3d.Edge;
 import eu.mihosoft.vrl.v3d.Extrude;
 import eu.mihosoft.vrl.v3d.Node;
 import eu.mihosoft.vrl.v3d.Plane;
@@ -46,14 +48,18 @@ import javafx.scene.paint.Color;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.triangulate.polygon.ConstrainedDelaunayTriangulator;
 import org.locationtech.jts.triangulate.polygon.PolygonTriangulator;
+import org.poly2tri.Poly2Tri;
+import org.poly2tri.geometry.polygon.PolygonPoint;
+import org.poly2tri.triangulation.delaunay.DelaunayTriangle;
 
-import earcut4j.Earcut;
+//import earcut4j.Earcut;
 
 /**
  * The Class PolygonUtil.
@@ -445,75 +451,178 @@ public class PolygonUtil {
 		try {
 			makeTriangles(concave, cw, result, zplane, normal, debug, orentationInv, reorent, incoming.getColor());
 		} catch (java.lang.IllegalStateException ex) {
-			makeTrianglesEarcutMethod(incoming, result, concave, cw);
+//			ex.printStackTrace();
+//			throw new RuntimeException(ex);
+			ArrayList<Edge> edges = new ArrayList<Edge>();
+			ArrayList<Vertex> toRemove = new ArrayList<Vertex>();
+			List<Vertex> v = concave.getVertices();
+			ArrayList<Vertex>  modifiable = new ArrayList<Vertex>();
+			modifiable.addAll(v);
+			for (int i = 0; i < v.size(); i++) {
+				Edge e = new Edge(v.get(i), v.get((i + 1) % v.size()));
+				double l = e.length();
+				if (l < 0.0001)
+					System.out.println("Length of edge is " + l);
+				// System.out.println(e);
+				edges.add(e);
+			}
+			ArrayList<Thread> threads = new ArrayList<Thread>();
+			int threadCount = 64;
+			if(threadCount>=edges.size()) {
+				threadCount=1;
+			}
+			int perThread = edges.size()/threadCount;
+			for (int k = 0; k < threadCount; k++) {
+				int start= k*perThread;
+				
+				Thread t = new Thread(() -> {
+					for (int i = start; i < edges.size()&& i<=(start+perThread); i++) {
+						Edge test = edges.get(i);
+						if (i < edges.size() - 1) {
+							boolean c = test.colinear(edges.get(i + 1));
+							if (c) {
+								System.out.println("Colinear edged found " + i);
+							}
+						}
+						if(start==0) {
+							CSG.getProgressMoniter().progressUpdate((i*(edges.size()/perThread)), 
+									edges.size(), 
+									" Repairing intersecting polygon (Hint in Inkscape->Path->Simplify): found # "+toRemove.size(), null);
+//							System.out.println(start+" Testing " +  + " of " +edges.size()+
+//									" found bad points# "+toRemove.size());
+						}
+						for (int j = 0; j < edges.size(); j++) {
+							if (i == j)
+								continue;
+							Edge test2 = edges.get(j);
+							boolean b = Edge.falseBoundaryEdgeSharedWithOtherEdge(test, test2);
+							Optional<Vector3d> cross = test.getCrossingPoint(test2);
+							boolean c = cross.isPresent() && i<j;
+							if (c) {
+								int x;
+								for(x=i+1;x<j;x++) {
+									toRemove.add(v.get(x));
+								}
+//								System.out
+//										.println("Edges cross! " + cross.get() +
+//												" pruned "+(x-i));
+							}
+							if (b) {
+								System.out.println("\n\nFalse Boundary " + test + " \n " + test2);
+								try {
+									Vertex vBad = test.getCommonPoint(test2);
+									toRemove.add(vBad);
+								} catch (Exception e) {
+									throw new RuntimeException(e);
+								}
+							}
+						}
+
+					}
+				});
+				threads.add(t);
+				t.start();
+			}
+			for(Thread t:threads)
+				try {
+					t.join();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			for(Vertex vr:toRemove)
+				modifiable.remove(vr);
+			concave=new Polygon(modifiable, concave.getStorage(), false, concave.getPlane());
+			makeTriangles(concave, cw, result, zplane, normal, debug, orentationInv, reorent, incoming.getColor());
+			System.out.println("Repaired the polygon! pruned "+toRemove.size());
+			// makeTrianglespoly2triMethod(result, concave, cw, reorent, orentationInv,
+			// normal);
 		}
 
 		return result;
 	}
 
-	private static void makeTrianglesEarcutMethod(Polygon incoming, List<Polygon> result, Polygon concave, boolean cw) {
-		// System.err.println("Failed to triangulate "+concave);
-		Polygon p = incoming;
-		int size = p.getVertices().size();
-		int sizeOfVect = 3;
-		double[] points = new double[size * sizeOfVect];
+	private static void makeTrianglespoly2triMethod(List<Polygon> result, Polygon concave, boolean cw, boolean reorent,
+			Transform orentationInv, Vector3d normal) {
+		ArrayList<PolygonPoint> points = new ArrayList<PolygonPoint>();
+		for (Vector3d v : concave.getPoints()) {
+			points.add(new PolygonPoint(v.x, v.y, v.z));
 
-		for (int i = 0; i < size; i++) {
-			Vector3d v = p.getVertices().get(i).pos;
-			points[i * sizeOfVect + 0] = v.x;
-			points[i * sizeOfVect + 1] = v.y;
-			points[i * sizeOfVect + 2] = v.z;
 		}
-		List<Integer> triangles = Earcut.earcut(points, null, sizeOfVect);
-		int numTri = triangles.size() / 3;
-
-		for (int i = 0; i < numTri; i++) {
-			int p1 = triangles.get(i * 3 + 0);
-			int p2 = triangles.get(i * 3 + 1);
-			int p3 = triangles.get(i * 3 + 2);
-			ArrayList<Vertex> tripoints = new ArrayList<Vertex>();
-			tripoints.add(p.getVertices().get(p1));
-			tripoints.add(p.getVertices().get(p2));
-			tripoints.add(p.getVertices().get(p3));
-
-			if (tripoints.size() == 3) {
-
-				Polygon poly = new Polygon(tripoints, p.getStorage(), false, p.getPlane());
-				boolean b = !Extrude.isCCW(poly);
-				if (cw != b) {
-					// System.err.println("Triangle not matching incoming");
-					Collections.reverse(tripoints);
-					poly = new Polygon(tripoints, p.getStorage(), true, p.getPlane());
-					b = !Extrude.isCCW(poly);
-					if (cw != b) {
-						// com.neuronrobotics.sdk.common.Log.error("Error, polygon is reversed!");
-					}
-				}
-//					if (reorent) {
-//						poly = poly.transform(orentationInv);
-//
-//						poly = checkForValidPolyOrentation(normal, poly);
-//					}
-				result.add(poly);
-			}
+		org.poly2tri.geometry.polygon.Polygon poly2tri = new org.poly2tri.geometry.polygon.Polygon(points);
+		try {
+			Poly2Tri.triangulate(poly2tri);
+			List<DelaunayTriangle> triangles = poly2tri.getTriangles();
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
-		// check result for overlapping polygons
-//		int startSize = result.size();
-//		ArrayList <Polygon> aP = new ArrayList<>();
-//		ArrayList <Polygon> bP= new ArrayList<>();
-//		aP.addAll(result);
-//		bP.addAll(result);
-//		Node a = new Node(aP);
-//		Node b = new Node(bP);
-//		a.clipTo(b);
-//		b.clipTo(a);
-//		result = new ArrayList<>();;
-//		result.addAll(a.allPolygons());
-		
 
-		return;// no overlapping polygons to remove!
-	
 	}
+
+//	private static void makeTrianglespoly2triMethod(Polygon incoming, List<Polygon> result, Polygon concave, boolean cw) {
+//		// System.err.println("Failed to triangulate "+concave);
+//		Polygon p = incoming;
+//		int size = p.getVertices().size();
+//		int sizeOfVect = 3;
+//		double[] points = new double[size * sizeOfVect];
+//
+//		for (int i = 0; i < size; i++) {
+//			Vector3d v = p.getVertices().get(i).pos;
+//			points[i * sizeOfVect + 0] = v.x;
+//			points[i * sizeOfVect + 1] = v.y;
+//			points[i * sizeOfVect + 2] = v.z;
+//		}
+//		List<Integer> triangles = Earcut.earcut(points, null, sizeOfVect);
+//		int numTri = triangles.size() / 3;
+//
+//		for (int i = 0; i < numTri; i++) {
+//			int p1 = triangles.get(i * 3 + 0);
+//			int p2 = triangles.get(i * 3 + 1);
+//			int p3 = triangles.get(i * 3 + 2);
+//			ArrayList<Vertex> tripoints = new ArrayList<Vertex>();
+//			tripoints.add(p.getVertices().get(p1));
+//			tripoints.add(p.getVertices().get(p2));
+//			tripoints.add(p.getVertices().get(p3));
+//
+//			if (tripoints.size() == 3) {
+//
+//				Polygon poly = new Polygon(tripoints, p.getStorage(), false, p.getPlane());
+//				boolean b = !Extrude.isCCW(poly);
+//				if (cw != b) {
+//					// System.err.println("Triangle not matching incoming");
+//					Collections.reverse(tripoints);
+//					poly = new Polygon(tripoints, p.getStorage(), true, p.getPlane());
+//					b = !Extrude.isCCW(poly);
+//					if (cw != b) {
+//						// com.neuronrobotics.sdk.common.Log.error("Error, polygon is reversed!");
+//					}
+//				}
+////					if (reorent) {
+////						poly = poly.transform(orentationInv);
+////
+////						poly = checkForValidPolyOrentation(normal, poly);
+////					}
+//				result.add(poly);
+//			}
+//		}
+//		// check result for overlapping polygons
+////		int startSize = result.size();
+////		ArrayList <Polygon> aP = new ArrayList<>();
+////		ArrayList <Polygon> bP= new ArrayList<>();
+////		aP.addAll(result);
+////		bP.addAll(result);
+////		Node a = new Node(aP);
+////		Node b = new Node(bP);
+////		a.clipTo(b);
+////		b.clipTo(a);
+////		result = new ArrayList<>();;
+////		result.addAll(a.allPolygons());
+//		
+//
+//		return;// no overlapping polygons to remove!
+//	
+//	}
 
 	private static Polygon checkForValidPolyOrentation(Vector3d normal, Polygon poly) {
 		Vector3d normal2 = poly.getPlane().getNormal();
