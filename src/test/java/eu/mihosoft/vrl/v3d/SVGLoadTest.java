@@ -28,7 +28,7 @@ public class SVGLoadTest {
 		ArrayList<CSG> parts = new ArrayList<CSG>();
 		parts.addAll(p);
 		for(CSG c:p) {
-			parts.add(c.rotx(180).toZMin().difference(c).movez(30).setColor(Color.YELLOW));
+			parts.add(c.rotx(180).rotz(5).toZMin().difference(c).movez(30).setColor(Color.YELLOW));
 		}
 		if(parts.size()==0)
 			throw new RuntimeException("Failed to load");
