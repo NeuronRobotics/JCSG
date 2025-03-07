@@ -1502,14 +1502,14 @@ public class CSG implements IuserAPI {
 			providerOf3d = Debug3dProvider.provider;
 		IDebug3dProvider start = Debug3dProvider.provider;
 		Debug3dProvider.setProvider(null);
-		//performTriangulation();
+		// performTriangulation();
 		if (preventNonManifoldTriangles) {
-			//for (int i = 0; i < 1; i++)
-				if (isUseGPU()) {
-					runGPUMakeManifold();
-				} else {
-					runCPUMakeManifold();
-				}
+			for (int i = 0; i < 2; i++)
+			if (isUseGPU()) {
+				runGPUMakeManifold();
+			} else {
+				runCPUMakeManifold();
+			}
 		}
 		performTriangulation();
 		// now all polygons are definantly triangles
@@ -1521,89 +1521,100 @@ public class CSG implements IuserAPI {
 	private void performTriangulation() {
 		ArrayList<Polygon> toAdd = new ArrayList<Polygon>();
 		int failedPolys = 0;
-		for(int i=0;i<polygons.size();i++) {
+		for (int i = 0; i < polygons.size(); i++) {
 			Polygon p = polygons.get(i);
 			CSG ret = updatePolygons(toAdd, p);
-			if(ret ==null)
+			if (ret == null)
 				failedPolys++;
 		}
-		if(failedPolys>0)
-			System.out.println("Pruned "+failedPolys+" polygons from CSG "+getName());
+		if (failedPolys > 0)
+			System.out.println("Pruned " + failedPolys + " polygons from CSG " + getName());
 		if (toAdd.size() > 0) {
 			setPolygons(toAdd);
 		}
 	}
 
 	private void runCPUMakeManifold() {
-		long start = System.currentTimeMillis();
-		//System.err.println("Cleaning up the mesh by adding coincident points to the polygons they touch");
+		//long start = System.currentTimeMillis();
+		// System.err.println("Cleaning up the mesh by adding coincident points to the
+		// polygons they touch");
 
-		int totalAdded = 0;
+		//int totalAdded = 0;
 		double tOL = 1.0e-11;
+		int threadCount = 12;
+		int indexPerThread = polygons.size() / threadCount;
 
 		ArrayList<Thread> threads = new ArrayList<Thread>();
-		for (int j = 0; j < polygons.size(); j++) {
-			int threadIndex = j;
+		for (int x = 0; x < threadCount; x++) {
+			int startIndex = x*indexPerThread;
+			int endIndex = startIndex+indexPerThread;
 			Thread t = new Thread(() -> {
-				Edge e = null;
-				// Test every polygon
-				Polygon i = polygons.get(threadIndex);
-				List<Vertex> vertices = i.getVertices();
-				for (int k = 0; k < vertices.size(); k++) {
-					// each point in the checking polygon
-					int now = k;
-					int next = k + 1;
-					if (next == vertices.size())
-						next = 0;
-					// take the 2 points of this section of polygon to make an edge
-					Vertex p1 = vertices.get(now);
-					Vertex p2 = vertices.get(next);
-					if (e == null)
-						e = new Edge(p1, p2);
-					else {
-						e.setP1(p1);
-						e.setP2(p2);
-					}
-					for (int l = 0; l < polygons.size(); l++) {
-						Polygon ii = polygons.get(l);
-						if (threadIndex != l) {
-							// every other polygon besides this one being tested
-							List<Vertex> vert = ii.getVertices();
-							for (int iii = 0; iii < vert.size(); iii++) {
-								Vertex vi = vert.get(iii);
-								// if they are coincident, move along
-								if (e.isThisPointOneOfMine(vi, tOL))
-									continue;
-								// if the point is on the line then we have a non manifold point
-								// it needs to be inserted into the polygon between the 2 points defined in the
-								// edge
-								if (e.contains(vi.pos, tOL)) {
-									// System.out.println("Inserting point "+vi);
-									i.add(next, vi);
-									e.setP2(vi);
-									// totalAdded++;
+				for (int j = startIndex; j < polygons.size()&&j<endIndex; j++) {
+					if(startIndex==0)
+						progressMoniter.progressUpdate(j*threadCount, polygons.size(),
+						"STL Processing Polygons for Manifold Vertex", this);
+					Edge e = null;
+					// Test every polygon
+					Polygon i = polygons.get(j);
+					List<Vertex> vertices = i.getVertices();
+					for (int k = 0; k < vertices.size(); k++) {
+						// each point in the checking polygon
+						int now = k;
+						int next = k + 1;
+						if (next == vertices.size())
+							next = 0;
+						// take the 2 points of this section of polygon to make an edge
+						Vertex p1 = vertices.get(now);
+						Vertex p2 = vertices.get(next);
+						if (e == null)
+							e = new Edge(p1, p2);
+						else {
+							e.setP1(p1);
+							e.setP2(p2);
+						}
+						for (int l = 0; l < polygons.size(); l++) {
+							Polygon ii = polygons.get(l);
+							if (j != l) {
+								// every other polygon besides this one being tested
+								List<Vertex> vert = ii.getVertices();
+								for (int iii = 0; iii < vert.size(); iii++) {
+									Vertex vi = vert.get(iii);
+									// if they are coincident, move along
+									if (e.isThisPointOneOfMine(vi, tOL))
+										continue;
+									// if the point is on the line then we have a non manifold point
+									// it needs to be inserted into the polygon between the 2 points defined in the
+									// edge
+									if (e.contains(vi.pos, tOL)) {
+										// System.out.println("Inserting point "+vi);
+										i.add(next, vi);
+										e.setP2(vi);
+										// totalAdded++;
+									}
 								}
 							}
 						}
 					}
+
+//				if (threads.size() > 32) {
+//					for (Thread tr : threads)
+//						try {
+//							tr.join();
+//						} catch (InterruptedException e) {
+//							// Auto-generated catch block
+//							e.printStackTrace();
+//						}
+//					totalAdded += 32;
+//					threads.clear();
+//					if (threadIndex / 32 % 50 == 0 || j == polygons.size() - 1) {
+//						progressMoniter.progressUpdate(j, polygons.size(),
+//								"STL Processing Polygons for Manifold Vertex, #" + totalAdded + " added so far", this);
+//					}
+//				}
+
+					
 				}
 			});
-			if (threads.size() > 32) {
-				for (Thread tr : threads)
-					try {
-						tr.join();
-					} catch (InterruptedException e) {
-						// Auto-generated catch block
-						e.printStackTrace();
-					}
-				totalAdded += 32;
-				threads.clear();
-				if (threadIndex/32 % 50 == 0 || j == polygons.size() - 1) {
-					progressMoniter.progressUpdate(j, polygons.size(),
-							"STL Processing Polygons for Manifold Vertex, #" + totalAdded + " added so far", this);
-				}
-			}
-
 			threads.add(t);
 			t.start();
 		}
@@ -1614,7 +1625,8 @@ public class CSG implements IuserAPI {
 				// Auto-generated catch block
 				e.printStackTrace();
 			}
-		//progressMoniter.progressUpdate(polygons.size(),polygons.size(),"Manifold fix took " + (System.currentTimeMillis() - start),this);
+		// progressMoniter.progressUpdate(polygons.size(),polygons.size(),"Manifold fix
+		// took " + (System.currentTimeMillis() - start),this);
 	}
 
 	private void runGPUMakeManifold() {
@@ -1687,19 +1699,18 @@ public class CSG implements IuserAPI {
 		if (p == null)
 			return this;
 
-
 		if (p.getVertices().size() == 3) {
 			toAdd.add(p);
 		} else {
 
 			try {
-				if(!p.areAllPointsCollinear()) {
+				if (!p.areAllPointsCollinear()) {
 					List<Polygon> triangles = PolygonUtil.concaveToConvex(p);
 					for (Polygon poly : triangles) {
 						toAdd.add(poly);
 					}
-				}else {
-					System.err.println("Polygon is colinear, removing "+p);
+				} else {
+					System.err.println("Polygon is colinear, removing " + p);
 					return null;
 				}
 			} catch (Throwable ex) {
@@ -2478,8 +2489,9 @@ public class CSG implements IuserAPI {
 		regenerate = function;
 		return this;
 	}
+
 	public IRegenerate getRegenerate() {
-		return regenerate ;
+		return regenerate;
 	}
 
 	public CSG regenerate() {
@@ -3062,7 +3074,7 @@ public class CSG implements IuserAPI {
 
 	public CSG syncProperties(CSG dying) {
 		getStorage().syncProperties(dying.getStorage());
-		regenerate=dying.regenerate;
+		regenerate = dying.regenerate;
 		return this;
 	}
 
