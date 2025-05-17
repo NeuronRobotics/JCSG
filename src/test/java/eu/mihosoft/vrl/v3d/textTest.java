@@ -2,11 +2,16 @@ package eu.mihosoft.vrl.v3d;
 
 import static org.junit.Assert.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.List;
 
 import org.junit.Test;
 
+import eu.mihosoft.vrl.v3d.parametrics.Parameter;
+import eu.mihosoft.vrl.v3d.svg.SVGLoad;
 import javafx.scene.text.Font;
 
 public class textTest {
@@ -20,6 +25,7 @@ public class textTest {
 		text=new Cube(180,40,10).toCSG().toZMin().toXMin().toYMin().movey(-5).difference(text);
 		FileUtil.write(Paths.get("exampleText.stl"),
 				text.toStlString());
+		
 	}
 
 }
