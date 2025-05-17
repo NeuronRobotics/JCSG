@@ -595,7 +595,7 @@ public class Extrude {
 			prev = step;
 			newPolygons.addAll(parts);
 		}
-		Polygon polygon2 = offsetP.transformed(provider.get(1, steps)).transformed(running);
+		Polygon polygon2 = prev.clone();
 		List<Polygon> topPolygons = PolygonUtil.concaveToConvex(polygon2.flipped());
 		newPolygons.addAll(topPolygons);
 
