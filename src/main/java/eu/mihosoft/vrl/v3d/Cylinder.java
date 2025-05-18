@@ -188,18 +188,18 @@ public class Cylinder extends Primitive {
     }
     public Cylinder(LengthParameter startRadius, LengthParameter endRadius, LengthParameter height, int numSlices) {
         this(startRadius.getMM(),endRadius.getMM(),height.getMM(),numSlices);
-        parametrics.add(startRadius);
-        parametrics.add(endRadius);
-        parametrics.add(height);
+        getParametrics().add(startRadius);
+        getParametrics().add(endRadius);
+        getParametrics().add(height);
     }
     public Cylinder(LengthParameter startRadius,  LengthParameter height, int numSlices) {
         this(startRadius,startRadius,height,numSlices);
     }
     public Cylinder(LengthParameter startRadius, LengthParameter endRadius, LengthParameter height) {
         this(startRadius.getMM(),endRadius.getMM(),height.getMM());
-        parametrics.add(startRadius);
-        parametrics.add(endRadius);
-        parametrics.add(height);
+        getParametrics().add(startRadius);
+        getParametrics().add(endRadius);
+        getParametrics().add(height);
     }
     public Cylinder(LengthParameter startRadius,  LengthParameter height) {
         this(startRadius,startRadius,height);

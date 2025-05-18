@@ -166,7 +166,7 @@ public class CSG implements IuserAPI {
 	private static boolean useStackTraces = true;
 	private static boolean preventNonManifoldTriangles = false;
 	private static boolean useGPU = false;
-
+	private CSGDatabase database=null;
 	private static ICSGProgress progressMoniter = new ICSGProgress() {
 		@Override
 		public void progressUpdate(int currentIndex, int finalIndex, String type, CSG intermediateShape) {
@@ -2329,8 +2329,11 @@ public class CSG implements IuserAPI {
 		}
 		return this;
 	}
-
 	public CSG historySync(CSG dyingCSG) {
+		
+		return historySync(dyingCSG,getDatabase());
+	}
+	public CSG historySync(CSG dyingCSG, CSGDatabase db) {
 		if (useStackTraces) {
 			this.addCreationEventStringList(dyingCSG.getCreationEventStackTraceList());
 		}
@@ -2341,10 +2344,10 @@ public class CSG implements IuserAPI {
 				if (s.contentEquals(param))
 					existing = true;
 			}
-			if (!existing) {
-				Parameter vals = CSGDatabase.get(param);
+			if (!existing && db!=null) {
+				Parameter vals = db.get(param);
 				if (vals != null)
-					this.setParameter(vals, dyingCSG.getMapOfparametrics().get(param));
+					this.setParameter(vals, dyingCSG.getMapOfparametrics().get(param),db);
 			}
 		}
 		if (getName().length() == 0)
@@ -2358,7 +2361,6 @@ public class CSG implements IuserAPI {
 			for (String s : incoming) {
 				addCreationEventString(s);
 			}
-
 		return this;
 	}
 
@@ -2414,44 +2416,45 @@ public class CSG implements IuserAPI {
 		return setManufacturing(manufactuing);
 	}
 
-	public CSG setParameter(Parameter w, IParametric function) {
+	public CSG setParameter(Parameter w, IParametric function,CSGDatabase db) {
+		setDatabase(db);
 		if (w == null)
 			return this;
-		if (CSGDatabase.get(w.getName()) == null)
-			CSGDatabase.set(w.getName(), w);
+		if (db.get(w.getName()) == null)
+			db.set(w.getName(), w);
 		if (getMapOfparametrics().get(w.getName()) == null)
 			getMapOfparametrics().put(w.getName(), function);
 		return this;
 	}
 
-	public CSG setParameter(Parameter w) {
+	public CSG setParameter(Parameter w,CSGDatabase db) {
 		setParameter(w, new IParametric() {
 			@Override
 			public CSG change(CSG oldCSG, String parameterKey, Long newValue) {
 				if (parameterKey.contentEquals(w.getName()))
-					CSGDatabase.get(w.getName()).setValue(newValue);
+					db.get(w.getName()).setValue(newValue);
 				return oldCSG;
 			}
-		});
+		},db);
 		return this;
 	}
 
 	public CSG setParameter(String key, double defaultValue, double upperBound, double lowerBound,
-			IParametric function) {
+			IParametric function,CSGDatabase db) {
 		ArrayList<Double> vals = new ArrayList<Double>();
 		vals.add(upperBound);
 		vals.add(lowerBound);
-		setParameter(new LengthParameter(key, defaultValue, vals), function);
+		setParameter(new LengthParameter(db,key, defaultValue, vals), function,db);
 		return this;
 	}
 
-	public CSG setParameterIfNull(String key) {
+	public CSG setParameterIfNull(String key,CSGDatabase db) {
 		if (getMapOfparametrics().get(key) == null)
 			getMapOfparametrics().put(key, new IParametric() {
 
 				@Override
 				public CSG change(CSG oldCSG, String parameterKey, Long newValue) {
-					CSGDatabase.get(key).setValue(newValue);
+					db.get(key).setValue(newValue);
 					return oldCSG;
 				}
 			});
@@ -3350,6 +3353,14 @@ public class CSG implements IuserAPI {
 
 	public boolean isBoundsTouching(CSG incoming) {
 		return getBounds().isBoundsTouching(incoming.getBounds());
+	}
+
+	public CSGDatabase getDatabase() {
+		return database;
+	}
+
+	public void setDatabase(CSGDatabase database) {
+		this.database = database;
 	}
 
 }

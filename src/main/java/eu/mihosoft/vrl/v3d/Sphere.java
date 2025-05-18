@@ -93,11 +93,11 @@ public class Sphere extends Primitive {
 //    }
     public Sphere(LengthParameter size) {
     	this(size.getMM());
-    	parametrics.add(size);
+    	getParametrics().add(size);
     }
     public Sphere(LengthParameter size, int numSlices, int numStacks) {
     	this(size.getMM(),  numSlices,  numStacks);
-    	parametrics.add(size);
+    	getParametrics().add(size);
     }
     /**
      * Constructor. Creates a sphere with the specified radius, number of slices

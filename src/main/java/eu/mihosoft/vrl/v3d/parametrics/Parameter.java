@@ -9,16 +9,19 @@ public class Parameter {
 	private final ArrayList<String> options=new ArrayList<String>();
 	private Long value=null;
 	private String strValue=null;
-	public Parameter(){}
+	CSGDatabase csgDatabase=null;
+	public Parameter(CSGDatabase db){
+		csgDatabase=db;
+	}
 	
 	protected void setup(String key,Long defaultValue,ArrayList<String> options){
 		this.name = key;
-		if(CSGDatabase.get(name)==null)
+		if(csgDatabase.get(name)==null)
 			setValue(defaultValue);
 		else{
-			setValue(CSGDatabase.get(name).getValue());
+			setValue(csgDatabase.get(name).getValue());
 		}
-		CSGDatabase.addParameterListener(name, new IParameterChanged() {
+		csgDatabase.addParameterListener(name, new IParameterChanged() {
 			@Override
 			public void parameterChanged(String name, Parameter p) {
 				value = p.getValue();// if another instance of parameter with this key changes value
@@ -27,16 +30,16 @@ public class Parameter {
 		for(String o:options){
 			this.options.add(o);
 		}
-		CSGDatabase.set(key, this);
+		csgDatabase.set(key, this);
 	}
 	protected void setup(String key,String defaultValue,ArrayList<String> options){
 		this.name = key;
-		if(CSGDatabase.get(name)==null)
+		if(csgDatabase.get(name)==null)
 			this.strValue = defaultValue;
 		else{
-			this.strValue = CSGDatabase.get(name).getStrValue();
+			this.strValue = csgDatabase.get(name).getStrValue();
 		}
-		CSGDatabase.addParameterListener(name, new IParameterChanged() {
+		csgDatabase.addParameterListener(name, new IParameterChanged() {
 			@Override
 			public void parameterChanged(String name, Parameter p) {
 				strValue = p.getStrValue();// if another instance of parameter with this key changes value
@@ -45,7 +48,7 @@ public class Parameter {
 		for(String o:options){
 			this.options.add(o);
 		}
-		CSGDatabase.set(key, this);
+		csgDatabase.set(key, this);
 	}
 	public String getName() {
 		return name;
@@ -54,7 +57,7 @@ public class Parameter {
 	public void setValue(Long newVal){
 		if(value!=newVal){
 			value=newVal;
-			CopyOnWriteArrayList<IParameterChanged> listeners = CSGDatabase.getParamListeners(name);
+			CopyOnWriteArrayList<IParameterChanged> listeners = csgDatabase.getParamListeners(name);
 			for(int i=0;i<listeners.size();i++){
 			  IParameterChanged l=listeners.get(i);
 				l.parameterChanged(name, this);
@@ -76,7 +79,7 @@ public class Parameter {
 	public void setStrValue(String newValue) {
 		if(!strValue.contentEquals(newValue)){
 			strValue = newValue;
-			CopyOnWriteArrayList<IParameterChanged> listeners = CSGDatabase.getParamListeners(name);
+			CopyOnWriteArrayList<IParameterChanged> listeners = csgDatabase.getParamListeners(name);
 			for(IParameterChanged l:listeners){
 				l.parameterChanged(name, this);
 			}

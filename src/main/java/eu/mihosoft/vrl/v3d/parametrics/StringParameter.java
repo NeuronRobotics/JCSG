@@ -6,7 +6,8 @@ import java.util.List;
 public class StringParameter extends Parameter {
 
 	private List<String> options2;
-	public StringParameter(String key, String defaultValue, ArrayList<String> options) {
+	public StringParameter(CSGDatabase db,String key, String defaultValue, ArrayList<String> options) {
+		super(db);
 		setup(key, defaultValue, options);
 		options2 = options;
 	}

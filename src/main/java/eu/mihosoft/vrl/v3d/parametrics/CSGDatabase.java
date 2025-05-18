@@ -16,19 +16,30 @@ import com.google.gson.reflect.TypeToken;
 
 public class CSGDatabase {
 	
-	private static ConcurrentHashMap<String,Parameter> database=null;
-	private static File dbFile=new File("CSGdatabase.json");
-    private static final Type TT_mapStringString = new TypeToken<ConcurrentHashMap<String,Parameter>>(){}.getType();
-    private static final Gson gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
-    //private static final HashMap<String,ArrayList<IParameterChanged>> parameterListeners=new HashMap<>();
-    private static final ConcurrentHashMap<String, CopyOnWriteArrayList<IParameterChanged>> parameterListeners = new ConcurrentHashMap<>();
-	public static void set(String key, Parameter value){
+	private static CSGDatabase singelton = new CSGDatabase(new File("CSGdatabase.json"));
+	
+	public static CSGDatabase getSingelton() {
+		return singelton;
+	}
+	
+	public CSGDatabase(File file) {
+		dbFile=file;
+	}
+	
+	
+	private  ConcurrentHashMap<String,Parameter> database=null;
+	private  File dbFile=null;
+    private  final Type TT_mapStringString = new TypeToken<ConcurrentHashMap<String,Parameter>>(){}.getType();
+    private  final Gson gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+    //private  final HashMap<String,ArrayList<IParameterChanged>> parameterListeners=new HashMap<>();
+    private  final ConcurrentHashMap<String, CopyOnWriteArrayList<IParameterChanged>> parameterListeners = new ConcurrentHashMap<>();
+	public  void set(String key, Parameter value){
 		getDatabase();
 		//synchronized(database){
 			getDatabase().put(key, value);
 		//}
 	}
-	public static Parameter get(String key){
+	public  Parameter get(String key){
 		Parameter ret =null;
 		getDatabase();// load database before synchronization
 		//synchronized(database){
@@ -37,7 +48,7 @@ public class CSGDatabase {
 		return ret;
 	}
 	
-	public static   void clear(){
+	public    void clear(){
 
 		getDatabase();
 		//synchronized(database){
@@ -46,13 +57,13 @@ public class CSGDatabase {
 		parameterListeners.clear();
 		saveDatabase();
 	}
-	public static  void addParameterListener(String key, IParameterChanged l){
+	public   void addParameterListener(String key, IParameterChanged l){
 		CopyOnWriteArrayList<IParameterChanged> list = getParamListeners(key);
 		if(!list.contains(l)){
 			list.add(l);
 		}
 	}
-	public static  void clearParameterListeners(String key){
+	public   void clearParameterListeners(String key){
 		synchronized (parameterListeners) {
 			CopyOnWriteArrayList<IParameterChanged> back = parameterListeners.get(key);
 			if(back==null){
@@ -62,7 +73,7 @@ public class CSGDatabase {
 			back.clear();
 		}
 	}
-	public static  void removeParameterListener(String key, IParameterChanged l){
+	public   void removeParameterListener(String key, IParameterChanged l){
 		if(parameterListeners.get(key)==null){
 			return;
 		}
@@ -72,7 +83,7 @@ public class CSGDatabase {
 		}
 	}
 	
-	public static  CopyOnWriteArrayList<IParameterChanged> getParamListeners(String key){
+	public   CopyOnWriteArrayList<IParameterChanged> getParamListeners(String key){
 		synchronized (parameterListeners) {
 			CopyOnWriteArrayList<IParameterChanged> back = parameterListeners.get(key);
 			if(back==null){
@@ -84,12 +95,12 @@ public class CSGDatabase {
 	}
 	
 
-	public static void delete(String key){
+	public  void delete(String key){
 		//synchronized(database){
 			getDatabase().remove(key);
 		//}
 	}
-	private static ConcurrentHashMap<String,Parameter> getDatabase() {
+	private  ConcurrentHashMap<String,Parameter> getDatabase() {
 		if(database==null){
 			new Thread(){
 				public void run(){
@@ -147,7 +158,7 @@ public class CSGDatabase {
 		return database;
 	}
 	
-	public static void loadDatabaseFromFile(File f){
+	public  void loadDatabaseFromFile(File f){
 		InputStream in = null;
 		String jsonString;
         try {
@@ -170,7 +181,7 @@ public class CSGDatabase {
         }
 	}
 	
-	public static String getDataBaseString(){
+	public  String getDataBaseString(){
 		String writeOut=null;
 		getDatabase();
 		//synchronized(database){
@@ -179,7 +190,7 @@ public class CSGDatabase {
 		return writeOut;
 	}
 	
-	public static void saveDatabase(){
+	public  void saveDatabase(){
 		String writeOut=getDataBaseString();
 		try {
 			if(!getDbFile().exists()){
@@ -199,16 +210,16 @@ public class CSGDatabase {
 			e.printStackTrace();
 		}
 	}
-	private static void setDatabase(ConcurrentHashMap<String,Parameter> database) {
-		if(CSGDatabase.database!=null){
+	private  void setDatabase(ConcurrentHashMap<String,Parameter> database) {
+		if(this.database!=null){
 			return;
 		}
-		CSGDatabase.database = database;
+		this.database = database;
 	}
-	public static File getDbFile() {
+	public  File getDbFile() {
 		return dbFile;
 	}
-	public static void setDbFile(File dbFile) {
+	public  void setDbFile(File dbFile) {
 		if(!dbFile.exists())
 			try {
 				dbFile.createNewFile();
@@ -216,10 +227,10 @@ public class CSGDatabase {
 				// Auto-generated catch block
 				e.printStackTrace();
 			}
-		CSGDatabase.dbFile = dbFile;
+		this.dbFile = dbFile;
 		loadDatabaseFromFile(dbFile);
 	}
-	public static void reLoadDbFile() {
+	public  void reLoadDbFile() {
 		setDbFile(dbFile);
 	}
 }

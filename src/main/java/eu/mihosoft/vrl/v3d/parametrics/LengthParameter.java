@@ -4,7 +4,8 @@ import java.util.ArrayList;
 
 public class LengthParameter extends Parameter {
 
-	public LengthParameter(String key, Double defaultValue, ArrayList<Double> options) {
+	public LengthParameter(CSGDatabase db,String key, Double defaultValue, ArrayList<Double> options) {
+		super(db);
 		 ArrayList<String> opts=new ArrayList<String>();
 		 for(Object d:options)
 			 opts.add(d.toString());

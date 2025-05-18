@@ -42,7 +42,7 @@ import eu.mihosoft.vrl.v3d.parametrics.Parameter;
  * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
  */
 public abstract class Primitive implements ItoCSG{
-	ArrayList<Parameter> parametrics=new ArrayList<>();
+	private ArrayList<Parameter> parametrics=new ArrayList<>();
     
 
     /**
@@ -62,9 +62,9 @@ public abstract class Primitive implements ItoCSG{
      */
     public   CSG toCSG() {
     	CSG tmp = CSG.fromPolygons(getProperties(),toPolygons());
-    	if(parametrics!=null)
-    		for(Parameter p:parametrics)
-    			tmp.setParameter(p);
+    	if(getParametrics()!=null)
+    		for(Parameter p:getParametrics())
+    			tmp.setParameter(p,tmp.getDatabase());
     	//tmp.triangulate();
         return tmp;
     }
@@ -74,4 +74,9 @@ public abstract class Primitive implements ItoCSG{
      * @return the property storage of this primitive
      */
     public abstract PropertyStorage getProperties();
+
+	public ArrayList<Parameter> getParametrics() {
+		return parametrics;
+	}
+
 }

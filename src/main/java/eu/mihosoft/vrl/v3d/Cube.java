@@ -107,9 +107,9 @@ public class Cube extends Primitive {
     }
     public Cube(LengthParameter w, LengthParameter h, LengthParameter d) {
         this(Vector3d.ZERO, new Vector3d(w.getMM(), h.getMM(), d.getMM()));
-        parametrics.add(w);
-        parametrics.add(h);
-        parametrics.add(d);
+        getParametrics().add(w);
+        getParametrics().add(h);
+        getParametrics().add(d);
     }
     public Cube(LengthParameter size) {
         this(size,size,size);
