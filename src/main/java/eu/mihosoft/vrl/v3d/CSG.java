@@ -41,6 +41,8 @@ import eu.mihosoft.vrl.v3d.parametrics.IRegenerate;
 import eu.mihosoft.vrl.v3d.parametrics.LengthParameter;
 import eu.mihosoft.vrl.v3d.parametrics.Parameter;
 
+import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -121,7 +123,8 @@ import javafx.scene.transform.Affine;
  */
 
 @SuppressWarnings("restriction")
-public class CSG implements IuserAPI {
+public class CSG implements IuserAPI, Serializable {
+	private static final long serialVersionUID = 4071874097772427063L;
 	private static IDebug3dProvider providerOf3d = null;
 	private static int numFacesInOffset = 15;
 
@@ -141,11 +144,14 @@ public class CSG implements IuserAPI {
 	/** The current. */
 	private MeshView current;
 
-	private static Color defaultcolor = Color.web("#007956");
+	private static String defaultcolor = "#007956";
 
 	/** The color. */
-	private Color color = getDefaultColor();
-
+	//private Color color = getDefaultColor();
+	private double r= getDefaultColor().getRed();
+	private double g=getDefaultColor().getGreen();
+	private double b= getDefaultColor().getBlue();
+	private double o=getDefaultColor().getOpacity();
 	/** The manipulator. */
 	private Affine manipulator;
 	private Bounds bounds;
@@ -200,7 +206,7 @@ public class CSG implements IuserAPI {
 		if (ret == null)
 			return null;
 		ret.setName(getName());
-		ret.color = color;
+		ret.setColor(getColor());
 		ret.slicePlanes = slicePlanes;
 		ret.mapOfparametrics = mapOfparametrics;
 		ret.exportFormats = exportFormats;
@@ -213,7 +219,7 @@ public class CSG implements IuserAPI {
 	 * @return the color
 	 */
 	public Color getColor() {
-		return color;
+		return new Color(r, g, b, o);
 	}
 
 	/**
@@ -222,7 +228,10 @@ public class CSG implements IuserAPI {
 	 * @param color the new color
 	 */
 	public CSG setColor(Color color) {
-		this.color = color;
+		r=color.getRed();
+		g=color.getGreen();
+		b=color.getBlue();
+		o=color.getOpacity();
 		for (Polygon p : polygons)
 			p.setColor(color);
 		return this;
@@ -791,6 +800,15 @@ public class CSG implements IuserAPI {
 	 * @return union of this csg and the specified csg
 	 */
 	public CSG union(CSG csg) {
+		if(CSGClient.isRunning()) {
+			ArrayList<CSG> go=new ArrayList<CSG>(Arrays.asList(this));
+			try {
+				return CSGClient.getClient().union(go).get(0);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 //		triangulate();
 //		csg.triangulate();
 		switch (getOptType()) {
@@ -938,8 +956,19 @@ public class CSG implements IuserAPI {
 	}
 
 	public static CSG unionAll(List<CSG> csgs) {
+		if(CSGClient.isRunning()) {
+			List<CSG> back;
+			try {
+				back = CSGClient.getClient().union(csgs);
+				return back.get(0);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		CSG first = csgs.get(0);
 		return first.union(csgs.stream().skip(1).collect(Collectors.toList()));
+		
 	}
 
 	public static CSG hullAll(CSG... csgs) {
@@ -1204,6 +1233,15 @@ public class CSG implements IuserAPI {
 	 * @return difference of this csg and the specified csg
 	 */
 	public CSG difference(CSG csg) {
+		if(CSGClient.isRunning()) {
+			ArrayList<CSG> go=new ArrayList<CSG>(Arrays.asList(this,csg));
+			try {
+				return CSGClient.getClient().difference(go).get(0);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 //		triangulate();
 //		csg.triangulate();
 		try {
@@ -1263,7 +1301,7 @@ public class CSG implements IuserAPI {
 		if (getName().length() != 0 && csg.getName().length() != 0) {
 			result.setName(name);
 		}
-		result.color = color;
+		result.setColor(getColor());
 		return result;
 	}
 
@@ -1354,6 +1392,15 @@ public class CSG implements IuserAPI {
 	 * @return intersection of this csg and the specified csg
 	 */
 	public CSG intersect(CSG csg) {
+		if(CSGClient.isRunning()) {
+			ArrayList<CSG> go=new ArrayList<CSG>(Arrays.asList(this,csg));
+			try {
+				return CSGClient.getClient().intersect(go).get(0);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 //		triangulate();
 //		csg.triangulate();
 		Node a = new Node(this.clone().getPolygons());
@@ -1497,7 +1544,15 @@ public class CSG implements IuserAPI {
 			triangulated = false;
 		if (triangulated)
 			return this;
-
+		if(CSGClient.isRunning()) {
+			ArrayList<CSG> go=new ArrayList<CSG>(Arrays.asList(this));
+			try {
+				return CSGClient.getClient().triangulate(go).get(0);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		if (providerOf3d == null && Debug3dProvider.provider != null)
 			providerOf3d = Debug3dProvider.provider;
 		IDebug3dProvider start = Debug3dProvider.provider;
@@ -2349,7 +2404,7 @@ public class CSG implements IuserAPI {
 		}
 		if (getName().length() == 0)
 			setName(dyingCSG.getName());
-		color = dyingCSG.getColor();
+		setColor( dyingCSG.getColor());
 		return this;
 	}
 
@@ -2468,7 +2523,7 @@ public class CSG implements IuserAPI {
 		if (function != null) {
 			CSG setManipulator = function.change(this, key, new Long((long) (newValue * 1000)))
 					.setManipulator(this.getManipulator());
-			setManipulator.color = color;
+			setManipulator.setColor(getColor());
 			return setManipulator;
 		}
 		return this;
@@ -2542,11 +2597,7 @@ public class CSG implements IuserAPI {
 	}
 
 	public static Color getDefaultColor() {
-		return defaultcolor;
-	}
-
-	public static void setDefaultColor(Color defaultcolor) {
-		CSG.defaultcolor = defaultcolor;
+		return Color.web(defaultcolor);
 	}
 
 	/**

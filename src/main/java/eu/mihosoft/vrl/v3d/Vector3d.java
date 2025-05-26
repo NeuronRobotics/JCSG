@@ -38,6 +38,7 @@ import static java.lang.Math.acos;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Random;
 
@@ -49,7 +50,7 @@ import com.google.gson.annotations.Expose;
  *
  * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
  */
-public class Vector3d extends javax.vecmath.Vector3d{
+public class Vector3d extends javax.vecmath.Vector3d {
     
 
     private static  String exportString = "%.10f";

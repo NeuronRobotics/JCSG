@@ -33,6 +33,7 @@
  */
 package eu.mihosoft.vrl.v3d;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -49,9 +50,10 @@ import javafx.scene.paint.Color;
  * polygon. This can be used to define per-polygon properties (such as surface
  * color).
  */
-public final class Polygon {
+public final class Polygon implements Serializable{
 
-    /** Polygon vertices. */
+    private static final long serialVersionUID = 2090322224114633535L;
+	/** Polygon vertices. */
     private ArrayList<Vertex> vertices;
     /**
      * Shared property (can be used for shared color etc.).
@@ -64,7 +66,12 @@ public final class Polygon {
      */
     public  Plane plane=null;
      private boolean isHole = false;
-
+ 	private double r= CSG.getDefaultColor().getRed();
+ 	private double g=CSG.getDefaultColor().getGreen();
+ 	private double b= CSG.getDefaultColor().getBlue();
+ 	private double o=CSG.getDefaultColor().getOpacity();
+    private boolean valid = true;
+	private boolean degenerate=false;
     /**
      * Sets the storage.
      *
@@ -219,7 +226,7 @@ public final class Polygon {
         this.getVertices().forEach((vertex) -> {
             newVertices.add(vertex.clone());
         });
-        return new Polygon(newVertices, getStorage(),true,null).setColor(color);
+        return new Polygon(newVertices, getStorage(),true,null).setColor(getColor());
     }
 
     /**
@@ -680,9 +687,7 @@ public final class Polygon {
         return valid;
     }
 
-    private boolean valid = true;
-	private boolean degenerate=false;
-	private Color color;
+
 
 
 	public void setDegenerate(boolean degenerate) {
@@ -737,11 +742,14 @@ public final class Polygon {
 	}
 
 	public Polygon setColor(Color color) {
-		this.color = color;
+		r=color.getRed();
+		g=color.getGreen();
+		b=color.getBlue();
+		o=color.getOpacity();
 		return this;
 	}
 	public Color getColor() {
-		return this.color;
+		return new Color(r, g, b, o);
 	}
 	@Override
 	public String toString() {

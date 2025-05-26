@@ -33,6 +33,7 @@
  */
 package eu.mihosoft.vrl.v3d;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 //  Auto-generated Javadoc
@@ -41,9 +42,11 @@ import java.util.Objects;
  * primitives like {@link Cube} can return a smooth vertex normal, but
  * {@link #normal} is not used anywhere else.
  */
-public class Vertex {
+public class Vertex  implements Serializable{
 
-    /**
+    private static final long serialVersionUID = -7172279269995785347L;
+
+	/**
      * Vertex position.
      */
     public Vector3d pos;

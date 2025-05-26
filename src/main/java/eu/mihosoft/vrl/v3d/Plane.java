@@ -33,6 +33,7 @@
  */
 package eu.mihosoft.vrl.v3d;
 
+import java.io.Serializable;
 // # class Plane
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +45,8 @@ import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
  *
  * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
  */
-public class Plane {
+public class Plane implements Serializable {
+	private static final long serialVersionUID = 1138941934083106028L;
 	private static IPolygonDebugger debugger = null;
 	private static boolean useDebugger = false;
 	/**
