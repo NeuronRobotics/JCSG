@@ -216,13 +216,13 @@ public class CSGServer {
 		);
 
 		// Create content signer
-		ContentSigner contentSigner = new JcaContentSignerBuilder("SHA256withRSA").setProvider("BC").build(privateKey);
+		ContentSigner contentSigner = new JcaContentSignerBuilder("SHA256withRSA").build(privateKey);
 
 		// Build and sign certificate
 		X509CertificateHolder certHolder = certBuilder.build(contentSigner);
 
 		// Convert to X509Certificate
-		JcaX509CertificateConverter certConverter = new JcaX509CertificateConverter().setProvider("BC");
+		JcaX509CertificateConverter certConverter = new JcaX509CertificateConverter();
 
 		return certConverter.getCertificate(certHolder);
 	}
