@@ -227,58 +227,6 @@ public class CSGServer {
 		return certConverter.getCertificate(certHolder);
 	}
 
-	private static void generateKeystoreWithKeytool(String keystorePath, String keystorePassword, String alias,
-			String commonName) throws Exception {
-
-		System.out.println("Generating keystore using keytool command...");
-
-		String[] command = { "keytool", "-genkeypair", "-alias", alias, "-keyalg", "RSA", "-keysize", "2048",
-				"-keystore", keystorePath, "-storepass", keystorePassword, "-keypass", keystorePassword, "-dname",
-				"CN=" + commonName + ",OU=Auto-Generated,O=Development,L=Unknown,ST=Unknown,C=US", "-validity", "365" };
-
-		ProcessBuilder pb = new ProcessBuilder(command);
-		pb.redirectErrorStream(true);
-		Process process = pb.start();
-
-// Read output
-		StringBuilder output = new StringBuilder();
-		try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-			String line;
-			while ((line = reader.readLine()) != null) {
-				output.append(line).append("\n");
-				System.out.println("keytool: " + line);
-			}
-		}
-
-		int exitCode = process.waitFor();
-		if (exitCode != 0) {
-			throw new RuntimeException("keytool failed with exit code " + exitCode + ". Output: " + output.toString());
-		}
-	}
-
-	/**
-	 * Check if keytool is available on the system
-	 */
-	public static boolean isKeytoolAvailable() {
-		try {
-			ProcessBuilder pb = new ProcessBuilder("keytool", "-help");
-			pb.redirectErrorStream(true);
-			Process process = pb.start();
-
-// Consume output to prevent blocking
-			try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-				while (reader.readLine() != null) {
-// Just consume the output
-				}
-			}
-
-			int exitCode = process.waitFor();
-			return exitCode == 0;
-		} catch (Exception e) {
-			return false;
-		}
-	}
-
 	public CSGServer(int port) {
 		this.port = port;
 		this.threadPool = Executors.newCachedThreadPool();
