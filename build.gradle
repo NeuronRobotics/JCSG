@@ -118,6 +118,10 @@ dependencies {
 
 	implementation 'com.aparapi:aparapi:3.0.2'
 	
+	//SSL for server
+implementation 'org.bouncycastle:bcprov-jdk18on:1.80'
+implementation 'org.bouncycastle:bcpkix-jdk18on:1.80'
+	
 }
 
 Date buildTimeAndDate = new Date()
