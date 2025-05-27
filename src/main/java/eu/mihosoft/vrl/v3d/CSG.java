@@ -804,7 +804,7 @@ public class CSG implements IuserAPI, Serializable {
 			ArrayList<CSG> go=new ArrayList<CSG>(Arrays.asList(this));
 			try {
 				return CSGClient.getClient().union(go).get(0);
-			} catch (IOException e) {
+			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -961,7 +961,7 @@ public class CSG implements IuserAPI, Serializable {
 			try {
 				back = CSGClient.getClient().union(csgs);
 				return back.get(0);
-			} catch (IOException e) {
+			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -1237,7 +1237,7 @@ public class CSG implements IuserAPI, Serializable {
 			ArrayList<CSG> go=new ArrayList<CSG>(Arrays.asList(this,csg));
 			try {
 				return CSGClient.getClient().difference(go).get(0);
-			} catch (IOException e) {
+			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -1396,7 +1396,7 @@ public class CSG implements IuserAPI, Serializable {
 			ArrayList<CSG> go=new ArrayList<CSG>(Arrays.asList(this,csg));
 			try {
 				return CSGClient.getClient().intersect(go).get(0);
-			} catch (IOException e) {
+			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -1548,7 +1548,7 @@ public class CSG implements IuserAPI, Serializable {
 			ArrayList<CSG> go=new ArrayList<CSG>(Arrays.asList(this));
 			try {
 				return CSGClient.getClient().triangulate(go).get(0);
-			} catch (IOException e) {
+			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}

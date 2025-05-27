@@ -6,10 +6,12 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 
-class CSGClientHandler implements Runnable {
-	private Socket clientSocket;
+import javax.net.ssl.SSLSocket;
 
-	public CSGClientHandler(Socket socket) {
+class CSGClientHandler implements Runnable {
+	private SSLSocket clientSocket;
+
+	public CSGClientHandler(SSLSocket socket) {
 		this.clientSocket = socket;
 	}
 

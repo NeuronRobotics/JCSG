@@ -8,17 +8,19 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import javax.net.ssl.*;
+import java.io.*;
+import java.security.cert.X509Certificate;
 
 //CSG Client class that maintains connection and provides clean API
 class CSGClient {
-	//statics
-	private static CSGClient client=null;
-	
+	// statics
+	private static CSGClient client = null;
+
 	// Class Vars
 
 	private String hostname;
 	private int port;
-	
 
 	public CSGClient(String hostname, int port) {
 		this.hostname = hostname;
@@ -33,9 +35,8 @@ class CSGClient {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-	}
 
+	}
 
 	/**
 	 * Perform union operations on consecutive CSG pairs
@@ -45,7 +46,7 @@ class CSGClient {
 	 * @throws IOException           if communication error occurs
 	 * @throws CSGOperationException if server returns an error
 	 */
-	public ArrayList<CSG> union(List<CSG> csgList) throws IOException {
+	public ArrayList<CSG> union(List<CSG> csgList) throws Exception {
 		return performOperation(csgList, CSGRemoteOperation.UNION);
 	}
 
@@ -57,7 +58,7 @@ class CSGClient {
 	 * @throws IOException           if communication error occurs
 	 * @throws CSGOperationException if server returns an error
 	 */
-	public ArrayList<CSG> difference(ArrayList<CSG> csgList) throws IOException {
+	public ArrayList<CSG> difference(ArrayList<CSG> csgList) throws Exception {
 		return performOperation(csgList, CSGRemoteOperation.DIFFERENCE);
 	}
 
@@ -69,7 +70,7 @@ class CSGClient {
 	 * @throws IOException           if communication error occurs
 	 * @throws CSGOperationException if server returns an error
 	 */
-	public ArrayList<CSG> intersect(ArrayList<CSG> csgList) throws IOException {
+	public ArrayList<CSG> intersect(ArrayList<CSG> csgList) throws Exception {
 		return performOperation(csgList, CSGRemoteOperation.INTERSECT);
 	}
 
@@ -81,15 +82,32 @@ class CSGClient {
 	 * @throws IOException           if communication error occurs
 	 * @throws CSGOperationException if server returns an error
 	 */
-	public ArrayList<CSG> triangulate(ArrayList<CSG> csgList) throws IOException {
+	public ArrayList<CSG> triangulate(ArrayList<CSG> csgList) throws Exception {
 		return performOperation(csgList, CSGRemoteOperation.TRIANGULATE);
 	}
 
 	/**
 	 * Internal method to perform operations and handle request/response
 	 */
-	private ArrayList<CSG> performOperation(List<CSG> csgList, CSGRemoteOperation operation) throws IOException {
-		try (Socket socket = new Socket(hostname, port);
+	private ArrayList<CSG> performOperation(List<CSG> csgList, CSGRemoteOperation operation) throws Exception {
+		SSLContext sslContext = SSLContext.getInstance("TLS");
+
+		// For development: trust all certificates (use proper truststore in production)
+		TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+			public X509Certificate[] getAcceptedIssuers() {
+				return null;
+			}
+
+			public void checkClientTrusted(X509Certificate[] certs, String authType) {
+			}
+
+			public void checkServerTrusted(X509Certificate[] certs, String authType) {
+			}
+		} };
+		sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+		SSLSocketFactory factory = sslContext.getSocketFactory();
+
+		try (SSLSocket socket = (SSLSocket) factory.createSocket(hostname, port);
 				ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 				ObjectInputStream ois = new ObjectInputStream(socket.getInputStream())) {
 
@@ -112,46 +130,49 @@ class CSGClient {
 		}
 	}
 
-
 	/**
 	 * Get server connection info
 	 */
 	public String getServerInfo() {
 		return hostname + ":" + port + " (connected: " + ")";
 	}
-	public static boolean start(String hostname,int port) throws IOException {
-		if(getClient()!=null)
+
+	public static boolean start(String hostname, int port) throws IOException {
+		if (getClient() != null)
 			return false;
 		setClient(new CSGClient(hostname, port));
 		return true;
 	}
+
 	public static void close() {
-		client=null;
-		
+		client = null;
+
 	}
+
 	public static boolean isRunning() {
-		if(getClient()==null)
+		if (getClient() == null)
 			return false;
 		return true;
 	}
+
 	public static void main(String[] args) {
 
 		String hostname = "localhost";
 		int port = 8080;
 
 		// Create client with try-with-resources for automatic cleanup
-		try  {
+		try {
 			CSGClient.start(hostname, port);
 			// Connect to server
 			System.out.println("Client info: " + getClient().getServerInfo());
 
-			CSG a=new Cube(20).toCSG();
-			CSG b =new Cube(20, 30, 5).toCSG();
-			CSG c=new Cube(10, 10, 10).toCSG();
-			CSG u=CSG.unionAll(a,b,c);
-			CSG d= a.difference(b);
-			CSG t=d.triangulate(true);
-			
+			CSG a = new Cube(20).toCSG();
+			CSG b = new Cube(20, 30, 5).toCSG();
+			CSG c = new Cube(10, 10, 10).toCSG();
+			CSG u = CSG.unionAll(a, b, c);
+			CSG d = a.difference(b);
+			CSG t = d.triangulate(true);
+
 		} catch (IOException e) {
 			System.err.println("Communication error: " + e.getMessage());
 			e.printStackTrace();
