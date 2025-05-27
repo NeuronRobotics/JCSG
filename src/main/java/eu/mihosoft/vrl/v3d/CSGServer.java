@@ -3,7 +3,6 @@ package eu.mihosoft.vrl.v3d;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -15,35 +14,17 @@ import java.security.KeyStore;
 import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
-import java.security.spec.RSAKeyGenParameterSpec;
 import java.util.Date;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.io.FileOutputStream;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import javax.security.auth.x500.X500Principal;
-import sun.security.x509.AlgorithmId;
-import sun.security.x509.CertificateAlgorithmId;
-import sun.security.x509.CertificateIssuerName;
-import sun.security.x509.CertificateSerialNumber;
-import sun.security.x509.CertificateSubjectName;
-import sun.security.x509.CertificateValidity;
-import sun.security.x509.CertificateVersion;
-import sun.security.x509.CertificateX509Key;
-import sun.security.x509.X500Name;
-import sun.security.x509.X509CertImpl;
-import sun.security.x509.X509CertInfo;
-
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.asn1.x509.Time;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
@@ -55,7 +36,10 @@ public class CSGServer {
 	private volatile boolean running = false;
 	private static final String KEYSTORE_PATH = "serverCredentials2.jks";
 	private static final String KEYSTORE_PASSWORD = "password";
-
+	public CSGServer(int port) {
+		this.port = port;
+		this.threadPool = Executors.newCachedThreadPool();
+	}
 	public static void ensureKeystoreExists(String keystorePath, String keystorePassword, String alias,
 			String commonName) {
 		File keystoreFile = new File(keystorePath);
@@ -73,85 +57,6 @@ public class CSGServer {
 		} else {
 			System.out.println("Using existing keystore: " + keystorePath);
 		}
-	}
-
-	private static void generateKeystoreWithPureJava(String keystorePath, String keystorePassword, String alias,
-			String commonName) throws Exception {
-
-		System.out.println("Generating keystore using pure Java APIs...");
-
-// Generate RSA key pair
-		KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-		keyPairGenerator.initialize(2048, new SecureRandom());
-		KeyPair keyPair = keyPairGenerator.generateKeyPair();
-
-// Create self-signed certificate
-		X509Certificate certificate = createSelfSignedCertificate(keyPair, commonName);
-
-// Create keystore and add the key pair with certificate
-		KeyStore keyStore = KeyStore.getInstance("JKS");
-		keyStore.load(null, null); // Initialize empty keystore
-
-		Certificate[] certificateChain = { certificate };
-		keyStore.setKeyEntry(alias, keyPair.getPrivate(), keystorePassword.toCharArray(), certificateChain);
-
-// Save keystore to file
-		try (FileOutputStream fos = new FileOutputStream(keystorePath)) {
-			keyStore.store(fos, keystorePassword.toCharArray());
-		}
-
-		System.out.println("Keystore generated successfully at: " + keystorePath);
-	}
-
-	private static X509Certificate createSelfSignedCertificate(KeyPair keyPair, String commonName) throws Exception {
-
-		PrivateKey privateKey = keyPair.getPrivate();
-		PublicKey publicKey = keyPair.getPublic();
-
-// Certificate validity period (365 days)
-		Date notBefore = new Date();
-		LocalDateTime notAfterLocal = LocalDateTime.now().plusDays(365);
-		Date notAfter = Date.from(notAfterLocal.atZone(ZoneId.systemDefault()).toInstant());
-
-// Create X.509 certificate info
-		X509CertInfo certInfo = new X509CertInfo();
-
-// Set certificate version (V3)
-		certInfo.set(X509CertInfo.VERSION, new CertificateVersion(CertificateVersion.V3));
-
-// Set serial number
-		BigInteger serialNumber = new BigInteger(64, new SecureRandom());
-		certInfo.set(X509CertInfo.SERIAL_NUMBER, new CertificateSerialNumber(serialNumber));
-
-// Set algorithm ID
-		AlgorithmId algorithmId = new AlgorithmId(AlgorithmId.SHA256_oid);
-		certInfo.set(X509CertInfo.ALGORITHM_ID, new CertificateAlgorithmId(algorithmId));
-
-// Set subject and issuer (same for self-signed)
-		String distinguishedName = String.format("CN=%s,OU=Auto-Generated,O=Development,L=Unknown,ST=Unknown,C=US",
-				commonName);
-		X500Name x500Name = new X500Name(distinguishedName);
-		certInfo.set(X509CertInfo.SUBJECT, new CertificateSubjectName(x500Name));
-		certInfo.set(X509CertInfo.ISSUER, new CertificateIssuerName(x500Name));
-
-// Set validity period
-		CertificateValidity validity = new CertificateValidity(notBefore, notAfter);
-		certInfo.set(X509CertInfo.VALIDITY, validity);
-
-// Set public key
-		certInfo.set(X509CertInfo.KEY, new CertificateX509Key(publicKey));
-
-// Create and sign the certificate
-		X509CertImpl certificate = new X509CertImpl(certInfo);
-		certificate.sign(privateKey, "SHA256withRSA");
-
-// Update algorithm ID after signing
-		algorithmId = (AlgorithmId) certificate.get(X509CertImpl.SIG_ALG);
-		certInfo.set(CertificateAlgorithmId.NAME + "." + CertificateAlgorithmId.ALGORITHM, algorithmId);
-		certificate = new X509CertImpl(certInfo);
-		certificate.sign(privateKey, "SHA256withRSA");
-
-		return certificate;
 	}
 
 // Alternative implementation using Bouncy Castle (if available)
@@ -227,10 +132,7 @@ public class CSGServer {
 		return certConverter.getCertificate(certHolder);
 	}
 
-	public CSGServer(int port) {
-		this.port = port;
-		this.threadPool = Executors.newCachedThreadPool();
-	}
+
 
 	public void start() throws Exception {
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
