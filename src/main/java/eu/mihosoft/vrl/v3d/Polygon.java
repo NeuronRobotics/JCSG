@@ -742,10 +742,14 @@ public final class Polygon implements Serializable{
 	}
 
 	public Polygon setColor(Color color) {
-		r=color.getRed();
-		g=color.getGreen();
-		b=color.getBlue();
-		o=color.getOpacity();
+		if(color!=null) {
+			r=color.getRed();
+			g=color.getGreen();
+			b=color.getBlue();
+			o=color.getOpacity();
+		}else {
+			setColor(CSG.getDefaultColor());
+		}
 		return this;
 	}
 	public Color getColor() {
