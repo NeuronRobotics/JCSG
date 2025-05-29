@@ -124,6 +124,7 @@ import javafx.scene.transform.Affine;
 
 @SuppressWarnings("restriction")
 public class CSG implements IuserAPI, Serializable {
+	private static int MinPolygonsForOffloading = 200;
 	private static final long serialVersionUID = 4071874097772427063L;
 	private static IDebug3dProvider providerOf3d = null;
 	private static int numFacesInOffset = 15;
@@ -800,7 +801,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return union of this csg and the specified csg
 	 */
 	public CSG union(CSG csg) {
-		if (this.polygons.size() > 200 || csg.polygons.size() > 200)
+		if (this.polygons.size() > getMinPolygonsForOffloading() || csg.polygons.size() > getMinPolygonsForOffloading())
 			if (CSGClient.isRunning()) {
 				ArrayList<CSG> go = new ArrayList<CSG>(Arrays.asList(this));
 				try {
@@ -961,7 +962,7 @@ public class CSG implements IuserAPI, Serializable {
 		if (CSGClient.isRunning()) {
 			boolean offload = false;
 			for (int i = 0; i < csgs.size(); i++)
-				if (csgs.get(i).polygons.size() > 200) {
+				if (csgs.get(i).polygons.size() > getMinPolygonsForOffloading()) {
 					offload = true;
 					break;
 				}
@@ -1167,7 +1168,15 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return difference of this csg and the specified csgs
 	 */
 	public CSG difference(List<CSG> csgs) {
-
+			if (CSGClient.isRunning()) {
+				ArrayList<CSG> go = new ArrayList<CSG>(csgs);
+				try {
+					return CSGClient.getClient().difference(go).get(0);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		if (csgs.isEmpty()) {
 			return this.clone();
 		}
@@ -1243,7 +1252,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return difference of this csg and the specified csg
 	 */
 	public CSG difference(CSG csg) {
-		if (this.polygons.size() > 200 || csg.polygons.size() > 200)
+		if (this.polygons.size() > getMinPolygonsForOffloading() || csg.polygons.size() > getMinPolygonsForOffloading())
 			if (CSGClient.isRunning()) {
 				ArrayList<CSG> go = new ArrayList<CSG>(Arrays.asList(this, csg));
 				try {
@@ -1403,7 +1412,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return intersection of this csg and the specified csg
 	 */
 	public CSG intersect(CSG csg) {
-		if (this.polygons.size() > 200 || csg.polygons.size() > 200)
+		if (this.polygons.size() > getMinPolygonsForOffloading() || csg.polygons.size() > getMinPolygonsForOffloading())
 			if (CSGClient.isRunning()) {
 				ArrayList<CSG> go = new ArrayList<CSG>(Arrays.asList(this, csg));
 				try {
@@ -1459,7 +1468,15 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return intersection of this csg and the specified csgs
 	 */
 	public CSG intersect(List<CSG> csgs) {
-
+			if (CSGClient.isRunning()) {
+				ArrayList<CSG> go = new ArrayList<CSG>(csgs);
+				try {
+					return CSGClient.getClient().intersect(go).get(0);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		if (csgs.isEmpty()) {
 			return this.clone();
 		}
@@ -1556,7 +1573,7 @@ public class CSG implements IuserAPI, Serializable {
 			triangulated = false;
 		if (triangulated)
 			return this;
-		if (this.polygons.size() > 200)
+		if (this.polygons.size() > getMinPolygonsForOffloading())
 			if (CSGClient.isRunning()) {
 				ArrayList<CSG> go = new ArrayList<CSG>(Arrays.asList(this));
 				try {
@@ -2228,6 +2245,15 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return
 	 */
 	public ArrayList<CSG> minkowskiHullShape(CSG travelingShape) {
+		if (CSGClient.isRunning()) {
+			ArrayList<CSG> go = new ArrayList<CSG>(Arrays.asList(this,travelingShape));
+			try {
+				return CSGClient.getClient().minkowskiHullShape(go);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		ArrayList<CSG> bits = new ArrayList<>();
 		for (Polygon p : this.getPolygons()) {
 			List<Vector3d> plist = new ArrayList<>();
@@ -3416,6 +3442,14 @@ public class CSG implements IuserAPI, Serializable {
 
 	public boolean isBoundsTouching(CSG incoming) {
 		return getBounds().isBoundsTouching(incoming.getBounds());
+	}
+
+	public static int getMinPolygonsForOffloading() {
+		return MinPolygonsForOffloading;
+	}
+
+	public static void setMinPolygonsForOffloading(int minPolygonsForOffloading) {
+		MinPolygonsForOffloading = minPolygonsForOffloading;
 	}
 
 }

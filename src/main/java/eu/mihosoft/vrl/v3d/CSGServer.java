@@ -34,11 +34,11 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 public class CSGServer {
 	private final int port;
 	private final ExecutorService threadPool;
-	private ServerSocket serverSocket;
 	private volatile boolean running = false;
 	private static final String KEYSTORE_PATH = "serverCredentials2.jks";
 	private static final String KEYSTORE_PASSWORD = "password";
 	private String[] lines = null;
+	private SSLServerSocket serverSocket2;
 
 	public CSGServer(int port, File APIKEYS) throws IOException {
 		this.port = port;
@@ -166,7 +166,7 @@ public class CSGServer {
 
 		// Create SSL server socket
 		SSLServerSocketFactory factory = sslContext.getServerSocketFactory();
-		SSLServerSocket serverSocket = (SSLServerSocket) factory.createServerSocket(port);
+		serverSocket2 = (SSLServerSocket) factory.createServerSocket(port);
 
 		// serverSocket = new ServerSocket(port);
 		running = true;
@@ -176,7 +176,7 @@ public class CSGServer {
 
 		while (running) {
 			try {
-				SSLSocket clientSocket = (SSLSocket) serverSocket.accept();
+				SSLSocket clientSocket = (SSLSocket) serverSocket2.accept();
 				threadPool.execute(new CSGServerHandler(clientSocket,lines));
 			} catch (IOException e) {
 				if (running) {
@@ -188,8 +188,8 @@ public class CSGServer {
 
 	public void stop() throws IOException {
 		running = false;
-		if (serverSocket != null && !serverSocket.isClosed()) {
-			serverSocket.close();
+		if (serverSocket2 != null && !serverSocket2.isClosed()) {
+			serverSocket2.close();
 		}
 		threadPool.shutdown();
 		try {

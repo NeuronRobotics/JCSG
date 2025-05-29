@@ -1,0 +1,62 @@
+package eu.mihosoft.vrl.v3d;
+
+import static org.junit.Assert.*;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+
+import org.junit.Test;
+
+public class ServerClientTest {
+
+	@Test
+	public void test() throws Exception {
+		int port = 8080;
+
+		
+		File f = new File("file.txt");
+		if (!f.exists()) {
+			f.createNewFile();
+		}
+		CSGServer server = new CSGServer(port, f);
+
+		Thread serverThread = new Thread(()->{
+			try {
+				server.start();
+			} catch (Exception e) {
+				fail();
+			}
+		});
+		serverThread.start();
+		Thread.sleep(500);
+
+		String hostname = "localhost";
+		// Create client with try-with-resources for automatic cleanup
+		try {
+			CSGClient.start(hostname, port, f);
+			// Set a low number to ensure the Server is used. this defaults to 200
+			CSG.setMinPolygonsForOffloading(4);
+			// Connect to server
+			System.out.println("Client info: " + CSGClient.getClient().getServerInfo());
+
+			CSG a = new Cube(20).toCSG();
+			CSG b = new Cube(20, 30, 5).toCSG();
+			CSG c = new Cube(10, 10, 10).toCSG();
+			CSG u = CSG.unionAll(a, b, c);
+			CSG d = a.difference(b);
+			CSG t = d.triangulate(true);
+			ArrayList<CSG> m = a.minkowskiHullShape(b);
+
+		} catch (Exception e) {
+			System.err.println("Communication error: " + e.getMessage());
+			e.printStackTrace();
+		}
+
+		server.stop();
+		serverThread.interrupt();
+		serverThread.join();
+		System.out.println("\nClient example completed.");
+	}
+
+}

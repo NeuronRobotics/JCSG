@@ -20,23 +20,18 @@ class CSGClient {
 	private String hostname;
 	private int port;
 
-	private String key=null;
+	private String key = null;
+	
+	private static boolean serverCall = false;
 
-	public CSGClient(String hostname, int port, File f) throws IOException {
+	public CSGClient(String hostname, int port, File f) throws Exception {
 		this.hostname = hostname;
 		this.port = port;
-		if(f!=null)
+		if (f != null)
 			key = Files.readAllLines(f.toPath()).toArray(new String[0])[0];
-		try {
-			Socket socket = new Socket(hostname, port);
-			socket.close();
-		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+
+		Socket socket = new Socket(hostname, port);
+		socket.close();
 
 	}
 
@@ -77,6 +72,18 @@ class CSGClient {
 	}
 
 	/**
+	 * Perform minkowskiHullShape operations on consecutive CSG pairs
+	 * 
+	 * @param csgList List of CSG objects to perform intersection on
+	 * @return List of intersection results
+	 * @throws IOException           if communication error occurs
+	 * @throws CSGOperationException if server returns an error
+	 */
+	public ArrayList<CSG> minkowskiHullShape(ArrayList<CSG> csgList) throws Exception {
+		return performOperation(csgList, CSGRemoteOperation.minkowskiHullShape);
+	}
+
+	/**
 	 * Perform triangulation on each CSG object
 	 * 
 	 * @param csgList List of CSG objects to triangulate
@@ -112,10 +119,10 @@ class CSGClient {
 		try (SSLSocket socket = (SSLSocket) factory.createSocket(hostname, port);
 				ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 				ObjectInputStream ois = new ObjectInputStream(socket.getInputStream())) {
-
+			System.out.println("Running Operation on server: " + hostname + " " + operation);
 			// Create and send request
 			CSGRequest request = new CSGRequest(csgList, operation);
-			if(key!=null)
+			if (key != null)
 				request.setAPIKEY(key);
 			oos.writeObject(request);
 			oos.flush();
@@ -123,7 +130,7 @@ class CSGClient {
 			// Receive response
 			CSGResponse response = (CSGResponse) ois.readObject();
 			socket.close();
-			if(response.getState()!=ServerActionState.SUCCESS)
+			if (response.getState() != ServerActionState.SUCCESS)
 				throw new RuntimeException(response.getMessage());
 			// Return results as ArrayList
 			return new ArrayList<>(response.getCsgList());
@@ -143,10 +150,10 @@ class CSGClient {
 		return hostname + ":" + port + " (connected: " + ")";
 	}
 
-	public static boolean start(String hostname, int port, File f) throws IOException {
+	public static boolean start(String hostname, int port, File f) throws Exception {
 		if (getClient() != null)
 			return false;
-		setClient(new CSGClient(hostname, port,f));
+		setClient(new CSGClient(hostname, port, f));
 		return true;
 	}
 
@@ -156,6 +163,8 @@ class CSGClient {
 	}
 
 	public static boolean isRunning() {
+		if(isServerCall())
+			return false;
 		if (getClient() == null)
 			return false;
 		return true;
@@ -169,9 +178,11 @@ class CSGClient {
 		// Create client with try-with-resources for automatic cleanup
 		try {
 			File f = new File("file.txt");
-			CSGClient.start(hostname, port,f);
+			CSGClient.start(hostname, port, f);
+			// Set a low number to ensure the Server is used. this defaults to 200
+			CSG.setMinPolygonsForOffloading(4);
 			// Connect to server
-			System.out.println("Client info: " + getClient().getServerInfo());
+			System.out.println("Client info: " + CSGClient.getClient().getServerInfo());
 
 			CSG a = new Cube(20).toCSG();
 			CSG b = new Cube(20, 30, 5).toCSG();
@@ -179,6 +190,7 @@ class CSGClient {
 			CSG u = CSG.unionAll(a, b, c);
 			CSG d = a.difference(b);
 			CSG t = d.triangulate(true);
+			ArrayList<CSG> m = a.minkowskiHullShape(b);
 
 		} catch (Exception e) {
 			System.err.println("Communication error: " + e.getMessage());
@@ -188,13 +200,19 @@ class CSGClient {
 		System.out.println("\nClient example completed.");
 	}
 
-
-
 	public static CSGClient getClient() {
 		return client;
 	}
 
 	private static void setClient(CSGClient client) {
 		CSGClient.client = client;
+	}
+
+	public static boolean isServerCall() {
+		return serverCall;
+	}
+
+	public static void setServerCall(boolean serverCall) {
+		CSGClient.serverCall = serverCall;
 	}
 }
