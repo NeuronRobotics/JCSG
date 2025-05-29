@@ -75,7 +75,7 @@ class CSGClient {
 	/**
 	 * Perform minkowskiHullShape operations on consecutive CSG pairs
 	 * 
-	 * @param csgList List of CSG objects to perform intersection on
+	 * @param csgList List of CSG objects to perform minkowskiHullShape on
 	 * @return List of intersection results
 	 * @throws IOException           if communication error occurs
 	 * @throws CSGOperationException if server returns an error

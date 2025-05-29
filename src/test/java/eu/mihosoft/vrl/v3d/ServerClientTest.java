@@ -26,7 +26,10 @@ public class ServerClientTest {
 			}
 		});
 		serverThread.start();
-		Thread.sleep(500);
+		while(!server.isRunning()) {
+			Thread.sleep(500);
+			System.out.println("Waiting for server to start...");
+		}
 
 		String hostname = "localhost";
 		// Create client with try-with-resources for automatic cleanup

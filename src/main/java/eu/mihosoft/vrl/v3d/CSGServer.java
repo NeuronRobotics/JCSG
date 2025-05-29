@@ -35,8 +35,9 @@ public class CSGServer {
 	private final int port;
 	private final ExecutorService threadPool;
 	private volatile boolean running = false;
-	private static final String KEYSTORE_PATH = "serverCredentials2.jks";
-	private static final String KEYSTORE_PASSWORD = "password";
+	private static String KEYSTORE_PATH = "servername";
+	private static File directory = new File(System.getProperty("java.io.tmpdir"));
+	private static final String KEYSTORE_NAME = "CSGSelfSign";
 	private String[] lines = null;
 	private SSLServerSocket serverSocket2;
 
@@ -154,12 +155,13 @@ public class CSGServer {
 		}));
 		// Load the keystore
 		KeyStore keyStore = KeyStore.getInstance("JKS");
-		ensureKeystoreExists(KEYSTORE_PATH, KEYSTORE_PASSWORD, "server", "localhost");
-		keyStore.load(new FileInputStream(KEYSTORE_PATH), KEYSTORE_PASSWORD.toCharArray());
+		String path = getDirectory().getAbsolutePath()+"/"+KEYSTORE_PATH;
+		ensureKeystoreExists(path, KEYSTORE_NAME, "server", "localhost");
+		keyStore.load(new FileInputStream(path), KEYSTORE_NAME.toCharArray());
 
 		// Create KeyManagerFactory
 		KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-		kmf.init(keyStore, KEYSTORE_PASSWORD.toCharArray());
+		kmf.init(keyStore, KEYSTORE_NAME.toCharArray());
 
 		// Create SSLContext
 		SSLContext sslContext = SSLContext.getInstance("TLS");
@@ -170,17 +172,17 @@ public class CSGServer {
 		serverSocket2 = (SSLServerSocket) factory.createServerSocket(port);
 
 		// serverSocket = new ServerSocket(port);
-		running = true;
+		setRunning(true);
 
 		System.out.println("CSG TCP Server started on port " + port);
 		System.out.println("Waiting for clients...");
 
-		while (running) {
+		while (isRunning()) {
 			try {
 				SSLSocket clientSocket = (SSLSocket) serverSocket2.accept();
 				threadPool.execute(new CSGServerHandler(clientSocket,lines));
 			} catch (IOException e) {
-				if (running) {
+				if (isRunning()) {
 					System.err.println("Error accepting client connection: " + e.getMessage());
 				}
 			}
@@ -188,7 +190,7 @@ public class CSGServer {
 	}
 
 	public void stop() throws IOException {
-		running = false;
+		setRunning(false);
 		if (serverSocket2 != null && !serverSocket2.isClosed()) {
 			serverSocket2.close();
 		}
@@ -221,5 +223,21 @@ public class CSGServer {
 		}
 		CSGServer server = new CSGServer(port, f);
 		server.start();
+	}
+
+	public boolean isRunning() {
+		return running;
+	}
+
+	public void setRunning(boolean running) {
+		this.running = running;
+	}
+
+	public static File getDirectory() {
+		return directory;
+	}
+
+	public static void setDirectory(File directory) {
+		CSGServer.directory = directory;
 	}
 }
