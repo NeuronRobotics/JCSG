@@ -20,11 +20,11 @@ public class textTest {
 	public void test() throws IOException {
 		//TextExtrude.text(10.0, "Hello", new Font("Helvedica",  18));
 		//TextExtrude.text(10.0, "Hello World!", new Font("Times New Roman", 18));
-		
-		CSG text = CSG.text("Hello world",10, 10,"Serif Regular");
-		text=new Cube(180,40,10).toCSG().toZMin().toXMin().toYMin().movey(-5).difference(text);
-		FileUtil.write(Paths.get("exampleText.stl"),
-				text.toStlString());
+//		
+//		CSG text = CSG.text("Hello world",10, 10,"Serif Regular");
+//		text=new Cube(180,40,10).toCSG().toZMin().toXMin().toYMin().movey(-5).difference(text);
+//		FileUtil.write(Paths.get("exampleText.stl"),
+//				text.toStlString());
 		
 	}
 
