@@ -12,7 +12,7 @@ public class ServerClientTest {
 
 	@Test
 	public void test() throws Exception {
-		int port = 8080;
+		int port = 3742;
 
 		
 		File f = new File("file.txt");
