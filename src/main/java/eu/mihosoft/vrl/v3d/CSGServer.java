@@ -3,6 +3,8 @@ package eu.mihosoft.vrl.v3d;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.ServerSocket;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -36,10 +38,19 @@ public class CSGServer {
 	private volatile boolean running = false;
 	private static final String KEYSTORE_PATH = "serverCredentials2.jks";
 	private static final String KEYSTORE_PASSWORD = "password";
-	public CSGServer(int port) {
+	private String[] lines = null;
+
+	public CSGServer(int port, File APIKEYS) throws IOException {
 		this.port = port;
 		this.threadPool = Executors.newCachedThreadPool();
+		if (APIKEYS != null) {
+			lines = Files.readAllLines(APIKEYS.toPath()).toArray(new String[0]);
+		}
+		if(lines!=null) {
+			System.out.println("Starting server with "+lines.length+" keys");
+		}
 	}
+
 	public static void ensureKeystoreExists(String keystorePath, String keystorePassword, String alias,
 			String commonName) {
 		File keystoreFile = new File(keystorePath);
@@ -132,8 +143,6 @@ public class CSGServer {
 		return certConverter.getCertificate(certHolder);
 	}
 
-
-
 	public void start() throws Exception {
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			try {
@@ -168,7 +177,7 @@ public class CSGServer {
 		while (running) {
 			try {
 				SSLSocket clientSocket = (SSLSocket) serverSocket.accept();
-				threadPool.execute(new CSGServerHandler(clientSocket));
+				threadPool.execute(new CSGServerHandler(clientSocket,lines));
 			} catch (IOException e) {
 				if (running) {
 					System.err.println("Error accepting client connection: " + e.getMessage());
@@ -205,8 +214,11 @@ public class CSGServer {
 				System.err.println("Invalid port number. Using default port 8080");
 			}
 		}
-
-		CSGServer server = new CSGServer(port);
+		File f = new File("file.txt");
+		if (!f.exists()) {
+			f.createNewFile();
+		}
+		CSGServer server = new CSGServer(port, f);
 		server.start();
 	}
 }

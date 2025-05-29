@@ -8,6 +8,7 @@ class CSGRequest implements Serializable {
 	private static final long serialVersionUID = 1L;
 	private List<CSG> csgList;
 	private CSGRemoteOperation operation;
+	private String APIKEY;
 
 	public CSGRequest() {
 		this.csgList = new ArrayList<>();
@@ -38,5 +39,13 @@ class CSGRequest implements Serializable {
 	@Override
 	public String toString() {
 		return "CSGRequest{operation=" + operation + ", csgCount=" + csgList.size() + "}";
+	}
+
+	public String getAPIKey() {
+		return APIKEY;
+	}
+
+	public void setAPIKEY(String aPIKEY) {
+		APIKEY = aPIKEY;
 	}
 }

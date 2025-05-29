@@ -10,9 +10,12 @@ import javax.net.ssl.SSLSocket;
 
 class CSGServerHandler implements Runnable {
 	private SSLSocket clientSocket;
+	
+	private String []APIKEY=null;
 
-	public CSGServerHandler(SSLSocket socket) {
+	public CSGServerHandler(SSLSocket socket, String[] lines) {
 		this.clientSocket = socket;
+		APIKEY=lines;
 	}
 
 	@Override
@@ -25,10 +28,32 @@ class CSGServerHandler implements Runnable {
 			// Read the CSG request
 			CSGRequest request = (CSGRequest) ois.readObject();
 			System.out.println("Received request: " + request.getOperation());
-
+			boolean APIPass=true;
+			if(getAPIKEYs()!=null) {
+				APIPass=false;
+				for(int i=0;i<getAPIKEYs().length;i++)
+					if(request.getAPIKey().contentEquals(getAPIKEYs()[i])) {
+						APIPass=true;
+						System.out.println("API Key Match");
+						break;
+					}
+			}
+			
 			// Process the request
-			CSGResponse response =  processCSGRequest(request);
-
+			CSGResponse response =null;
+			if(APIPass) {
+				try {
+					response =  processCSGRequest(request);
+				}catch(Throwable t) {
+					response = new CSGResponse();
+					response.setState(ServerActionState.ERROR);
+					response.setMessage(t);
+				}
+			}else {
+				response = new CSGResponse();
+				response.setState(ServerActionState.BADAPIKEY);
+				response.setMessage("Your API key "+request.getAPIKey()+" Does not match server's key");
+			}
 			// Send back the response
 			oos.writeObject(response);
 			oos.flush();
@@ -77,6 +102,14 @@ class CSGServerHandler implements Runnable {
 		
 		}
 		return new CSGResponse(back, request.getOperation());
+	}
+
+	public String [] getAPIKEYs() {
+		return APIKEY;
+	}
+
+	public void setAPIKEYs(String [] aPIKEY) {
+		APIKEY = aPIKEY;
 	}
 
 }

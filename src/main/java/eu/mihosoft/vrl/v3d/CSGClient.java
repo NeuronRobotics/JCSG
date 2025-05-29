@@ -1,10 +1,8 @@
 package eu.mihosoft.vrl.v3d;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -22,9 +20,13 @@ class CSGClient {
 	private String hostname;
 	private int port;
 
-	public CSGClient(String hostname, int port) {
+	private String key=null;
+
+	public CSGClient(String hostname, int port, File f) throws IOException {
 		this.hostname = hostname;
 		this.port = port;
+		if(f!=null)
+			key = Files.readAllLines(f.toPath()).toArray(new String[0])[0];
 		try {
 			Socket socket = new Socket(hostname, port);
 			socket.close();
@@ -113,12 +115,16 @@ class CSGClient {
 
 			// Create and send request
 			CSGRequest request = new CSGRequest(csgList, operation);
+			if(key!=null)
+				request.setAPIKEY(key);
 			oos.writeObject(request);
 			oos.flush();
 
 			// Receive response
 			CSGResponse response = (CSGResponse) ois.readObject();
 			socket.close();
+			if(response.getState()!=ServerActionState.SUCCESS)
+				throw new RuntimeException(response.getMessage());
 			// Return results as ArrayList
 			return new ArrayList<>(response.getCsgList());
 
@@ -137,10 +143,10 @@ class CSGClient {
 		return hostname + ":" + port + " (connected: " + ")";
 	}
 
-	public static boolean start(String hostname, int port) throws IOException {
+	public static boolean start(String hostname, int port, File f) throws IOException {
 		if (getClient() != null)
 			return false;
-		setClient(new CSGClient(hostname, port));
+		setClient(new CSGClient(hostname, port,f));
 		return true;
 	}
 
@@ -162,7 +168,8 @@ class CSGClient {
 
 		// Create client with try-with-resources for automatic cleanup
 		try {
-			CSGClient.start(hostname, port);
+			File f = new File("file.txt");
+			CSGClient.start(hostname, port,f);
 			// Connect to server
 			System.out.println("Client info: " + getClient().getServerInfo());
 
@@ -173,13 +180,15 @@ class CSGClient {
 			CSG d = a.difference(b);
 			CSG t = d.triangulate(true);
 
-		} catch (IOException e) {
+		} catch (Exception e) {
 			System.err.println("Communication error: " + e.getMessage());
 			e.printStackTrace();
 		}
 
 		System.out.println("\nClient example completed.");
 	}
+
+
 
 	public static CSGClient getClient() {
 		return client;
