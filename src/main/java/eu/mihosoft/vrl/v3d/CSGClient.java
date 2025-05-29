@@ -28,7 +28,8 @@ class CSGClient {
 		this.hostname = hostname;
 		this.port = port;
 		if (f != null)
-			key = Files.readAllLines(f.toPath()).toArray(new String[0])[0];
+			if(f.exists())
+				key = Files.readAllLines(f.toPath()).toArray(new String[0])[0];
 
 		Socket socket = new Socket(hostname, port);
 		socket.close();

@@ -16,9 +16,6 @@ public class ServerClientTest {
 
 		
 		File f = new File("file.txt");
-		if (!f.exists()) {
-			f.createNewFile();
-		}
 		CSGServer server = new CSGServer(port, f);
 
 		Thread serverThread = new Thread(()->{

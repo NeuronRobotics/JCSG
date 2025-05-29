@@ -44,7 +44,8 @@ public class CSGServer {
 		this.port = port;
 		this.threadPool = Executors.newCachedThreadPool();
 		if (APIKEYS != null) {
-			lines = Files.readAllLines(APIKEYS.toPath()).toArray(new String[0]);
+			if(APIKEYS.exists())
+				lines = Files.readAllLines(APIKEYS.toPath()).toArray(new String[0]);
 		}
 		if(lines!=null) {
 			System.out.println("Starting server with "+lines.length+" keys");
