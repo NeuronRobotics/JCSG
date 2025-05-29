@@ -8,10 +8,10 @@ import java.util.ArrayList;
 
 import javax.net.ssl.SSLSocket;
 
-class CSGClientHandler implements Runnable {
+class CSGServerHandler implements Runnable {
 	private SSLSocket clientSocket;
 
-	public CSGClientHandler(SSLSocket socket) {
+	public CSGServerHandler(SSLSocket socket) {
 		this.clientSocket = socket;
 	}
 
@@ -27,7 +27,7 @@ class CSGClientHandler implements Runnable {
 			System.out.println("Received request: " + request.getOperation());
 
 			// Process the request
-			CSGRequest response =  processCSGRequest(request);
+			CSGResponse response =  processCSGRequest(request);
 
 			// Send back the response
 			oos.writeObject(response);
@@ -53,7 +53,7 @@ class CSGClientHandler implements Runnable {
 		}
 	}
 
-	private CSGRequest processCSGRequest(CSGRequest request) {
+	private CSGResponse processCSGRequest(CSGRequest request) {
 		ArrayList<CSG> back  = new ArrayList<CSG>();
 		switch(request.getOperation()) {
 		case DIFFERENCE:
@@ -76,7 +76,7 @@ class CSGClientHandler implements Runnable {
 			break;
 		
 		}
-		return new CSGRequest(back, request.getOperation());
+		return new CSGResponse(back, request.getOperation());
 	}
 
 }

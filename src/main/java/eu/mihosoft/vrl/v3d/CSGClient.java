@@ -117,7 +117,7 @@ class CSGClient {
 			oos.flush();
 
 			// Receive response
-			CSGRequest response = (CSGRequest) ois.readObject();
+			CSGResponse response = (CSGResponse) ois.readObject();
 			socket.close();
 			// Return results as ArrayList
 			return new ArrayList<>(response.getCsgList());

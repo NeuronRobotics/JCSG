@@ -168,7 +168,7 @@ public class CSGServer {
 		while (running) {
 			try {
 				SSLSocket clientSocket = (SSLSocket) serverSocket.accept();
-				threadPool.execute(new CSGClientHandler(clientSocket));
+				threadPool.execute(new CSGServerHandler(clientSocket));
 			} catch (IOException e) {
 				if (running) {
 					System.err.println("Error accepting client connection: " + e.getMessage());
