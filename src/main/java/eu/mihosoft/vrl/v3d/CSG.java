@@ -124,6 +124,7 @@ import javafx.scene.transform.Affine;
 
 @SuppressWarnings("restriction")
 public class CSG implements IuserAPI, Serializable {
+	private static int MinPolygonsForOffloading = 200;
 	private static final long serialVersionUID = 4071874097772427063L;
 	private static IDebug3dProvider providerOf3d = null;
 	private static int numFacesInOffset = 15;
@@ -147,11 +148,11 @@ public class CSG implements IuserAPI, Serializable {
 	private static String defaultcolor = "#007956";
 
 	/** The color. */
-	//private Color color = getDefaultColor();
-	private double r= getDefaultColor().getRed();
-	private double g=getDefaultColor().getGreen();
-	private double b= getDefaultColor().getBlue();
-	private double o=getDefaultColor().getOpacity();
+	// private Color color = getDefaultColor();
+	private double r = getDefaultColor().getRed();
+	private double g = getDefaultColor().getGreen();
+	private double b = getDefaultColor().getBlue();
+	private double o = getDefaultColor().getOpacity();
 	/** The manipulator. */
 	private Affine manipulator;
 	private Bounds bounds;
@@ -228,10 +229,10 @@ public class CSG implements IuserAPI, Serializable {
 	 * @param color the new color
 	 */
 	public CSG setColor(Color color) {
-		r=color.getRed();
-		g=color.getGreen();
-		b=color.getBlue();
-		o=color.getOpacity();
+		r = color.getRed();
+		g = color.getGreen();
+		b = color.getBlue();
+		o = color.getOpacity();
 		for (Polygon p : polygons)
 			p.setColor(color);
 		return this;
@@ -800,15 +801,16 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return union of this csg and the specified csg
 	 */
 	public CSG union(CSG csg) {
-		if(CSGClient.isRunning()) {
-			ArrayList<CSG> go=new ArrayList<CSG>(Arrays.asList(this));
-			try {
-				return CSGClient.getClient().union(go).get(0);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		if (this.polygons.size() > getMinPolygonsForOffloading() || csg.polygons.size() > getMinPolygonsForOffloading())
+			if (CSGClient.isRunning()) {
+				ArrayList<CSG> go = new ArrayList<CSG>(Arrays.asList(this));
+				try {
+					return CSGClient.getClient().union(go).get(0);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
-		}
 //		triangulate();
 //		csg.triangulate();
 		switch (getOptType()) {
@@ -956,19 +958,28 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	public static CSG unionAll(List<CSG> csgs) {
-		if(CSGClient.isRunning()) {
-			List<CSG> back;
-			try {
-				back = CSGClient.getClient().union(csgs);
-				return back.get(0);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+
+		if (CSGClient.isRunning()) {
+			boolean offload = false;
+			for (int i = 0; i < csgs.size(); i++)
+				if (csgs.get(i).polygons.size() > getMinPolygonsForOffloading()) {
+					offload = true;
+					break;
+				}
+			if (offload) {
+				List<CSG> back;
+				try {
+					back = CSGClient.getClient().union(csgs);
+					return back.get(0);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
 		CSG first = csgs.get(0);
 		return first.union(csgs.stream().skip(1).collect(Collectors.toList()));
-		
+
 	}
 
 	public static CSG hullAll(CSG... csgs) {
@@ -1157,7 +1168,15 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return difference of this csg and the specified csgs
 	 */
 	public CSG difference(List<CSG> csgs) {
-
+			if (CSGClient.isRunning()) {
+				ArrayList<CSG> go = new ArrayList<CSG>(csgs);
+				try {
+					return CSGClient.getClient().difference(go).get(0);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		if (csgs.isEmpty()) {
 			return this.clone();
 		}
@@ -1233,15 +1252,16 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return difference of this csg and the specified csg
 	 */
 	public CSG difference(CSG csg) {
-		if(CSGClient.isRunning()) {
-			ArrayList<CSG> go=new ArrayList<CSG>(Arrays.asList(this,csg));
-			try {
-				return CSGClient.getClient().difference(go).get(0);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		if (this.polygons.size() > getMinPolygonsForOffloading() || csg.polygons.size() > getMinPolygonsForOffloading())
+			if (CSGClient.isRunning()) {
+				ArrayList<CSG> go = new ArrayList<CSG>(Arrays.asList(this, csg));
+				try {
+					return CSGClient.getClient().difference(go).get(0);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
-		}
 //		triangulate();
 //		csg.triangulate();
 		try {
@@ -1392,15 +1412,16 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return intersection of this csg and the specified csg
 	 */
 	public CSG intersect(CSG csg) {
-		if(CSGClient.isRunning()) {
-			ArrayList<CSG> go=new ArrayList<CSG>(Arrays.asList(this,csg));
-			try {
-				return CSGClient.getClient().intersect(go).get(0);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		if (this.polygons.size() > getMinPolygonsForOffloading() || csg.polygons.size() > getMinPolygonsForOffloading())
+			if (CSGClient.isRunning()) {
+				ArrayList<CSG> go = new ArrayList<CSG>(Arrays.asList(this, csg));
+				try {
+					return CSGClient.getClient().intersect(go).get(0);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
-		}
 //		triangulate();
 //		csg.triangulate();
 		Node a = new Node(this.clone().getPolygons());
@@ -1447,7 +1468,15 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return intersection of this csg and the specified csgs
 	 */
 	public CSG intersect(List<CSG> csgs) {
-
+			if (CSGClient.isRunning()) {
+				ArrayList<CSG> go = new ArrayList<CSG>(csgs);
+				try {
+					return CSGClient.getClient().intersect(go).get(0);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		if (csgs.isEmpty()) {
 			return this.clone();
 		}
@@ -1544,27 +1573,28 @@ public class CSG implements IuserAPI, Serializable {
 			triangulated = false;
 		if (triangulated)
 			return this;
-		if(CSGClient.isRunning()) {
-			ArrayList<CSG> go=new ArrayList<CSG>(Arrays.asList(this));
-			try {
-				return CSGClient.getClient().triangulate(go).get(0);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		if (this.polygons.size() > getMinPolygonsForOffloading())
+			if (CSGClient.isRunning()) {
+				ArrayList<CSG> go = new ArrayList<CSG>(Arrays.asList(this));
+				try {
+					return CSGClient.getClient().triangulate(go).get(0);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
-		}
 		if (providerOf3d == null && Debug3dProvider.provider != null)
 			providerOf3d = Debug3dProvider.provider;
 		IDebug3dProvider start = Debug3dProvider.provider;
 		Debug3dProvider.setProvider(null);
-		//performTriangulation();
+		// performTriangulation();
 		if (preventNonManifoldTriangles) {
-			//for (int i = 0; i < 1; i++)
-				if (isUseGPU()) {
-					runGPUMakeManifold();
-				} else {
-					runCPUMakeManifold();
-				}
+			// for (int i = 0; i < 1; i++)
+			if (isUseGPU()) {
+				runGPUMakeManifold();
+			} else {
+				runCPUMakeManifold();
+			}
 		}
 		performTriangulation();
 		// now all polygons are definantly triangles
@@ -1576,14 +1606,14 @@ public class CSG implements IuserAPI, Serializable {
 	private void performTriangulation() {
 		ArrayList<Polygon> toAdd = new ArrayList<Polygon>();
 		int failedPolys = 0;
-		for(int i=0;i<polygons.size();i++) {
+		for (int i = 0; i < polygons.size(); i++) {
 			Polygon p = polygons.get(i);
 			CSG ret = updatePolygons(toAdd, p);
-			if(ret ==null)
+			if (ret == null)
 				failedPolys++;
 		}
-		if(failedPolys>0)
-			System.out.println("Pruned "+failedPolys+" polygons from CSG "+getName());
+		if (failedPolys > 0)
+			System.out.println("Pruned " + failedPolys + " polygons from CSG " + getName());
 		if (toAdd.size() > 0) {
 			setPolygons(toAdd);
 		}
@@ -1591,7 +1621,8 @@ public class CSG implements IuserAPI, Serializable {
 
 	private void runCPUMakeManifold() {
 		long start = System.currentTimeMillis();
-		//System.err.println("Cleaning up the mesh by adding coincident points to the polygons they touch");
+		// System.err.println("Cleaning up the mesh by adding coincident points to the
+		// polygons they touch");
 
 		int totalAdded = 0;
 		double tOL = 1.0e-11;
@@ -1653,7 +1684,7 @@ public class CSG implements IuserAPI, Serializable {
 					}
 				totalAdded += 32;
 				threads.clear();
-				if (threadIndex/32 % 50 == 0 || j == polygons.size() - 1) {
+				if (threadIndex / 32 % 50 == 0 || j == polygons.size() - 1) {
 					progressMoniter.progressUpdate(j, polygons.size(),
 							"STL Processing Polygons for Manifold Vertex, #" + totalAdded + " added so far", this);
 				}
@@ -1669,7 +1700,8 @@ public class CSG implements IuserAPI, Serializable {
 				// Auto-generated catch block
 				e.printStackTrace();
 			}
-		//progressMoniter.progressUpdate(polygons.size(),polygons.size(),"Manifold fix took " + (System.currentTimeMillis() - start),this);
+		// progressMoniter.progressUpdate(polygons.size(),polygons.size(),"Manifold fix
+		// took " + (System.currentTimeMillis() - start),this);
 	}
 
 	private void runGPUMakeManifold() {
@@ -1742,19 +1774,18 @@ public class CSG implements IuserAPI, Serializable {
 		if (p == null)
 			return this;
 
-
 		if (p.getVertices().size() == 3) {
 			toAdd.add(p);
 		} else {
 
 			try {
-				if(!p.areAllPointsCollinear()) {
+				if (!p.areAllPointsCollinear()) {
 					List<Polygon> triangles = PolygonUtil.concaveToConvex(p);
 					for (Polygon poly : triangles) {
 						toAdd.add(poly);
 					}
-				}else {
-					System.err.println("Polygon is colinear, removing "+p);
+				} else {
+					System.err.println("Polygon is colinear, removing " + p);
 					return null;
 				}
 			} catch (Throwable ex) {
@@ -2214,6 +2245,15 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return
 	 */
 	public ArrayList<CSG> minkowskiHullShape(CSG travelingShape) {
+		if (CSGClient.isRunning()) {
+			ArrayList<CSG> go = new ArrayList<CSG>(Arrays.asList(this,travelingShape));
+			try {
+				return CSGClient.getClient().minkowskiHullShape(go);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		ArrayList<CSG> bits = new ArrayList<>();
 		for (Polygon p : this.getPolygons()) {
 			List<Vector3d> plist = new ArrayList<>();
@@ -2404,7 +2444,7 @@ public class CSG implements IuserAPI, Serializable {
 		}
 		if (getName().length() == 0)
 			setName(dyingCSG.getName());
-		setColor( dyingCSG.getColor());
+		setColor(dyingCSG.getColor());
 		return this;
 	}
 
@@ -2533,8 +2573,9 @@ public class CSG implements IuserAPI, Serializable {
 		regenerate = function;
 		return this;
 	}
+
 	public IRegenerate getRegenerate() {
-		return regenerate ;
+		return regenerate;
 	}
 
 	public CSG regenerate() {
@@ -3113,7 +3154,7 @@ public class CSG implements IuserAPI, Serializable {
 
 	public CSG syncProperties(CSG dying) {
 		getStorage().syncProperties(dying.getStorage());
-		regenerate=dying.regenerate;
+		regenerate = dying.regenerate;
 		return this;
 	}
 
@@ -3401,6 +3442,14 @@ public class CSG implements IuserAPI, Serializable {
 
 	public boolean isBoundsTouching(CSG incoming) {
 		return getBounds().isBoundsTouching(incoming.getBounds());
+	}
+
+	public static int getMinPolygonsForOffloading() {
+		return MinPolygonsForOffloading;
+	}
+
+	public static void setMinPolygonsForOffloading(int minPolygonsForOffloading) {
+		MinPolygonsForOffloading = minPolygonsForOffloading;
 	}
 
 }

@@ -649,9 +649,10 @@ public class SVGLoad {
 		
 		poly = Polygon.fromPoints(Extrude.toCCW(poly.getPoints()));
 		poly.setHole(hole);
-		if (c != null)
+		if (c != null) {
 			colors.put(poly, c);
-		poly.setColor(c);
+			poly.setColor(c);
+		}
 		list.add(poly);
 
 	}

@@ -4,5 +4,5 @@ public enum CSGRemoteOperation {
 	   UNION,
 	    DIFFERENCE,
 	    INTERSECT,
-	    TRIANGULATE
+	    TRIANGULATE, minkowskiHullShape
 }
