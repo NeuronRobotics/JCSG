@@ -957,20 +957,23 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	public static CSG unionAll(List<CSG> csgs) {
-		boolean offload=false;
-		for(int i=0;i<csgs.size();i++)
-			if(csgs.get(i).polygons.size()>200) {
-				offload=true;
-				break;
-			}
+
 		if (CSGClient.isRunning()) {
-			List<CSG> back;
-			try {
-				back = CSGClient.getClient().union(csgs);
-				return back.get(0);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			boolean offload = false;
+			for (int i = 0; i < csgs.size(); i++)
+				if (csgs.get(i).polygons.size() > 200) {
+					offload = true;
+					break;
+				}
+			if (offload) {
+				List<CSG> back;
+				try {
+					back = CSGClient.getClient().union(csgs);
+					return back.get(0);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
 		CSG first = csgs.get(0);
