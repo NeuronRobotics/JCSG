@@ -178,7 +178,7 @@ class CSGClient {
 
 		// Create client with try-with-resources for automatic cleanup
 		try {
-			File f = new File("file.txt");
+			File f = new File(System.getProperty("user.home")+"/File.txt");
 			CSGClient.start(hostname, port, f);
 			// Set a low number to ensure the Server is used. this defaults to 200
 			CSG.setMinPolygonsForOffloading(4);
