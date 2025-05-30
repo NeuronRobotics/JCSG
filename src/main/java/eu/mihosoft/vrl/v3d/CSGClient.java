@@ -173,8 +173,8 @@ class CSGClient {
 
 	public static void main(String[] args) {
 
-		String hostname = "10.246.200.88";
-		int port = 8080;
+		String hostname = "localhost";
+		int port = 3742;
 
 		// Create client with try-with-resources for automatic cleanup
 		try {
