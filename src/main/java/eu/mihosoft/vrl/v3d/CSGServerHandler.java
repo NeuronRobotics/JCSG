@@ -29,14 +29,16 @@ class CSGServerHandler implements Runnable {
 			CSGRequest request = (CSGRequest) ois.readObject();
 			System.out.println("Received request: " + request.getOperation());
 			boolean APIPass = true;
+			String apiKey2 = request.getAPIKey();
 			if (getAPIKEYs() != null) {
 				APIPass = false;
-				for (int i = 0; i < getAPIKEYs().length; i++)
-					if (request.getAPIKey().contentEquals(getAPIKEYs()[i])) {
-						APIPass = true;
-						System.out.println("API Key Match");
-						break;
-					}
+				if (apiKey2!=null)
+					for (int i = 0; i < getAPIKEYs().length; i++)
+						if (apiKey2.contentEquals(getAPIKEYs()[i])) {
+							APIPass = true;
+							System.out.println("API Key Match");
+							break;
+						}
 			}
 
 			// Process the request
@@ -53,7 +55,7 @@ class CSGServerHandler implements Runnable {
 			} else {
 				response = new CSGResponse();
 				response.setState(ServerActionState.BADAPIKEY);
-				response.setMessage("Your API key " + request.getAPIKey() + " Does not match server's key");
+				response.setMessage("Your API key " + apiKey2 + " Does not match server's key");
 			}
 			// Send back the response
 			oos.writeObject(response);

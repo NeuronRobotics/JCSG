@@ -27,10 +27,17 @@ class CSGClient {
 	public CSGClient(String hostname, int port, File f) throws Exception {
 		this.hostname = hostname;
 		this.port = port;
-		if (f != null)
-			if(f.exists())
-				key = Files.readAllLines(f.toPath()).toArray(new String[0])[0];
-
+		if (f == null)
+			throw new NullPointerException("API key file can not be null");
+		if(f.exists())
+			key = Files.readAllLines(f.toPath()).toArray(new String[0])[0];
+		else {
+			System.err.println("Error! API key file does not exist! "+f.getAbsolutePath());
+		}
+		if(key==null || key.length()==0)
+			System.err.println("Key error, no key provided by "+f.getAbsolutePath());
+		else
+			System.out.println("API Key Loaded from "+f.getAbsolutePath());
 		Socket socket = new Socket(hostname, port);
 		socket.close();
 

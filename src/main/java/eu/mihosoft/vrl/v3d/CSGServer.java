@@ -44,12 +44,16 @@ public class CSGServer {
 	public CSGServer(int port, File APIKEYS) throws IOException {
 		this.port = port;
 		this.threadPool = Executors.newCachedThreadPool();
-		if (APIKEYS != null) {
-			if(APIKEYS.exists())
-				lines = Files.readAllLines(APIKEYS.toPath()).toArray(new String[0]);
+		
+		if (APIKEYS == null) {
+			throw new NullPointerException("API Key file can not be null");
 		}
+		if(APIKEYS.exists())
+			lines = Files.readAllLines(APIKEYS.toPath()).toArray(new String[0]);
 		if(lines!=null) {
-			System.out.println("Starting server with "+lines.length+" keys");
+			System.out.println("Starting server with "+lines.length+" keys from "+APIKEYS.getAbsolutePath());
+		}else {
+			System.err.println("NO API KEYFILE Provided: "+APIKEYS.getAbsolutePath());
 		}
 	}
 
