@@ -37,7 +37,7 @@ public class ServerClientTest {
 		// Create client with try-with-resources for automatic cleanup
 		try {
 
-			CSG a = new Cube(20).toCSG();
+			CSG a = new Cube(20).toCSG().movex(100).movez(100);
 			a.getBounds();
 			a.setManipulator(new javafx.scene.transform.Affine());
 			a.setManufacturing(new PrepForManufacturing() {
@@ -58,6 +58,7 @@ public class ServerClientTest {
 			CSG d1 = a.difference(b);
 			CSG t1 = d1.clone().triangulate(true);
 			ArrayList<CSG> m1 = a.minkowskiHullShape(b);
+			CSG h1 = u1.hull();
 			
 			CSGClient.start(hostname, port, f);
 			// Set a low number to ensure the Server is used. this defaults to 200
@@ -83,6 +84,9 @@ public class ServerClientTest {
 					fail();
 				}
 			}
+			CSG h = u1.hull();
+			if(h.getPolygons().size()!=h1.getPolygons().size())
+				fail();
 			CSGClient.close();
 		} catch (Exception e) {
 			System.err.println("Communication error: " + e.getMessage());

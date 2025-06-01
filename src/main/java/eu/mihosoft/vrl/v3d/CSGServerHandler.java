@@ -9,6 +9,8 @@ import java.util.List;
 
 import javax.net.ssl.SSLSocket;
 
+import eu.mihosoft.vrl.v3d.ext.quickhull3d.HullUtil;
+
 class CSGServerHandler implements Runnable {
 	private SSLSocket clientSocket;
 
@@ -112,6 +114,9 @@ class CSGServerHandler implements Runnable {
 				CSG m1 = csgList.remove(0);
 				CSG t = csgList.remove(0);
 				back.addAll(m1.minkowskiHullShape(t));
+				break;
+			case hull:
+				back.add(HullUtil.hull(request.getPoints(), request.getStorage()));
 				break;
 			default:
 				throw new RuntimeException("No Such Operation " + request.getOperation());

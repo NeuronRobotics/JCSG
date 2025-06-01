@@ -11,7 +11,7 @@ import java.io.*;
 import java.security.cert.X509Certificate;
 
 //CSG Client class that maintains connection and provides clean API
-class CSGClient {
+public class CSGClient {
 	// statics
 	private static CSGClient client = null;
 
@@ -71,7 +71,9 @@ class CSGClient {
 	public ArrayList<CSG> union(List<CSG> csgList) throws Exception {
 		return performOperation(csgList, CSGRemoteOperation.UNION);
 	}
-
+	public ArrayList<CSG> hull(List<Vector3d> points, PropertyStorage storage) throws Exception  {
+		return performOperation(new ArrayList<CSG>(), CSGRemoteOperation.hull,points,storage);
+	}
 	/**
 	 * Perform difference operations on consecutive CSG pairs
 	 * 
@@ -119,11 +121,16 @@ class CSGClient {
 	public ArrayList<CSG> triangulate(ArrayList<CSG> csgList) throws Exception {
 		return performOperation(csgList, CSGRemoteOperation.TRIANGULATE);
 	}
-
 	/**
 	 * Internal method to perform operations and handle request/response
 	 */
-	private ArrayList<CSG> performOperation(List<CSG> csgList, CSGRemoteOperation operation) throws Exception {
+	private ArrayList<CSG> performOperation(List<CSG> csgList, CSGRemoteOperation operation)throws Exception{
+		return performOperation(csgList,operation,null,null);
+	}
+	/**
+	 * Internal method to perform operations and handle request/response
+	 */
+	private ArrayList<CSG> performOperation(List<CSG> csgList, CSGRemoteOperation operation,List<Vector3d> points, PropertyStorage storage) throws Exception {
 		ArrayList<CSG> back = null;
 		SSLSocket socket = (SSLSocket) factory.createSocket(hostname, port);
 		try {
@@ -142,7 +149,7 @@ class CSGClient {
 				tmp.setRegenerate(null);
 				toSend.add(tmp);
 			}
-			CSGRequest request = new CSGRequest(toSend, operation);
+			CSGRequest request = new CSGRequest(toSend, operation,points,storage);
 			if (key != null)
 				request.setAPIKEY(key);
 			oos.writeObject(request);

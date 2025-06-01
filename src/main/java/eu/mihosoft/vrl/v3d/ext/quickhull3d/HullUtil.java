@@ -6,10 +6,12 @@
 package eu.mihosoft.vrl.v3d.ext.quickhull3d;
 
 import eu.mihosoft.vrl.v3d.CSG;
+import eu.mihosoft.vrl.v3d.CSGClient;
 import eu.mihosoft.vrl.v3d.Vector3d;
 import eu.mihosoft.vrl.v3d.Polygon;
 import eu.mihosoft.vrl.v3d.PropertyStorage;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -58,7 +60,16 @@ public class HullUtil {
 	 * @return the csg
 	 */
 	public static CSG hull(List<Vector3d> points, PropertyStorage storage) {
-
+			if (CSGClient.isRunning()) {
+				try {
+					CSG csg = CSGClient.getClient().hull(points,new PropertyStorage()).get(0);
+					csg.setStorage(storage);
+					return csg;
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		Point3d[] hullPoints = points.stream().map((vec) -> new Point3d(vec.x, vec.y, vec.z)).toArray(Point3d[]::new);
 
 		QuickHull3D hull = new QuickHull3D();

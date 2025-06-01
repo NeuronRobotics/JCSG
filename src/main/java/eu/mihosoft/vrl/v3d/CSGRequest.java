@@ -9,13 +9,17 @@ class CSGRequest implements Serializable {
 	private List<CSG> csgList;
 	private CSGRemoteOperation operation;
 	private String APIKEY;
+	private List<Vector3d> points;
+	private PropertyStorage storage;
 
 	public CSGRequest() {
 		this.csgList = new ArrayList<>();
 		this.operation = CSGRemoteOperation.UNION;
 	}
 
-	public CSGRequest(List<CSG> csgList, CSGRemoteOperation operation) {
+	public CSGRequest(List<CSG> csgList, CSGRemoteOperation operation,List<Vector3d> points, PropertyStorage storage) {
+		this.setPoints(points);
+		this.setStorage(storage);
 		this.csgList = csgList != null ? new ArrayList<>(csgList) : new ArrayList<>();
 		this.operation = operation != null ? operation : CSGRemoteOperation.UNION;
 	}
@@ -47,5 +51,21 @@ class CSGRequest implements Serializable {
 
 	public void setAPIKEY(String aPIKEY) {
 		APIKEY = aPIKEY;
+	}
+
+	public List<Vector3d> getPoints() {
+		return points;
+	}
+
+	public void setPoints(List<Vector3d> points) {
+		this.points = points;
+	}
+
+	public PropertyStorage getStorage() {
+		return storage;
+	}
+
+	public void setStorage(PropertyStorage storage) {
+		this.storage = storage;
 	}
 }
