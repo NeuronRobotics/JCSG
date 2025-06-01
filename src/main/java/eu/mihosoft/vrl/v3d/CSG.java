@@ -1565,6 +1565,7 @@ public class CSG implements IuserAPI, Serializable {
 				try {
 					CSG csg = CSGClient.getClient().triangulate(go).get(0);
 					setPolygons(csg.getPolygons());
+					triangulated = true;
 					return csg;
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
