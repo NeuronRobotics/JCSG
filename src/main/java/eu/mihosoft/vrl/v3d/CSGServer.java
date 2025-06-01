@@ -211,7 +211,7 @@ public class CSGServer {
 	}
 
 	public static void main(String[] args) throws Exception {
-		int port = 8080;
+		int port = 3742;
 
 		// Parse command line arguments
 		if (args.length > 0) {
