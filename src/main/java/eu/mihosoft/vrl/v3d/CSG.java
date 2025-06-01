@@ -264,7 +264,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * @param manipulator the manipulator
 	 * @return the affine
 	 */
-	public CSG setManipulator(Affine manipulator) {
+	public CSG setManipulator(javafx.scene.transform.Affine manipulator) {
 		if (manipulator == null)
 			return this;
 		Affine old = manipulator;
@@ -2498,15 +2498,15 @@ public class CSG implements IuserAPI, Serializable {
 		return this;
 	}
 
-	@Deprecated
-	public PrepForManufacturing getManufactuing() {
-		return getManufacturing();
-	}
+//	@Deprecated
+//	public PrepForManufacturing getManufactuing() {
+//		return getManufacturing();
+//	}
 
-	@Deprecated
-	public CSG setManufactuing(PrepForManufacturing manufactuing) {
-		return setManufacturing(manufactuing);
-	}
+//	@Deprecated
+//	public CSG setManufactuing(PrepForManufacturing manufactuing) {
+//		return setManufacturing(manufactuing);
+//	}
 
 	public CSG setParameter(Parameter w, IParametric function) {
 		if (w == null)

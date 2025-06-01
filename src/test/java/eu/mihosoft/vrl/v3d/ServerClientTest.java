@@ -8,6 +8,8 @@ import java.util.ArrayList;
 
 import org.junit.Test;
 
+import eu.mihosoft.vrl.v3d.parametrics.LengthParameter;
+
 public class ServerClientTest {
 
 	@Test
@@ -42,6 +44,17 @@ public class ServerClientTest {
 
 			CSG a = new Cube(20).toCSG();
 			a.getBounds();
+			a.setManipulator(new javafx.scene.transform.Affine());
+			a.setManufacturing(new PrepForManufacturing() {
+				@Override
+				public CSG prep(CSG incoming) {
+					// TODO Auto-generated method stub
+					return incoming;
+				}
+			});
+			LengthParameter param = new LengthParameter("parameter", (double) 35, new ArrayList<Double>());
+			a.setParameter(param);
+			
 			CSG b = new Cube(20, 30, 5).toCSG();
 			b.getBounds();
 			CSG c = new Cube(10, 10, 10).toCSG();
@@ -54,6 +67,7 @@ public class ServerClientTest {
 		} catch (Exception e) {
 			System.err.println("Communication error: " + e.getMessage());
 			e.printStackTrace();
+			fail();
 		}
 
 		server.stop();
