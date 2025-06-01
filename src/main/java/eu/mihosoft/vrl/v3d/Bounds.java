@@ -5,6 +5,8 @@
  */
 package eu.mihosoft.vrl.v3d;
 
+import java.io.Serializable;
+
 import com.google.gson.annotations.Expose;
 
 //  Auto-generated Javadoc
@@ -13,9 +15,11 @@ import com.google.gson.annotations.Expose;
  *
  * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
  */
-public class Bounds {
+public class Bounds implements Serializable{
 
-    /** The center. */
+    private static final long serialVersionUID = -5067189300959316667L;
+
+	/** The center. */
 	@Expose (serialize = true, deserialize = true)
     private final Vector3d center;
     
@@ -31,13 +35,13 @@ public class Bounds {
 	@Expose (serialize = true, deserialize = true)
     private final Vector3d max;
     
-    /** The csg. */
-	@Expose (serialize = false, deserialize = false)
-    private CSG csg;
-    
-    /** The cube. */
-	@Expose (serialize = false, deserialize = false)
-    private Cube cube;
+//    /** The csg. */
+//	@Expose (serialize = false, deserialize = false)
+//    private CSG csg;
+//    
+//    /** The cube. */
+//	@Expose (serialize = false, deserialize = false)
+//    private Cube cube;
 
     /**
      * Constructor.
@@ -92,6 +96,8 @@ public class Bounds {
      * @return this bounding box as csg
      */
     public CSG toCSG() {
+    	CSG csg=null;
+    	Cube cube=null;
         if (csg == null) {
             cube = new Cube(center, bounds);
             csg = cube.toCSG();
@@ -106,6 +112,8 @@ public class Bounds {
      * @return this bounding box as cube
      */
     public Cube toCube() {
+    	CSG csg=null;
+    	Cube cube=null;
         if (cube == null) {
             cube = new Cube(center, bounds);
             csg = cube.toCSG();

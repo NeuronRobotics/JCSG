@@ -41,8 +41,11 @@ public class ServerClientTest {
 			System.out.println("Client info: " + CSGClient.getClient().getServerInfo());
 
 			CSG a = new Cube(20).toCSG();
+			a.getBounds();
 			CSG b = new Cube(20, 30, 5).toCSG();
+			b.getBounds();
 			CSG c = new Cube(10, 10, 10).toCSG();
+			c.getBounds();
 			CSG u = CSG.unionAll(a, b, c);
 			CSG d = a.difference(b);
 			CSG t = d.triangulate(true);

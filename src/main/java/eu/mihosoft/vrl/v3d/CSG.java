@@ -972,8 +972,7 @@ public class CSG implements IuserAPI, Serializable {
 					back = CSGClient.getClient().union(csgs);
 					return back.get(0);
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					throw new RuntimeException(e);
 				}
 			}
 		}
