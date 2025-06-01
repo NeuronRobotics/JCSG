@@ -876,6 +876,15 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return union of this csg and the specified csgs
 	 */
 	public CSG union(List<CSG> csgs) {
+			if (CSGClient.isRunning()) {
+				ArrayList<CSG> go = new ArrayList<CSG>(csgs);
+				try {
+					return CSGClient.getClient().union(go).get(0);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		CSG result = this;
 
 		for (int i = 0; i < csgs.size(); i++) {
