@@ -21,26 +21,43 @@ class CSGClient {
 	private int port;
 
 	private String key = null;
-	
+
 	private static boolean serverCall = false;
+
+	private SSLSocketFactory factory;
 
 	public CSGClient(String hostname, int port, File f) throws Exception {
 		this.hostname = hostname;
 		this.port = port;
 		if (f == null)
 			throw new NullPointerException("API key file can not be null");
-		if(f.exists())
+		if (f.exists())
 			key = Files.readAllLines(f.toPath()).toArray(new String[0])[0];
 		else {
-			System.err.println("Error! API key file does not exist! "+f.getAbsolutePath());
+			System.err.println("Error! API key file does not exist! " + f.getAbsolutePath());
 		}
-		if(key==null || key.length()==0)
-			System.err.println("Key error, no key provided by "+f.getAbsolutePath());
+		if (key == null || key.length() == 0)
+			System.err.println("Key error, no key provided by " + f.getAbsolutePath());
 		else
-			System.out.println("API Key Loaded from "+f.getAbsolutePath());
+			System.out.println("API Key Loaded from " + f.getAbsolutePath());
 		Socket socket = new Socket(hostname, port);
 		socket.close();
+		SSLContext sslContext = SSLContext.getInstance("TLS");
 
+		// For development: trust all certificates (use proper truststore in production)
+		TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+			public X509Certificate[] getAcceptedIssuers() {
+				return null;
+			}
+
+			public void checkClientTrusted(X509Certificate[] certs, String authType) {
+			}
+
+			public void checkServerTrusted(X509Certificate[] certs, String authType) {
+			}
+		} };
+		sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+		factory = sslContext.getSocketFactory();
 	}
 
 	/**
@@ -107,26 +124,11 @@ class CSGClient {
 	 * Internal method to perform operations and handle request/response
 	 */
 	private ArrayList<CSG> performOperation(List<CSG> csgList, CSGRemoteOperation operation) throws Exception {
-		SSLContext sslContext = SSLContext.getInstance("TLS");
-
-		// For development: trust all certificates (use proper truststore in production)
-		TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
-			public X509Certificate[] getAcceptedIssuers() {
-				return null;
-			}
-
-			public void checkClientTrusted(X509Certificate[] certs, String authType) {
-			}
-
-			public void checkServerTrusted(X509Certificate[] certs, String authType) {
-			}
-		} };
-		sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
-		SSLSocketFactory factory = sslContext.getSocketFactory();
-
-		try (SSLSocket socket = (SSLSocket) factory.createSocket(hostname, port);
-				ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-				ObjectInputStream ois = new ObjectInputStream(socket.getInputStream())) {
+		ArrayList<CSG> back = null;
+		SSLSocket socket = (SSLSocket) factory.createSocket(hostname, port);
+		try {
+			ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+			ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 			System.out.println("Running Operation on server: " + hostname + " " + operation);
 			// Create and send request
 			CSGRequest request = new CSGRequest(csgList, operation);
@@ -138,17 +140,16 @@ class CSGClient {
 			// Receive response
 			CSGResponse response = (CSGResponse) ois.readObject();
 			socket.close();
+
 			if (response.getState() != ServerActionState.SUCCESS)
 				throw new RuntimeException(response.getMessage());
 			// Return results as ArrayList
-			return new ArrayList<>(response.getCsgList());
-
-		} catch (ClassNotFoundException e) {
-			throw new IOException("Invalid response from server", e);
-		} catch (IOException e) {
-			// Connection might be broken, mark as disconnected
-			throw e;
+			back = new ArrayList<>(response.getCsgList());
+		} catch (Throwable t) {
+			socket.close();
+			throw t;
 		}
+		return back;
 	}
 
 	/**
@@ -167,11 +168,10 @@ class CSGClient {
 
 	public static void close() {
 		client = null;
-
 	}
 
 	public static boolean isRunning() {
-		if(isServerCall())
+		if (isServerCall())
 			return false;
 		if (getClient() == null)
 			return false;
@@ -180,7 +180,7 @@ class CSGClient {
 
 	public static void main(String[] args) {
 
-		String hostname = "192.168.10.125";
+		String hostname = "localhost";
 		int port = 3742;
 
 		// Create client with try-with-resources for automatic cleanup
@@ -199,7 +199,7 @@ class CSGClient {
 			CSG d = a.difference(b);
 			CSG t = d.triangulate(true);
 			ArrayList<CSG> m = a.minkowskiHullShape(b);
-
+			CSGClient.close();
 		} catch (Exception e) {
 			System.err.println("Communication error: " + e.getMessage());
 			e.printStackTrace();

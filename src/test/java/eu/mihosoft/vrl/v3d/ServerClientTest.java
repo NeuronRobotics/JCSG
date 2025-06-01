@@ -47,7 +47,7 @@ public class ServerClientTest {
 			CSG d = a.difference(b);
 			CSG t = d.triangulate(true);
 			ArrayList<CSG> m = a.minkowskiHullShape(b);
-
+			CSGClient.close();
 		} catch (Exception e) {
 			System.err.println("Communication error: " + e.getMessage());
 			e.printStackTrace();
