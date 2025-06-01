@@ -33,6 +33,8 @@
  */
 package eu.mihosoft.vrl.v3d;
 
+import java.io.Serializable;
+
 import javax.vecmath.Matrix4d;
 import javax.vecmath.Quat4d;
 
@@ -57,8 +59,9 @@ import javax.vecmath.Quat4d;
  *
  * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
  */
-public class Transform {
+public class Transform implements Serializable {
 
+	private static final long serialVersionUID = 3248601462585606936L;
 	/**
 	 * Internal 4x4 matrix.
 	 */

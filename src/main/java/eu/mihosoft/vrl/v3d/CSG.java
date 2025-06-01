@@ -239,9 +239,9 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	public void setMeshColor(Color color) {
-		if (current != null) {
+		if (getCurrentMeshView() != null) {
 			PhongMaterial m = new PhongMaterial(color);
-			current.setMaterial(m);
+			getCurrentMeshView().setMaterial(m);
 		}
 	}
 
@@ -251,9 +251,9 @@ public class CSG implements IuserAPI, Serializable {
 	 * @param color the new Temporary color
 	 */
 	public CSG setTemporaryColor(Color color) {
-		if (current != null) {
+		if (getCurrentMeshView() != null) {
 			PhongMaterial m = new PhongMaterial(color);
-			current.setMaterial(m);
+			getCurrentMeshView().setMaterial(m);
 		}
 		return this;
 	}
@@ -269,9 +269,9 @@ public class CSG implements IuserAPI, Serializable {
 			return this;
 		Affine old = manipulator;
 		this.manipulator = manipulator;
-		if (current != null) {
-			current.getTransforms().clear();
-			current.getTransforms().add(manipulator);
+		if (getCurrentMeshView() != null) {
+			getCurrentMeshView().getTransforms().clear();
+			getCurrentMeshView().getTransforms().add(manipulator);
 		}
 		return this;
 	}
@@ -282,10 +282,10 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return the mesh
 	 */
 	public MeshView getMesh() {
-		if (current != null)
-			return current;
-		current = newMesh();
-		return current;
+		if (getCurrentMeshView() != null)
+			return getCurrentMeshView();
+		setCurrentMeshView(newMesh());
+		return getCurrentMeshView();
 	}
 
 	/**
@@ -3449,6 +3449,14 @@ public class CSG implements IuserAPI, Serializable {
 
 	public static void setMinPolygonsForOffloading(int minPolygonsForOffloading) {
 		MinPolygonsForOffloading = minPolygonsForOffloading;
+	}
+
+	public MeshView getCurrentMeshView() {
+		return current;
+	}
+
+	public void setCurrentMeshView(MeshView current) {
+		this.current = current;
 	}
 
 }
