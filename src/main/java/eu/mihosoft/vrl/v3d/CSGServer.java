@@ -1,6 +1,5 @@
 package eu.mihosoft.vrl.v3d;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.nio.file.Files;
@@ -19,7 +18,6 @@ import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.io.FileOutputStream;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
@@ -221,7 +219,7 @@ public class CSGServer {
 				System.err.println("Invalid port number. Using default port 8080");
 			}
 		}
-		File f = new File("file.txt");
+		File f = new File("/opt/File.txt");
 
 		CSGServer server = new CSGServer(port, f);
 		server.start();
