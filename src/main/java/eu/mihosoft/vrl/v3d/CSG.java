@@ -876,29 +876,6 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return union of this csg and the specified csgs
 	 */
 	public CSG union(List<CSG> csgs) {
-//		ArrayList<Polygon> incomingPolys = new ArrayList<>();
-//		for(int i=0;i<csgs.size();i++) {
-//			incomingPolys.addAll(csgs.get(i).getPolygons());
-//		}
-//		////com.neuronrobotics.sdk.common.Log.error("Node list A");
-//		Node a = new Node(this.clone().getPolygons());
-//		////com.neuronrobotics.sdk.common.Log.error("Node list B");
-//		Node b = new Node(incomingPolys);
-//		////com.neuronrobotics.sdk.common.Log.error("a.clipTo(b)");
-//		a.clipTo(b);
-//		////com.neuronrobotics.sdk.common.Log.error("b.clipTo(a)");
-//		b.clipTo(a);
-//		////com.neuronrobotics.sdk.common.Log.error("b.invert();");
-//		b.invert();
-//		////com.neuronrobotics.sdk.common.Log.error("b.clipTo(a);");
-//		b.clipTo(a);
-//		////com.neuronrobotics.sdk.common.Log.error("b.invert();");
-//		b.invert();
-//		////com.neuronrobotics.sdk.common.Log.error("a.build(b.allPolygons());");
-//		a.build(b.allPolygons());
-//		////com.neuronrobotics.sdk.common.Log.error("CSG.fromPolygons(a.allPolygons()).optimization(getOptType())");
-//		return CSG.fromPolygons(a.allPolygons()).optimization(getOptType());
-
 		CSG result = this;
 
 		for (int i = 0; i < csgs.size(); i++) {
@@ -1167,15 +1144,15 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return difference of this csg and the specified csgs
 	 */
 	public CSG difference(List<CSG> csgs) {
-			if (CSGClient.isRunning()) {
-				ArrayList<CSG> go = new ArrayList<CSG>(csgs);
-				try {
-					return CSGClient.getClient().difference(go).get(0);
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+		if (CSGClient.isRunning()) {
+			ArrayList<CSG> go = new ArrayList<CSG>(csgs);
+			try {
+				return CSGClient.getClient().difference(go).get(0);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
+		}
 		if (csgs.isEmpty()) {
 			return this.clone();
 		}
@@ -1576,7 +1553,9 @@ public class CSG implements IuserAPI, Serializable {
 			if (CSGClient.isRunning()) {
 				ArrayList<CSG> go = new ArrayList<CSG>(Arrays.asList(this));
 				try {
-					return CSGClient.getClient().triangulate(go).get(0);
+					CSG csg = CSGClient.getClient().triangulate(go).get(0);
+					setPolygons(csg.getPolygons());
+					return csg;
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

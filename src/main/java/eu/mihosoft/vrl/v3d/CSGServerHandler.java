@@ -5,6 +5,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.net.ssl.SSLSocket;
 
@@ -85,27 +86,31 @@ class CSGServerHandler implements Runnable {
 		ArrayList<CSG> back = new ArrayList<CSG>();
 		CSGClient.setServerCall(true);
 		try {
+			List<CSG> csgList = request.getCsgList();
 			switch (request.getOperation()) {
 			case DIFFERENCE:
-				CSG first = request.getCsgList().remove(0);
-				back.add(first.difference(request.getCsgList()));
+				CSG first = csgList.remove(0);
+				if(csgList.size()==1) {
+					back.add(first.difference(csgList.get(0)));
+				}else
+					back.add(first.difference(csgList));
 				break;
 			case INTERSECT:
-				CSG f = request.getCsgList().remove(0);
-				back.add(f.intersect(request.getCsgList()));
+				CSG f = csgList.remove(0);
+				back.add(f.intersect(csgList));
 				break;
 			case TRIANGULATE:
 				CSG.setPreventNonManifoldTriangles(true);
-				for (CSG c : request.getCsgList())
+				for (CSG c : csgList)
 					back.add(c.triangulate(true));
 				break;
 			case UNION:
-				CSG d = request.getCsgList().remove(0);
-				back.add(d.union(request.getCsgList()));
+				CSG d = csgList.remove(0);
+				back.add(d.union(csgList));
 				break;
 			case minkowskiHullShape:
-				CSG m1 = request.getCsgList().remove(0);
-				CSG t = request.getCsgList().remove(0);
+				CSG m1 = csgList.remove(0);
+				CSG t = csgList.remove(0);
 				back.addAll(m1.minkowskiHullShape(t));
 				break;
 			default:

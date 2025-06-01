@@ -140,7 +140,6 @@ class CSGClient {
 				tmp.setManufacturing(null);
 				tmp.getMapOfparametrics().clear();
 				tmp.setRegenerate(null);
-				
 				toSend.add(tmp);
 			}
 			CSGRequest request = new CSGRequest(toSend, operation);
