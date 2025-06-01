@@ -803,7 +803,7 @@ public class CSG implements IuserAPI, Serializable {
 	public CSG union(CSG csg) {
 		if (this.polygons.size() > getMinPolygonsForOffloading() || csg.polygons.size() > getMinPolygonsForOffloading())
 			if (CSGClient.isRunning()) {
-				ArrayList<CSG> go = new ArrayList<CSG>(Arrays.asList(this));
+				ArrayList<CSG> go = new ArrayList<CSG>(Arrays.asList(this,csg));
 				try {
 					return CSGClient.getClient().union(go).get(0);
 				} catch (Exception e) {

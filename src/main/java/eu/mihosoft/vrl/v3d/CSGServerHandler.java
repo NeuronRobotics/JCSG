@@ -100,7 +100,8 @@ class CSGServerHandler implements Runnable {
 					back.add(c.triangulate(true));
 				break;
 			case UNION:
-				back.add(CSG.unionAll(request.getCsgList()));
+				CSG d = request.getCsgList().remove(0);
+				back.add(d.union(request.getCsgList()));
 				break;
 			case minkowskiHullShape:
 				CSG m1 = request.getCsgList().remove(0);

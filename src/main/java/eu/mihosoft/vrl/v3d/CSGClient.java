@@ -131,6 +131,12 @@ class CSGClient {
 			ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 			System.out.println("Running Operation on server: " + hostname + " " + operation);
 			// Create and send request
+			ArrayList<PropertyStorage> store  =new ArrayList<PropertyStorage>();
+			for(CSG c:csgList) {
+				store.add(c.getStorage());
+				// Do not attempt to send properties because they may contain lambda functions that can not serialize
+				c.setStorage(new PropertyStorage());
+			}
 			CSGRequest request = new CSGRequest(csgList, operation);
 			if (key != null)
 				request.setAPIKEY(key);
@@ -145,6 +151,11 @@ class CSGClient {
 				throw new RuntimeException(response.getMessage());
 			// Return results as ArrayList
 			back = new ArrayList<>(response.getCsgList());
+			for(CSG c:back) {
+				for(PropertyStorage s:store) {
+					c.getStorage().syncProperties(s);// Keep the Lambdas in the memory space where they came from
+				}
+			}
 		} catch (Throwable t) {
 			socket.close();
 			throw t;
