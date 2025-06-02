@@ -53,13 +53,15 @@ public class ServerClientTest {
 			b.getBounds();
 			CSG c = new Cube(10, 10, 10).toCSG();
 			c.getBounds();
+			CSG dif = new Cube(100, 100, 1).toCSG();
+			dif.getBounds();
 			
 			int apoly1 = a.getPolygons().size();
 			int bpoly1 =b.getPolygons().size();
 			
 			CSG u1 = a.union( b,c);
 			CSG i1 = c.intersect(b);
-			CSG d1 = a.difference(b);
+			CSG d1 = a.difference(b,dif);
 			CSG t1 = d1.clone().triangulate(true);
 			ArrayList<CSG> m1 = a.minkowskiHullShape(b);
 			CSG h1 = u1.hull();
@@ -77,7 +79,7 @@ public class ServerClientTest {
 			CSG i0 = c.intersect(b);
 			if(testPoly(i1,i0))
 				fail();
-			CSG d = a.difference(b);
+			CSG d = a.difference(b,dif);
 			if(testPoly(d1,d))
 				fail("Difference Step fail , expected "+d1.getPolygons().size()+" got "+d.getPolygons().size());
 			CSG t = d.clone().triangulate(true);

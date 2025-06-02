@@ -1159,7 +1159,9 @@ public class CSG implements IuserAPI, Serializable {
 	 */
 	public CSG difference(List<CSG> csgs) {
 		if (CSGClient.isRunning()) {
-			ArrayList<CSG> go = new ArrayList<CSG>(csgs);
+			ArrayList<CSG> go = new ArrayList<CSG>();
+			go.add(this);
+			go.addAll(csgs);
 			try {
 				return CSGClient.getClient().difference(go).get(0);
 			} catch (Exception e) {
