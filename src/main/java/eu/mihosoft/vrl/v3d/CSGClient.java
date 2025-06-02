@@ -131,12 +131,17 @@ public class CSGClient {
 	 * Internal method to perform operations and handle request/response
 	 */
 	private ArrayList<CSG> performOperation(List<CSG> csgList, CSGRemoteOperation operation,List<Vector3d> points, PropertyStorage storage) throws Exception {
+		if (javafx.application.Platform.isFxApplicationThread()) {
+			RuntimeException runtimeException = new RuntimeException("Network trafic can not run on UI thread");
+			runtimeException.printStackTrace();
+			throw runtimeException;
+		}
 		ArrayList<CSG> back = null;
 		SSLSocket socket = (SSLSocket) factory.createSocket(hostname, port);
 		try {
 			ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 			ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-			//System.out.println("Running Operation on server: " + hostname + " " + operation);
+			//
 			// Create and send request
 			
 			ArrayList <CSG> toSend  =  new ArrayList<CSG>();
@@ -160,6 +165,10 @@ public class CSGClient {
 			// Return results as ArrayList
 			back=new ArrayList<CSG>();
 			for(CSG c:response.getCsgList()) {
+				if(c.getPolygons().size()==0) {
+					System.out.println("Running Operation on server: " + hostname + " " + operation);
+					new RuntimeException("Network CSG op resulted in no polygons here ").printStackTrace();
+				}
 				CSG historySync = CSG.fromPolygons(c.getPolygons());
 				back.add( historySync);
 				for(CSG s:csgList) {
@@ -192,6 +201,8 @@ public class CSGClient {
 	}
 
 	public static boolean isRunning() {
+		if(javafx.application.Platform.isFxApplicationThread())
+			return false;// do not run operation on UI thread
 		if (isServerCall())
 			return false;
 		if (getClient() == null)

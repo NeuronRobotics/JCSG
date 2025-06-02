@@ -1419,6 +1419,10 @@ public class CSG implements IuserAPI, Serializable {
 			}
 //		triangulate();
 //		csg.triangulate();
+		if(getPolygons().size()==0 || csg.getPolygons().size()==0) {
+			System.err.println("Error! Intersection is invalid when one CSG has no polygons!");
+			return new CSG().historySync(this).historySync(csg);
+		}
 		Node a = new Node(this.clone().getPolygons());
 		Node b = new Node(csg.clone().getPolygons());
 		a.invert();

@@ -58,6 +58,7 @@ public class ServerClientTest {
 			int bpoly1 =b.getPolygons().size();
 			
 			CSG u1 = a.union( b,c);
+			CSG i1 = c.intersect(b);
 			CSG d1 = a.difference(b);
 			CSG t1 = d1.clone().triangulate(true);
 			ArrayList<CSG> m1 = a.minkowskiHullShape(b);
@@ -73,7 +74,9 @@ public class ServerClientTest {
 			CSG u =a.union( b,c);
 			if(testPoly(u1,u))
 				fail();
-			
+			CSG i0 = c.intersect(b);
+			if(testPoly(i1,i0))
+				fail();
 			CSG d = a.difference(b);
 			if(testPoly(d1,d))
 				fail("Difference Step fail , expected "+d1.getPolygons().size()+" got "+d.getPolygons().size());
