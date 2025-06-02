@@ -136,7 +136,7 @@ public class CSGClient {
 		try {
 			ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 			ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-			System.out.println("Running Operation on server: " + hostname + " " + operation);
+			//System.out.println("Running Operation on server: " + hostname + " " + operation);
 			// Create and send request
 			
 			ArrayList <CSG> toSend  =  new ArrayList<CSG>();
@@ -158,10 +158,10 @@ public class CSGClient {
 			if (response.getState() != ServerActionState.SUCCESS)
 				throw new RuntimeException(response.getMessage());
 			// Return results as ArrayList
-			back = new ArrayList<>(response.getCsgList());
-			for(CSG c:back) {
+			back=new ArrayList<CSG>();
+			for(CSG c:response.getCsgList()) {
 				for(CSG s:csgList) {
-					c.historySync(s);
+					back.add( CSG.fromPolygons(c.getPolygons()).historySync(s));
 				}
 			}
 		} catch (Throwable t) {
