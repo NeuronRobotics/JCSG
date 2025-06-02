@@ -167,7 +167,9 @@ public class CSGClient {
 			for(CSG c:response.getCsgList()) {
 				if(c.getPolygons().size()==0) {
 					System.out.println("Running Operation on server: " + hostname + " " + operation);
-					new RuntimeException("Network CSG op resulted in no polygons here ").printStackTrace();
+					RuntimeException runtimeException = new RuntimeException("Network CSG op resulted in no polygons here ");
+					runtimeException.printStackTrace();
+					throw runtimeException;
 				}
 				CSG historySync = CSG.fromPolygons(c.getPolygons());
 				back.add( historySync);
