@@ -832,6 +832,8 @@ public final class Polygon implements Serializable{
 	}
 
 	public void setPlane(Plane plane) {
+		if(plane==null)
+			throw new RuntimeException("Plane can not be null!");
 		this.plane = plane;
 	}
 }

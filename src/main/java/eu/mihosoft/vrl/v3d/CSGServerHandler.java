@@ -26,20 +26,21 @@ class CSGServerHandler implements Runnable {
 		try (ObjectInputStream ois = new ObjectInputStream(clientSocket.getInputStream());
 				ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream())) {
 
-			System.out.println("Client connected: " + clientSocket.getRemoteSocketAddress());
+			// System.out.println("Client connected: " +
+			// clientSocket.getRemoteSocketAddress());
 
 			// Read the CSG request
 			CSGRequest request = (CSGRequest) ois.readObject();
-			System.out.println("Received request: " + request.getOperation());
+			// System.out.println("Received request: " + request.getOperation());
 			boolean APIPass = true;
 			String apiKey2 = request.getAPIKey();
 			if (getAPIKEYs() != null) {
 				APIPass = false;
-				if (apiKey2!=null)
+				if (apiKey2 != null)
 					for (int i = 0; i < getAPIKEYs().length; i++)
 						if (apiKey2.contentEquals(getAPIKEYs()[i])) {
 							APIPass = true;
-							System.out.println("API Key Match");
+							// System.out.println("API Key Match");
 							break;
 						}
 			}
@@ -64,7 +65,7 @@ class CSGServerHandler implements Runnable {
 			oos.writeObject(response);
 			oos.flush();
 
-			System.out.println("Sent response: " + response);
+			// System.out.println("Sent response: " + response);
 
 		} catch (IOException | ClassNotFoundException e) {
 			System.err.println("client disconnected: ");
@@ -74,7 +75,7 @@ class CSGServerHandler implements Runnable {
 	}
 
 	private void close() {
-		System.out.println("Closing Handler socket");
+		//System.out.println("Closing Handler socket");
 		try {
 			if (!clientSocket.isClosed()) {
 				clientSocket.close();
@@ -89,12 +90,13 @@ class CSGServerHandler implements Runnable {
 		CSGClient.setServerCall(true);
 		try {
 			List<CSG> csgList = request.getCsgList();
+			
 			switch (request.getOperation()) {
 			case DIFFERENCE:
 				CSG first = csgList.remove(0);
-				if(csgList.size()==1) {
+				if (csgList.size() == 1) {
 					back.add(first.difference(csgList.get(0)));
-				}else
+				} else
 					back.add(first.difference(csgList));
 				break;
 			case INTERSECT:
@@ -107,11 +109,19 @@ class CSGServerHandler implements Runnable {
 					back.add(c.triangulate(true));
 				break;
 			case UNION:
-				if(csgList.size()==2) {
-					back.add(csgList.get(0).union(csgList.get(1)));
-				}else
-					back.add(CSG.unionAll(csgList));
-				break;
+				try {
+					
+					if (csgList.size() == 2) {
+						CSG csg = csgList.get(0);
+						CSG csg2 = csgList.get(1);
+						back.add(csg.union(csg2));
+					} else
+						back.add(CSG.unionAll(csgList));
+					break;
+				} catch (Throwable tr) {
+					tr.printStackTrace();
+					throw tr;
+				}
 			case minkowskiHullShape:
 				CSG m1 = csgList.remove(0);
 				CSG t = csgList.remove(0);

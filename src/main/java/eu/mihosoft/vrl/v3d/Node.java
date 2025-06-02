@@ -81,10 +81,10 @@ public final class Node {
 		}
 	}
 
-	/**
-	 * Constructor. Creates a node without polygons.
-	 */
-	public Node() {
+//	/**
+//	 * Constructor. Creates a node without polygons.
+//	 */
+	private Node() {
 		this(null);
 	}
 
@@ -96,7 +96,7 @@ public final class Node {
 	@Override
 	public Node clone() {
 		Node node = new Node();
-		node.plane = this.plane == null ? null : this.plane.clone();
+		node.setPlane(this.getPlane() == null ? null : this.getPlane().clone());
 		node.front = this.front == null ? null : this.front.clone();
 		node.back = this.back == null ? null : this.back.clone();
 //        node.polygons = new ArrayList<>();
@@ -132,16 +132,16 @@ public final class Node {
 			polygon.flip();
 		});
 
-		if (this.plane == null && !polygons.isEmpty()) {
-			this.plane = polygons.get(0).getPlane().clone();
-		} else if (this.plane == null && polygons.isEmpty()) {
+		if (this.getPlane() == null && !polygons.isEmpty()) {
+			this.setPlane(polygons.get(0).getPlane().clone());
+		} else if (this.getPlane() == null && polygons.isEmpty()) {
 
 			//com.neuronrobotics.sdk.common.Log.error("Please fix me! I don't know what to do?");
-			throw new RuntimeException("Please fix me! I don't know what to do?");
+			throw new RuntimeException("Please fix me! Plane = "+plane+" and polygons are empty");
 			// return;
 		}
 
-		this.plane.flip();
+		this.getPlane().flip();
 
 		if (this.front != null) {
 			this.front.invert();
@@ -166,7 +166,7 @@ public final class Node {
 	 */
 	private List<Polygon> clipPolygons(List<Polygon> polygons) {
 
-		if (this.plane == null) {
+		if (this.getPlane() == null) {
 			return new ArrayList<>(polygons);
 		}
 
@@ -174,7 +174,7 @@ public final class Node {
 		List<Polygon> backP = new ArrayList<>();
 
 		for (Polygon polygon : polygons) {
-			this.plane.splitPolygon(polygon, frontP, backP, frontP, backP);
+			this.getPlane().splitPolygon(polygon, frontP, backP, frontP, backP);
 		}
 		if (this.front != null) {
 			frontP = this.front.clipPolygons(frontP);
@@ -264,8 +264,8 @@ public final class Node {
 			return;
 		}
 
-		if (this.plane == null) {
-			this.plane = polygons.get(0).getPlane().clone();
+		if (this.getPlane() == null) {
+			this.setPlane(polygons.get(0).getPlane().clone());
 		}
 		//this.polygons.add(polygons.get(0));
 
@@ -274,7 +274,7 @@ public final class Node {
 
 		// parellel version does not work here
 		for(int i=0;i<polygons.size();i++) {
-			this.plane.splitPolygon(polygons.get(i), this.polygons, this.polygons, frontP, backP);
+			this.getPlane().splitPolygon(polygons.get(i), this.polygons, this.polygons, frontP, backP);
 		}
 		if (frontP.size() > 0) {
 			if (this.front == null) {
@@ -288,5 +288,15 @@ public final class Node {
 			}
 			this.back.build(backP, depth + 1,maxDepth);
 		}
+	}
+
+	public Plane getPlane() {
+		return plane;
+	}
+
+	public void setPlane(Plane plane) {
+		if(plane==null)
+			throw new RuntimeException("Plane can not be null!");
+		this.plane = plane;
 	}
 }
