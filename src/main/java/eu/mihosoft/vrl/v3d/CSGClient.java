@@ -203,8 +203,10 @@ public class CSGClient {
 	}
 
 	public static boolean isRunning() {
-		if(javafx.application.Platform.isFxApplicationThread())
+		if(javafx.application.Platform.isFxApplicationThread()) {
+			new Exception("ERROR! CSG operation detected on UI thread, this is a BAD idea!");
 			return false;// do not run operation on UI thread
+		}
 		if (isServerCall())
 			return false;
 		if (getClient() == null)
