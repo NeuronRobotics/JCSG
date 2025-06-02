@@ -54,7 +54,7 @@ public class ServerClientTest {
 			CSG c = new Cube(10, 10, 10).toCSG();
 			c.getBounds();
 			
-			CSG u1 = CSG.unionAll(a, b, c);
+			CSG u1 = a.union( b,c);
 			CSG d1 = a.difference(b);
 			CSG t1 = d1.clone().triangulate(true);
 			ArrayList<CSG> m1 = a.minkowskiHullShape(b);
@@ -66,26 +66,29 @@ public class ServerClientTest {
 			// Connect to server
 			System.out.println("Client info: " + CSGClient.getClient().getServerInfo());
 
-			CSG u = CSG.unionAll(a, b, c);
-			if(u.getPolygons().size()!=u1.getPolygons().size())
+			CSG u =a.union( b,c);
+			if(testPoly(u1,u))
 				fail();
+			
 			CSG d = a.difference(b);
-			if(d.getPolygons().size()!=d1.getPolygons().size())
+			if(testPoly(d1,d))
 				fail("Difference Step fail , expected "+d1.getPolygons().size()+" got "+d.getPolygons().size());
 			CSG t = d.clone().triangulate(true);
-			if(t.getPolygons().size()!=t1.getPolygons().size())
+			if(testPoly(t1,t))
 				fail();
 			ArrayList<CSG> m = a.minkowskiHullShape(b);
 			if(m.size()!=m1.size()) {
 				fail();
 			}
 			for(int i=0;i<m.size();i++) {
-				if(m.get(i).getPolygons().size()!=m1.get(i).getPolygons().size()) {
+				if(testPoly(
+						m1.get(i),m.get(i)
+						)) {
 					fail();
 				}
 			}
 			CSG h = u1.hull();
-			if(h.getPolygons().size()!=h1.getPolygons().size())
+			if(testPoly(h,h1))
 				fail();
 			CSGClient.close();
 		} catch (Exception e) {
@@ -98,6 +101,35 @@ public class ServerClientTest {
 		serverThread.interrupt();
 		serverThread.join();
 		System.out.println("\nClient example completed.");
+	}
+	
+	boolean testPoly(CSG p1, CSG p2) {
+		int size1 = p1.getPolygons().size();
+		int size2 = p2.getPolygons().size();
+		if(size1!=size2) {
+			System.err.println("Mismatched number of polygons expected "+size1+" but got "+size2);
+			return true;
+		}
+		for(int i=0;i<size1;i++) {
+			Polygon poly1 = p1.getPolygons().get(i);
+			Polygon poly2 = p2.getPolygons().get(i);
+			int size = poly1.getPoints().size();
+			if(size!=poly2.getPoints().size()) {
+				System.err.println("Number of Points mismatch ");
+				return true;
+			}
+			for(int j=0;j<size;j++) {
+				Vector3d vector3d = poly1.getPoints().get(j);
+				Vector3d obj = poly2.getPoints().get(j);
+				if(!vector3d.test(obj, 0.000001)) {
+					System.err.println("Point distance "+vector3d.distance(obj));
+					return true;
+				}else {
+					//System.out.println("Point match ");
+				}
+			}
+		}
+		return false;
 	}
 
 }

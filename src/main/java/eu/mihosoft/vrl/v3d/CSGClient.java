@@ -141,12 +141,8 @@ public class CSGClient {
 			
 			ArrayList <CSG> toSend  =  new ArrayList<CSG>();
 			for(CSG c:csgList) {
-				CSG tmp = c.clone();
-				tmp.setStorage(new PropertyStorage());
-				tmp.setManipulator(null);
-				tmp.setManufacturing(null);
-				tmp.getMapOfparametrics().clear();
-				tmp.setRegenerate(null);
+				CSG tmp = CSG.fromPolygons(c.getPolygons());
+				tmp.setOptType(c.getOptType());
 				toSend.add(tmp);
 			}
 			CSGRequest request = new CSGRequest(toSend, operation,points,storage);
