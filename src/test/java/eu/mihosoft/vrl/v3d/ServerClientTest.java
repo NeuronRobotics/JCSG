@@ -78,9 +78,9 @@ public class ServerClientTest {
 				fail();
 			ArrayList<CSG> m = a.minkowskiHullShape(b);
 			if(m.size()!=m1.size()) {
-				fail();
+				fail("Minkowski expected "+m1.size()+" but got "+m.size());
 			}
-			for(int i=0;i<m.size();i++) {
+			for(int i=0;i<m1.size();i++) {
 				if(testPoly(
 						m1.get(i),m.get(i)
 						)) {

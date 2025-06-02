@@ -141,7 +141,7 @@ public class CSGClient {
 			
 			ArrayList <CSG> toSend  =  new ArrayList<CSG>();
 			for(CSG c:csgList) {
-				CSG tmp = CSG.fromPolygons(c.getPolygons());
+				CSG tmp = CSG.fromPolygons(new ArrayList<>(c.getPolygons()));
 				tmp.setOptType(c.getOptType());
 				toSend.add(tmp);
 			}
