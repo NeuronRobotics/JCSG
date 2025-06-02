@@ -146,7 +146,13 @@ public class CSGClient {
 			
 			ArrayList <CSG> toSend  =  new ArrayList<CSG>();
 			for(CSG c:csgList) {
-				CSG tmp = CSG.fromPolygons(new ArrayList<>(c.getPolygons()));
+				List<Polygon> polygons = c.getPolygons();
+				if(polygons.size()==0) {
+					Exception ex = new Exception("No Polygons In Incoming geometry here!");
+					ex.printStackTrace();
+					throw ex;
+				}
+				CSG tmp = CSG.fromPolygons(new ArrayList<>(polygons));
 				tmp.setOptType(c.getOptType());
 				toSend.add(tmp);
 			}
