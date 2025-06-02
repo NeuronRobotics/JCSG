@@ -160,8 +160,10 @@ public class CSGClient {
 			// Return results as ArrayList
 			back=new ArrayList<CSG>();
 			for(CSG c:response.getCsgList()) {
+				CSG historySync = CSG.fromPolygons(c.getPolygons());
+				back.add( historySync);
 				for(CSG s:csgList) {
-					back.add( CSG.fromPolygons(c.getPolygons()).historySync(s));
+					historySync.historySync(s);
 				}
 			}
 		} catch (Throwable t) {

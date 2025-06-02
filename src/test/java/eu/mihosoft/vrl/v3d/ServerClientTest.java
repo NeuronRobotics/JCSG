@@ -54,6 +54,9 @@ public class ServerClientTest {
 			CSG c = new Cube(10, 10, 10).toCSG();
 			c.getBounds();
 			
+			int apoly1 = a.getPolygons().size();
+			int bpoly1 =b.getPolygons().size();
+			
 			CSG u1 = a.union( b,c);
 			CSG d1 = a.difference(b);
 			CSG t1 = d1.clone().triangulate(true);
@@ -65,7 +68,8 @@ public class ServerClientTest {
 			CSG.setMinPolygonsForOffloading(4);
 			// Connect to server
 			System.out.println("Client info: " + CSGClient.getClient().getServerInfo());
-
+			int apoly = a.getPolygons().size();
+			int bpoly =b.getPolygons().size();
 			CSG u =a.union( b,c);
 			if(testPoly(u1,u))
 				fail();

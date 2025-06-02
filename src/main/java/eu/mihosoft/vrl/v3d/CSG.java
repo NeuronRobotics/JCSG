@@ -2244,12 +2244,24 @@ public class CSG implements IuserAPI, Serializable {
 			}
 		}
 		ArrayList<CSG> bits = new ArrayList<>();
-		for (Polygon p : this.getPolygons()) {
+		List<Polygon> polygons2 = this.getPolygons();
+		int size3 = polygons2.size();
+		for (int i = 0; i < size3; i++) {
+			Polygon p = polygons2.get(i);
 			List<Vector3d> plist = new ArrayList<>();
-			for (Vertex v : p.getVertices()) {
+			List<Vertex> vertices = p.getVertices();
+			int size2 = vertices.size();
+			for (int j = 0; j < size2; j++) {
+				Vertex v = vertices.get(j);
 				CSG newSHape = travelingShape.move(v);
-				for (Polygon np : newSHape.getPolygons()) {
-					for (Vertex nv : np.getVertices()) {
+				List<Polygon> polygons3 = newSHape.getPolygons();
+				int size1 = polygons3.size();
+				for (int k = 0; k < size1; k++) {
+					Polygon np = polygons3.get(k);
+					List<Vertex> vertices2 = np.getVertices();
+					int size = vertices2.size();
+					for (int l = 0; l < size; l++) {
+						Vertex nv = vertices2.get(l);
 						plist.add(nv.pos);
 					}
 				}
