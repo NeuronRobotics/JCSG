@@ -168,7 +168,7 @@ public class CSG implements IuserAPI, Serializable {
 	private ArrayList<Transform> slicePlanes = null;
 	private ArrayList<String> exportFormats = null;
 	private ArrayList<Transform> datumReferences = null;
-	private boolean triangulated;
+	//private boolean triangulated;
 	private static boolean needsDegeneratesPruned = false;
 	private static boolean useStackTraces = true;
 	private static boolean preventNonManifoldTriangles = false;
@@ -838,13 +838,13 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return a csg consisting of the polygons of this csg and the specified csg
 	 */
 	public CSG dumbUnion(CSG csg) {
-		boolean tri = triangulated && csg.triangulated;
+		//boolean tri = triangulated && csg.triangulated;
 		CSG result = this.clone();
 		CSG other = csg.clone();
 
 		result.getPolygons().addAll(other.getPolygons());
 		bounds = null;
-		result.triangulated = tri;
+		//result.triangulated = tri;
 		return result.historySync(other);
 	}
 
@@ -1571,17 +1571,17 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	public CSG triangulate(boolean fix) {
-		if (fix && needsDegeneratesPruned)
-			triangulated = false;
-		if (triangulated)
-			return this;
+//		if (fix && needsDegeneratesPruned)
+//			triangulated = false;
+//		if (triangulated)
+//			return this;
 		if (this.polygons.size() > getMinPolygonsForOffloading())
 			if (CSGClient.isRunning()) {
 				ArrayList<CSG> go = new ArrayList<CSG>(Arrays.asList(this));
 				try {
 					CSG csg = CSGClient.getClient().triangulate(go).get(0);
 					setPolygons(csg.getPolygons());
-					triangulated = true;
+//					triangulated = true;
 					return csg;
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
@@ -1603,7 +1603,7 @@ public class CSG implements IuserAPI, Serializable {
 		}
 		performTriangulation();
 		// now all polygons are definantly triangles
-		triangulated = true;
+		//triangulated = true;
 		Debug3dProvider.setProvider(start);
 		return this;
 	}
@@ -2197,7 +2197,7 @@ public class CSG implements IuserAPI, Serializable {
 	 */
 	public CSG setPolygons(List<Polygon> polygons) {
 		bounds = null;
-		triangulated = false;
+		//triangulated = false;
 		this.polygons = polygons;
 		return this;
 	}
