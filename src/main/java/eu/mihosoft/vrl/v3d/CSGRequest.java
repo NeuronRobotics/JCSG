@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-class CSGRequest implements Serializable {
+public class CSGRequest implements Serializable {
 	private static final long serialVersionUID = 1L;
 	private List<CSG> csgList;
 	private CSGRemoteOperation operation;

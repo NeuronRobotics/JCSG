@@ -6,7 +6,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-class CSGResponse implements Serializable {
+public class CSGResponse implements Serializable {
 	private static final long serialVersionUID = 1L;
 	private List<CSG> csgList;
 	private CSGRemoteOperation operation;
