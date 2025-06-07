@@ -279,7 +279,7 @@ public class CSGClient {
 		return client;
 	}
 
-	private static void setClient(CSGClient client) {
+	public static void setClient(CSGClient client) {
 		CSGClient.client = client;
 	}
 
