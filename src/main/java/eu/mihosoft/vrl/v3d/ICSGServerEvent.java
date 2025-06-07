@@ -7,4 +7,6 @@ public interface ICSGServerEvent {
 
 	public void gotRequest(CSGRemoteOperation operation,CSGServerHandler source);
 	
+	
+	
 }

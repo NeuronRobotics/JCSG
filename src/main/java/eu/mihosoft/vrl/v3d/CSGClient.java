@@ -25,7 +25,18 @@ public class CSGClient {
 	private static boolean serverCall = false;
 
 	private SSLSocketFactory factory;
-
+	private ArrayList<ICSGClientEvent> listeners = new ArrayList<>();
+	public void addListener(ICSGClientEvent e) {
+		if(listeners.contains(e))
+			return;
+		listeners.add(e);
+	}
+	public void removeListener(ICSGClientEvent e) {
+		if(!listeners.contains(e))
+			return;
+		listeners.remove(e);
+	}
+	
 	public CSGClient(String hostname, int port, File f) throws Exception {
 		this.hostname = hostname;
 		this.port = port;
@@ -156,7 +167,15 @@ public class CSGClient {
 				tmp.setOptType(c.getOptType());
 				toSend.add(tmp);
 			}
+
 			CSGRequest request = new CSGRequest(toSend, operation,points,storage);
+			for(ICSGClientEvent e:listeners) {
+				try {
+					e.toSend(request);
+				}catch(Throwable t) {
+					t.printStackTrace();
+				}
+			}
 			if (key != null)
 				request.setAPIKEY(key);
 			oos.writeObject(request);
@@ -165,7 +184,13 @@ public class CSGClient {
 			// Receive response
 			CSGResponse response = (CSGResponse) ois.readObject();
 			socket.close();
-
+			for(ICSGClientEvent e:listeners) {
+				try {
+					e.response(response,request);
+				}catch(Throwable t) {
+					t.printStackTrace();
+				}
+			}
 			if (response.getState() != ServerActionState.SUCCESS)
 				throw new RuntimeException(response.getMessage());
 			// Return results as ArrayList

@@ -1575,7 +1575,7 @@ public class CSG implements IuserAPI, Serializable {
 //			triangulated = false;
 //		if (triangulated)
 //			return this;
-		if (this.polygons.size() > getMinPolygonsForOffloading())
+		if (this.polygons.size() > getMinPolygonsForOffloading() && preventNonManifoldTriangles)
 			if (CSGClient.isRunning()) {
 				ArrayList<CSG> go = new ArrayList<CSG>(Arrays.asList(this));
 				try {
