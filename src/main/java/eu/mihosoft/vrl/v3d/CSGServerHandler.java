@@ -16,9 +16,14 @@ class CSGServerHandler implements Runnable {
 
 	private String[] APIKEY = null;
 
-	public CSGServerHandler(SSLSocket socket, String[] lines) {
+	private ArrayList<ICSGServerEvent> listeners;
+
+	private ServerActionState state;
+
+	public CSGServerHandler(SSLSocket socket, String[] lines,ArrayList<ICSGServerEvent> listeners ) {
 		this.clientSocket = socket;
 		APIKEY = lines;
+		this.listeners = listeners;
 	}
 
 	@Override
@@ -31,6 +36,13 @@ class CSGServerHandler implements Runnable {
 
 			// Read the CSG request
 			CSGRequest request = (CSGRequest) ois.readObject();
+			for(ICSGServerEvent e:listeners) {
+				try {
+					e.gotRequest(request.getOperation(),this);
+				}catch(Throwable t) {
+					t.printStackTrace();
+				}
+			}
 			// System.out.println("Received request: " + request.getOperation());
 			boolean APIPass = true;
 			String apiKey2 = request.getAPIKey();
@@ -64,7 +76,7 @@ class CSGServerHandler implements Runnable {
 			// Send back the response
 			oos.writeObject(response);
 			oos.flush();
-
+			state = response.getState();
 			// System.out.println("Sent response: " + response);
 
 		} catch (IOException | ClassNotFoundException e) {
@@ -82,6 +94,13 @@ class CSGServerHandler implements Runnable {
 			}
 		} catch (IOException e) {
 			System.err.println("Error closing client socket: " + e.getMessage());
+		}
+		for(ICSGServerEvent e:listeners) {
+			try {
+				e.finishedOp(state,this);
+			}catch(Throwable t) {
+				t.printStackTrace();
+			}
 		}
 	}
 

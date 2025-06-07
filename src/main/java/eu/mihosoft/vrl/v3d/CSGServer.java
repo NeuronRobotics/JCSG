@@ -15,6 +15,7 @@ import java.security.KeyStore;
 import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Date;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -38,6 +39,7 @@ public class CSGServer {
 	private static final String KEYSTORE_NAME = "CSGSelfSign";
 	private String[] lines = null;
 	private SSLServerSocket serverSocket2;
+	private ArrayList<ICSGServerEvent> listeners = new ArrayList<>();
 
 	public CSGServer(int port, File APIKEYS) throws IOException {
 		this.port = port;
@@ -54,7 +56,27 @@ public class CSGServer {
 			System.err.println("NO API KEYFILE Provided: "+APIKEYS.getAbsolutePath());
 		}
 	}
-
+	public void addListener(ICSGServerEvent e) {
+		if(listeners.contains(e))
+			return;
+		listeners.add(e);
+	}
+	public void removeListener(ICSGServerEvent e) {
+		if(!listeners.contains(e))
+			return;
+		listeners.remove(e);
+	}
+	
+	private void fireStart() {
+		for(ICSGServerEvent e:listeners) {
+			try {
+				e.starting();
+			}catch(Throwable t) {
+				t.printStackTrace();
+			}
+		}
+	}
+	
 	public static void ensureKeystoreExists(String keystorePath, String keystorePassword, String alias,
 			String commonName) {
 		File keystoreFile = new File(keystorePath);
@@ -181,8 +203,9 @@ public class CSGServer {
 
 		while (isRunning()) {
 			try {
+				fireStart();
 				SSLSocket clientSocket = (SSLSocket) serverSocket2.accept();
-				threadPool.execute(new CSGServerHandler(clientSocket,lines));
+				threadPool.execute(new CSGServerHandler(clientSocket,lines,listeners));
 			} catch (IOException e) {
 				if (isRunning()) {
 					System.err.println("Error accepting client connection: " + e.getMessage());
