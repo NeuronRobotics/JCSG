@@ -1,10 +1,9 @@
-
 plugins {
 	id 'eclipse'
 	id 'java'
 	id 'maven-publish'
 	id 'signing'
-	id 'io.codearte.nexus-staging' version '0.30.0'
+	id 'org.jreleaser' version '1.17.0'
 }
 
 File buildDir = file(".");
@@ -14,40 +13,6 @@ group = "com.neuronrobotics"
 archivesBaseName = "JavaCad"
 version = props."app.version"
 
-// BEGIN AI SLOP
-
-nexusStaging {
-	serverUrl = "https://oss.sonatype.org/service/local/"
-	username = System.getenv("MAVEN_USERNAME")
-	password = System.getenv("MAVEN_PASSWORD")
-	packageGroup = "com.neuronrobotics" // Replace with your actual package group
-}
-
-task closeAndReleaseSeparately {
-	dependsOn tasks.releaseRepository
-}
-
-tasks.releaseRepository.dependsOn tasks.closeRepository
-tasks.closeRepository.dependsOn tasks.getStagingProfile
-
-// Optional: Add this if you want to see more information during the execution
-tasks.getStagingProfile.logging.level = LogLevel.INFO
-tasks.closeRepository.logging.level = LogLevel.INFO
-tasks.releaseRepository.logging.level = LogLevel.INFO
-
-tasks.getStagingProfile.doFirst {
-	println "Executing getStagingProfile task"
-}
-
-tasks.closeRepository.doFirst {
-	println "Executing closeRepository task"
-}
-
-tasks.releaseRepository.doFirst {
-	println "Executing releaseRepository task"
-}
-
-// END AI SLOP
 sourceCompatibility = '1.8'
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
@@ -58,7 +23,6 @@ task sourcesJar(type: Jar) {
 	classifier = 'sources'
 	from sourceSets.main.allSource
 }
-
 
 repositories {
 	mavenCentral()
@@ -74,12 +38,8 @@ if (JavaVersion.current().isJava8Compatible()) {
 		}
 	}
 }
-//home/hephaestus/.m2/repository/net/jsdia/jsdi_lib/4.5.0-SNAPSHOT/jsdi_lib-4.5.0-SNAPSHOT.pom
-//home/hephaestus/.m2/repository/net/jsdai/jsdai_lib/4.5.0-SNAPSHOT/jsdai_lib-4.5.0-SNAPSHOT.pom
-//home/hephaestus/.m2/repository/net/jsdia/jsdai_lib/4.5.0-SNAPSHOT/jsdai_lib-4.5.0-SNAPSHOT.pom
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
-
 	classifier = 'javadoc'
 	from javadoc.destinationDir
 }
@@ -119,9 +79,8 @@ dependencies {
 	implementation 'com.aparapi:aparapi:3.0.2'
 	
 	//SSL for server
-implementation 'org.bouncycastle:bcprov-jdk18on:1.80'
-implementation 'org.bouncycastle:bcpkix-jdk18on:1.80'
-	
+	implementation 'org.bouncycastle:bcprov-jdk18on:1.80'
+	implementation 'org.bouncycastle:bcpkix-jdk18on:1.80'
 }
 
 Date buildTimeAndDate = new Date()
@@ -130,19 +89,29 @@ ext {
 	buildTime = new java.text.SimpleDateFormat('HH:mm:ss.SSSZ').format(buildTimeAndDate)
 }
 
-
-
+// JReleaser configuration for Central Portal API
+jreleaser {
+	signing {
+		active = 'ALWAYS'
+		armored = true
+	}
+	deploy {
+		maven {
+			mavenCentral {
+				sonatype {
+					active = 'ALWAYS'
+					url = 'https://central.sonatype.com/api/v1/publisher'
+					stagingRepository('build/staging-deploy')
+				}
+			}
+		}
+	}
+}
 
 publishing {
-
 	repositories {
 		maven {
-			name = "OSSRH"
-			url = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-			credentials {
-				username = System.getenv("MAVEN_USERNAME")
-				password = System.getenv("MAVEN_PASSWORD")
-			}
+			url = layout.buildDirectory.dir('staging-deploy')
 		}
 	}
 	publications {
@@ -179,15 +148,16 @@ publishing {
 		}
 	}
 }
+
 java {
 	withJavadocJar()
 	withSourcesJar()
 }
 
-signing {
-	sign publishing.publications.mavenJava
-}
-
+// Remove the old signing configuration as JReleaser handles this now
+// signing {
+//     sign publishing.publications.mavenJava
+// }
 
 javadoc {
 	if(JavaVersion.current().isJava9Compatible()) {
