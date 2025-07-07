@@ -55,8 +55,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.aparapi.Kernel;
+import com.aparapi.Kernel.EXECUTION_MODE;
 import com.aparapi.Range;
 import com.aparapi.device.Device;
+import com.aparapi.internal.kernel.KernelManager;
 import com.neuronrobotics.interaction.CadInteractionEvent;
 
 import javafx.scene.paint.Color;
@@ -168,7 +170,7 @@ public class CSG implements IuserAPI, Serializable {
 	private ArrayList<Transform> slicePlanes = null;
 	private ArrayList<String> exportFormats = null;
 	private ArrayList<Transform> datumReferences = null;
-	//private boolean triangulated;
+	// private boolean triangulated;
 	private static boolean needsDegeneratesPruned = false;
 	private static boolean useStackTraces = true;
 	private static boolean preventNonManifoldTriangles = false;
@@ -803,7 +805,7 @@ public class CSG implements IuserAPI, Serializable {
 	public CSG union(CSG csg) {
 		if (this.polygons.size() > getMinPolygonsForOffloading() || csg.polygons.size() > getMinPolygonsForOffloading())
 			if (CSGClient.isRunning()) {
-				ArrayList<CSG> go = new ArrayList<CSG>(Arrays.asList(this,csg));
+				ArrayList<CSG> go = new ArrayList<CSG>(Arrays.asList(this, csg));
 				try {
 					return CSGClient.getClient().union(go).get(0);
 				} catch (Exception e) {
@@ -838,13 +840,13 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return a csg consisting of the polygons of this csg and the specified csg
 	 */
 	public CSG dumbUnion(CSG csg) {
-		//boolean tri = triangulated && csg.triangulated;
+		// boolean tri = triangulated && csg.triangulated;
 		CSG result = this.clone();
 		CSG other = csg.clone();
 
 		result.getPolygons().addAll(other.getPolygons());
 		bounds = null;
-		//result.triangulated = tri;
+		// result.triangulated = tri;
 		return result.historySync(other);
 	}
 
@@ -876,16 +878,16 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return union of this csg and the specified csgs
 	 */
 	public CSG union(List<CSG> csgs) {
-			if (CSGClient.isRunning()) {
-				ArrayList<CSG> go = new ArrayList<CSG>();
-				go.add(this);
-				go.addAll(csgs);
-				try {
-					return CSGClient.getClient().union(go).get(0);
-				} catch (Exception e) {
-					throw new RuntimeException(e);
-				}
+		if (CSGClient.isRunning()) {
+			ArrayList<CSG> go = new ArrayList<CSG>();
+			go.add(this);
+			go.addAll(csgs);
+			try {
+				return CSGClient.getClient().union(go).get(0);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
 			}
+		}
 		CSG result = this;
 
 		for (int i = 0; i < csgs.size(); i++) {
@@ -1112,9 +1114,9 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return the csg
 	 */
 	private CSG _unionNoOpt(CSG csg) {
-		if(this.getPolygons().size()==0)
+		if (this.getPolygons().size() == 0)
 			return csg.clone();
-		if(csg.getPolygons().size()==0)
+		if (csg.getPolygons().size() == 0)
 			return this.clone();
 		Node a = new Node(this.clone().getPolygons());
 		Node b = new Node(csg.clone().getPolygons());
@@ -1309,12 +1311,12 @@ public class CSG implements IuserAPI, Serializable {
 	private CSG _differenceCSGBoundsOpt(CSG csg) {
 		CSG a1 = this._differenceNoOpt(csg.getBounds().toCSG());
 		CSG a2 = this.intersect(csg.getBounds().toCSG());
-		
+
 		CSG result = null;
-		if(a2.getPolygons().size()>0)
+		if (a2.getPolygons().size() > 0)
 			result = a2._differenceNoOpt(csg)._unionIntersectOpt(a1).optimization(getOptType());
 		else
-			result=a1;
+			result = a1;
 		if (getName().length() != 0 && csg.getName().length() != 0) {
 			result.setName(name);
 		}
@@ -1421,7 +1423,7 @@ public class CSG implements IuserAPI, Serializable {
 			}
 //		triangulate();
 //		csg.triangulate();
-		if(getPolygons().size()==0 || csg.getPolygons().size()==0) {
+		if (getPolygons().size() == 0 || csg.getPolygons().size() == 0) {
 			Exception ex = new Exception("Error! Intersection is invalid when one CSG has no polygons!");
 			ex.printStackTrace();
 			return CSG.fromPolygons(new ArrayList<Polygon>()).historySync(this).historySync(csg);
@@ -1470,15 +1472,15 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return intersection of this csg and the specified csgs
 	 */
 	public CSG intersect(List<CSG> csgs) {
-			if (CSGClient.isRunning()) {
-				ArrayList<CSG> go = new ArrayList<CSG>(csgs);
-				try {
-					return CSGClient.getClient().intersect(go).get(0);
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+		if (CSGClient.isRunning()) {
+			ArrayList<CSG> go = new ArrayList<CSG>(csgs);
+			try {
+				return CSGClient.getClient().intersect(go).get(0);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
+		}
 		if (csgs.isEmpty()) {
 			return this.clone();
 		}
@@ -1603,7 +1605,7 @@ public class CSG implements IuserAPI, Serializable {
 		}
 		performTriangulation();
 		// now all polygons are definantly triangles
-		//triangulated = true;
+		// triangulated = true;
 		Debug3dProvider.setProvider(start);
 		return this;
 	}
@@ -1710,60 +1712,270 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	private void runGPUMakeManifold() {
-		int numberOfPoints = 0;
-		int roomForMore = 10;
-		int size = polygons.size();
-		for (int i = 0; i < size; i++) {
-			numberOfPoints += (polygons.get(i).getVertices().size());
+		// Flattened approach - more Aparapi-friendly
+		int np = 0;
+		int numberOfPolygons = polygons.size();
+		int ExtraSpace = 5;
+		for (int i = 0; i < numberOfPolygons; i++) {
+			np += (polygons.get(i).getVertices().size());
 		}
-		float[] pointData = new float[numberOfPoints * 3];
-		int[] startIndex = new int[size];
-		int[] sizes = new int[size];
-		int[] insertions = new int[size * 2 * roomForMore];
-		int runningPointIndex = 0;
-		for (int i = 0; i < insertions.length; i++) {
-			insertions[i] = -1;
-		}
-		for (int polyIndex = 0; polyIndex < size; polyIndex++) {
-			sizes[polyIndex] = polygons.get(polyIndex).getVertices().size();
-			startIndex[polyIndex] = runningPointIndex;
-			for (int ii = 0; ii < sizes[polyIndex]; ii++) {
-				Vector3d pos = polygons.get(polyIndex).getVertices().get(ii).pos.clone()
-						.roundToEpsilon(Vector3d.getEXPORTEPSILON());
-				pointData[startIndex[polyIndex] + 0 + ii] = (float) pos.x;
-				pointData[startIndex[polyIndex] + 1 + ii] = (float) pos.y;
-				pointData[startIndex[polyIndex] + 2 + ii] = (float) pos.z;
+		int numberOfPoints = np + (numberOfPolygons * ExtraSpace);
+
+		// Flattened arrays instead of objects
+		float[] pointDataX = new float[numberOfPoints];
+		float[] pointDataY = new float[numberOfPoints];
+		float[] pointDataZ = new float[numberOfPoints];
+		int[] polygonPointOrder = new int[numberOfPoints];
+		// int[] newPointsForPoly = new int[numberOfPolygons * ExtraSpace];
+		Vector3d[] orderedPoints = new Vector3d[numberOfPoints];
+
+		// Polygon structure - flattened
+		int[] polyStartIndex = new int[numberOfPolygons];
+		int[] polySizes = new int[numberOfPolygons];
+
+		// Fill the flattened arrays
+		int totalIndex = 0;
+		for (int polyIndex = 0; polyIndex < numberOfPolygons; polyIndex++) {
+			int polySize = polygons.get(polyIndex).getPoints().size();
+			polyStartIndex[polyIndex] = totalIndex;
+			polySizes[polyIndex] = polySize;
+
+			for (int ii = 0; ii < polySize; ii++) {
+				Vector3d pos = polygons.get(polyIndex).getVertices().get(ii).pos;
+				orderedPoints[totalIndex] = pos;
+				pointDataX[totalIndex] = (float) pos.x;
+				pointDataY[totalIndex] = (float) pos.y;
+				pointDataZ[totalIndex] = (float) pos.z;
+				polygonPointOrder[totalIndex] = totalIndex;
+				totalIndex++;
 			}
-			runningPointIndex += (sizes[polyIndex]) * 3;
+			for (int ii = 0; ii < ExtraSpace; ii++) {
+				polygonPointOrder[totalIndex] = -1;
+				totalIndex++;
+			}
 		}
-		System.out.println("Data loaded!");
-		Kernel kernel = new Kernel() {
+
+		// System.out.println("Data loaded!");
+		float eps = (float) Plane.getEPSILON();
+		float epsSq = eps * eps;
+
+		// Aparapi-compatible kernel with flattened data
+		Kernel snapPointsToDistance = new Kernel() {
 			@Override
 			public void run() {
-				int i = getGlobalId();
-				int size = sizes[i];
-				int myStartIndex = startIndex[i];
+				int me = getGlobalId();
+				int meBaseIndex = polygonPointOrder[me];
+				if (meBaseIndex < 0)
+					return;
+				float meX = pointDataX[me];
+				float meY = pointDataY[me];
+				float meZ = pointDataZ[me];
+				for (int i = 0; i < polySizes.length; i++) {
+					int polyStart = polyStartIndex[i];
+					int polySize = polySizes[i];
 
-				for (int mypolyIndex = myStartIndex; mypolyIndex < size; mypolyIndex++) {
-					float x = pointData[myStartIndex + 0 + mypolyIndex];
-					float y = pointData[myStartIndex + 1 + mypolyIndex];
-					float z = pointData[myStartIndex + 2 + mypolyIndex];
-					for (int polyIndex = 0; polyIndex < sizes.length; polyIndex++) {
-						for (int ii = 0; ii < sizes[polyIndex]; ii++) {
-							float xSub = pointData[startIndex[polyIndex] + 0 + ii];
-							float ySub = pointData[startIndex[polyIndex] + 1 + ii];
-							float zSub = pointData[startIndex[polyIndex] + 2 + ii];
-							insertions[i] = 1;
+					for (int j = 0; j < polySize; j++) {
+						int nowIndex = polyStart + j;
+						int nowBaseIndex = polygonPointOrder[nowIndex];
+						if (nowBaseIndex < 0 || nowBaseIndex == meBaseIndex)
+							continue;
+						float nowX = pointDataX[nowIndex];
+						float nowY = pointDataY[nowIndex];
+						float nowZ = pointDataZ[nowIndex];
+
+						// Calculate distance squared inline
+						float dx = nowX - meX;
+						float dy = nowY - meY;
+						float dz = nowZ - meZ;
+						float distSq = dx * dx + dy * dy + dz * dz;
+
+						// Use simple comparison
+						if (distSq < epsSq) {
+							if (meBaseIndex > nowBaseIndex) {
+								polygonPointOrder[me] = nowBaseIndex;
+								return;
+							}
 						}
 					}
 				}
 			}
 		};
 
-		Device device = Device.best();
-		System.out.println("Dev " + device.getShortDescription());
-		Range range = device.createRange(size);
-		kernel.execute(range);
+		run(numberOfPoints, snapPointsToDistance);
+
+		int[] added = new int[numberOfPolygons];
+		Kernel findNonManifoldPoints = new Kernel() {
+			// Custom square root function using Newton's method
+			// (since Math.sqrt is not available)
+			private float customSqrt(float x) {
+				if (x == 0.0f)
+					return 0.0f;
+				if (x < 0.0f)
+					return 0;
+
+				float guess = x * 0.5f;
+				float prevGuess;
+
+				// Newton's method: x_{n+1} = 0.5 * (x_n + S/x_n)
+				for (int i = 0; i < 10; i++) {
+					prevGuess = guess;
+					guess = 0.5f * (guess + x / guess);
+
+					// Check for convergence
+					float diff = guess - prevGuess;
+					if (diff < 0.0f)
+						diff = -diff; // abs
+					if (diff < 1e-6f)
+						break;
+				}
+
+				return guess;
+			}
+			public void run(int mePoly) {
+				int polyStart = polyStartIndex[mePoly];
+				added[mePoly] = 0;
+				for (int i = 0; i < numberOfPoints; i++) {
+					int testPointIndex = polygonPointOrder[i];
+					if (testPointIndex < 0)
+						continue;
+					float nowX = pointDataX[testPointIndex];
+					float nowY = pointDataY[testPointIndex];
+					float nowZ = pointDataZ[testPointIndex];
+					for (int j = 0; j < polySizes[mePoly]; j++) {
+						int next = j + 1;
+						if (next == polySizes[mePoly]) {
+							next = 0;
+						}
+
+						int aPointIndex = polygonPointOrder[j + polyStart];
+						int bPointIndex = polygonPointOrder[next + polyStart];
+						if (aPointIndex == testPointIndex || bPointIndex == testPointIndex || aPointIndex < 0
+								|| bPointIndex < 0)
+							continue;
+
+						float aX = pointDataX[aPointIndex];
+						float aY = pointDataY[aPointIndex];
+						float aZ = pointDataZ[aPointIndex];
+
+						float bX = pointDataX[bPointIndex];
+						float bY = pointDataY[bPointIndex];
+						float bZ = pointDataZ[bPointIndex];
+
+						// Vector from point A to point B (line direction)
+						float abX = bX - aX;
+						float abY = bY - aY;
+						float abZ = bZ - aZ;
+
+						// Vector from point A to test point
+						float anX = nowX - aX;
+						float anY = nowY - aY;
+						float anZ = nowZ - aZ;
+
+						// Calculate dot product of AB and AN
+						float dotProduct = abX * anX + abY * anY + abZ * anZ;
+
+						// Calculate squared length of AB
+						float abLengthSquared = abX * abX + abY * abY + abZ * abZ;
+
+						// Check if line segment has zero length (A and B are the same point)
+						if (abLengthSquared < eps * eps) {
+							// Line segment is essentially a point, check if test point matches
+							float distToA = customSqrt(
+									(nowX - aX) * (nowX - aX) + (nowY - aY) * (nowY - aY) + (nowZ - aZ) * (nowZ - aZ));
+							if (distToA > eps)
+								continue;
+						}
+
+						// Calculate parameter t for closest point on line
+						float t = dotProduct / abLengthSquared;
+
+						// Check if the projection falls within the line segment
+						if (t >= 0.0f && t <= 1.0f) {
+							// Calculate the point on the line segment
+							float linePointX = aX + t * abX;
+							float linePointY = aY + t * abY;
+							float linePointZ = aZ + t * abZ;
+
+							// Check if test point is essentially the same as the line point
+							float diffX = nowX - linePointX;
+							float diffY = nowY - linePointY;
+							float diffZ = nowZ - linePointZ;
+
+							// Use squared distance to avoid square root calculation
+							float distanceSquared = diffX * diffX + diffY * diffY + diffZ * diffZ;
+
+							if (distanceSquared <= eps * eps) {
+								// Point is touching the line segment
+
+								for (int k = polySizes[mePoly]; k >j; k--) {
+									int l = k + polyStart;
+									int k2 = l-1;
+									polygonPointOrder[l] = polygonPointOrder[k2 ];
+								}
+								polygonPointOrder[j+1 + polyStart] = testPointIndex;
+
+								polySizes[mePoly] += 1;
+								added[mePoly] += 1;
+								j++;
+								if (added[mePoly] == ExtraSpace) {
+									added[mePoly] = -1;
+									return;
+								}
+							}
+						}
+
+					}
+				}
+
+			}
+			@Override
+			public void run() {
+				int mePoly = getGlobalId();
+				run(mePoly);
+			}
+		};
+		run(numberOfPolygons, findNonManifoldPoints);
+		
+		for(int i=0;i<added.length;i++)
+			if(added[i]<0)
+				System.out.println("Manifold failed");
+
+		ArrayList<Polygon> newPoly = new ArrayList<>();
+		for (int i = 0; i < polygons.size(); i++) {
+			Polygon polygon = polygons.get(i);
+			Plane pl = polygon.plane;
+			ArrayList<Vertex> points = new ArrayList<Vertex>();
+			int startIndex = polyStartIndex[i];
+			int polySize = polySizes[i];
+			HashSet<Integer> pointIndexSet = new HashSet<Integer>();
+			for (int j = 0; j < polySize; j++) {
+				int pointIndex = polygonPointOrder[startIndex + j];
+				if(pointIndex<0) {
+					for (j = 0; j < polySize; j++) {
+						System.err.println("Point Index "+j+" is: "+polygonPointOrder[startIndex + j]);
+					}
+					throw new RuntimeException("Manifold algorithm left holes in polygon "+i);
+				}
+				if (pointIndexSet.contains(pointIndex)) {
+					continue;
+				}
+				pointIndexSet.add(pointIndex);
+				Vector3d thispoint = orderedPoints[pointIndex];
+				points.add(new Vertex(thispoint, pl.getNormal()));
+			}
+			if (points.size() < 3)
+				continue;
+			Polygon p = new Polygon(points, polygon.getStorage(), true, pl);
+			newPoly.add(p);
+			polygon.getPoints().clear();
+		}
+		polygons.clear();
+		polygons = newPoly;
+	}
+
+	private void run(int numberOfPoints, Kernel kernel) {
+		//kernel.setExecutionModeWithoutFallback(EXECUTION_MODE.CPU);
+		kernel.execute(numberOfPoints);
 		while (kernel.isExecuting()) {
 			try {
 				Thread.sleep(1);
@@ -1772,7 +1984,7 @@ public class CSG implements IuserAPI, Serializable {
 				e.printStackTrace();
 			}
 		}
-		System.out.println("Data processed!");
+		System.err.println("Finished on " + kernel.getTargetDevice());
 	}
 
 	private CSG updatePolygons(ArrayList<Polygon> toAdd, Polygon p) {
@@ -2197,7 +2409,7 @@ public class CSG implements IuserAPI, Serializable {
 	 */
 	public CSG setPolygons(List<Polygon> polygons) {
 		bounds = null;
-		//triangulated = false;
+		// triangulated = false;
 		this.polygons = polygons;
 		return this;
 	}
@@ -2251,7 +2463,7 @@ public class CSG implements IuserAPI, Serializable {
 	 */
 	public ArrayList<CSG> minkowskiHullShape(CSG travelingShape) {
 		if (CSGClient.isRunning()) {
-			ArrayList<CSG> go = new ArrayList<CSG>(Arrays.asList(this,travelingShape));
+			ArrayList<CSG> go = new ArrayList<CSG>(Arrays.asList(this, travelingShape));
 			try {
 				return CSGClient.getClient().minkowskiHullShape(go);
 			} catch (Exception e) {
