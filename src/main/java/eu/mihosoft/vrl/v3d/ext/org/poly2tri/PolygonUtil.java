@@ -128,7 +128,8 @@ public class PolygonUtil {
 								Vertex vBad = test.getCommonPoint(test2);
 								toRemove.add(vBad);
 							} catch (Exception e) {
-								throw new RuntimeException(e);
+								//throw new RuntimeException(e);
+								return;
 							}
 						}
 					}
