@@ -1599,7 +1599,7 @@ public class CSG implements IuserAPI, Serializable {
 			int added = 0;
 			int itr = 0;
 			do {
-				added = runGPUMakeManifold(itr == 0);
+				added = runGPUMakeManifold();
 				if (added > 0)
 					System.out.println("Manifold iteration added " + added + " points ");
 				try {
@@ -1634,7 +1634,7 @@ public class CSG implements IuserAPI, Serializable {
 		}
 	}
 
-	private int runGPUMakeManifold(boolean harmonizePoints) {
+	private int runGPUMakeManifold() {
 		// Flattened approach - more Aparapi-friendly
 		int np = 0;
 		int numberOfPolygons = polygons.size();
