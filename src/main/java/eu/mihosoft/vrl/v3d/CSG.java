@@ -1596,13 +1596,21 @@ public class CSG implements IuserAPI, Serializable {
 		Debug3dProvider.setProvider(null);
 		// performTriangulation();
 		if (preventNonManifoldTriangles) {
-			// for (int i = 0; i < 1; i++)
-			if (isUseGPU()) {
-				runGPUMakeManifold();
-			} else {
-				runCPUMakeManifold();
-			}
+			int added = 0;
+			int itr = 0;
+			do {
+				added = runGPUMakeManifold(itr == 0);
+				if (added > 0)
+					System.out.println("Manifold iteration added " + added + " points ");
+				try {
+					Thread.sleep(16);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			} while (added != 0 && itr++ < 10);
+
 		}
+		System.out.println("Perform Triangulation \n\n");
 		performTriangulation();
 		// now all polygons are definantly triangles
 		// triangulated = true;
@@ -1626,96 +1634,11 @@ public class CSG implements IuserAPI, Serializable {
 		}
 	}
 
-	private void runCPUMakeManifold() {
-		long start = System.currentTimeMillis();
-		// System.err.println("Cleaning up the mesh by adding coincident points to the
-		// polygons they touch");
-
-		int totalAdded = 0;
-		double tOL = 1.0e-11;
-
-		ArrayList<Thread> threads = new ArrayList<Thread>();
-		for (int j = 0; j < polygons.size(); j++) {
-			int threadIndex = j;
-			Thread t = new Thread(() -> {
-				Edge e = null;
-				// Test every polygon
-				Polygon i = polygons.get(threadIndex);
-				List<Vertex> vertices = i.getVertices();
-				for (int k = 0; k < vertices.size(); k++) {
-					// each point in the checking polygon
-					int now = k;
-					int next = k + 1;
-					if (next == vertices.size())
-						next = 0;
-					// take the 2 points of this section of polygon to make an edge
-					Vertex p1 = vertices.get(now);
-					Vertex p2 = vertices.get(next);
-					if (e == null)
-						e = new Edge(p1, p2);
-					else {
-						e.setP1(p1);
-						e.setP2(p2);
-					}
-					for (int l = 0; l < polygons.size(); l++) {
-						Polygon ii = polygons.get(l);
-						if (threadIndex != l) {
-							// every other polygon besides this one being tested
-							List<Vertex> vert = ii.getVertices();
-							for (int iii = 0; iii < vert.size(); iii++) {
-								Vertex vi = vert.get(iii);
-								// if they are coincident, move along
-								if (e.isThisPointOneOfMine(vi, tOL))
-									continue;
-								// if the point is on the line then we have a non manifold point
-								// it needs to be inserted into the polygon between the 2 points defined in the
-								// edge
-								if (e.contains(vi.pos, tOL)) {
-									// System.out.println("Inserting point "+vi);
-									i.add(next, vi);
-									e.setP2(vi);
-									// totalAdded++;
-								}
-							}
-						}
-					}
-				}
-			});
-			if (threads.size() > 32) {
-				for (Thread tr : threads)
-					try {
-						tr.join();
-					} catch (InterruptedException e) {
-						// Auto-generated catch block
-						e.printStackTrace();
-					}
-				totalAdded += 32;
-				threads.clear();
-				if (threadIndex / 32 % 50 == 0 || j == polygons.size() - 1) {
-					progressMoniter.progressUpdate(j, polygons.size(),
-							"STL Processing Polygons for Manifold Vertex, #" + totalAdded + " added so far", this);
-				}
-			}
-
-			threads.add(t);
-			t.start();
-		}
-		for (Thread t : threads)
-			try {
-				t.join();
-			} catch (InterruptedException e) {
-				// Auto-generated catch block
-				e.printStackTrace();
-			}
-		// progressMoniter.progressUpdate(polygons.size(),polygons.size(),"Manifold fix
-		// took " + (System.currentTimeMillis() - start),this);
-	}
-
-	private void runGPUMakeManifold() {
+	private int runGPUMakeManifold(boolean harmonizePoints) {
 		// Flattened approach - more Aparapi-friendly
 		int np = 0;
 		int numberOfPolygons = polygons.size();
-		int ExtraSpace = 5;
+		int ExtraSpace = 20;
 		for (int i = 0; i < numberOfPolygons; i++) {
 			np += (polygons.get(i).getVertices().size());
 		}
@@ -1732,7 +1655,7 @@ public class CSG implements IuserAPI, Serializable {
 		// Polygon structure - flattened
 		int[] polyStartIndex = new int[numberOfPolygons];
 		int[] polySizes = new int[numberOfPolygons];
-
+		float[] done = new float[numberOfPolygons];
 		// Fill the flattened arrays
 		int totalIndex = 0;
 		for (int polyIndex = 0; polyIndex < numberOfPolygons; polyIndex++) {
@@ -1800,145 +1723,151 @@ public class CSG implements IuserAPI, Serializable {
 				}
 			}
 		};
-
-		run(numberOfPoints, snapPointsToDistance);
-
+		System.err.println("Start snap");
+		run(numberOfPoints, snapPointsToDistance, done, "Snap Points");
+		// if(harmonizePoints)\
+		HashSet<Integer> unique = new HashSet<Integer>();
+		for (int i = 0; i < numberOfPolygons; i++) {
+			int ps = polyStartIndex[i];
+			int size = polySizes[i];
+			for (int j = ps; j < ps + size; j++) {
+				if (polygonPointOrder[j] < 0) {
+					throw new RuntimeException("Point unification currupted data");
+				} else
+					unique.add(polygonPointOrder[j]);
+			}
+		}
+		int[] uniquePoints = new int[unique.size()];
+		int b = 0;
+		for (int val : unique) {
+			uniquePoints[b++] = val;
+		}
 		int[] added = new int[numberOfPolygons];
 		Kernel findNonManifoldPoints = new Kernel() {
 			// Custom square root function using Newton's method
-			// (since Math.sqrt is not available)
-			private float customSqrt(float x) {
-				if (x == 0.0f)
-					return 0.0f;
-				if (x < 0.0f)
-					return 0;
+			// (since Math.sqrt is not available
+			@Override
+			public void run() {
+				int mePoly = getGlobalId();
 
-				float guess = x * 0.5f;
-				float prevGuess;
-
-				// Newton's method: x_{n+1} = 0.5 * (x_n + S/x_n)
-				for (int i = 0; i < 10; i++) {
-					prevGuess = guess;
-					guess = 0.5f * (guess + x / guess);
-
-					// Check for convergence
-					float diff = guess - prevGuess;
-					if (diff < 0.0f)
-						diff = -diff; // abs
-					if (diff < 1e-6f)
-						break;
-				}
-
-				return guess;
-			}
-			public void run(int mePoly) {
 				int polyStart = polyStartIndex[mePoly];
+				int polysize = polySizes[mePoly];
 				added[mePoly] = 0;
-				for (int i = 0; i < numberOfPoints; i++) {
-					int testPointIndex = polygonPointOrder[i];
-					if (testPointIndex < 0)
-						continue;
-					float nowX = pointDataX[testPointIndex];
-					float nowY = pointDataY[testPointIndex];
-					float nowZ = pointDataZ[testPointIndex];
-					for (int j = 0; j < polySizes[mePoly]; j++) {
-						int next = j + 1;
-						if (next == polySizes[mePoly]) {
-							next = 0;
-						}
+				done[mePoly] = 0;
+				for (int tp = 0; tp < uniquePoints.length; tp++) {
+					done[mePoly] = (float) tp / (float) uniquePoints.length;
+					int testPointIndex = uniquePoints[tp];
+					boolean skip = (testPointIndex < 0);
+					if (!skip) {
+						float nowX = pointDataX[testPointIndex];
+						float nowY = pointDataY[testPointIndex];
+						float nowZ = pointDataZ[testPointIndex];
 
-						int aPointIndex = polygonPointOrder[j + polyStart];
-						int bPointIndex = polygonPointOrder[next + polyStart];
-						if (aPointIndex == testPointIndex || bPointIndex == testPointIndex || aPointIndex < 0
-								|| bPointIndex < 0)
-							continue;
-
-						float aX = pointDataX[aPointIndex];
-						float aY = pointDataY[aPointIndex];
-						float aZ = pointDataZ[aPointIndex];
-
-						float bX = pointDataX[bPointIndex];
-						float bY = pointDataY[bPointIndex];
-						float bZ = pointDataZ[bPointIndex];
-
-						// Vector from point A to point B (line direction)
-						float abX = bX - aX;
-						float abY = bY - aY;
-						float abZ = bZ - aZ;
-
-						// Vector from point A to test point
-						float anX = nowX - aX;
-						float anY = nowY - aY;
-						float anZ = nowZ - aZ;
-
-						// Calculate dot product of AB and AN
-						float dotProduct = abX * anX + abY * anY + abZ * anZ;
-
-						// Calculate squared length of AB
-						float abLengthSquared = abX * abX + abY * abY + abZ * abZ;
-
-						// Check if line segment has zero length (A and B are the same point)
-						if (abLengthSquared < eps * eps) {
-							// Line segment is essentially a point, check if test point matches
-							float distToA = customSqrt(
-									(nowX - aX) * (nowX - aX) + (nowY - aY) * (nowY - aY) + (nowZ - aZ) * (nowZ - aZ));
-							if (distToA > eps)
-								continue;
-						}
-
-						// Calculate parameter t for closest point on line
-						float t = dotProduct / abLengthSquared;
-
-						// Check if the projection falls within the line segment
-						if (t >= 0.0f && t <= 1.0f) {
-							// Calculate the point on the line segment
-							float linePointX = aX + t * abX;
-							float linePointY = aY + t * abY;
-							float linePointZ = aZ + t * abZ;
-
-							// Check if test point is essentially the same as the line point
-							float diffX = nowX - linePointX;
-							float diffY = nowY - linePointY;
-							float diffZ = nowZ - linePointZ;
-
-							// Use squared distance to avoid square root calculation
-							float distanceSquared = diffX * diffX + diffY * diffY + diffZ * diffZ;
-
-							if (distanceSquared <= eps * eps) {
-								// Point is touching the line segment
-
-								for (int k = polySizes[mePoly]; k >j; k--) {
-									int l = k + polyStart;
-									int k2 = l-1;
-									polygonPointOrder[l] = polygonPointOrder[k2 ];
+						for (int j = 0; j < polysize; j++) {
+							if (added[mePoly] < 0)
+								skip = true;
+							if (!skip) {
+								int now = j + added[mePoly];
+								int next = j + 1 + added[mePoly];
+								if (next == polySizes[mePoly]) {
+									next = 0;
 								}
-								polygonPointOrder[j+1 + polyStart] = testPointIndex;
 
-								polySizes[mePoly] += 1;
-								added[mePoly] += 1;
-								j++;
-								if (added[mePoly] == ExtraSpace) {
-									added[mePoly] = -1;
-									return;
+								int aPointIndex = polygonPointOrder[now + polyStart];
+								int bPointIndex = polygonPointOrder[next + polyStart];
+								skip = (aPointIndex == testPointIndex || bPointIndex == testPointIndex
+										|| aPointIndex < 0 || bPointIndex < 0);
+								if (added[mePoly] >= ExtraSpace) {
+									skip = true;
+								}
+								if (!skip) {
+									float aX = pointDataX[aPointIndex];
+									float aY = pointDataY[aPointIndex];
+									float aZ = pointDataZ[aPointIndex];
+
+									float bX = pointDataX[bPointIndex];
+									float bY = pointDataY[bPointIndex];
+									float bZ = pointDataZ[bPointIndex];
+
+									// Vector from point A to point B (line direction)
+									float abX = bX - aX;
+									float abY = bY - aY;
+									float abZ = bZ - aZ;
+
+									// Vector from point A to test point
+									float anX = nowX - aX;
+									float anY = nowY - aY;
+									float anZ = nowZ - aZ;
+
+									// Calculate dot product of AB and AN
+									float dotProduct = abX * anX + abY * anY + abZ * anZ;
+
+									// Calculate squared length of AB
+									float abLengthSquared = abX * abX + abY * abY + abZ * abZ;
+
+									if (!skip) {
+										// Calculate parameter t for closest point on line
+										float t = dotProduct / abLengthSquared;
+
+										// Check if the projection falls within the line segment
+										if (t >= 0.0f && t <= 1.0f) {
+											// Calculate the point on the line segment
+											float linePointX = aX + t * abX;
+											float linePointY = aY + t * abY;
+											float linePointZ = aZ + t * abZ;
+
+											// Check if test point is essentially the same as the line point
+											float diffX = nowX - linePointX;
+											float diffY = nowY - linePointY;
+											float diffZ = nowZ - linePointZ;
+
+											// Use squared distance to avoid square root calculation
+											float distanceSquared = diffX * diffX + diffY * diffY + diffZ * diffZ;
+
+											if (distanceSquared <= eps * eps) {
+												// Point is touching the line segment
+//												int sizeAdded = added[mePoly];
+//												if(sizeAdded==(ExtraSpace-1) && mePoly==2156) {
+//													sizeAdded=0;
+//												}
+
+												if (next > 0) {
+													for (int k = polysize + added[mePoly]; k > now; k--) {
+														int l = k + polyStart;
+														int k2 = l - 1;
+														polygonPointOrder[l] = polygonPointOrder[k2];
+													}
+													polygonPointOrder[next + polyStart] = testPointIndex;
+												} else
+													polygonPointOrder[polysize + polyStart
+															+ added[mePoly]] = testPointIndex;
+												polySizes[mePoly] += 1;
+												added[mePoly] += 1;
+												if (added[mePoly] == ExtraSpace) {
+													added[mePoly] = -1;
+												}
+											}
+										}
+									}
 								}
 							}
 						}
-
 					}
 				}
 
 			}
-			@Override
-			public void run() {
-				int mePoly = getGlobalId();
-				run(mePoly);
-			}
+
 		};
-		run(numberOfPolygons, findNonManifoldPoints);
-		
-		for(int i=0;i<added.length;i++)
-			if(added[i]<0)
-				System.out.println("Manifold failed");
+		System.err.println("Start Manifold");
+		run(numberOfPolygons, findNonManifoldPoints, done, "Manifold");
+		int pointsAdded = 0;
+		for (int x = 0; x < added.length; x++)
+			if (added[x] < 0) {
+				System.err.println("Manifold failed after " + x);
+				pointsAdded = -1;
+				break;
+			} else
+				pointsAdded += added[x];
 
 		ArrayList<Polygon> newPoly = new ArrayList<>();
 		for (int i = 0; i < polygons.size(); i++) {
@@ -1950,11 +1879,8 @@ public class CSG implements IuserAPI, Serializable {
 			HashSet<Integer> pointIndexSet = new HashSet<Integer>();
 			for (int j = 0; j < polySize; j++) {
 				int pointIndex = polygonPointOrder[startIndex + j];
-				if(pointIndex<0) {
-					for (j = 0; j < polySize; j++) {
-						System.err.println("Point Index "+j+" is: "+polygonPointOrder[startIndex + j]);
-					}
-					throw new RuntimeException("Manifold algorithm left holes in polygon "+i);
+				if (pointIndex < 0) {
+					throw new RuntimeException("Algorithm error");
 				}
 				if (pointIndexSet.contains(pointIndex)) {
 					continue;
@@ -1971,20 +1897,42 @@ public class CSG implements IuserAPI, Serializable {
 		}
 		polygons.clear();
 		polygons = newPoly;
+		return pointsAdded;
 	}
 
-	private void run(int numberOfPoints, Kernel kernel) {
-		//kernel.setExecutionModeWithoutFallback(EXECUTION_MODE.CPU);
-		kernel.execute(numberOfPoints);
-		while (kernel.isExecuting()) {
+	private void run(int numberOfPoints, Kernel kernel, float[] done, String type) {
+		if (!useGPU) {
+			System.setProperty("com.aparapi.threadPoolSize",
+					String.valueOf(Runtime.getRuntime().availableProcessors()));
+			kernel.setExecutionMode(Kernel.EXECUTION_MODE.JTP); // Java Thread Pool
+		}
+		Thread thread = new Thread(() -> {
+			kernel.execute(numberOfPoints);
+		});
+		thread.start();
+		do {
+			if (!useGPU) {
+				float doneness = 0;
+				for (int i = 0; i < done.length; i++) {
+					doneness += done[i];
+				}
+				float percent = doneness / ((float) done.length) * 100.0f;
+				progressMoniter.progressUpdate((int) (100.0 * percent), 100, type, this);
+			}
 			try {
-				Thread.sleep(1);
+				Thread.sleep(useGPU ? 5 : 500);
 			} catch (InterruptedException e) {
 				// Auto-generated catch block
 				e.printStackTrace();
 			}
+		} while (kernel.isExecuting());
+		try {
+			thread.join();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		System.err.println("Finished on " + kernel.getTargetDevice());
+		System.err.println("Finished on " + kernel.getTargetDevice().getType());
 	}
 
 	private CSG updatePolygons(ArrayList<Polygon> toAdd, Polygon p) {

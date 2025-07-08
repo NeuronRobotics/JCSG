@@ -12,11 +12,12 @@ public class StlExportTest {
 
 	@Test
 	public void makeBadSTL() throws IOException {
+		long start = System.currentTimeMillis();
 		Plane.setEPSILON(1.0e-9);
 		Vector3d.setEXPORTEPSILON(1.0e-10);
 		CSG.setUseGPU(true);
 		CSG.setPreventNonManifoldTriangles(true);
-		CSG badExport2 = CSG.text(" A QUICK BROWN ", 10,30,"Serif Regular").movey(30);
+		CSG badExport2 = CSG.text(" A QUICK BROWN fox jumps over the lazy dog", 10,30,"Serif Regular").movey(30);
 		System.out.println("First text loaded");
 		CSG badExport = CSG.text("THis is some ", 10);
 		System.out.println("Second text loaded");
@@ -48,6 +49,8 @@ public class StlExportTest {
 		badExport=difference.rotx(35).roty(45);
 		FileUtil.write(Paths.get("6-TextDiffRotatedStl.stl"),
 				badExport.toStlString());
+		double done =  System.currentTimeMillis()-start;
+		System.out.println("Finished, took "+(done/1000.0)+" seconds ");
 	}
 
 }
