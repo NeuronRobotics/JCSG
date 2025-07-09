@@ -4,7 +4,7 @@ plugins {
 	id 'java'
 	id 'maven-publish'
 	id 'signing'
-	id 'io.codearte.nexus-staging' version '0.30.0'
+	//id 'io.codearte.nexus-staging' version '0.30.0'
 }
 
 File buildDir = file(".");
@@ -16,36 +16,36 @@ version = props."app.version"
 
 // BEGIN AI SLOP
 
-nexusStaging {
-	serverUrl = "https://oss.sonatype.org/service/local/"
-	username = System.getenv("MAVEN_USERNAME")
-	password = System.getenv("MAVEN_PASSWORD")
-	packageGroup = "com.neuronrobotics" // Replace with your actual package group
-}
+//nexusStaging {
+//	serverUrl = "https://oss.sonatype.org/service/local/"
+//	username = System.getenv("MAVEN_USERNAME")
+//	password = System.getenv("MAVEN_PASSWORD")
+//	packageGroup = "com.neuronrobotics" // Replace with your actual package group
+//}
 
-task closeAndReleaseSeparately {
-	dependsOn tasks.releaseRepository
-}
+//task closeAndReleaseSeparately {
+//	dependsOn tasks.releaseRepository
+//}
 
-tasks.releaseRepository.dependsOn tasks.closeRepository
-tasks.closeRepository.dependsOn tasks.getStagingProfile
+//tasks.releaseRepository.dependsOn tasks.closeRepository
+//tasks.closeRepository.dependsOn tasks.getStagingProfile
 
 // Optional: Add this if you want to see more information during the execution
-tasks.getStagingProfile.logging.level = LogLevel.INFO
-tasks.closeRepository.logging.level = LogLevel.INFO
-tasks.releaseRepository.logging.level = LogLevel.INFO
+//tasks.getStagingProfile.logging.level = LogLevel.INFO
+//tasks.closeRepository.logging.level = LogLevel.INFO
+//tasks.releaseRepository.logging.level = LogLevel.INFO
 
-tasks.getStagingProfile.doFirst {
-	println "Executing getStagingProfile task"
-}
+//tasks.getStagingProfile.doFirst {
+//	println "Executing getStagingProfile task"
+//}
 
-tasks.closeRepository.doFirst {
-	println "Executing closeRepository task"
-}
-
-tasks.releaseRepository.doFirst {
-	println "Executing releaseRepository task"
-}
+//tasks.closeRepository.doFirst {
+//	println "Executing closeRepository task"
+//}
+//
+//tasks.releaseRepository.doFirst {
+//	println "Executing releaseRepository task"
+//}
 
 // END AI SLOP
 sourceCompatibility = '1.8'
@@ -55,7 +55,7 @@ sourceCompatibility = '1.8'
 //repairHeaders.licenseHeaderText = new File(projectDir,'./license-template.txt')
 
 task sourcesJar(type: Jar) {
-	classifier = 'sources'
+	//classifier = 'sources'
 	from sourceSets.main.allSource
 }
 
@@ -80,7 +80,7 @@ if (JavaVersion.current().isJava8Compatible()) {
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
 
-	classifier = 'javadoc'
+	//classifier = 'javadoc'
 	from javadoc.destinationDir
 }
 
