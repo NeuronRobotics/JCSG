@@ -63,7 +63,7 @@ import org.locationtech.jts.triangulate.polygon.ConstrainedDelaunayTriangulator;
  * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
  */
 public class PolygonUtil {
-	private static final double triangleScale = 100.0;
+	private static final double triangleScale = 1.0/Plane.getEPSILON()*10;
 	private static IPolygonRepairTool repair = concave1 -> {
 
 		ArrayList<Edge> edges = new ArrayList<Edge>();
