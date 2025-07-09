@@ -172,10 +172,12 @@ public class CSG implements IuserAPI, Serializable {
 	private ArrayList<String> exportFormats = null;
 	private ArrayList<Transform> datumReferences = null;
 	// private boolean triangulated;
-	private static boolean needsDegeneratesPruned = false;
 	private static boolean useStackTraces = true;
 	private static boolean preventNonManifoldTriangles = false;
-	private static boolean useGPU = false;
+	// GPU processing
+	private static boolean useGPU = true;
+	private int pointsAdded;
+	private static int ExtraSpace = 70;;
 
 	private static ICSGProgress progressMoniter = new ICSGProgress() {
 		@Override
@@ -183,8 +185,6 @@ public class CSG implements IuserAPI, Serializable {
 			System.err.println(type + "  cur:" + currentIndex + " of " + finalIndex);
 		}
 	};
-	private int pointsAdded;
-	private static int ExtraSpace = 70;;
 
 	/**
 	 * Instantiates a new csg.
@@ -1598,19 +1598,19 @@ public class CSG implements IuserAPI, Serializable {
 		IDebug3dProvider start = Debug3dProvider.provider;
 		Debug3dProvider.setProvider(null);
 		// performTriangulation();
-		if (preventNonManifoldTriangles) {
-			int added = 0;
-			int itr = 1;
-			do {
-				added = runGPUMakeManifold(itr);
-				if (added >= 0)
-					System.out.println("Manifold iteration added " + added + " points ");
-				else {
-					ExtraSpace += 10;
-					System.out.println("Increaasing extra space to " + ExtraSpace);
-				}
-			} while (added < 0 && itr++ < 51);
-		}
+		// if (preventNonManifoldTriangles) {
+		int added = 0;
+		int itr = 1;
+		do {
+			added = runGPUMakeManifold(itr);
+			if (added >= 0)
+				System.out.println("Manifold iteration added " + added + " points ");
+			else {
+				ExtraSpace += 10;
+				System.out.println("Increaasing extra space to " + ExtraSpace);
+			}
+		} while (added < 0 && itr++ < 51);
+		// }
 		performTriangulation();
 		System.out.println("Complete Triangulation \n\n");
 		// now all polygons are definantly triangles
@@ -1653,7 +1653,7 @@ public class CSG implements IuserAPI, Serializable {
 		// Polygon structure - flattened
 		int[] polyStartIndex = new int[numberOfPolygons];
 		int[] polySizes = new int[numberOfPolygons];
-		//int[] flatArrayOfAllPointIndexes = new int[numberOfPoints];
+		// int[] flatArrayOfAllPointIndexes = new int[numberOfPoints];
 		float[] done = new float[numberOfPolygons];
 		// Fill the flattened arrays
 		int totalIndex = 0;
@@ -1680,7 +1680,7 @@ public class CSG implements IuserAPI, Serializable {
 		}
 
 		// System.out.println("Data loaded!");
-		float eps =  (float) Plane.getEPSILON();
+		float eps = (float) Plane.getEPSILON();
 		float epsSq = eps * eps;
 
 		// Aparapi-compatible kernel with flattened data
@@ -1723,197 +1723,210 @@ public class CSG implements IuserAPI, Serializable {
 			}
 		};
 		run(numberOfPoints, snapPointsToDistance, done, "Snap Points Itr(" + iteration + ")", () -> false, iteration);
-		// if(harmonizePoints)\
-		HashSet<Integer> unique = new HashSet<Integer>();
-		int running=0;
-		for (int i = 0; i < numberOfPolygons; i++) {
-			int ps = polyStartIndex[i];
-			int size = polySizes[i];
-			for (int j = ps; j < ps + size; j++) {
-				if (polygonPointOrder[j] < 0) {
-					throw new RuntimeException("Point unification currupted data");
-				} else {
-					unique.add(polygonPointOrder[j]);
-					//flatArrayOfAllPointIndexes[running++]=polygonPointOrder[j];
+		if (preventNonManifoldTriangles) {
+			HashSet<Integer> unique = new HashSet<Integer>();
+			int running = 0;
+			for (int i = 0; i < numberOfPolygons; i++) {
+				int ps = polyStartIndex[i];
+				int size = polySizes[i];
+				for (int j = ps; j < ps + size; j++) {
+					if (polygonPointOrder[j] < 0) {
+						throw new RuntimeException("Point unification currupted data");
+					} else {
+						unique.add(polygonPointOrder[j]);
+						// flatArrayOfAllPointIndexes[running++]=polygonPointOrder[j];
+					}
 				}
 			}
-		}
-		int[] uniquePoints = new int[unique.size()];
-		int b = 0;
-		for (int val : unique) {
-			uniquePoints[b++] = val;
-		}
-		int[] added = new int[numberOfPolygons];
-		Kernel findNonManifoldPoints = new Kernel() {
-			@Override
-			public void run() {
+			int[] uniquePoints = new int[unique.size()];
+			int b = 0;
+			for (int val : unique) {
+				uniquePoints[b++] = val;
+			}
+			int[] added = new int[numberOfPolygons];
+			Kernel findNonManifoldPoints = new Kernel() {
+				@Override
+				public void run() {
 
-				int mePoly = getGlobalId();
+					int mePoly = getGlobalId();
 
-				int polyStart = polyStartIndex[mePoly];
-				int originalPolySize = polySizes[mePoly]; // Store original size
-				added[mePoly] = 0;
-				done[mePoly] = 0;
-				// Add bounds check
-				int length = polygonPointOrder.length;
-				int i = polyStart + originalPolySize + extraSpace;
-				if (i >= length) {
-					added[mePoly] = -1;
-					return;
-				}
-				boolean skip = false;
-				int firstIndex = 0;
-				int secondIndex = 0;
-				for (int j = 0; j < originalPolySize + extraSpace; j++) {
-					skip=false;
-					done[mePoly] = (float) j / (float) (originalPolySize + extraSpace);
-					if (added[mePoly] < 0 || j >= originalPolySize + added[mePoly]) {
-						skip = true;
-					} else {
-						
-						firstIndex = j;
-						secondIndex = firstIndex + 1;
-						if (secondIndex == originalPolySize + added[mePoly]) { // Use original size
-							secondIndex = 0; // Wrap to start of shifted array
-						}
-						int aPointIndex = 0;
-						int bPointIndex = 0;
-						// Bounds check before accessing array
-						if (firstIndex + polyStart >= length || secondIndex + polyStart >= length) {
-							added[mePoly] = -1;
+					int polyStart = polyStartIndex[mePoly];
+					int originalPolySize = polySizes[mePoly]; // Store original size
+					added[mePoly] = 0;
+					done[mePoly] = 0;
+					// Add bounds check
+					int length = polygonPointOrder.length;
+					int i = polyStart + originalPolySize + extraSpace;
+					if (i >= length) {
+						added[mePoly] = -1;
+						return;
+					}
+					boolean skip = false;
+					int firstIndex = 0;
+					int secondIndex = 0;
+					for (int j = 0; j < originalPolySize + extraSpace; j++) {
+						skip = false;
+						done[mePoly] = (float) j / (float) (originalPolySize + extraSpace);
+						if (added[mePoly] < 0 || j >= originalPolySize + added[mePoly]) {
 							skip = true;
-						}
-						if (!skip) {
-							for (int tp = 0; tp < uniquePoints.length; tp++) {
-								int testPointIndex = uniquePoints[tp];
-								skip = false;
-								for (int px = 0; px < originalPolySize + added[mePoly]; px++) {
-									if (polygonPointOrder[polyStart + px] == testPointIndex) {
-										skip = true;
-									}
-								}
-								if(added[mePoly] < 0) {
-									skip=true;
-								}
+						} else {
 
-								if (!skip) {
-									aPointIndex = polygonPointOrder[firstIndex + polyStart];
-									bPointIndex = polygonPointOrder[secondIndex + polyStart];
-								}
-								if (!skip) {
-									float nowX = pointDataX[testPointIndex];
-									float nowY = pointDataY[testPointIndex];
-									float nowZ = pointDataZ[testPointIndex];
-									float aX = pointDataX[aPointIndex];
-									float aY = pointDataY[aPointIndex];
-									float aZ = pointDataZ[aPointIndex];
-
-									float bX = pointDataX[bPointIndex];
-									float bY = pointDataY[bPointIndex];
-									float bZ = pointDataZ[bPointIndex];
-
-									// Vector from point A to point B (line direction)
-									float abX = bX - aX;
-									float abY = bY - aY;
-									float abZ = bZ - aZ;
-
-									// Vector from point A to test point
-									float anX = nowX - aX;
-									float anY = nowY - aY;
-									float anZ = nowZ - aZ;
-
-									// Calculate dot product of AB and AN
-									float dotProduct = abX * anX + abY * anY + abZ * anZ;
-
-									// Calculate squared length of AB
-									float abLengthSquared = abX * abX + abY * abY + abZ * abZ;
-
-									if (abLengthSquared > epsSq ) { // Avoid division by zero
-										// Calculate parameter t for closest point on line
-										float t = dotProduct / abLengthSquared;
-
-										// Check if the projection falls within the line segment
-										if (t >= 0 && t <= 1.0f) {
-											// Calculate the point on the line segment
-											float linePointX = aX + t * abX;
-											float linePointY = aY + t * abY;
-											float linePointZ = aZ + t * abZ;
-
-											// Check if test point is essentially the same as the line point
-											float diffX = nowX - linePointX;
-											float diffY = nowY - linePointY;
-											float diffZ = nowZ - linePointZ;
-
-											// Use squared distance to avoid square root calculation
-											float distanceSquared = diffX * diffX + diffY * diffY + diffZ * diffZ;
-											// Point is touching the line segment
-											if (distanceSquared <= eps * eps) {
-												// Bounds check before insertion
-												if (polyStart + originalPolySize + added[mePoly] + 1 < length) {
-													if(secondIndex!=0) {
-														for (int indexOfTheMovingItem = originalPolySize + added[mePoly]; 
-																 indexOfTheMovingItem > secondIndex;
-																 indexOfTheMovingItem--) {
-															int targetPolygonIndex = indexOfTheMovingItem + polyStart;
-															int sourcePolygonIndex = targetPolygonIndex - 1;
-															polygonPointOrder[targetPolygonIndex] = polygonPointOrder[sourcePolygonIndex];
-														}
-													}else {
-														secondIndex=firstIndex+1;
-													}
-													polygonPointOrder[secondIndex + polyStart] = testPointIndex;
-													polySizes[mePoly] += 1;
-													added[mePoly] += 1;												
-
-													if (added[mePoly] >= extraSpace - 1) {
-														added[mePoly] = -1;
-													}
-													// Test for invalid indexes in the polygon
-													for (int test = 0; test < polySizes[mePoly]; test++) {
-														if (polygonPointOrder[test + polyStart] < 0) {
-															added[mePoly] = -1;
-														}
-													}
-												} else {
-													// No room for insertion
-													added[mePoly] = -1;
-												}
-											}
+							firstIndex = j;
+							secondIndex = firstIndex + 1;
+							if (secondIndex == originalPolySize + added[mePoly]) { // Use original size
+								secondIndex = 0; // Wrap to start of shifted array
+							}
+							int aPointIndex = 0;
+							int bPointIndex = 0;
+							// Bounds check before accessing array
+							if (firstIndex + polyStart >= length || secondIndex + polyStart >= length) {
+								added[mePoly] = -1;
+								skip = true;
+							}
+							if (!skip) {
+								for (int tp = 0; tp < uniquePoints.length; tp++) {
+									int testPointIndex = uniquePoints[tp];
+									skip = false;
+									for (int px = 0; px < originalPolySize + added[mePoly]; px++) {
+										if (polygonPointOrder[polyStart + px] == testPointIndex) {
+											skip = true;
 										}
 									}
-								}
+									if (added[mePoly] < 0) {
+										skip = true;
+									}
 
-							} // FOr each Point In Unique points
-						} // second skip cjeck
-					} // Skip loop check
-				} // For loop all points in polygon
-			}
-		};
-		pointsAdded = 0;
-		run(numberOfPolygons, findNonManifoldPoints, done, "Manifold Itr(" + iteration + ")", () -> {
+									if (!skip) {
+										aPointIndex = polygonPointOrder[firstIndex + polyStart];
+										bPointIndex = polygonPointOrder[secondIndex + polyStart];
+									}
+									if (!skip) {
+										float nowX = pointDataX[testPointIndex];
+										float nowY = pointDataY[testPointIndex];
+										float nowZ = pointDataZ[testPointIndex];
+										float aX = pointDataX[aPointIndex];
+										float aY = pointDataY[aPointIndex];
+										float aZ = pointDataZ[aPointIndex];
+
+										float bX = pointDataX[bPointIndex];
+										float bY = pointDataY[bPointIndex];
+										float bZ = pointDataZ[bPointIndex];
+
+										// Vector from point A to point B (line direction)
+										float abX = bX - aX;
+										float abY = bY - aY;
+										float abZ = bZ - aZ;
+
+										// Vector from point A to test point
+										float anX = nowX - aX;
+										float anY = nowY - aY;
+										float anZ = nowZ - aZ;
+
+										// Calculate dot product of AB and AN
+										float dotProduct = abX * anX + abY * anY + abZ * anZ;
+
+										// Calculate squared length of AB
+										float abLengthSquared = abX * abX + abY * abY + abZ * abZ;
+
+										if (abLengthSquared > epsSq) { // Avoid division by zero
+											// Calculate parameter t for closest point on line
+											float t = dotProduct / abLengthSquared;
+
+											// Check if the projection falls within the line segment
+											if (t >= 0 && t <= 1.0f) {
+												// Calculate the point on the line segment
+												float linePointX = aX + t * abX;
+												float linePointY = aY + t * abY;
+												float linePointZ = aZ + t * abZ;
+
+												// Check if test point is essentially the same as the line point
+												float diffX = nowX - linePointX;
+												float diffY = nowY - linePointY;
+												float diffZ = nowZ - linePointZ;
+
+												// Use squared distance to avoid square root calculation
+												float distanceSquared = diffX * diffX + diffY * diffY + diffZ * diffZ;
+												// Point is touching the line segment
+												if (distanceSquared <= eps * eps) {
+													// Bounds check before insertion
+													if (polyStart + originalPolySize + added[mePoly] + 1 < length) {
+														// When a point is found to be on the line
+														// move all the items in the array to make room, 
+														// unless the second index is a wrapping item
+														// in the wrap case we simply set the second 
+														// index to the new empty space in the buffer.
+														// This ensures that the new line segment between first
+														// and the new point, as well as the new point and the 
+														// wrapping condition in the next iteration of the outer
+														// polygon segment loop will be checked against all points.
+														// the remaining points in the unique points buffer are checked 
+														// against the line from the first index, and this new added point.
+														// As new points are added, closer and closer to this first point, the
+														// subsequent vectors will be checked in the longer running of the outer loop. 
+														if (secondIndex != 0) {
+															for (int indexOfTheMovingItem = originalPolySize
+																	+ added[mePoly]; indexOfTheMovingItem > secondIndex; indexOfTheMovingItem--) {
+																int targetPolygonIndex = indexOfTheMovingItem
+																		+ polyStart;
+																int sourcePolygonIndex = targetPolygonIndex - 1;
+																polygonPointOrder[targetPolygonIndex] = polygonPointOrder[sourcePolygonIndex];
+															}
+														} else {
+															secondIndex = firstIndex + 1;
+														}
+														polygonPointOrder[secondIndex + polyStart] = testPointIndex;
+														polySizes[mePoly] += 1;
+														added[mePoly] += 1;
+
+														if (added[mePoly] >= extraSpace - 1) {
+															added[mePoly] = -1;
+														}
+														// Test for invalid indexes in the polygon
+														for (int test = 0; test < polySizes[mePoly]; test++) {
+															if (polygonPointOrder[test + polyStart] < 0) {
+																added[mePoly] = -1;
+															}
+														}
+													} else {
+														// No room for insertion
+														added[mePoly] = -1;
+													}// check for room in the polygon point buffer
+												}// verify the point is on the line
+											}// test is the point is between the given points
+										}// test if the length of the segment is on the line
+									}// skip the comparison
+								} // FOr each Point In Unique points
+							} // second skip check
+						} // Skip loop check
+					} // For loop all points in polygon
+				}// Run method
+			};
 			pointsAdded = 0;
-			String out = "points added report [";
-			for (int x = 0; x < added.length; x++) {
-				if (added[x] < 0) {
-					progressMoniter.progressUpdate(1, 1,
-							"\n\nManifold failed after " + x + " of " + numberOfPolygons + " polygons ", this);
-					pointsAdded = -1;
-					break;
-				} else {
-					pointsAdded += added[x];
-					if (added[x] > 0 && out.length() < 300)
-						out += " to " + x + " added " + (added[x]) + " size " + polySizes[x] + " , ";
-				}
-			}
-			out += "]";
-			out = "Total added " + pointsAdded + " " + out;
-			if (pointsAdded > 0) {
-				progressMoniter.progressUpdate(1, 1, out, this);
-				//return true;
-			}
-			return false;
-		}, iteration);
 
+			run(numberOfPolygons, findNonManifoldPoints, done, "Manifold Itr(" + iteration + ")", () -> {
+				pointsAdded = 0;
+				String out = "points added report [";
+				for (int x = 0; x < added.length; x++) {
+					if (added[x] < 0) {
+						progressMoniter.progressUpdate(1, 1,
+								"\n\nManifold failed after " + x + " of " + numberOfPolygons + " polygons ", this);
+						pointsAdded = -1;
+						break;
+					} else {
+						pointsAdded += added[x];
+						if (added[x] > 0 && out.length() < 300)
+							out += " to " + x + " added " + (added[x]) + " size " + polySizes[x] + " , ";
+					}
+				}
+				out += "]";
+				out = "Total added " + pointsAdded + " " + out;
+				if (pointsAdded > 0) {
+					progressMoniter.progressUpdate(1, 1, out, this);
+					// return true;
+				}
+				return false;
+			}, iteration);
+		}
 		ArrayList<Polygon> newPoly = new ArrayList<>();
 		for (int i = 0; i < polygons.size(); i++) {
 			Polygon polygon = polygons.get(i);
