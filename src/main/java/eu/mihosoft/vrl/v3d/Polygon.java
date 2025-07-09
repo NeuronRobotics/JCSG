@@ -813,8 +813,7 @@ public final class Polygon implements Serializable{
 			Vertex p = vertices.get(i);
 
 			// Calculate cross product
-			Vector3d cross = direction.cross(p.pos);
-
+			Vector3d cross = direction.cross(p1.pos.minus(p.pos));
 			// Calculate magnitude of cross product
 			double magnitude = Math.abs(cross.length());
 
