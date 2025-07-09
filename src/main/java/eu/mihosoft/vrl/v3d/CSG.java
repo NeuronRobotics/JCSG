@@ -1680,7 +1680,7 @@ public class CSG implements IuserAPI, Serializable {
 		}
 
 		// System.out.println("Data loaded!");
-		float eps = 0.00001f;// (float) Plane.getEPSILON() * 100;
+		float eps =  (float) Plane.getEPSILON();
 		float epsSq = eps * eps;
 
 		// Aparapi-compatible kernel with flattened data
@@ -1848,10 +1848,6 @@ public class CSG implements IuserAPI, Serializable {
 											float distanceSquared = diffX * diffX + diffY * diffY + diffZ * diffZ;
 											// Point is touching the line segment
 											if (distanceSquared <= eps * eps) {
-												int lengthAdded = 0;
-												if (secondIndex==0) {
-													lengthAdded = added[mePoly];
-												}
 												// Bounds check before insertion
 												if (polyStart + originalPolySize + added[mePoly] + 1 < length) {
 													if(secondIndex!=0) {
@@ -1861,7 +1857,6 @@ public class CSG implements IuserAPI, Serializable {
 															int targetPolygonIndex = indexOfTheMovingItem + polyStart;
 															int sourcePolygonIndex = targetPolygonIndex - 1;
 															polygonPointOrder[targetPolygonIndex] = polygonPointOrder[sourcePolygonIndex];
-															polygonPointOrder[sourcePolygonIndex]=-2;
 														}
 													}else {
 														secondIndex=firstIndex+1;
