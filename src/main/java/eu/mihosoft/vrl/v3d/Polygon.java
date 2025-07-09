@@ -226,6 +226,8 @@ public final class Polygon implements Serializable{
         this.getVertices().forEach((vertex) -> {
             newVertices.add(vertex.clone());
         });
+        // TODO figure out why this isnt working
+        //return new Polygon(newVertices, getStorage(),true,plane.clone()).setColor(getColor());
         return new Polygon(newVertices, getStorage(),true,null).setColor(getColor());
     }
 
