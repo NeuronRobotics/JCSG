@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BooleanSupplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -182,6 +183,8 @@ public class CSG implements IuserAPI, Serializable {
 			System.err.println(type + "  cur:" + currentIndex + " of " + finalIndex);
 		}
 	};
+	private int pointsAdded;
+	private static int ExtraSpace = 70;;
 
 	/**
 	 * Instantiates a new csg.
@@ -1597,21 +1600,19 @@ public class CSG implements IuserAPI, Serializable {
 		// performTriangulation();
 		if (preventNonManifoldTriangles) {
 			int added = 0;
-			int itr = 0;
+			int itr = 1;
 			do {
 				added = runGPUMakeManifold(itr);
-				if (added > 0)
+				if (added >= 0)
 					System.out.println("Manifold iteration added " + added + " points ");
-				try {
-					Thread.sleep(16);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
+				else {
+					ExtraSpace += 10;
+					System.out.println("Increaasing extra space to " + ExtraSpace);
 				}
-			} while (added != 0 && itr++ < 10);
-
+			} while (added < 0 && itr++ < 51);
 		}
-		System.out.println("Perform Triangulation \n\n");
 		performTriangulation();
+		System.out.println("Complete Triangulation \n\n");
 		// now all polygons are definantly triangles
 		// triangulated = true;
 		Debug3dProvider.setProvider(start);
@@ -1633,11 +1634,12 @@ public class CSG implements IuserAPI, Serializable {
 		// Flattened approach - more Aparapi-friendly
 		int np = 0;
 		int numberOfPolygons = polygons.size();
-		int ExtraSpace = 20;
+
 		for (int i = 0; i < numberOfPolygons; i++) {
 			np += (polygons.get(i).getVertices().size());
 		}
-		int numberOfPointsWithExtra = np + (numberOfPolygons * ExtraSpace);
+		int extraSpace = ExtraSpace;
+		int numberOfPointsWithExtra = 1 + np + ((numberOfPolygons + 1) * extraSpace);
 		int numberOfPoints = np;
 		// Flattened arrays instead of objects
 		float[] pointDataX = new float[numberOfPoints];
@@ -1651,6 +1653,7 @@ public class CSG implements IuserAPI, Serializable {
 		// Polygon structure - flattened
 		int[] polyStartIndex = new int[numberOfPolygons];
 		int[] polySizes = new int[numberOfPolygons];
+		//int[] flatArrayOfAllPointIndexes = new int[numberOfPoints];
 		float[] done = new float[numberOfPolygons];
 		// Fill the flattened arrays
 		int totalIndex = 0;
@@ -1659,7 +1662,7 @@ public class CSG implements IuserAPI, Serializable {
 		}
 		for (int polyIndex = 0; polyIndex < numberOfPolygons; polyIndex++) {
 			int polySize = polygons.get(polyIndex).getPoints().size();
-			int i = totalIndex+(polyIndex*ExtraSpace);
+			int i = totalIndex + (polyIndex * extraSpace);
 			polyStartIndex[polyIndex] = i;
 			polySizes[polyIndex] = polySize;
 
@@ -1669,15 +1672,15 @@ public class CSG implements IuserAPI, Serializable {
 				pointDataX[totalIndex] = (float) pos.x;
 				pointDataY[totalIndex] = (float) pos.y;
 				pointDataZ[totalIndex] = (float) pos.z;
-				int i2 = totalIndex+(polyIndex*ExtraSpace);
+				int i2 = totalIndex + (polyIndex * extraSpace);
 				polygonPointOrder[i2] = totalIndex;
-				lookup[totalIndex]=i2;// lookup address in the polygon aray for the origin of each point
+				lookup[totalIndex] = i2;// lookup address in the polygon aray for the origin of each point
 				totalIndex++;
 			}
 		}
 
 		// System.out.println("Data loaded!");
-		float eps = (float) Plane.getEPSILON();
+		float eps = 0.00001f;// (float) Plane.getEPSILON() * 100;
 		float epsSq = eps * eps;
 
 		// Aparapi-compatible kernel with flattened data
@@ -1696,7 +1699,7 @@ public class CSG implements IuserAPI, Serializable {
 					for (int j = 0; j < polySize; j++) {
 						int nowPolygonIndex = polyStart + j;
 						int nowPointIndex = polygonPointOrder[nowPolygonIndex];
-						if ( nowPointIndex == mePointIndex)
+						if (nowPointIndex == mePointIndex)
 							continue;
 						float nowX = pointDataX[nowPointIndex];
 						float nowY = pointDataY[nowPointIndex];
@@ -1719,17 +1722,20 @@ public class CSG implements IuserAPI, Serializable {
 				}
 			}
 		};
-		run(numberOfPoints, snapPointsToDistance, done, "Snap Points Itr("+iteration+")");
+		run(numberOfPoints, snapPointsToDistance, done, "Snap Points Itr(" + iteration + ")", () -> false, iteration);
 		// if(harmonizePoints)\
 		HashSet<Integer> unique = new HashSet<Integer>();
+		int running=0;
 		for (int i = 0; i < numberOfPolygons; i++) {
 			int ps = polyStartIndex[i];
 			int size = polySizes[i];
 			for (int j = ps; j < ps + size; j++) {
 				if (polygonPointOrder[j] < 0) {
 					throw new RuntimeException("Point unification currupted data");
-				} else
+				} else {
 					unique.add(polygonPointOrder[j]);
+					//flatArrayOfAllPointIndexes[running++]=polygonPointOrder[j];
+				}
 			}
 		}
 		int[] uniquePoints = new int[unique.size()];
@@ -1739,44 +1745,65 @@ public class CSG implements IuserAPI, Serializable {
 		}
 		int[] added = new int[numberOfPolygons];
 		Kernel findNonManifoldPoints = new Kernel() {
-			// Custom square root function using Newton's method
-			// (since Math.sqrt is not available
 			@Override
 			public void run() {
+
 				int mePoly = getGlobalId();
 
 				int polyStart = polyStartIndex[mePoly];
-				int polysize = polySizes[mePoly];
+				int originalPolySize = polySizes[mePoly]; // Store original size
 				added[mePoly] = 0;
 				done[mePoly] = 0;
-				for (int tp = 0; tp < uniquePoints.length; tp++) {
-					done[mePoly] = (float) tp / (float) uniquePoints.length;
-					int testPointIndex = uniquePoints[tp];
-					boolean skip = (testPointIndex < 0);
-					if (!skip) {
-						float nowX = pointDataX[testPointIndex];
-						float nowY = pointDataY[testPointIndex];
-						float nowZ = pointDataZ[testPointIndex];
-
-						for (int j = 0; j < polysize; j++) {
-							if (added[mePoly] < 0)
-								skip = true;
-							if (!skip) {
-								int now = j + added[mePoly];
-								//int next = j + 1 + added[mePoly];
-								int next = now+1;
-								if (next == (polysize + added[mePoly])) {
-									next = 0;
+				// Add bounds check
+				int length = polygonPointOrder.length;
+				int i = polyStart + originalPolySize + extraSpace;
+				if (i >= length) {
+					added[mePoly] = -1;
+					return;
+				}
+				boolean skip = false;
+				int firstIndex = 0;
+				int secondIndex = 0;
+				for (int j = 0; j < originalPolySize + extraSpace; j++) {
+					skip=false;
+					done[mePoly] = (float) j / (float) (originalPolySize + extraSpace);
+					if (added[mePoly] < 0 || j >= originalPolySize + added[mePoly]) {
+						skip = true;
+					} else {
+						
+						firstIndex = j;
+						secondIndex = firstIndex + 1;
+						if (secondIndex == originalPolySize + added[mePoly]) { // Use original size
+							secondIndex = 0; // Wrap to start of shifted array
+						}
+						int aPointIndex = 0;
+						int bPointIndex = 0;
+						// Bounds check before accessing array
+						if (firstIndex + polyStart >= length || secondIndex + polyStart >= length) {
+							added[mePoly] = -1;
+							skip = true;
+						}
+						if (!skip) {
+							for (int tp = 0; tp < uniquePoints.length; tp++) {
+								int testPointIndex = uniquePoints[tp];
+								skip = false;
+								for (int px = 0; px < originalPolySize + added[mePoly]; px++) {
+									if (polygonPointOrder[polyStart + px] == testPointIndex) {
+										skip = true;
+									}
+								}
+								if(added[mePoly] < 0) {
+									skip=true;
 								}
 
-								int aPointIndex = polygonPointOrder[now + polyStart];
-								int bPointIndex = polygonPointOrder[next + polyStart];
-								skip = (aPointIndex == testPointIndex || bPointIndex == testPointIndex
-										|| aPointIndex < 0 || bPointIndex < 0);
-								if (added[mePoly] >= ExtraSpace) {
-									skip = true;
+								if (!skip) {
+									aPointIndex = polygonPointOrder[firstIndex + polyStart];
+									bPointIndex = polygonPointOrder[secondIndex + polyStart];
 								}
 								if (!skip) {
+									float nowX = pointDataX[testPointIndex];
+									float nowY = pointDataY[testPointIndex];
+									float nowZ = pointDataZ[testPointIndex];
 									float aX = pointDataX[aPointIndex];
 									float aY = pointDataY[aPointIndex];
 									float aZ = pointDataZ[aPointIndex];
@@ -1801,12 +1828,12 @@ public class CSG implements IuserAPI, Serializable {
 									// Calculate squared length of AB
 									float abLengthSquared = abX * abX + abY * abY + abZ * abZ;
 
-									if (!skip) {
+									if (abLengthSquared > epsSq ) { // Avoid division by zero
 										// Calculate parameter t for closest point on line
 										float t = dotProduct / abLengthSquared;
 
 										// Check if the projection falls within the line segment
-										if (t >= -eps && t <= 1.0f + eps) {
+										if (t >= 0 && t <= 1.0f) {
 											// Calculate the point on the line segment
 											float linePointX = aX + t * abX;
 											float linePointY = aY + t * abY;
@@ -1819,50 +1846,78 @@ public class CSG implements IuserAPI, Serializable {
 
 											// Use squared distance to avoid square root calculation
 											float distanceSquared = diffX * diffX + diffY * diffY + diffZ * diffZ;
-
+											// Point is touching the line segment
 											if (distanceSquared <= eps * eps) {
-												// Point is touching the line segment
-//												int sizeAdded = added[mePoly];
-//												if(sizeAdded==(ExtraSpace-1) && mePoly==2156) {
-//													sizeAdded=0;
-//												}
-
-												if (next > 0) {
-													for (int k = polysize + added[mePoly]; k > now; k--) {
-														int l = k + polyStart;
-														int k2 = l - 1;
-														polygonPointOrder[l] = polygonPointOrder[k2];
+												int lengthAdded = 0;
+												if (secondIndex==0) {
+													lengthAdded = added[mePoly];
+												}
+												// Bounds check before insertion
+												if (polyStart + originalPolySize + added[mePoly] + 1 < length) {
+													if(secondIndex!=0) {
+														for (int indexOfTheMovingItem = originalPolySize + added[mePoly]; 
+																 indexOfTheMovingItem > secondIndex;
+																 indexOfTheMovingItem--) {
+															int targetPolygonIndex = indexOfTheMovingItem + polyStart;
+															int sourcePolygonIndex = targetPolygonIndex - 1;
+															polygonPointOrder[targetPolygonIndex] = polygonPointOrder[sourcePolygonIndex];
+															polygonPointOrder[sourcePolygonIndex]=-2;
+														}
+													}else {
+														secondIndex=firstIndex+1;
 													}
-													polygonPointOrder[next + polyStart] = testPointIndex;
-												} else
-													polygonPointOrder[polysize + polyStart
-															+ added[mePoly]] = testPointIndex;
-												polySizes[mePoly] += 1;
-												added[mePoly] += 1;
-												if (added[mePoly] == ExtraSpace) {
+													polygonPointOrder[secondIndex + polyStart] = testPointIndex;
+													polySizes[mePoly] += 1;
+													added[mePoly] += 1;												
+
+													if (added[mePoly] >= extraSpace - 1) {
+														added[mePoly] = -1;
+													}
+													// Test for invalid indexes in the polygon
+													for (int test = 0; test < polySizes[mePoly]; test++) {
+														if (polygonPointOrder[test + polyStart] < 0) {
+															added[mePoly] = -1;
+														}
+													}
+												} else {
+													// No room for insertion
 													added[mePoly] = -1;
 												}
 											}
 										}
 									}
 								}
-							}
-						}
-					}
-				}
 
+							} // FOr each Point In Unique points
+						} // second skip cjeck
+					} // Skip loop check
+				} // For loop all points in polygon
 			}
-
 		};
-		run(numberOfPolygons, findNonManifoldPoints, done, "Manifold Itr("+iteration+")");
-		int pointsAdded = 0;
-		for (int x = 0; x < added.length; x++)
-			if (added[x] < 0) {
-				progressMoniter.progressUpdate(1,1,"Manifold failed after " + x,this);
-				pointsAdded = -1;
-				break;
-			} else
-				pointsAdded += added[x];
+		pointsAdded = 0;
+		run(numberOfPolygons, findNonManifoldPoints, done, "Manifold Itr(" + iteration + ")", () -> {
+			pointsAdded = 0;
+			String out = "points added report [";
+			for (int x = 0; x < added.length; x++) {
+				if (added[x] < 0) {
+					progressMoniter.progressUpdate(1, 1,
+							"\n\nManifold failed after " + x + " of " + numberOfPolygons + " polygons ", this);
+					pointsAdded = -1;
+					break;
+				} else {
+					pointsAdded += added[x];
+					if (added[x] > 0 && out.length() < 300)
+						out += " to " + x + " added " + (added[x]) + " size " + polySizes[x] + " , ";
+				}
+			}
+			out += "]";
+			out = "Total added " + pointsAdded + " " + out;
+			if (pointsAdded > 0) {
+				progressMoniter.progressUpdate(1, 1, out, this);
+				//return true;
+			}
+			return false;
+		}, iteration);
 
 		ArrayList<Polygon> newPoly = new ArrayList<>();
 		for (int i = 0; i < polygons.size(); i++) {
@@ -1875,17 +1930,21 @@ public class CSG implements IuserAPI, Serializable {
 			for (int j = 0; j < polySize; j++) {
 				int pointIndex = polygonPointOrder[startIndex + j];
 				if (pointIndex < 0) {
-					throw new RuntimeException("Algorithm error");
+					new RuntimeException("Algorithm error").printStackTrace();
+					continue;
 				}
 				if (pointIndexSet.contains(pointIndex)) {
+					System.out.println("ERR polygon " + i + " already has a point " + pointIndex);
 					continue;
 				}
 				pointIndexSet.add(pointIndex);
 				Vector3d thispoint = orderedPoints[pointIndex];
 				points.add(new Vertex(thispoint, pl.getNormal()));
 			}
-			if (points.size() < 3)
+			if (points.size() < 3) {
+				System.out.println("ERR polygon " + i + " pruned because of too few points");
 				continue;
+			}
 			Polygon p = new Polygon(points, polygon.getStorage(), true, pl);
 			newPoly.add(p);
 			polygon.getPoints().clear();
@@ -1895,28 +1954,46 @@ public class CSG implements IuserAPI, Serializable {
 		return pointsAdded;
 	}
 
-	private void run(int numberOfPoints, Kernel kernel, float[] done, String type) {
-		progressMoniter.progressUpdate(0,100,"Start "+type,this);
+	private void run(int numberOfPoints, Kernel kernel, float[] done, String type, BooleanSupplier test, int itr) {
+		String object = useGPU ? "(" + kernel.getTargetDevice().getType().toString() + ")" : "(CPU)";
+
+		progressMoniter.progressUpdate(0, 100, "Start " + object + type, this);
 		if (!useGPU) {
-			System.setProperty("com.aparapi.threadPoolSize",
-					String.valueOf(Runtime.getRuntime().availableProcessors()));
+			String valueOf = String.valueOf(Runtime.getRuntime().availableProcessors());
+			progressMoniter.progressUpdate(0, 100, "CPU mode " + valueOf, this);
+			System.setProperty("com.aparapi.threadPoolSize", valueOf);
 			kernel.setExecutionMode(Kernel.EXECUTION_MODE.JTP); // Java Thread Pool
 		}
+		int[] iteration = new int[] { itr };
+
 		Thread thread = new Thread(() -> {
-			kernel.execute(numberOfPoints);
+			do {
+				kernel.execute(numberOfPoints);
+				for (int i = 0; i < done.length; i++) {
+					done[i] = 0;
+				}
+				iteration[0] += 1;
+				progressMoniter.progressUpdate(iteration[0], 50, object + type + "(" + iteration[0] + ")", this);
+			} while (test.getAsBoolean());
 		});
 		thread.start();
+		int lastItr = itr;
 		do {
+			if (kernel.getTargetDevice().getType().toString().contains("JTP")) {
+				useGPU = false;
+			}
 			if (!useGPU) {
 				float doneness = 0;
 				for (int i = 0; i < done.length; i++) {
 					doneness += done[i];
 				}
 				float percent = doneness / ((float) done.length) * 100.0f;
-				progressMoniter.progressUpdate((int) (100.0 * percent), 100, type, this);
+				// int currentPass = kernel.getCurrentPass();
+				// percent=(float)currentPass/(float)numberOfPoints;
+				progressMoniter.progressUpdate((int) (percent), 100, object + type + "(" + iteration[0] + ")", this);
 			}
 			try {
-				Thread.sleep(useGPU ? 1 : 500);
+				Thread.sleep(useGPU ? 16 : 500);
 			} catch (InterruptedException e) {
 				// Auto-generated catch block
 				e.printStackTrace();
@@ -1928,16 +2005,15 @@ public class CSG implements IuserAPI, Serializable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		progressMoniter.progressUpdate(100,100,"Finished on " + kernel.getTargetDevice().getType(),this);
+		progressMoniter.progressUpdate(100, 100, "Finished on " + object, this);
 	}
 
 	private void updatePolygons(ArrayList<Polygon> toAdd, Polygon p) {
 
-
 		if (p.getVertices().size() == 3) {
 			toAdd.add(p);
 		} else {
-			
+
 			try {
 				if (!p.areAllPointsCollinear()) {
 					List<Polygon> triangles = PolygonUtil.concaveToConvex(p);
@@ -1946,17 +2022,17 @@ public class CSG implements IuserAPI, Serializable {
 					}
 				} else {
 					System.err.println("Polygon is colinear, removing " + p);
-					return ;
+					return;
 				}
 			} catch (Throwable ex) {
 //				System.err.println("Failed to triangulate "+p);
 //				ex.printStackTrace();
 				progressMoniter.progressUpdate(1, 1, "Pruning bad polygon CSG::updatePolygons " + p, null);
-				return ;
+				return;
 			}
 
 		}
-		return ;
+		return;
 	}
 
 	/**
