@@ -22,7 +22,8 @@ public class CSGtoJavafx {
 		double maxZ = Double.NEGATIVE_INFINITY;
 
 		int counter = 0;
-		for (Polygon p : poly) {
+		for (int j = 0; j < poly.size(); j++) {
+			Polygon p = poly.get(j);
 			if (p.getVertices().size() >= 3) {
 
 				// TODO: improve the triangulation?
@@ -125,8 +126,7 @@ public class CSGtoJavafx {
 					counter += 3;
 				} // end for
 			} // end if #verts >= 3
-
-		} // end for polygon
+		}
 
 		return new MeshContainer(new Vector3d(minX, minY, minZ), new Vector3d(maxX, maxY, maxZ), mesh);
 	}
