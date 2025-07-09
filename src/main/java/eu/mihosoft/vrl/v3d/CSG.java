@@ -43,6 +43,7 @@ import eu.mihosoft.vrl.v3d.parametrics.Parameter;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -177,7 +178,7 @@ public class CSG implements IuserAPI, Serializable {
 	// GPU processing
 	private static boolean useGPU = true;
 	private int pointsAdded;
-	private static int ExtraSpace = 70;;
+	private static int ExtraSpace = 100;
 
 	private static ICSGProgress progressMoniter = new ICSGProgress() {
 		@Override
@@ -1602,12 +1603,25 @@ public class CSG implements IuserAPI, Serializable {
 		int added = 0;
 		int itr = 1;
 		do {
-			added = runGPUMakeManifold(itr);
-			if (added >= 0)
-				System.out.println("Manifold iteration added " + added + " points ");
+			long np = 0;
+			int numberOfPolygons = polygons.size();
+
+			for (int i = 0; i < numberOfPolygons; i++) {
+				np += (polygons.get(i).getVertices().size());
+			}
+			int extraSpace = ExtraSpace;
+			long longLength = 1 + np + ((numberOfPolygons + 1) * extraSpace);
+			if (longLength*4 > Integer.MAX_VALUE)
+				new RuntimeException("Mesh too large to process with integers!").printStackTrace();
 			else {
-				ExtraSpace += 10;
-				System.out.println("Increaasing extra space to " + ExtraSpace);
+				System.err.println("Processing Mesh Manifold with "+longLength*4+" byte buffer");
+				added = runGPUMakeManifold(itr, (int) np, (int) longLength, numberOfPolygons);
+				if (added >= 0)
+					System.out.println("Manifold iteration added " + added + " points ");
+				else {
+					ExtraSpace += 10;
+					System.out.println("Increaasing extra space to " + ExtraSpace);
+				}
 			}
 		} while (added < 0 && itr++ < 51);
 		// }
@@ -1630,16 +1644,13 @@ public class CSG implements IuserAPI, Serializable {
 		}
 	}
 
-	private int runGPUMakeManifold(int iteration) {
+	private int runGPUMakeManifold(int iteration, int np, int longLength, int numPoly) {
+		if(iteration<0||np<=0||longLength<=0||numPoly<=0)
+			throw new RuntimeException("Error none of the dataa lengths can be negative nor 0");
 		// Flattened approach - more Aparapi-friendly
-		int np = 0;
-		int numberOfPolygons = polygons.size();
-
-		for (int i = 0; i < numberOfPolygons; i++) {
-			np += (polygons.get(i).getVertices().size());
-		}
+		int numberOfPolygons = numPoly;
 		int extraSpace = ExtraSpace;
-		int numberOfPointsWithExtra = 1 + np + ((numberOfPolygons + 1) * extraSpace);
+		int numberOfPointsWithExtra = longLength;
 		int numberOfPoints = np;
 		// Flattened arrays instead of objects
 		float[] pointDataX = new float[numberOfPoints];
@@ -1680,8 +1691,8 @@ public class CSG implements IuserAPI, Serializable {
 		}
 
 		// System.out.println("Data loaded!");
-		float eps = (float) Plane.getEPSILON();
-		float epsSq = eps * eps;
+		float eps = (float) Plane.getEPSILON()/10;
+		float epsSq = (float)(Plane.getEPSILON() * Plane.getEPSILON())*100;
 
 		// Aparapi-compatible kernel with flattened data
 		Kernel snapPointsToDistance = new Kernel() {
@@ -1722,7 +1733,7 @@ public class CSG implements IuserAPI, Serializable {
 				}
 			}
 		};
-		run(numberOfPoints, snapPointsToDistance, done, "Snap Points Itr(" + iteration + ")", () -> false, iteration);
+		gpuRun(numberOfPoints, snapPointsToDistance, done, "Snap Points Itr(" + iteration + ")", () -> false, iteration,1);
 		if (preventNonManifoldTriangles) {
 			HashSet<Integer> unique = new HashSet<Integer>();
 			int running = 0;
@@ -1744,6 +1755,8 @@ public class CSG implements IuserAPI, Serializable {
 				uniquePoints[b++] = val;
 			}
 			int[] added = new int[numberOfPolygons];
+			int testPointChunk = 100;
+			int[] tp=new int[] {0,testPointChunk};
 			Kernel findNonManifoldPoints = new Kernel() {
 				@Override
 				public void run() {
@@ -1784,8 +1797,8 @@ public class CSG implements IuserAPI, Serializable {
 								skip = true;
 							}
 							if (!skip) {
-								for (int tp = 0; tp < uniquePoints.length; tp++) {
-									int testPointIndex = uniquePoints[tp];
+								for (int tpInc = tp[0]; tpInc < tp[1]&& tpInc<uniquePoints.length; tpInc++) {
+									int testPointIndex = uniquePoints[tpInc];
 									skip = false;
 									for (int px = 0; px < originalPolySize + added[mePoly]; px++) {
 										if (polygonPointOrder[polyStart + px] == testPointIndex) {
@@ -1851,18 +1864,22 @@ public class CSG implements IuserAPI, Serializable {
 													// Bounds check before insertion
 													if (polyStart + originalPolySize + added[mePoly] + 1 < length) {
 														// When a point is found to be on the line
-														// move all the items in the array to make room, 
-														// unless the second index is a wrapping item
-														// in the wrap case we simply set the second 
+														// move all the items in the array to make room,
+														// unless the second index is a wrapping item.
+														// In the wrap case we simply set the second
 														// index to the new empty space in the buffer.
 														// This ensures that the new line segment between first
-														// and the new point, as well as the new point and the 
+														// and the new point, as well as the new point and the
 														// wrapping condition in the next iteration of the outer
 														// polygon segment loop will be checked against all points.
-														// the remaining points in the unique points buffer are checked 
-														// against the line from the first index, and this new added point.
-														// As new points are added, closer and closer to this first point, the
-														// subsequent vectors will be checked in the longer running of the outer loop. 
+														// the remaining points in the unique points buffer are checked
+														// against the line from the first index, and this new added
+														// point.
+														// As new points are added, closer and closer to this first
+														// point, the
+														// subsequent vectors will be checked in the longer running of
+														// the outer loop.
+														// Be careful when changing this!
 														if (secondIndex != 0) {
 															for (int indexOfTheMovingItem = originalPolySize
 																	+ added[mePoly]; indexOfTheMovingItem > secondIndex; indexOfTheMovingItem--) {
@@ -1890,12 +1907,12 @@ public class CSG implements IuserAPI, Serializable {
 													} else {
 														// No room for insertion
 														added[mePoly] = -1;
-													}// check for room in the polygon point buffer
-												}// verify the point is on the line
-											}// test is the point is between the given points
-										}// test if the length of the segment is on the line
-									}// skip the comparison
-								} // FOr each Point In Unique points
+													} // check for room in the polygon point buffer
+												} // verify the point is on the line
+											} // test is the point is between the given points
+										} // test if the length of the segment is on the line
+									} // skip the comparison
+								} // For each Point In Unique points
 							} // second skip check
 						} // Skip loop check
 					} // For loop all points in polygon
@@ -1903,7 +1920,15 @@ public class CSG implements IuserAPI, Serializable {
 			};
 			pointsAdded = 0;
 
-			run(numberOfPolygons, findNonManifoldPoints, done, "Manifold Itr(" + iteration + ")", () -> {
+			gpuRun(numberOfPolygons, findNonManifoldPoints, done, "Manifold Itr(" + iteration + ")", () -> {
+				//for (int tp = 0; tp < uniquePoints.length; tp++) 
+				// Iterate through each of the test points in host thread
+				tp[0]+=testPointChunk;
+				tp[1]+=testPointChunk;
+				if(tp[1]>uniquePoints.length)
+					tp[1]=uniquePoints.length;
+				if(tp[0]<uniquePoints.length)
+					return true;
 				pointsAdded = 0;
 				String out = "points added report [";
 				for (int x = 0; x < added.length; x++) {
@@ -1925,7 +1950,7 @@ public class CSG implements IuserAPI, Serializable {
 					// return true;
 				}
 				return false;
-			}, iteration);
+			}, iteration,uniquePoints.length/testPointChunk);
 		}
 		ArrayList<Polygon> newPoly = new ArrayList<>();
 		for (int i = 0; i < polygons.size(); i++) {
@@ -1934,18 +1959,18 @@ public class CSG implements IuserAPI, Serializable {
 			ArrayList<Vertex> points = new ArrayList<Vertex>();
 			int startIndex = polyStartIndex[i];
 			int polySize = polySizes[i];
-			HashSet<Integer> pointIndexSet = new HashSet<Integer>();
+			//HashSet<Integer> pointIndexSet = new HashSet<Integer>();
 			for (int j = 0; j < polySize; j++) {
 				int pointIndex = polygonPointOrder[startIndex + j];
 				if (pointIndex < 0) {
 					new RuntimeException("Algorithm error").printStackTrace();
 					continue;
 				}
-				if (pointIndexSet.contains(pointIndex)) {
-					System.out.println("ERR polygon " + i + " already has a point " + pointIndex);
-					continue;
-				}
-				pointIndexSet.add(pointIndex);
+//				if (pointIndexSet.contains(pointIndex)) {
+//					System.out.println("ERR polygon " + i + " already has a point " + pointIndex);
+//					continue;
+//				}
+				//pointIndexSet.add(pointIndex);
 				Vector3d thispoint = orderedPoints[pointIndex];
 				points.add(new Vertex(thispoint, pl.getNormal()));
 			}
@@ -1962,30 +1987,37 @@ public class CSG implements IuserAPI, Serializable {
 		return pointsAdded;
 	}
 
-	private void run(int numberOfPoints, Kernel kernel, float[] done, String type, BooleanSupplier test, int itr) {
+	private void gpuRun(int numberOfPoints, Kernel kernel, float[] done, String type, BooleanSupplier test, int itr, int expectedIterations) {
 		String object = useGPU ? "(" + kernel.getTargetDevice().getType().toString() + ")" : "(CPU)";
 
 		progressMoniter.progressUpdate(0, 100, "Start " + object + type, this);
 		if (!useGPU) {
-			String valueOf = String.valueOf(Runtime.getRuntime().availableProcessors());
+			String valueOf = String.valueOf(Runtime.getRuntime().availableProcessors()*4);
 			progressMoniter.progressUpdate(0, 100, "CPU mode " + valueOf, this);
 			System.setProperty("com.aparapi.threadPoolSize", valueOf);
 			kernel.setExecutionMode(Kernel.EXECUTION_MODE.JTP); // Java Thread Pool
 		}
-		int[] iteration = new int[] { itr };
+		int[] iteration = new int[] { 0 };
 
 		Thread thread = new Thread(() -> {
+			long begin = System.currentTimeMillis();
 			do {
 				kernel.execute(numberOfPoints);
+				iteration[0] += 1;
+				long sinceStart = System.currentTimeMillis()-begin;
+				long took = sinceStart/iteration[0];
+				long expected = took*expectedIterations;
+				long remaining =expected - sinceStart ;
 				for (int i = 0; i < done.length; i++) {
 					done[i] = 0;
 				}
-				iteration[0] += 1;
-				progressMoniter.progressUpdate(iteration[0], 50, object + type + "(" + iteration[0] + ")", this);
+
+				String dur = makeTimestamp(expected);
+				String rem = makeTimestamp(remaining);
+				progressMoniter.progressUpdate(iteration[0], expectedIterations, object + type + "(" + iteration[0] + ") Estimated time: "+dur+" Remaining: "+rem, this);
 			} while (test.getAsBoolean());
 		});
 		thread.start();
-		int lastItr = itr;
 		do {
 			if (kernel.getTargetDevice().getType().toString().contains("JTP")) {
 				useGPU = false;
@@ -1998,6 +2030,7 @@ public class CSG implements IuserAPI, Serializable {
 				float percent = doneness / ((float) done.length) * 100.0f;
 				// int currentPass = kernel.getCurrentPass();
 				// percent=(float)currentPass/(float)numberOfPoints;
+				if(expectedIterations==1)
 				progressMoniter.progressUpdate((int) (percent), 100, object + type + "(" + iteration[0] + ")", this);
 			}
 			try {
@@ -2014,6 +2047,17 @@ public class CSG implements IuserAPI, Serializable {
 			e.printStackTrace();
 		}
 		progressMoniter.progressUpdate(100, 100, "Finished on " + object, this);
+	}
+
+	private String makeTimestamp(long expected) {
+		Duration duration = Duration.ofMillis(expected);
+		
+		long hours = duration.toHours();
+		long minutes = duration.toMinutes() % 60;
+		long seconds = duration.getSeconds() % 60;
+			        
+		String dur= String.format("%02d:%02d:%02d", hours, minutes, seconds);
+		return dur;
 	}
 
 	private void updatePolygons(ArrayList<Polygon> toAdd, Polygon p) {
@@ -2034,7 +2078,7 @@ public class CSG implements IuserAPI, Serializable {
 				}
 			} catch (Throwable ex) {
 //				System.err.println("Failed to triangulate "+p);
-//				ex.printStackTrace();
+				ex.printStackTrace();
 				progressMoniter.progressUpdate(1, 1, "Pruning bad polygon CSG::updatePolygons " + p, null);
 				return;
 			}
