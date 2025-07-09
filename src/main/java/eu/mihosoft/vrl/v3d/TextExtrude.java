@@ -142,17 +142,18 @@ public class TextExtrude {
 		Path subtract = (Path) (Shape.subtract(textNode, new Rectangle(0, 0)));
 		List<List<Vector3d>> outlines = extractOutlines(subtract);
 		double zOff = 0;
+		boolean b = CSG.isPreventNonManifoldTriangles();
+		CSG.setPreventNonManifoldTriangles(false);
 		for (List<Vector3d> points : outlines) {
 			boolean hole = Extrude.isCCW(Polygon.fromPoints(points));
 			CSG newLetter = Extrude.points(new Vector3d(0, 0, dir), points).movez(zOff);
-
+			newLetter.triangulate();
 			if (!hole)
 				sections.add(newLetter);
 			else
 				holes.add(newLetter);
-			// zOff+=dir;
-
 		}
+		CSG.setPreventNonManifoldTriangles(b);
 //		// Convert Path elements into lists of points defining the perimeter
 //		// (exterior or interior)
 //		subtract.getElements().forEach(this::getPoints);

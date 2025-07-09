@@ -703,6 +703,8 @@ public class SVGLoad {
 			}
 			ArrayList<CSG> parts = csgByLayers.get(key);
 			parts.clear();
+			boolean b = CSG.isPreventNonManifoldTriangles();
+			CSG.setPreventNonManifoldTriangles(false);
 			for (Polygon p : getPolygonByLayers().get(key)) {
 				boolean isHole =p.isHole();
 				CSG newbit;
@@ -718,11 +720,13 @@ public class SVGLoad {
 						//newbit=newbit.movez(negativeThickness?0.5:-0.5);
 						newbit.setIsHole(true);
 					}
+					newbit.triangulate();
 					parts.add(newbit);
 				} catch (Exception ex) {
 					ex.printStackTrace();
 				}
 			}
+			CSG.setPreventNonManifoldTriangles(b);
 		}
 
 		return csgByLayers;

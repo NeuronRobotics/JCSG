@@ -100,6 +100,11 @@ public class STL {
 			}
 		}
 
-		return CSG.fromPolygons(new PropertyStorage(), polygons);
+		CSG fromPolygons = CSG.fromPolygons(new PropertyStorage(), polygons);
+		boolean b = CSG.isPreventNonManifoldTriangles();
+		CSG.setPreventNonManifoldTriangles(false);
+		fromPolygons.triangulate();
+		CSG.setPreventNonManifoldTriangles(b);
+		return fromPolygons;
 	}
 }
