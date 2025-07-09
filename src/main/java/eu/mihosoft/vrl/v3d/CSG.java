@@ -1691,8 +1691,8 @@ public class CSG implements IuserAPI, Serializable {
 		}
 
 		// System.out.println("Data loaded!");
-		float eps = (float) Plane.getEPSILON()/10;
-		float epsSq = (float)(Plane.getEPSILON() * Plane.getEPSILON())*100;
+		float eps = 0.00001f;
+		float epsSq = (float)(eps* eps);
 
 		// Aparapi-compatible kernel with flattened data
 		Kernel snapPointsToDistance = new Kernel() {
@@ -1755,7 +1755,7 @@ public class CSG implements IuserAPI, Serializable {
 				uniquePoints[b++] = val;
 			}
 			int[] added = new int[numberOfPolygons];
-			int testPointChunk = 100;
+			int testPointChunk = 50;
 			int[] tp=new int[] {0,testPointChunk};
 			Kernel findNonManifoldPoints = new Kernel() {
 				@Override
@@ -1987,13 +1987,12 @@ public class CSG implements IuserAPI, Serializable {
 		return pointsAdded;
 	}
 
-	private void gpuRun(int numberOfPoints, Kernel kernel, float[] done, String type, BooleanSupplier test, int itr, int expectedIterations) {
-		String object = useGPU ? "(" + kernel.getTargetDevice().getType().toString() + ")" : "(CPU)";
+	public static void gpuRun(int numberOfPoints, Kernel kernel, float[] done, String type, BooleanSupplier test, int itr, int expectedIterations) {
 
-		progressMoniter.progressUpdate(0, 100, "Start " + object + type, this);
+		progressMoniter.progressUpdate(0, 100, "Start " + typOfCPU(kernel) + type, null);
 		if (!useGPU) {
 			String valueOf = String.valueOf(Runtime.getRuntime().availableProcessors()*4);
-			progressMoniter.progressUpdate(0, 100, "CPU mode " + valueOf, this);
+			progressMoniter.progressUpdate(0, 100, "CPU mode " + valueOf, null);
 			System.setProperty("com.aparapi.threadPoolSize", valueOf);
 			kernel.setExecutionMode(Kernel.EXECUTION_MODE.JTP); // Java Thread Pool
 		}
@@ -2006,15 +2005,16 @@ public class CSG implements IuserAPI, Serializable {
 				iteration[0] += 1;
 				long sinceStart = System.currentTimeMillis()-begin;
 				long took = sinceStart/iteration[0];
-				long expected = took*expectedIterations;
+				long expected = took*(expectedIterations+2);
 				long remaining =expected - sinceStart ;
 				for (int i = 0; i < done.length; i++) {
 					done[i] = 0;
 				}
-
+				if(remaining<0)
+					remaining=0;
 				String dur = makeTimestamp(expected);
 				String rem = makeTimestamp(remaining);
-				progressMoniter.progressUpdate(iteration[0], expectedIterations, object + type + "(" + iteration[0] + ") Estimated time: "+dur+" Remaining: "+rem, this);
+				progressMoniter.progressUpdate(iteration[0], expectedIterations, typOfCPU(kernel) + type + "(" + iteration[0] + ") Estimated time: "+dur+" Remaining: "+rem, null);
 			} while (test.getAsBoolean());
 		});
 		thread.start();
@@ -2031,25 +2031,29 @@ public class CSG implements IuserAPI, Serializable {
 				// int currentPass = kernel.getCurrentPass();
 				// percent=(float)currentPass/(float)numberOfPoints;
 				if(expectedIterations==1)
-				progressMoniter.progressUpdate((int) (percent), 100, object + type + "(" + iteration[0] + ")", this);
+				progressMoniter.progressUpdate((int) (percent), 100, typOfCPU(kernel) + type + "(" + iteration[0] + ")", null);
 			}
 			try {
-				Thread.sleep(useGPU ? 16 : 500);
+				Thread.sleep(useGPU ? 1 : 100);
 			} catch (InterruptedException e) {
 				// Auto-generated catch block
 				e.printStackTrace();
 			}
-		} while (kernel.isExecuting());
+		} while (kernel.isExecuting() && thread.isAlive());
 		try {
 			thread.join();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		progressMoniter.progressUpdate(100, 100, "Finished on " + object, this);
+		progressMoniter.progressUpdate(100, 100, "Finished on " + typOfCPU(kernel), null);
 	}
 
-	private String makeTimestamp(long expected) {
+	private static String typOfCPU(Kernel kernel) {
+		return useGPU ? "(" + kernel.getTargetDevice().getType().toString() + ")" : "(CPU)";
+	}
+
+	private static String makeTimestamp(long expected) {
 		Duration duration = Duration.ofMillis(expected);
 		
 		long hours = duration.toHours();
