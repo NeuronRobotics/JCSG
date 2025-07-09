@@ -179,7 +179,7 @@ public class BezierPath {
 		int end = plInternal.size()-1;
 
 		for(Vector3d v:plInternal) {
-			if(Math.abs(v.minus(eval).magnitude())<Plane.getEPSILON()) {
+			if(Math.abs(v.minus(eval).magnitude())<0.001) {
 				return false;
 			}
 		}

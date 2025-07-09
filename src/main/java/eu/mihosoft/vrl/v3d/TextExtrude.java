@@ -281,7 +281,7 @@ public class TextExtrude {
 			Vector3d point = outline.get(i);
 			boolean touching=false;
 			for(Vector3d v:cleaned) {
-				if(v.test(point, Plane.getEPSILON()*100))
+				if(v.test(point, 0.001))
 					touching=true;
 			}
 			if(!touching)

@@ -85,7 +85,13 @@ public class Extrude {
 			List<Polygon> newPolygons = new ArrayList<>();
 			CSG extrude;
 			//polygon1=polygon1.flipped();
-			newPolygons.addAll(PolygonUtil.concaveToConvex(polygon1.flipped()));
+//			List<Vertex> newVertices = new ArrayList<>();
+//			polygon1.getVertices().forEach((vertex) -> {
+//	            newVertices.add(vertex.clone());
+//	        });
+//	        Polygon top= new Polygon(newVertices, polygon1.getStorage(),true,polygon1.getPlane().clone()).setColor(polygon1.getColor());
+	        Polygon top=polygon1.flipped();
+			newPolygons.addAll(PolygonUtil.concaveToConvex(top));
 			Polygon polygon2 = polygon1.transformed(new Transform().move(dir));
 
 			int numvertices = polygon1.getVertices().size();
@@ -99,7 +105,7 @@ public class Extrude {
 				Vector3d bottomV2 = polygon1.getVertices().get(nexti).pos;
 				Vector3d topV2 = polygon2.getVertices().get(nexti).pos;
 				double distance = bottomV1.minus(bottomV2).magnitude();
-				if(Math.abs(distance)<Plane.getEPSILON()) {
+				if(Math.abs(distance)<0.001) {
 					//com.neuronrobotics.sdk.common.Log.error("Skipping invalid polygon "+i+" to "+nexti);
 					continue;
 				}
@@ -112,8 +118,7 @@ public class Extrude {
 				}
 			}
 
-			polygon2 = polygon2.flipped();
-			List<Polygon> topPolygons = PolygonUtil.concaveToConvex(polygon2.flipped());
+			List<Polygon> topPolygons = PolygonUtil.concaveToConvex(polygon2);
 
 			newPolygons.addAll(topPolygons);
 			extrude = CSG.fromPolygons(newPolygons);
@@ -795,10 +800,16 @@ public class Extrude {
 
 	public static Polygon toCCW(Polygon concave) {
 		if (!isCCW(concave)) {
-			List<Vector3d> points = concave.getPoints();
-			List<Vector3d> result = new ArrayList<>(points);
+//			List<Vector3d> points = concave.getPoints();
+//			List<Vector3d> result = new ArrayList<>(points);
+//			Collections.reverse(result);
+//			return Polygon.fromPoints(result);
+			List<Vertex> points = concave.getVertices();
+			List<Vertex> result = new ArrayList<>(points);
 			Collections.reverse(result);
-			return Polygon.fromPoints(result);
+			Plane p = concave.getPlane().clone();
+			p.flip();
+			return new Polygon(result, concave.getStorage(), true, p);
 		}
 		return concave;
 	}
