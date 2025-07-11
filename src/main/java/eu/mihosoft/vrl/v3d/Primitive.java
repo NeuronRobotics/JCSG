@@ -61,7 +61,7 @@ public abstract class Primitive implements ItoCSG{
      * @return this primitive as {@link CSG}
      */
     public   CSG toCSG() {
-    	CSG tmp = CSG.fromPolygons(getProperties(),toPolygons());
+    	CSG tmp = CSG.fromPolygons(getProperties(),new ArrayList<>(toPolygons()));
     	if(parametrics!=null)
     		for(Parameter p:parametrics)
     			tmp.setParameter(p);

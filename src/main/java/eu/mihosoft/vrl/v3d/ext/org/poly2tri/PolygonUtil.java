@@ -468,7 +468,7 @@ public class PolygonUtil {
 	 * @param incoming the concave
 	 * @return the list
 	 */
-	public static List<Polygon> concaveToConvex(Polygon incoming) {
+	public static ArrayList<Polygon> concaveToConvex(Polygon incoming) {
 		return concaveToConvex(incoming, true);
 	}
 
@@ -478,8 +478,8 @@ public class PolygonUtil {
 	 * @param incoming the concave
 	 * @return the list
 	 */
-	public static List<Polygon> concaveToConvex(Polygon incoming, boolean toCCW) {
-		List<Polygon> result = new ArrayList<>();
+	public static ArrayList<Polygon> concaveToConvex(Polygon incoming, boolean toCCW) {
+		ArrayList<Polygon> result = new ArrayList<>();
 
 		if (incoming == null)
 			return result;

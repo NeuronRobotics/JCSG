@@ -38,6 +38,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
+
 //  Auto-generated Javadoc
 /**
  * Holds a node in a BSP tree. A BSP tree is built from a collection of polygons
@@ -47,11 +49,14 @@ import java.util.stream.Stream;
  * no distinction between internal and leaf nodes.
  */
 public final class Node {
-
+	private static final int COPLANAR = 0;
+	private static final int FRONT = 1;
+	private static final int BACK = 2;
+	private static final int SPANNING = 3; // == some in the FRONT + some in the BACK
 	/**
 	 * Polygons.
 	 */
-	private List<Polygon> polygons;
+	private ArrayList<Polygon> polygons;
 	/**
 	 * Plane used for BSP.
 	 */
@@ -64,7 +69,7 @@ public final class Node {
 	 * Polygons in back of the plane.
 	 */
 	private Node back;
-	
+
 	private long maxDepth = -1;
 
 	/**
@@ -74,7 +79,7 @@ public final class Node {
 	 *
 	 * @param polygons polygons
 	 */
-	public Node(List<Polygon> polygons) {
+	public Node(ArrayList<Polygon> polygons) {
 		this.polygons = new ArrayList<>();
 		if (polygons != null) {
 			this.build(polygons);
@@ -106,12 +111,12 @@ public final class Node {
 
 		Stream<Polygon> polygonStream;
 
-        if (polygons.size() > 200) {
-            polygonStream = polygons.parallelStream();
-        } else 
-		polygonStream = polygons.stream();
+		if (polygons.size() > 200) {
+			polygonStream = polygons.parallelStream();
+		} else
+			polygonStream = polygons.stream();
 
-		node.polygons = polygonStream.map(p -> p.clone()).collect(Collectors.toList());
+		node.polygons = polygonStream.map(p -> p.clone()).collect(Collectors.toCollection(ArrayList::new));
 
 		return node;
 	}
@@ -123,10 +128,10 @@ public final class Node {
 
 		Stream<Polygon> polygonStream;
 
-        if (polygons.size() > 200) {
-            polygonStream = polygons.parallelStream();
-        } else 
-		polygonStream = polygons.stream();
+		if (polygons.size() > 200) {
+			polygonStream = polygons.parallelStream();
+		} else
+			polygonStream = polygons.stream();
 
 		polygonStream.forEach((polygon) -> {
 			polygon.flip();
@@ -136,8 +141,9 @@ public final class Node {
 			this.setPlane(polygons.get(0).getPlane().clone());
 		} else if (this.getPlane() == null && polygons.isEmpty()) {
 
-			//com.neuronrobotics.sdk.common.Log.error("Please fix me! I don't know what to do?");
-			throw new RuntimeException("Please fix me! Plane = "+plane+" and polygons are empty");
+			// com.neuronrobotics.sdk.common.Log.error("Please fix me! I don't know what to
+			// do?");
+			throw new RuntimeException("Please fix me! Plane = " + plane + " and polygons are empty");
 			// return;
 		}
 
@@ -164,18 +170,17 @@ public final class Node {
 	 *
 	 * @return the cliped list of polygons
 	 */
-	private List<Polygon> clipPolygons(List<Polygon> polygons) {
+	private ArrayList<Polygon> clipPolygons(ArrayList<Polygon> polygons) {
 
 		if (this.getPlane() == null) {
 			return new ArrayList<>(polygons);
 		}
 
-		List<Polygon> frontP = new ArrayList<>();
-		List<Polygon> backP = new ArrayList<>();
+		ArrayList<Polygon> frontP = new ArrayList<>();
+		ArrayList<Polygon> backP = new ArrayList<>();
 
-		for (Polygon polygon : polygons) {
-			this.getPlane().splitPolygon(polygon, frontP, backP, frontP, backP);
-		}
+		splitPolygon(polygons, frontP, backP, frontP, backP);
+
 		if (this.front != null) {
 			frontP = this.front.clipPolygons(frontP);
 		}
@@ -187,6 +192,138 @@ public final class Node {
 
 		frontP.addAll(backP);
 		return frontP;
+	}
+
+	/**
+	 * Splits a {@link Polygon} by this plane if needed. After that it puts the
+	 * polygons or the polygon fragments in the appropriate lists ({@code front},
+	 * {@code back}). Coplanar polygons go into either {@code coplanarFront},
+	 * {@code coplanarBack} depending on their orientation with respect to this
+	 * plane. Polygons in front or back of this plane go into either {@code front}
+	 * or {@code back}.
+	 *
+	 * @param polygon       polygon to split
+	 * @param coplanarFront "coplanar front" polygons
+	 * @param coplanarBack  "coplanar back" polygons
+	 * @param front         front polygons
+	 * @param back          back polgons
+	 */
+	public void splitPolygon(ArrayList<Polygon> polygons, List<Polygon> coplanarFront, List<Polygon> coplanarBack,
+			List<Polygon> front, List<Polygon> back) {
+		for (int k = 0; k < polygons.size(); k++) {
+			Polygon polygon = polygons.get(k);
+
+
+			// search for the epsilon values of the incoming plane
+			double negEpsilon = -Plane.getEPSILON();
+			double posEpsilon = Plane.getEPSILON();
+			for (int i = 0; i < polygon.getVertices().size(); i++) {
+				double t = polygon.getPlane().getNormal().dot(polygon.getVertices().get(i).pos)
+						- polygon.getPlane().getDist();
+				if (t > posEpsilon) {
+					// com.neuronrobotics.sdk.common.Log.error("Non flat polygon, increasing
+					// positive epsilon "+t);
+					posEpsilon = t + Plane.getEPSILON();
+				}
+				if (t < negEpsilon) {
+					// com.neuronrobotics.sdk.common.Log.error("Non flat polygon, decreasing
+					// negative epsilon "+t);
+					negEpsilon = t - Plane.getEPSILON();
+				}
+			}
+			int polygonType = 0;
+			List<Integer> types = new ArrayList<>();
+			boolean somePointsInfront = false;
+			boolean somePointsInBack = false;
+			for (int i = 0; i < polygon.getVertices().size(); i++) {
+				double t = this.getPlane().getNormal().dot(polygon.getVertices().get(i).pos)
+						- this.getPlane().getDist();
+				int type = (t < negEpsilon) ? BACK : (t > posEpsilon) ? FRONT : COPLANAR;
+				if (type == BACK)
+					somePointsInBack = true;
+				if (type == FRONT)
+					somePointsInfront = true;
+				types.add(type);
+			}
+			if (somePointsInBack && somePointsInfront)
+				polygonType = SPANNING;
+			else if (somePointsInBack) {
+				polygonType = BACK;
+			} else if (somePointsInfront)
+				polygonType = FRONT;
+
+			// Put the polygon in the correct list, splitting it when necessary.
+			switch (polygonType) {
+			case COPLANAR:
+				(this.getPlane().getNormal().dot(polygon.getPlane().getNormal()) > 0 ? coplanarFront : coplanarBack)
+						.add(polygon);
+				break;
+			case FRONT:
+				front.add(polygon);
+				break;
+			case BACK:
+				back.add(polygon);
+				break;
+			case SPANNING:
+				List<Vertex> f = new ArrayList<>();
+				List<Vertex> b = new ArrayList<>();
+				for (int i = 0; i < polygon.getVertices().size(); i++) {
+					int j = (i + 1) % polygon.getVertices().size();
+					int ti = types.get(i);
+					int tj = types.get(j);
+					Vertex vi = polygon.getVertices().get(i);
+					Vertex vj = polygon.getVertices().get(j);
+					if (ti != BACK) {
+						f.add(vi);
+					}
+					if (ti != FRONT) {
+						b.add(ti != BACK ? vi.clone() : vi);
+					}
+					if ((ti | tj) == SPANNING) {
+						double t = (this.getPlane().getDist() - this.getPlane().getNormal().dot(vi.pos))
+								/ this.getPlane().getNormal().dot(vj.pos.minus(vi.pos));
+						Vertex v = vi.interpolate(vj, t);
+						f.add(v);
+						b.add(v.clone());
+					}
+				}
+				if (f.size() >= 3) {
+					try {
+						Polygon fpoly = new Polygon(f, polygon.getStorage(), false, polygon.getPlane())
+								.setColor(polygon.getColor());
+						add(front, fpoly);
+					} catch (Exception ex) {
+						System.err.println("Pruning bad polygon Plane::splitPolygon");
+						// skip adding broken polygon here
+					}
+				} else {
+					// com.neuronrobotics.sdk.common.Log.error("Front Clip Fault!");
+				}
+				if (b.size() >= 3) {
+					try {
+						Polygon bpoly = new Polygon(b, polygon.getStorage(), false, polygon.getPlane())
+								.setColor(polygon.getColor());
+						add(back, bpoly);
+					} catch (Exception ex) {
+						// ex.printStackTrace();
+						System.err.println("Pruning bad polygon Plane::splitPolygon");
+					}
+				} else {
+					// com.neuronrobotics.sdk.common.Log.error("Back Clip Fault!");
+				}
+				break;
+			}
+		}
+	}
+
+	private static void add(List<Polygon> l, Polygon p) {
+		try {
+			// test triangulation of new polygon before adding
+			PolygonUtil.concaveToConvex(p);
+			l.add(p);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
 	}
 
 	// Remove all polygons in this BSP tree that are inside the other BSP tree
@@ -214,8 +351,8 @@ public final class Node {
 	 *
 	 * @return a list of all polygons in this BSP tree
 	 */
-	public List<Polygon> allPolygons() {
-		List<Polygon> localPolygons = new ArrayList<>(this.polygons);
+	public ArrayList<Polygon> allPolygons() {
+		ArrayList<Polygon> localPolygons = new ArrayList<>(this.polygons);
 		if (this.front != null) {
 			localPolygons.addAll(this.front.allPolygons());
 //            polygons = Utils.concat(polygons, this.front.allPolygons());
@@ -236,8 +373,8 @@ public final class Node {
 	 *
 	 * @param polygons polygons used to build the BSP
 	 */
-	public final void build(List<Polygon> polygons) {
-		build(polygons, 0,polygons.size() );
+	public final void build(ArrayList<Polygon> polygons) {
+		build(polygons, 0, polygons.size());
 	}
 
 	/**
@@ -248,7 +385,7 @@ public final class Node {
 	 *
 	 * @param polygons polygons used to build the BSP
 	 */
-	public final void build(List<Polygon> polygons, long depth, long maxDepth) {
+	public final void build(ArrayList<Polygon> polygons, long depth, long maxDepth) {
 //		if (depth > maxDepth) {
 //			throw new RuntimeException("Impossible Node depth " + depth + " with " + polygons.size() + " remaining max = "+maxDepth );
 //		}
@@ -267,26 +404,26 @@ public final class Node {
 		if (this.getPlane() == null) {
 			this.setPlane(polygons.get(0).getPlane().clone());
 		}
-		//this.polygons.add(polygons.get(0));
+		// this.polygons.add(polygons.get(0));
 
-		List<Polygon> frontP = new ArrayList<>();
-		List<Polygon> backP = new ArrayList<>();
+		ArrayList<Polygon> frontP = new ArrayList<>();
+		ArrayList<Polygon> backP = new ArrayList<>();
 
 		// parellel version does not work here
-		for(int i=0;i<polygons.size();i++) {
-			this.getPlane().splitPolygon(polygons.get(i), this.polygons, this.polygons, frontP, backP);
-		}
+
+		splitPolygon(polygons, this.polygons, this.polygons, frontP, backP);
+
 		if (frontP.size() > 0) {
 			if (this.front == null) {
 				this.front = new Node();
 			}
-			this.front.build(frontP, depth + 1,maxDepth);
+			this.front.build(frontP, depth + 1, maxDepth);
 		}
 		if (backP.size() > 0) {
 			if (this.back == null) {
 				this.back = new Node();
 			}
-			this.back.build(backP, depth + 1,maxDepth);
+			this.back.build(backP, depth + 1, maxDepth);
 		}
 	}
 
@@ -295,7 +432,7 @@ public final class Node {
 	}
 
 	public void setPlane(Plane plane) {
-		if(plane==null)
+		if (plane == null)
 			throw new RuntimeException("Plane can not be null!");
 		this.plane = plane;
 	}

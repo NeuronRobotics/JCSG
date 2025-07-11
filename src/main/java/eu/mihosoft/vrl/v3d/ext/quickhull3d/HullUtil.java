@@ -78,7 +78,7 @@ public class HullUtil {
 
 		int[][] faces = hull.getFaces();
 
-		List<Polygon> polygons = new ArrayList<>();
+		ArrayList<Polygon> polygons = new ArrayList<>();
 
 		List<Vector3d> vertices = new ArrayList<>();
 

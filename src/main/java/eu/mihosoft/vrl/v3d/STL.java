@@ -83,7 +83,7 @@ public class STL {
 	public static CSG file(Path path) throws IOException {
 		STLLoader loader = new STLLoader();
 
-		List<Polygon> polygons = new ArrayList<>();
+		ArrayList<Polygon> polygons = new ArrayList<>();
 		List<Vertex> vertices = new ArrayList<>();
 		for (Vertex p : loader.parse(path.toFile())) {
 			vertices.add(p);

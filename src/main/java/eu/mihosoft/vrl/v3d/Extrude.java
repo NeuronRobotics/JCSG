@@ -82,7 +82,7 @@ public class Extrude {
 			return monotoneExtrude(dir, polygon1);
 		}
 		private CSG monotoneExtrude(Vector3d dir, Polygon polygon1) {
-			List<Polygon> newPolygons = new ArrayList<>();
+			ArrayList<Polygon> newPolygons = new ArrayList<>();
 			CSG extrude;
 			//polygon1=polygon1.flipped();
 //			List<Vertex> newVertices = new ArrayList<>();
@@ -118,7 +118,7 @@ public class Extrude {
 				}
 			}
 
-			List<Polygon> topPolygons = PolygonUtil.concaveToConvex(polygon2);
+			ArrayList<Polygon> topPolygons = PolygonUtil.concaveToConvex(polygon2);
 
 			newPolygons.addAll(topPolygons);
 			extrude = CSG.fromPolygons(newPolygons);
@@ -151,7 +151,7 @@ public class Extrude {
 		// polygon2=Polygon.fromPoints(toCCW(polygon2.getPoints()));
 		// }
 
-		List<Polygon> newPolygons = new ArrayList<>();
+		ArrayList<Polygon> newPolygons = new ArrayList<>();
 		CSG extrude;
 		newPolygons.addAll(PolygonUtil.concaveToConvex(polygon1.flipped()));
 		if (polygon1.getVertices().size() != polygon2.getVertices().size()) {
@@ -588,7 +588,7 @@ public class Extrude {
 	}
 	public static CSG sweep(Polygon p, Transform increment, Transform offset, int steps,ITransformProvider provider) {
 		Polygon offsetP = p.transformed(offset);
-		List<Polygon> newPolygons = new ArrayList<>();
+		ArrayList<Polygon> newPolygons = new ArrayList<>();
 		newPolygons.addAll(PolygonUtil.concaveToConvex(offsetP));
 		Transform running = new Transform();
 		Polygon prev = offsetP.transformed(provider.get(0, steps));
