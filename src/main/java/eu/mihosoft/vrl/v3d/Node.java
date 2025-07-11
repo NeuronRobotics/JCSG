@@ -173,7 +173,7 @@ public final class Node {
 	private ArrayList<Polygon> clipPolygons(ArrayList<Polygon> polygons) {
 
 		if (this.getPlane() == null) {
-			return new ArrayList<>(polygons);
+			throw new RuntimeException("Plane can not be null");
 		}
 
 		ArrayList<Polygon> frontP = new ArrayList<>();
@@ -210,6 +210,7 @@ public final class Node {
 	 */
 	public void splitPolygon(ArrayList<Polygon> polygons, List<Polygon> coplanarFront, List<Polygon> coplanarBack,
 			List<Polygon> front, List<Polygon> back) {
+		
 		for (int k = 0; k < polygons.size(); k++) {
 			Polygon polygon = polygons.get(k);
 
