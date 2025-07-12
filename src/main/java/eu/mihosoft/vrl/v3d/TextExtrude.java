@@ -140,20 +140,20 @@ public class TextExtrude {
 
 		// Convert Text to Path
 		Path subtract = (Path) (Shape.subtract(textNode, new Rectangle(0, 0)));
-		List<List<Vector3d>> outlines = extractOutlines(subtract);
+		List<List<Vector3d>> outlines = extractOutlines(subtract,font.getSize());
 		double zOff = 0;
-		boolean b = CSG.isPreventNonManifoldTriangles();
-		CSG.setPreventNonManifoldTriangles(false);
+//		boolean b = CSG.isPreventNonManifoldTriangles();
+//		CSG.setPreventNonManifoldTriangles(false);
 		for (List<Vector3d> points : outlines) {
 			boolean hole = Extrude.isCCW(Polygon.fromPoints(points));
 			CSG newLetter = Extrude.points(new Vector3d(0, 0, dir), points).movez(zOff);
-			newLetter.triangulate();
+			//newLetter.triangulate();
 			if (!hole)
 				sections.add(newLetter);
 			else
 				holes.add(newLetter);
 		}
-		CSG.setPreventNonManifoldTriangles(b);
+//		CSG.setPreventNonManifoldTriangles(b);
 //		// Convert Path elements into lists of points defining the perimeter
 //		// (exterior or interior)
 //		subtract.getElements().forEach(this::getPoints);
@@ -207,13 +207,14 @@ public class TextExtrude {
 	/**
 	 * Converts a JavaFX Text object into a list of cleaned vector lists
 	 * representing the outlines
+	 * @param fontSize 
 	 */
-	public static List<List<Vector3d>> extractOutlines(Path text) {
+	public static List<List<Vector3d>> extractOutlines(Path text, double fontSize) {
 		List<List<Vector3d>> rawOutlines = extractRawOutlines(text);
 		List<List<Vector3d>> cleanedOutlines = new ArrayList<>();
 
 		for (List<Vector3d> outline : rawOutlines) {
-			List<Vector3d> cleaned = cleanOutline(outline);
+			List<Vector3d> cleaned = cleanOutline(outline,fontSize);
 			if (cleaned.size() >= 3) { // Only keep outlines with at least 3 points
 				cleanedOutlines.add(cleaned);
 			}
@@ -271,8 +272,9 @@ public class TextExtrude {
 
 	/**
 	 * Clean an outline by removing duplicate points and ensuring proper closure
+	 * @param fontSize 
 	 */
-	private static List<Vector3d> cleanOutline(List<Vector3d> outline) {
+	private static List<Vector3d> cleanOutline(List<Vector3d> outline, double fontSize) {
 		if (outline.isEmpty())
 			return outline;
 
@@ -281,7 +283,7 @@ public class TextExtrude {
 			Vector3d point = outline.get(i);
 			boolean touching=false;
 			for(Vector3d v:cleaned) {
-				if(v.test(point, 0.001))
+				if(v.test(point, fontSize>15?0.001:0.0001))
 					touching=true;
 			}
 			if(!touching)

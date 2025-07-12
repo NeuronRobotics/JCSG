@@ -800,16 +800,16 @@ public class Extrude {
 
 	public static Polygon toCCW(Polygon concave) {
 		if (!isCCW(concave)) {
-//			List<Vector3d> points = concave.getPoints();
-//			List<Vector3d> result = new ArrayList<>(points);
-//			Collections.reverse(result);
-//			return Polygon.fromPoints(result);
-			List<Vertex> points = concave.getVertices();
-			List<Vertex> result = new ArrayList<>(points);
+			List<Vector3d> points = concave.getPoints();
+			List<Vector3d> result = new ArrayList<>(points);
 			Collections.reverse(result);
-			Plane p = concave.getPlane().clone();
-			p.flip();
-			return new Polygon(result, concave.getStorage(), true, p);
+			return Polygon.fromPoints(result);
+//			List<Vertex> points = concave.getVertices();
+//			List<Vertex> result = new ArrayList<>(points);
+//			Collections.reverse(result);
+//			Plane p = concave.getPlane().clone();
+//			p.flip();
+//			return new Polygon(result, concave.getStorage(), true, p);
 		}
 		return concave;
 	}

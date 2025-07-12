@@ -210,7 +210,15 @@ public final class Node {
 	 */
 	public void splitPolygon(ArrayList<Polygon> polygons, List<Polygon> coplanarFront, List<Polygon> coplanarBack,
 			List<Polygon> front, List<Polygon> back) {
+		int n = 0;
+		int polygonNumber = polygons.size();
+		for (int k = 0; k < polygonNumber; k++) {
+			Polygon polygon = polygons.get(k);
+			n+=polygon.getVertices().size();
+		}
+		int pointsNumber =n+(n*2/3);
 		
+				
 		for (int k = 0; k < polygons.size(); k++) {
 			Polygon polygon = polygons.get(k);
 
@@ -290,7 +298,7 @@ public final class Node {
 				}
 				if (f.size() >= 3) {
 					try {
-						Polygon fpoly = new Polygon(f, polygon.getStorage(), false, polygon.getPlane())
+						Polygon fpoly = new Polygon(f, polygon.getStorage(), true, polygon.getPlane())
 								.setColor(polygon.getColor());
 						add(front, fpoly);
 					} catch (Exception ex) {
@@ -302,7 +310,7 @@ public final class Node {
 				}
 				if (b.size() >= 3) {
 					try {
-						Polygon bpoly = new Polygon(b, polygon.getStorage(), false, polygon.getPlane())
+						Polygon bpoly = new Polygon(b, polygon.getStorage(), true, polygon.getPlane())
 								.setColor(polygon.getColor());
 						add(back, bpoly);
 					} catch (Exception ex) {
