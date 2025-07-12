@@ -212,11 +212,35 @@ public final class Node {
 			List<Polygon> front, List<Polygon> back) {
 		int n = 0;
 		int polygonNumber = polygons.size();
+		int max=0;
+		ArrayList<Vertex> orderedPoints = new ArrayList<Vertex>();
+		int [] polygonStartIndex = new int[polygonNumber];
+		int [] polygonSize = new int[polygonNumber];
+		float [] polygonNormalX=new float[polygonNumber];
+		float [] polygonNormalY=new float[polygonNumber];
+		float [] polygonNormalZ=new float[polygonNumber];
+		float [] polygonNormalDistance=new float[polygonNumber];
+
 		for (int k = 0; k < polygonNumber; k++) {
 			Polygon polygon = polygons.get(k);
-			n+=polygon.getVertices().size();
+			List<Vertex> vertices = polygon.getVertices();
+			int size = vertices.size();
+			if(size>max)
+				max=size;
+			n+=size;
+			polygonStartIndex[k]=orderedPoints.size();
+			polygonSize[k]=size;
+			polygonNormalX[k]=(float)polygon.getPlane().getNormal().x;
+			polygonNormalY[k]=(float)polygon.getPlane().getNormal().y;
+			polygonNormalZ[k]=(float)polygon.getPlane().getNormal().z;
+			polygonNormalDistance[k]=(float)polygon.getPlane().getDist();
+			orderedPoints.addAll(vertices);
 		}
 		int pointsNumber =n+(n*2/3);
+		int [] types = new int[max];
+		float[] polygonPointX = new float[pointsNumber];
+		float[] polygonPointY = new float[pointsNumber];
+		float[] polygonPointZ = new float[pointsNumber];
 		
 				
 		for (int k = 0; k < polygons.size(); k++) {
@@ -241,7 +265,6 @@ public final class Node {
 				}
 			}
 			int polygonType = 0;
-			List<Integer> types = new ArrayList<>();
 			boolean somePointsInfront = false;
 			boolean somePointsInBack = false;
 			for (int i = 0; i < polygon.getVertices().size(); i++) {
@@ -252,7 +275,7 @@ public final class Node {
 					somePointsInBack = true;
 				if (type == FRONT)
 					somePointsInfront = true;
-				types.add(type);
+				types[i]=type;
 			}
 			if (somePointsInBack && somePointsInfront)
 				polygonType = SPANNING;
@@ -278,8 +301,8 @@ public final class Node {
 				List<Vertex> b = new ArrayList<>();
 				for (int i = 0; i < polygon.getVertices().size(); i++) {
 					int j = (i + 1) % polygon.getVertices().size();
-					int ti = types.get(i);
-					int tj = types.get(j);
+					int ti = types[i];
+					int tj = types[j];
 					Vertex vi = polygon.getVertices().get(i);
 					Vertex vj = polygon.getVertices().get(j);
 					if (ti != BACK) {
@@ -298,7 +321,7 @@ public final class Node {
 				}
 				if (f.size() >= 3) {
 					try {
-						Polygon fpoly = new Polygon(f, polygon.getStorage(), true, polygon.getPlane())
+						Polygon fpoly = new Polygon(f, polygon.getStorage(), true, new Plane(polygon.getPlane().getNormal(),f))
 								.setColor(polygon.getColor());
 						add(front, fpoly);
 					} catch (Exception ex) {
@@ -310,7 +333,7 @@ public final class Node {
 				}
 				if (b.size() >= 3) {
 					try {
-						Polygon bpoly = new Polygon(b, polygon.getStorage(), true, polygon.getPlane())
+						Polygon bpoly = new Polygon(b, polygon.getStorage(), true, new Plane(polygon.getPlane().getNormal(),b))
 								.setColor(polygon.getColor());
 						add(back, bpoly);
 					} catch (Exception ex) {
