@@ -220,15 +220,15 @@ public final class Node {
 		int numberOfPointsTmp = 0;
 		int polygonNumber = polygons.size();
 		int max = 0;
-		int ExtraSpace = 10;
+		int ExtraSpace = 70;
 		ArrayList<Vertex> orderedPoints = new ArrayList<Vertex>();
 		int[] polygonStartIndex = new int[polygonNumber];
 		int[] polygonSize = new int[polygonNumber];
 		int[] newPointStartIndex = new int[polygonNumber];
-		float[] polygonNormalX = new float[polygonNumber];
-		float[] polygonNormalY = new float[polygonNumber];
-		float[] polygonNormalZ = new float[polygonNumber];
-		float[] polygonNormalDistance = new float[polygonNumber];
+		float[] NormalPolygonX = new float[polygonNumber];
+		float[] NormalPolygonY = new float[polygonNumber];
+		float[] NormalPolygonZ = new float[polygonNumber];
+		float[] NormalPolygonDistance = new float[polygonNumber];
 
 		for (int k = 0; k < polygonNumber; k++) {
 			Polygon polygon = polygons.get(k);
@@ -239,10 +239,10 @@ public final class Node {
 			numberOfPointsTmp += size;
 			polygonStartIndex[k] = orderedPoints.size();
 			polygonSize[k] = size;
-			polygonNormalX[k] = (float) polygon.getPlane().getNormal().x;
-			polygonNormalY[k] = (float) polygon.getPlane().getNormal().y;
-			polygonNormalZ[k] = (float) polygon.getPlane().getNormal().z;
-			polygonNormalDistance[k] = (float) polygon.getPlane().getDist();
+			NormalPolygonX[k] = (float) polygon.getPlane().getNormal().x;
+			NormalPolygonY[k] = (float) polygon.getPlane().getNormal().y;
+			NormalPolygonZ[k] = (float) polygon.getPlane().getNormal().z;
+			NormalPolygonDistance[k] = (float) polygon.getPlane().getDist();
 			orderedPoints.addAll(vertices);
 		}
 		int[] coplanarFrontStartIndex = new int[polygonNumber];
@@ -335,6 +335,17 @@ public final class Node {
 				}
 			}
 
+			float gx(int polygonIndex, int pointIndex) {
+				return polygonPointX[getGlobalPointIndex(polygonIndex, pointIndex)];
+			}
+
+			float gy(int polygonIndex, int pointIndex) {
+				return polygonPointY[getGlobalPointIndex(polygonIndex, pointIndex)];
+			}
+
+			float gz(int polygonIndex, int pointIndex) {
+				return polygonPointZ[getGlobalPointIndex(polygonIndex, pointIndex)];
+			}
 			float x(int polygonIndex, int pointIndex) {
 				return polygonPointX[getPointIndex(polygonIndex, pointIndex)];
 			}
@@ -346,7 +357,6 @@ public final class Node {
 			float z(int polygonIndex, int pointIndex) {
 				return polygonPointZ[getPointIndex(polygonIndex, pointIndex)];
 			}
-
 			int writeIncrementPoint(int polygonIndex, int source) {
 				int pointInPolygon = mypolygonSize[polygonIndex];
 				incrementSize(polygonIndex);
@@ -356,22 +366,28 @@ public final class Node {
 				return writePoint(polygonIndex, pointInPolygon, x, y, z);
 			}
 
-			int interpolate(int polygonIndex, int vi, int vj, float t) {
+			int interpolate(int polygonIndex, int vi, int vj, float t, Vertex vi2, Vertex vj2, Vertex vOld) {
 				int pointInPolygon = mypolygonSize[polygonIndex];
 				incrementSize(polygonIndex);
 				if(memoryError[0])
 					return -1;
-				float xa = x(polygonIndex, vi);
-				float ya = y(polygonIndex, vi);
-				float za = z(polygonIndex, vi);
-				float xb = x(polygonIndex, vj);
-				float yb = y(polygonIndex, vj);
-				float zb = z(polygonIndex, vj);
+				float xvi = gx(polygonIndex, vi);
+				float yvi = gy(polygonIndex, vi);
+				float zvi = gz(polygonIndex, vi);
+				float xvj = gx(polygonIndex, vj);
+				float yvj = gy(polygonIndex, vj);
+				float zvj = gz(polygonIndex, vj);
 
-				float lerp_x = xa + ((xb - xa) * t);
-				float lerp_y = ya + ((yb - ya) * t);
-				float lerp_z = za + ((zb - za) * t);
-
+				float lerp_x = xvi + ((xvj - xvi) * t);
+				float lerp_y = yvi + ((yvj - yvi) * t);
+				float lerp_z = zvi + ((zvj - zvi) * t);
+				
+				
+				if(Math.abs(lerp_x)>100000||Math.abs(lerp_y)>100000||Math.abs(lerp_z)>100000) {
+					memoryError[0]=true;
+					return -1;
+				}
+				
 				return writePoint(polygonIndex, pointInPolygon, lerp_x, lerp_y, lerp_z);
 			}
 
@@ -382,7 +398,9 @@ public final class Node {
 				polygonPointZ[pointIndex] = z;
 				return pointIndex;
 			}
-
+			private int getGlobalPointIndex(int polygonIndex, int point) {
+				return polygonStartIndex[polygonIndex] + point;
+			}
 			private int getPointIndex(int polygonIndex, int point) {
 				return mypolygonStartIndex[polygonIndex] + point;
 			}
@@ -392,23 +410,23 @@ public final class Node {
 			}
 
 			float polygonDotPoint(int polygonIndex, int pointIndex) {
-				return dot(polygonNormalX[polygonIndex], polygonNormalY[polygonIndex], polygonNormalZ[polygonIndex],
-						x(polygonIndex, pointIndex), y(polygonIndex, pointIndex), z(polygonIndex, pointIndex));
+				return dot(NormalPolygonX[polygonIndex], NormalPolygonY[polygonIndex], NormalPolygonZ[polygonIndex],
+						gx(polygonIndex, pointIndex), gy(polygonIndex, pointIndex), gz(polygonIndex, pointIndex));
 			}
 
 			float planeDotPoint(int polygonIndex, int pointIndex) {
-				return dot(planeNormalX, planeNormalY, planeNormalZ, x(polygonIndex, pointIndex),
-						y(polygonIndex, pointIndex), z(polygonIndex, pointIndex));
+				return dot(planeNormalX, planeNormalY, planeNormalZ, gx(polygonIndex, pointIndex),
+						gy(polygonIndex, pointIndex), gz(polygonIndex, pointIndex));
 			}
 
 			float planeDotPointMinusPoint(int polygonIndex, int vj, int vi) {
-				return dot(planeNormalX, planeNormalY, planeNormalZ, x(polygonIndex, vj) - x(polygonIndex, vi),
-						y(polygonIndex, vj) - y(polygonIndex, vi), z(polygonIndex, vj) - z(polygonIndex, vi));
+				return dot(planeNormalX, planeNormalY, planeNormalZ, gx(polygonIndex, vj) - gx(polygonIndex, vi),
+						gy(polygonIndex, vj) - gy(polygonIndex, vi), gz(polygonIndex, vj) - gz(polygonIndex, vi));
 			}
 
 			float planeDotPolygonNormal(int polygonIndex) {
-				return dot(planeNormalX, planeNormalY, planeNormalZ, polygonNormalX[polygonIndex],
-						polygonNormalY[polygonIndex], polygonNormalZ[polygonIndex]);
+				return dot(planeNormalX, planeNormalY, planeNormalZ, NormalPolygonX[polygonIndex],
+						NormalPolygonY[polygonIndex], NormalPolygonZ[polygonIndex]);
 			}
 		}
 
@@ -426,7 +444,7 @@ public final class Node {
 			// search for the epsilon values of the incoming plane
 			float negEpsilon = -epsilon;
 			float posEpsilon = epsilon;
-			float polygonNormalDistanceVal = polygonNormalDistance[polygonIndex];
+			float polygonNormalDistanceVal = NormalPolygonDistance[polygonIndex];
 			for (int i = 0; i < polygonManager.size(polygonIndex); i++) {
 				// (float) (polygon.getPlane().getNormal().dot(polygon.getVertices().get(i).pos)
 				float t = (polygonManager.polygonDotPoint(polygonIndex, i) - polygonNormalDistanceVal);
@@ -448,14 +466,13 @@ public final class Node {
 
 				float t = polygonManager.planeDotPoint(polygonIndex, i) - planeNormalDistance;
 
-//				double tOld = this.getPlane().getNormal().dot(polygon.getVertices().get(i).pos)
-//						- this.getPlane().getDist();
-//				double delta = Math.abs(tOld-t);
-//				if(delta>posEpsilon)
-//					throw new RuntimeException("Algorithm fail!");
-//				
-//				
-				int type = (t < negEpsilon) ? BACK : (t > posEpsilon) ? FRONT : COPLANAR;
+				double tOld = this.getPlane().getNormal().dot(polygon.getVertices().get(i).pos)
+						- this.getPlane().getDist();
+				double delta = Math.abs(tOld-t);
+				if(delta>epsilon) {
+					//throw new RuntimeException("Algorithm fail!");
+				}
+				int type = (tOld < negEpsilon) ? BACK : (tOld > posEpsilon) ? FRONT : COPLANAR;
 				if (type == BACK)
 					somePointsInBack = true;
 				if (type == FRONT)
@@ -474,19 +491,23 @@ public final class Node {
 			case COPLANAR:
 				if (polygonManager.planeDotPolygonNormal(polygonIndex) > 0) {
 					coplanarFrontManager.copy(polygonIndex);
+					coplanarFront.add(polygon);
 				} else {
 					coplanarBackManager.copy(polygonIndex);
+					coplanarBack.add(polygon);
 				}
 				break;
 			case FRONT:
 				frontManager.copy(polygonIndex);
+				front.add(polygon);
 				break;
 			case BACK:
 				backManager.copy(polygonIndex);
+				back.add(polygon);
 				break;
 			case SPANNING:
-//				List<Vertex> f = new ArrayList<>();
-//				List<Vertex> b = new ArrayList<>();
+				List<Vertex> f = new ArrayList<>();
+				List<Vertex> b = new ArrayList<>();
 				int size = polygonManager.size(polygonIndex);
 				int retF = frontManager.addPolygon(polygonIndex, size - 1);
 				if (retF < 0) {
@@ -505,35 +526,73 @@ public final class Node {
 					int j = (i + 1) % size;
 					int ti = types[i];
 					int tj = types[j];
-//					Vertex vi = polygon.getVertices().get(i);
-//					Vertex vj = polygon.getVertices().get(j);
+					Vertex vi = polygon.getVertices().get(i);
+					Vertex vj = polygon.getVertices().get(j);
 					int viIndex = polygonManager.getPointIndex(polygonIndex, i);
 					int vjIndex = polygonManager.getPointIndex(polygonIndex, j);
 					if (ti != BACK) {
 						frontManager.writeIncrementPoint(polygonIndex, viIndex);
-						// f.add(vi);
+						addPoint(f, vi);
 					}
 					if (ti != FRONT) {
-						// b.add(ti != BACK ? vi.clone() : vi);
+						addPoint(b,ti != BACK ? vi.clone() : vi);
 						backManager.writeIncrementPoint(polygonIndex, viIndex);
 					}
 					if ((ti | tj) == SPANNING) {
+						double tol = epsilon*10;
+
+						
+						double d = this.getPlane().getDist() - this.getPlane().getNormal().dot(vi.pos);
+						double dotMinusOld = this.getPlane().getNormal().dot(vj.pos.minus(vi.pos));
+						double tOld =0;
+							tOld =d / dotMinusOld;
+						
 						// this.getPlane().getNormal().dot(vj.pos.minus(vi.pos))
-						float dotMinus = polygonManager.planeDotPointMinusPoint(polygonIndex, vjIndex, viIndex);
+						float dotMinus = polygonManager.planeDotPointMinusPoint(polygonIndex, j, i);
 						// this.getPlane().getNormal().dot(vi.pos)
-						float t = (planeNormalDistance - polygonManager.planeDotPoint(polygonIndex, viIndex))
-								/ dotMinus;
+						float g = planeNormalDistance - polygonManager.planeDotPoint(polygonIndex, i);
+						float t = 0;
+							t=g / dotMinus;
 						// Vertex v = vi.interpolate(vj, t);
-						int v = frontManager.interpolate(polygonIndex, i, j, t);
+//						if(t>1)
+//							t=0;
+//						if(t<0)
+//							t=0;
+//						if(tOld>1)
+//							tOld=1;
+//						if(tOld<0)
+//							tOld=0;
+						double abs = Math.abs(t-tOld);
+						if(!Float.isFinite(t) || !Double.isFinite(d)) {
+							memoryError[0]=true;
+							break;
+						}
+						Vertex vOld = vi.interpolate(vj, tOld);
+
+						int v = frontManager.interpolate(polygonIndex, i, j, t,vi,vj,vOld);
+						double x= polygonPointX[v];
+						double y= polygonPointY[v];
+						double z= polygonPointZ[v];
+						double abs2 = Math.abs(vOld.pos.x-x);
+						double abs3 = Math.abs(vOld.pos.y-y);
+						double abs4 = Math.abs(vOld.pos.z-z);
+						if(	abs2>tol||
+							abs3>tol||
+							abs4>tol||
+							abs>tol) {
+							memoryError[0]=true;
+							break;
+						}
+						
 						if (memoryError[0])
 							break;
 						backManager.writeIncrementPoint(polygonIndex, v);
-//						f.add(v);
-//						b.add(v.clone());
+						addPoint(f, vOld);
+						addPoint(b,vOld.clone());
 					}
 				}
-//				add(front, f,polygon);
-//				add(back, b,polygon);
+				add(front, f,polygon);
+				add(back, b,polygon);
 				break;
 			}
 		} // outer for loop of all polygons
@@ -541,18 +600,18 @@ public final class Node {
 			throw new RuntimeException("Memory error here!");
 
 		// Collect the polygon data into the return structures
-		for (int k = 0; k < polygonNumber; k++) {
-			Polygon polygon = polygons.get(k);
-			add(coplanarFront, k, coplanarFrontStartIndex, coplanarFrontSize, orderedPoints, polygonPointX,
-					polygonPointY, polygonPointZ, polygon);
-			add(coplanarBack, k, coplanarBackStartIndex, coplanarBackSize, orderedPoints, polygonPointX, polygonPointY,
-					polygonPointZ, polygon);
-			add(front, k, frontStartIndex, frontSize, orderedPoints, polygonPointX, polygonPointY, polygonPointZ,
-					polygon);
-			add(coplanarFront, k, coplanarFrontStartIndex, coplanarFrontSize, orderedPoints, polygonPointX,
-					polygonPointY, polygonPointZ, polygon);
-
-		}
+//		for (int k = 0; k < polygonNumber; k++) {
+//			Polygon polygon = polygons.get(k);
+//			add(coplanarFront, k, coplanarFrontStartIndex, coplanarFrontSize, orderedPoints, polygonPointX,
+//					polygonPointY, polygonPointZ, polygon);
+//			add(coplanarBack, k, coplanarBackStartIndex, coplanarBackSize, orderedPoints, polygonPointX, polygonPointY,
+//					polygonPointZ, polygon);
+//			add(front, k, frontStartIndex, frontSize, orderedPoints, polygonPointX, polygonPointY, polygonPointZ,
+//					polygon);
+//			add(coplanarFront, k, coplanarFrontStartIndex, coplanarFrontSize, orderedPoints, polygonPointX,
+//					polygonPointY, polygonPointZ, polygon);
+//
+//		}
 	}
 
 	private static void add(List<Polygon> l, int polygonIndex, int[] polygonStartIndex, int[] polygonSize,
@@ -570,26 +629,36 @@ public final class Node {
 				float y = polygonY[i];
 				float z = polygonZ[i];
 				Vertex v = new Vertex(new Vector3d(x, y, z), polygon.plane.getNormal());
-				f.add(v);
+				addPoint(f, v);
 			}
 		}
 
 		add(l, f, polygon);
 	}
 
+	private static boolean addPoint(List<Vertex> f, Vertex v) {
+		for(int i=0;i<f.size();i++) {
+			if(Math.abs( v.pos.distance(f.get(i).pos))<0.0001) {
+				return false;
+			}
+		}
+		return f.add(v);
+	}
+
 	private static void add(List<Polygon> l, List<Vertex> f, Polygon polygon) {
 		if (f.size() < 3)
 			return;
+		Polygon fpoly=null;
 		try {
-			Polygon fpoly = new Polygon(f, polygon.getStorage(), true, new Plane(polygon.getPlane().getNormal(), f))
+			fpoly = new Polygon(f, polygon.getStorage(), true, new Plane(polygon.getPlane().getNormal(), f))
 					.setColor(polygon.getColor());
 			// test triangulation of new polygon before adding
 			PolygonUtil.concaveToConvex(fpoly);
 			l.add(fpoly);
 
 		} catch (Exception ex) {
-			// ex.printStackTrace();
-			System.err.println("Pruning bad polygon Node::splitPolygon::add " + l);
+//			ex.printStackTrace();
+			System.err.println("Pruning bad polygon Node::splitPolygon::add " + l+"\n\t"+fpoly);
 		}
 	}
 
