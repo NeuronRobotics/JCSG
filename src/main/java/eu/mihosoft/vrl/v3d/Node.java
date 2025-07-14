@@ -210,13 +210,35 @@ public final class Node {
 	 * @param hi      Output high parts array (same length as doubles)
 	 * @param lo      Output low parts array (same length as doubles)
 	 */
-	public static void splitDoubles(double doubles, float[] hi, float[] lo, int index) {
-
-		double x = doubles;
-		double temp = DOUBLE_SPLITTER * x;
-		double hiPart = temp - (temp - x);
-		hi[index] = (float) hiPart;
-		lo[index] = (float) (x - hiPart);
+	public static void splitDoubles(double x, float[] hi, float[] lo, int index) {
+	    // Try standard splitting first
+	    double temp = DOUBLE_SPLITTER * x;
+	    double hiPart = temp - (temp - x);
+	    double loPart = x - hiPart;
+	    
+	    // Convert to float
+	    float hiFloat = (float) hiPart;
+	    float loFloat = (float) loPart;
+	    
+	    // Check reconstruction error
+	    double reconstructed = (double)hiFloat + (double)loFloat;
+	    double error = Math.abs(reconstructed - x);
+	    
+	    if (error <= Plane.EPSILON) {
+	        hi[index] = hiFloat;
+	        lo[index] = loFloat;
+	    } else {
+	        // Fallback: use the closest float representation
+	        hi[index] = (float) x;
+	        lo[index] = (float) (x - (double)hi[index]);
+	        
+	        // Final verification
+	        double finalReconstructed = (double)hi[index] + (double)lo[index];
+	        double finalError = Math.abs(finalReconstructed - x);
+	        if (finalError >  Plane.EPSILON) {
+	            System.err.printf("Cannot represent %.15e within error bound %.2e\n", x, Plane.EPSILON);
+	        }
+	    }
 
 	}
 
@@ -238,6 +260,56 @@ public final class Node {
 	 */
 	public static double combineDoubles(float hi, float lo) {
 		return (double) hi + (double) lo;
+	}
+	private static void add(List<Polygon> l, int polygonIndex, int[] polygonStartIndex, int[] polygonSize,
+			ArrayList<Vertex> orderedPoints, 
+			float[] polygonXh, float[] polygonYh, float[] polygonZh,
+			float[] polygonXl, float[] polygonYl, float[] polygonZl, 
+			Polygon polygon) {
+		int polygonBase = polygonStartIndex[polygonIndex];
+		int size = polygonSize[polygonIndex];
+		if (polygonBase < 0)
+			return;
+		List<Vertex> f = new ArrayList<>();
+		for (int i = polygonBase; i < polygonBase + size; i++) {
+			if (i < orderedPoints.size()) {
+				f.add(orderedPoints.get(i).clone());
+			} else {
+				double x = combineDoubles(polygonXh, polygonXl, i);
+				double y = combineDoubles(polygonYh, polygonYl, i);
+				double z = combineDoubles(polygonZh, polygonZl, i);
+				Vertex v = new Vertex(new Vector3d(x/scale, y/scale, z/scale), polygon.plane.getNormal());
+				addPoint(f, v);
+			}
+		}
+
+		add(l, f, polygon);
+	}
+
+	private static boolean addPoint(List<Vertex> f, Vertex v) {
+		for(int i=0;i<f.size();i++) {
+			if(Math.abs( v.pos.distance(f.get(i).pos))<0.0001) {
+				return false;
+			}
+		}
+		return f.add(v);
+	}
+
+	private static void add(List<Polygon> l, List<Vertex> f, Polygon polygon) {
+		if (f.size() < 3)
+			return;
+		Polygon fpoly=null;
+		try {
+			fpoly = new Polygon(f, polygon.getStorage(), true, new Plane(polygon.getPlane().getNormal(), f))
+					.setColor(polygon.getColor());
+			// test triangulation of new polygon before adding
+			PolygonUtil.concaveToConvex(fpoly);
+			l.add(fpoly);
+
+		} catch (Exception ex) {
+//			ex.printStackTrace();
+			System.err.println("Pruning bad polygon Node::splitPolygon::add " + l+"\n\t"+fpoly);
+		}
 	}
 	/**
 	 * Splits a {@link Polygon} by this plane if needed. After that it puts the
@@ -418,36 +490,6 @@ public final class Node {
 		            }
 		        }
 		    }
-
-//		    float gx(int polygonIndex, int pointIndex) {
-//		        int globalIndex = getGlobalPointIndex(polygonIndex, pointIndex);
-//		        return polygonPointX_hi[globalIndex] + polygonPointX_lo[globalIndex];
-//		    }
-//
-//		    float gy(int polygonIndex, int pointIndex) {
-//		        int globalIndex = getGlobalPointIndex(polygonIndex, pointIndex);
-//		        return polygonPointY_hi[globalIndex] + polygonPointY_lo[globalIndex];
-//		    }
-//
-//		    float gz(int polygonIndex, int pointIndex) {
-//		        int globalIndex = getGlobalPointIndex(polygonIndex, pointIndex);
-//		        return polygonPointZ_hi[globalIndex] + polygonPointZ_lo[globalIndex];
-//		    }
-//		    
-//		    float x(int polygonIndex, int pointIndex) {
-//		        int index = getPointIndex(polygonIndex, pointIndex);
-//		        return polygonPointX_hi[index] + polygonPointX_lo[index];
-//		    }
-//
-//		    float y(int polygonIndex, int pointIndex) {
-//		        int index = getPointIndex(polygonIndex, pointIndex);
-//		        return polygonPointY_hi[index] + polygonPointY_lo[index];
-//		    }
-//
-//		    float z(int polygonIndex, int pointIndex) {
-//		        int index = getPointIndex(polygonIndex, pointIndex);
-//		        return polygonPointZ_hi[index] + polygonPointZ_lo[index];
-//		    }
 		    
 		    int writeIncrementPoint(int polygonIndex, int source) {
 		        int pointInPolygon = mypolygonSize[polygonIndex];
@@ -463,7 +505,7 @@ public final class Node {
 
 		    int interpolate(int polygonIndex, int vi, int vj, Vertex vi2, Vertex vj2, List<Vertex> f, List<Vertex> b) {
 		    	
-				double tol = 0.001;
+				double tol = 0.0001;
 				double dot = myPlane.getNormal().dot(vi2.pos);
 				double dist = myPlane.getDist();
 
@@ -641,25 +683,6 @@ public final class Node {
 		        addHighPrecision(prod_x[0], prod_x[1], prod_y[0], prod_y[1], temp);
 		        addHighPrecision(temp[0], temp[1], prod_z[0], prod_z[1], result);
 		    }
-		    
-//		    float dot(float ax, float ay, float az, float bx, float by, float bz) {
-//		        // Convert to high precision and compute
-//		        float[] result = new float[2];
-//		        dotHighPrecision(ax, 0.0f, ay, 0.0f, az, 0.0f, bx, 0.0f, by, 0.0f, bz, 0.0f, result);
-//		        return result[0] + result[1];
-//		    }
-//		    
-//		    int writePoint(int polygonIndex, int pointInPolygon, float x, float y, float z) {
-//		        int pointIndex = getPointIndex(polygonIndex, pointInPolygon);
-//		        polygonPointX_hi[pointIndex] = x;
-//		        polygonPointX_lo[pointIndex] = 0.0f;
-//		        polygonPointY_hi[pointIndex] = y;
-//		        polygonPointY_lo[pointIndex] = 0.0f;
-//		        polygonPointZ_hi[pointIndex] = z;
-//		        polygonPointZ_lo[pointIndex] = 0.0f;
-//		        return pointIndex;
-//		    }
-		    
 		    int writePoint(int polygonIndex, int pointInPolygon, float x_hi, float x_lo, float y_hi, float y_lo, float z_hi, float z_lo) {
 		        int pointIndex = getPointIndex(polygonIndex, pointInPolygon);
 		        polygonPointX_hi[pointIndex] = x_hi;
@@ -678,18 +701,6 @@ public final class Node {
 		    private int getPointIndex(int polygonIndex, int point) {
 		        return mypolygonStartIndex[polygonIndex] + point;
 		    }
-
-//		    float polygonDotPoint(int polygonIndex, int pointIndex) {
-//		        int globalIndex = getGlobalPointIndex(polygonIndex, pointIndex);
-//		        float[] result = new float[2];
-//		        dotHighPrecision(NormalPolygonX_hi[polygonIndex], NormalPolygonX_lo[polygonIndex],
-//		                        NormalPolygonY_hi[polygonIndex], NormalPolygonY_lo[polygonIndex],
-//		                        NormalPolygonZ_hi[polygonIndex], NormalPolygonZ_lo[polygonIndex],
-//		                        polygonPointX_hi[globalIndex], polygonPointX_lo[globalIndex],
-//		                        polygonPointY_hi[globalIndex], polygonPointY_lo[globalIndex],
-//		                        polygonPointZ_hi[globalIndex], polygonPointZ_lo[globalIndex], result);
-//		        return result[0] + result[1];
-//		    }
 		    
 		    float polygonPointDistance(int polygonIndex, int pointIndex) {
 		        int globalIndex = getGlobalPointIndex(polygonIndex, pointIndex);
@@ -706,18 +717,6 @@ public final class Node {
 		                             NormalPolygonDistance_hi[polygonIndex], NormalPolygonDistance_lo[polygonIndex], result);
 		        return result[0] + result[1];
 		    }
-		    
-//		    float planeDotPoint(int polygonIndex, int pointIndex) {
-//		        int globalIndex = getGlobalPointIndex(polygonIndex, pointIndex);
-//		        float[] result = new float[2];
-//		        dotHighPrecision(planeNormalXinternal_hi, planeNormalXinternal_lo,
-//		                        planeNormalYinternal_hi, planeNormalYinternal_lo,
-//		                        planeNormalZinternal_hi, planeNormalZinternal_lo,
-//		                        polygonPointX_hi[globalIndex], polygonPointX_lo[globalIndex],
-//		                        polygonPointY_hi[globalIndex], polygonPointY_lo[globalIndex],
-//		                        polygonPointZ_hi[globalIndex], polygonPointZ_lo[globalIndex], result);
-//		        return result[0] + result[1];
-//		    }
 		    
 		    private void planeDotPointHighPrecision(int polygonIndex, int pointIndex, float[] result) {
 		        int globalIndex = getGlobalPointIndex(polygonIndex, pointIndex);
@@ -738,12 +737,6 @@ public final class Node {
 		                             planeNormalDistanceInternal_hi, planeNormalDistanceInternal_lo, result);
 		        return result[0] + result[1];
 		    }
-		    
-//		    float planeDotPointMinusPoint(int polygonIndex, int vj, int vi) {
-//		        float[] result = new float[2];
-//		        planeDotPointMinusPointHighPrecision(polygonIndex, vj, vi, result);
-//		        return result[0] + result[1];
-//		    }
 		    
 		    private void planeDotPointMinusPointHighPrecision(int polygonIndex, int vj, int vi, float[] result) {
 		        int globalVi = getGlobalPointIndex(polygonIndex, vi);
@@ -927,56 +920,7 @@ public final class Node {
 		}
 	}
 
-	private static void add(List<Polygon> l, int polygonIndex, int[] polygonStartIndex, int[] polygonSize,
-			ArrayList<Vertex> orderedPoints, 
-			float[] polygonXh, float[] polygonYh, float[] polygonZh,
-			float[] polygonXl, float[] polygonYl, float[] polygonZl, 
-			Polygon polygon) {
-		int polygonBase = polygonStartIndex[polygonIndex];
-		int size = polygonSize[polygonIndex];
-		if (polygonBase < 0)
-			return;
-		List<Vertex> f = new ArrayList<>();
-		for (int i = polygonBase; i < polygonBase + size; i++) {
-			if (i < orderedPoints.size()) {
-				f.add(orderedPoints.get(i).clone());
-			} else {
-				double x = combineDoubles(polygonXh, polygonXl, i);
-				double y = combineDoubles(polygonYh, polygonYl, i);
-				double z = combineDoubles(polygonZh, polygonZl, i);
-				Vertex v = new Vertex(new Vector3d(x/scale, y/scale, z/scale), polygon.plane.getNormal());
-				addPoint(f, v);
-			}
-		}
 
-		add(l, f, polygon);
-	}
-
-	private static boolean addPoint(List<Vertex> f, Vertex v) {
-		for(int i=0;i<f.size();i++) {
-			if(Math.abs( v.pos.distance(f.get(i).pos))<0.0001) {
-				return false;
-			}
-		}
-		return f.add(v);
-	}
-
-	private static void add(List<Polygon> l, List<Vertex> f, Polygon polygon) {
-		if (f.size() < 3)
-			return;
-		Polygon fpoly=null;
-		try {
-			fpoly = new Polygon(f, polygon.getStorage(), true, new Plane(polygon.getPlane().getNormal(), f))
-					.setColor(polygon.getColor());
-			// test triangulation of new polygon before adding
-			PolygonUtil.concaveToConvex(fpoly);
-			l.add(fpoly);
-
-		} catch (Exception ex) {
-//			ex.printStackTrace();
-			System.err.println("Pruning bad polygon Node::splitPolygon::add " + l+"\n\t"+fpoly);
-		}
-	}
 
 	// Remove all polygons in this BSP tree that are inside the other BSP tree
 	// `bsp`.
