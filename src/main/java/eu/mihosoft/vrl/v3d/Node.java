@@ -50,8 +50,9 @@ import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
  */
 public final class Node {
 	private static double scale = 1;
+    private static final float FLOAT_SPLITTER = 4097.0f; 
+
     private static final double DOUBLE_SPLITTER = 134217729.0; // 2^27 + 1
-    private static final float FLOAT_SPLITTER = 8193.0f; 
 	/**
 	 * Polygons.
 	 */
@@ -229,7 +230,15 @@ public final class Node {
 	public static double combineDoubles(float[] hi, float[] lo, int i) {
 		return (double) hi[i] + (double) lo[i];
 	}
-
+	/**
+	 * Combine hi and lo float arrays back to double array
+	 * 
+	 * @param hi      High parts array
+	 * @param lo      Low parts array
+	 */
+	public static double combineDoubles(float hi, float lo) {
+		return (double) hi + (double) lo;
+	}
 	/**
 	 * Splits a {@link Polygon} by this plane if needed. After that it puts the
 	 * polygons or the polygon fragments in the appropriate lists ({@code front},
@@ -321,9 +330,9 @@ public final class Node {
 		float []planeNormalDistance_l =new float[1];
 		
 		splitDoubles(this.plane.getNormal().x, planeNormalX_h, planeNormalX_l, 0);
-		splitDoubles(this.plane.getNormal().y, planeNormalX_h, planeNormalX_l, 0);
-		splitDoubles(this.plane.getNormal().z, planeNormalX_h, planeNormalX_l, 0);
-		splitDoubles(this.plane.getDist(), planeNormalX_h, planeNormalX_l, 0);
+		splitDoubles(this.plane.getNormal().y, planeNormalY_h, planeNormalY_l, 0);
+		splitDoubles(this.plane.getNormal().z, planeNormalZ_h, planeNormalZ_l, 0);
+		splitDoubles(this.plane.getDist(), planeNormalDistance_h, planeNormalDistance_l, 0);
 		
 		float epsilon = (float) Plane.getEPSILON();
 		final int COPLANAR = 0;
@@ -331,7 +340,7 @@ public final class Node {
 		final int BACK = 2;
 		final int SPANNING = 3; // == some in the FRONT + some in the BACK
 		boolean []memoryError = new boolean[] {false};
-
+		Plane myPlane = this.plane;
 		final class PolygonListManager {
 		    // Polygon index data
 		    final int[] mypolygonStartIndex;
@@ -452,18 +461,57 @@ public final class Node {
 		        return writePoint(polygonIndex, pointInPolygon, x_hi, x_lo, y_hi, y_lo, z_hi, z_lo);
 		    }
 
-		    int interpolate(int polygonIndex, int vi, int vj) {
-		        // High-precision computation of dotMinus = planeDotPointMinusPoint(polygonIndex, vj, vi)
-		        float[] dotMinus = new float[2];
-		        planeDotPointMinusPointHighPrecision(polygonIndex, vj, vi, dotMinus);
-		        
+		    int interpolate(int polygonIndex, int vi, int vj, Vertex vi2, Vertex vj2, List<Vertex> f, List<Vertex> b) {
+		    	
+				double tol = 0.001;
+				double dot = myPlane.getNormal().dot(vi2.pos);
+				double dist = myPlane.getDist();
+
+				
 		        // High-precision computation of g = planeNormalDistanceInternal - planeDotPoint(polygonIndex, vi)
 		        float[] planeDot = new float[2];
-		        planeDotPointHighPrecision(polygonIndex, vi, planeDot);
+		        int globalIndex = getGlobalPointIndex(polygonIndex, vi);
+		        dotHighPrecision(planeNormalXinternal_hi, planeNormalXinternal_lo,
+		                        planeNormalYinternal_hi, planeNormalYinternal_lo,
+		                        planeNormalZinternal_hi, planeNormalZinternal_lo,
+		                        polygonPointX_hi[globalIndex], polygonPointX_lo[globalIndex],
+		                        polygonPointY_hi[globalIndex], polygonPointY_lo[globalIndex],
+		                        polygonPointZ_hi[globalIndex], polygonPointZ_lo[globalIndex], planeDot);
 		        
 		        float[] g = new float[2];
 		        subtractHighPrecision(planeNormalDistanceInternal_hi, planeNormalDistanceInternal_lo, 
 		                             planeDot[0], planeDot[1], g);
+		        double mydist = combineDoubles(planeNormalDistanceInternal_hi, planeNormalDistanceInternal_lo);
+		        double mydot = combineDoubles(planeDot[0], planeDot[1]);
+		        double myD = mydist-mydot;
+				double d = dist - dot;
+				Vector3d minus = vj2.pos.minus(vi2.pos);
+				double dotMinusOld = myPlane.getNormal().dot(minus);
+				double tOld =d / dotMinusOld;
+				Vector3d times = minus.times(tOld);
+				Vector3d intrp = vi2.pos.plus(times);
+		    	// High-precision computation of dotMinus = planeDotPointMinusPoint(polygonIndex, vj, vi)
+		        float[] dotMinus = new float[2];
+		        int globalVi = getGlobalPointIndex(polygonIndex, vi);
+		        int globalVj = getGlobalPointIndex(polygonIndex, vj);
+		        
+		        float[] diff_x_1 = new float[2];
+		        float[] diff_y_1 = new float[2];
+		        float[] diff_z_1 = new float[2];
+		        
+		        subtractHighPrecision(polygonPointX_hi[globalVj], polygonPointX_lo[globalVj],
+		                             polygonPointX_hi[globalVi], polygonPointX_lo[globalVi], diff_x_1);
+		        subtractHighPrecision(polygonPointY_hi[globalVj], polygonPointY_lo[globalVj],
+		                             polygonPointY_hi[globalVi], polygonPointY_lo[globalVi], diff_y_1);
+		        subtractHighPrecision(polygonPointZ_hi[globalVj], polygonPointZ_lo[globalVj],
+		                             polygonPointZ_hi[globalVi], polygonPointZ_lo[globalVi], diff_z_1);
+		        
+		        dotHighPrecision(planeNormalXinternal_hi, planeNormalXinternal_lo,
+		                        planeNormalYinternal_hi, planeNormalYinternal_lo,
+		                        planeNormalZinternal_hi, planeNormalZinternal_lo,
+		                        diff_x_1[0], diff_x_1[1], diff_y_1[0], diff_y_1[1], diff_z_1[0], diff_z_1[1], dotMinus);
+		        
+
 		        
 		        // High-precision division: t = g / dotMinus
 		        float[] t = new float[2];
@@ -471,12 +519,10 @@ public final class Node {
 		        
 		        int pointInPolygon = mypolygonSize[polygonIndex];
 		        incrementSize(polygonIndex);
-		        if(memoryError[0])
-		            return -1;
+//		        if(memoryError[0])
+//		            return -1;
 		            
 		        // Get high-precision coordinates
-		        int globalVi = getGlobalPointIndex(polygonIndex, vi);
-		        int globalVj = getGlobalPointIndex(polygonIndex, vj);
 		        
 		        float xvi_hi = polygonPointX_hi[globalVi];
 		        float xvi_lo = polygonPointX_lo[globalVi];
@@ -516,8 +562,22 @@ public final class Node {
 		        addHighPrecision(xvi_hi, xvi_lo, mult_x[0], mult_x[1], lerp_x);
 		        addHighPrecision(yvi_hi, yvi_lo, mult_y[0], mult_y[1], lerp_y);
 		        addHighPrecision(zvi_hi, zvi_lo, mult_z[0], mult_z[1], lerp_z);
-		        
-		        return writePoint(polygonIndex, pointInPolygon, lerp_x[0], lerp_x[1], lerp_y[0], lerp_y[1], lerp_z[0], lerp_z[1]);
+		        int ret = writePoint(polygonIndex, pointInPolygon, lerp_x[0], lerp_x[1], lerp_y[0], lerp_y[1], lerp_z[0], lerp_z[1]);
+				double x = combineDoubles(polygonPointX_h, polygonPointX_l, ret);
+				double y = combineDoubles(polygonPointY_h, polygonPointY_l, ret);
+				double z = combineDoubles(polygonPointZ_h, polygonPointZ_l, ret);
+				double abs2 = Math.abs(intrp.x-(x/scale));
+				double abs3 = Math.abs(intrp.y-(y/scale));
+				double abs4 = Math.abs(intrp.z-(z/scale));
+				if(	abs2>tol||
+					abs3>tol||
+					abs4>tol) {
+					memoryError[0]=true;
+					return -1;
+				}
+				addPoint(f, new Vertex(intrp,vj2.normal));
+				addPoint(b,new Vertex(intrp.clone(),vj2.normal));
+		        return ret;
 		    }
 		    
 		    // High-precision arithmetic helper methods
@@ -832,35 +892,10 @@ public final class Node {
 						backManager.writeIncrementPoint(polygonIndex, viIndex);
 					}
 					if ((ti | tj) == SPANNING) {
-						double tol = 0.001;
-
-						
-						double d = this.getPlane().getDist() - this.getPlane().getNormal().dot(vi.pos);
-						double dotMinusOld = this.getPlane().getNormal().dot(vj.pos.minus(vi.pos));
-						double tOld =0;
-							tOld =d / dotMinusOld;
-
-						Vertex vOld = vi.interpolate(vj, tOld);
-
-						int v = frontManager.interpolate(polygonIndex, i, j);
-						double x = combineDoubles(polygonPointX_h, polygonPointX_l, v);
-						double y = combineDoubles(polygonPointY_h, polygonPointY_l, v);
-						double z = combineDoubles(polygonPointZ_h, polygonPointZ_l, v);
-						double abs2 = Math.abs(vOld.pos.x-(x/scale));
-						double abs3 = Math.abs(vOld.pos.y-(y/scale));
-						double abs4 = Math.abs(vOld.pos.z-(z/scale));
-						if(	abs2>tol||
-							abs3>tol||
-							abs4>tol) {
-							memoryError[0]=true;
-							break;
-						}
-						
+						int v = frontManager.interpolate(polygonIndex, i, j,vi,vj,f,b);						
 						if (memoryError[0])
 							break;
 						backManager.writeIncrementPoint(polygonIndex, v);
-						if(!newalgo)addPoint(f, vOld);
-						if(!newalgo)addPoint(b,vOld.clone());
 					}
 				}
 				if(!newalgo)add(front, f,polygon);
