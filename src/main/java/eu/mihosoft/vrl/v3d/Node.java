@@ -203,68 +203,66 @@ public final class Node {
 		return frontP;
 	}
 
-	/**
-	 * Split double array into separate hi and lo float arrays
-	 * 
-	 * @param doubles Input double array
-	 * @param hi      Output high parts array (same length as doubles)
-	 * @param lo      Output low parts array (same length as doubles)
-	 */
-	public static void splitDoubles(double x, float[] hi, float[] lo, int index) {
-	    // Try standard splitting first
-	    double temp = DOUBLE_SPLITTER * x;
-	    double hiPart = temp - (temp - x);
-	    double loPart = x - hiPart;
+	// Fixed point math configuration
+	private static final int FIXED_POINT_SCALE = 12; // 16.16 fixed point format
+	private static final int FIXED_ONE = 1 << FIXED_POINT_SCALE; // 65536
+	private static final int FIXED_HALF = FIXED_ONE >> 1; // 32768
+
+	// Fixed point utility methods
+	private static int floatToFixed(double value) {
+	    return (int)(Math.round(value * FIXED_ONE ));
+	}
+
+	private static double fixedToDouble(int fixed) {
+	    return ((double)fixed) / FIXED_ONE;
+	}
+
+	// 32-bit only multiplication with overflow protection
+	private static int fixedMultiply(int a, int b) {
+	    // Split into high and low 16-bit parts
+	    int a_hi = a >> 16;
+	    int a_lo = a & 0xFFFF;
+	    int b_hi = b >> 16;
+	    int b_lo = b & 0xFFFF;
 	    
-	    // Convert to float
-	    float hiFloat = (float) hiPart;
-	    float loFloat = (float) loPart;
+	    // Perform partial products
+	    int mid1 = a_hi * b_lo;
+	    int mid2 = a_lo * b_hi;
+	    int low = a_lo * b_lo;
 	    
-	    // Check reconstruction error
-	    double reconstructed = (double)hiFloat + (double)loFloat;
-	    double error = Math.abs(reconstructed - x);
+	    // Combine results (the high part a_hi * b_hi is shifted out)
+	    int result = (mid1 + mid2) + (low >> 16);
+	    return result;
+	}
+
+	// 32-bit only division with overflow protection
+	private static int fixedDivide(int a, int b) {
+	    // Check for division by zero
+	    if (b == 0) return (a >= 0) ? Integer.MAX_VALUE : Integer.MIN_VALUE;
 	    
-	    if (error <= Plane.EPSILON) {
-	        hi[index] = hiFloat;
-	        lo[index] = loFloat;
+	    // Handle signs
+	    boolean negative = (a < 0) ^ (b < 0);
+	    int abs_a = (a < 0) ? -a : a;
+	    int abs_b = (b < 0) ? -b : b;
+	    
+	    // Shift dividend left by scale bits using 32-bit arithmetic
+	    // We need to be careful about overflow when shifting
+	    int shifted_a;
+	    if (abs_a > (Integer.MAX_VALUE >> FIXED_POINT_SCALE)) {
+	        // Would overflow, so we need to do partial division
+	        int high_part = abs_a >> (32 - FIXED_POINT_SCALE);
+	        int low_part = abs_a & ((1 << (32 - FIXED_POINT_SCALE)) - 1);
+	        shifted_a = (high_part / abs_b) << FIXED_POINT_SCALE;
+	        shifted_a += (low_part << FIXED_POINT_SCALE) / abs_b;
 	    } else {
-	        // Fallback: use the closest float representation
-	        hi[index] = (float) x;
-	        lo[index] = (float) (x - (double)hi[index]);
-	        
-	        // Final verification
-	        double finalReconstructed = (double)hi[index] + (double)lo[index];
-	        double finalError = Math.abs(finalReconstructed - x);
-	        if (finalError >  Plane.EPSILON) {
-	            System.err.printf("Cannot represent %.15e within error bound %.2e\n", x, Plane.EPSILON);
-	        }
+	        shifted_a = (abs_a << FIXED_POINT_SCALE) / abs_b;
 	    }
-
-	}
-
-	/**
-	 * Combine hi and lo float arrays back to double array
-	 * 
-	 * @param hi      High parts array
-	 * @param lo      Low parts array
-	 * @param doubles Output double array (same length as hi/lo)
-	 */
-	public static double combineDoubles(float[] hi, float[] lo, int i) {
-		return (double) hi[i] + (double) lo[i];
-	}
-	/**
-	 * Combine hi and lo float arrays back to double array
-	 * 
-	 * @param hi      High parts array
-	 * @param lo      Low parts array
-	 */
-	public static double combineDoubles(float hi, float lo) {
-		return (double) hi + (double) lo;
+	    
+	    return negative ? -shifted_a : shifted_a;
 	}
 	private static void add(List<Polygon> l, int polygonIndex, int[] polygonStartIndex, int[] polygonSize,
 			ArrayList<Vertex> orderedPoints, 
-			float[] polygonXh, float[] polygonYh, float[] polygonZh,
-			float[] polygonXl, float[] polygonYl, float[] polygonZl, 
+			int [] polygonPointX,int [] polygonPointY,int [] polygonPointZ,
 			Polygon polygon) {
 		int polygonBase = polygonStartIndex[polygonIndex];
 		int size = polygonSize[polygonIndex];
@@ -275,9 +273,9 @@ public final class Node {
 			if (i < orderedPoints.size()) {
 				f.add(orderedPoints.get(i).clone());
 			} else {
-				double x = combineDoubles(polygonXh, polygonXl, i);
-				double y = combineDoubles(polygonYh, polygonYl, i);
-				double z = combineDoubles(polygonZh, polygonZl, i);
+				double x = fixedToDouble(polygonPointX[i]);
+				double y = fixedToDouble(polygonPointY[i]);
+				double z = fixedToDouble(polygonPointZ[i]);
 				Vertex v = new Vertex(new Vector3d(x/scale, y/scale, z/scale), polygon.plane.getNormal());
 				addPoint(f, v);
 			}
@@ -328,6 +326,9 @@ public final class Node {
 	 */
 	public void splitPolygon(ArrayList<Polygon> polygons, List<Polygon> coplanarFront, List<Polygon> coplanarBack,
 			List<Polygon> front, List<Polygon> back) throws Exception {
+
+
+		// Main conversion of your original code
 		int numberOfPointsTmp = 0;
 		int polygonNumber = polygons.size();
 		int max = 0;
@@ -336,117 +337,104 @@ public final class Node {
 		int[] polygonStartIndex = new int[polygonNumber];
 		int[] polygonSize = new int[polygonNumber];
 		int[] newPointStartIndex = new int[polygonNumber];
-		float[] h_NormalPolygonX = new float[polygonNumber];
-		float[] h_NormalPolygonY = new float[polygonNumber];
-		float[] h_NormalPolygonZ = new float[polygonNumber];
-		float[] h_NormalPolygonDistance = new float[polygonNumber];
-		float[] l_NormalPolygonX = new float[polygonNumber];
-		float[] l_NormalPolygonY = new float[polygonNumber];
-		float[] l_NormalPolygonZ = new float[polygonNumber];
-		float[] l_NormalPolygonDistance = new float[polygonNumber];
+
+		// Convert to fixed point arrays
+		int[] normalPolygonX = new int[polygonNumber];
+		int[] normalPolygonY = new int[polygonNumber];
+		int[] normalPolygonZ = new int[polygonNumber];
+		int[] normalPolygonDistance = new int[polygonNumber];
+
 		for (int k = 0; k < polygonNumber; k++) {
-			Polygon polygon = polygons.get(k);
-			List<Vertex> vertices = polygon.getVertices();
-			int size = vertices.size();
-			if (size > max)
-				max = size;
-			numberOfPointsTmp += size;
-			polygonStartIndex[k] = orderedPoints.size();
-			polygonSize[k] = size;
-			splitDoubles(polygon.getPlane().getNormal().x, h_NormalPolygonX, l_NormalPolygonX, k);
-			splitDoubles(polygon.getPlane().getNormal().y, h_NormalPolygonY, l_NormalPolygonY, k);
-			splitDoubles(polygon.getPlane().getNormal().z, h_NormalPolygonZ, l_NormalPolygonZ, k);
-			splitDoubles(polygon.getPlane().getDist(), h_NormalPolygonDistance, l_NormalPolygonDistance, k);
-			orderedPoints.addAll(vertices);
+		    Polygon polygon = polygons.get(k);
+		    List<Vertex> vertices = polygon.getVertices();
+		    int size = vertices.size();
+		    if (size > max)
+		        max = size;
+		    numberOfPointsTmp += size;
+		    polygonStartIndex[k] = orderedPoints.size();
+		    polygonSize[k] = size;
+		    
+		    // Convert to fixed point
+		    normalPolygonX[k] = floatToFixed(polygon.getPlane().getNormal().x);
+		    normalPolygonY[k] = floatToFixed(polygon.getPlane().getNormal().y);
+		    normalPolygonZ[k] = floatToFixed(polygon.getPlane().getNormal().z);
+		    normalPolygonDistance[k] = floatToFixed(polygon.getPlane().getDist());
+		    
+		    orderedPoints.addAll(vertices);
 		}
+
 		int[] coplanarFrontStartIndex = new int[polygonNumber];
 		int[] coplanarFrontSize = new int[polygonNumber];
-
 		int[] coplanarBackStartIndex = new int[polygonNumber];
 		int[] coplanarBackSize = new int[polygonNumber];
-
 		int[] frontStartIndex = new int[polygonNumber];
 		int[] frontSize = new int[polygonNumber];
-
 		int[] backStartIndex = new int[polygonNumber];
 		int[] backSize = new int[polygonNumber];
+
 		int pointsNumber = numberOfPointsTmp + 1 + ((ExtraSpace) * (polygonNumber + 2));
 		for (int k = 0; k < polygonNumber; k++) {
-			newPointStartIndex[k] = numberOfPointsTmp + (k * ExtraSpace);
-			coplanarFrontStartIndex[k] = -1;
-			coplanarBackStartIndex[k] = -1;
-			frontStartIndex[k] = -1;
-			backStartIndex[k] = -1;
+		    newPointStartIndex[k] = numberOfPointsTmp + (k * ExtraSpace);
+		    coplanarFrontStartIndex[k] = -1;
+		    coplanarBackStartIndex[k] = -1;
+		    frontStartIndex[k] = -1;
+		    backStartIndex[k] = -1;
 		}
+
 		int pointsEmptyIndex = 0;
 		int[] types = new int[max];
-		float[] polygonPointX_h = new float[pointsNumber];
-		float[] polygonPointY_h = new float[pointsNumber];
-		float[] polygonPointZ_h = new float[pointsNumber];
-		float[] polygonPointX_l = new float[pointsNumber];
-		float[] polygonPointY_l = new float[pointsNumber];
-		float[] polygonPointZ_l = new float[pointsNumber];
+
+		// Convert point arrays to fixed point
+		int[] polygonPointX = new int[pointsNumber];
+		int[] polygonPointY = new int[pointsNumber];
+		int[] polygonPointZ = new int[pointsNumber];
+
 		for (; pointsEmptyIndex < orderedPoints.size(); pointsEmptyIndex++) {
-			Vertex vertex = orderedPoints.get(pointsEmptyIndex);
-			splitDoubles(vertex.getX(), polygonPointX_h, polygonPointX_l, pointsEmptyIndex);
-			splitDoubles(vertex.getY(), polygonPointY_h, polygonPointY_l, pointsEmptyIndex);
-			splitDoubles(vertex.getZ(), polygonPointZ_h, polygonPointZ_l, pointsEmptyIndex);
+		    Vertex vertex = orderedPoints.get(pointsEmptyIndex);
+		    polygonPointX[pointsEmptyIndex] = floatToFixed(vertex.getX());
+		    polygonPointY[pointsEmptyIndex] = floatToFixed(vertex.getY());
+		    polygonPointZ[pointsEmptyIndex] = floatToFixed(vertex.getZ());
 		}
-		float []planeNormalX_h = new float[1];
-		float []planeNormalY_h = new float[1];
-		float []planeNormalZ_h = new float[1];
-		float []planeNormalDistance_h =new float[1]; 
-		float []planeNormalX_l = new float[1];
-		float []planeNormalY_l = new float[1];
-		float []planeNormalZ_l = new float[1];
-		float []planeNormalDistance_l =new float[1];
-		
-		splitDoubles(this.plane.getNormal().x, planeNormalX_h, planeNormalX_l, 0);
-		splitDoubles(this.plane.getNormal().y, planeNormalY_h, planeNormalY_l, 0);
-		splitDoubles(this.plane.getNormal().z, planeNormalZ_h, planeNormalZ_l, 0);
-		splitDoubles(this.plane.getDist(), planeNormalDistance_h, planeNormalDistance_l, 0);
-		
+
+		// Convert plane normal to fixed point
+		int planeNormalX = floatToFixed(this.plane.getNormal().x);
+		int planeNormalY = floatToFixed(this.plane.getNormal().y);
+		int planeNormalZ = floatToFixed(this.plane.getNormal().z);
+		int planeNormalDistance = floatToFixed(this.plane.getDist());
+
 		float epsilon = (float) Plane.getEPSILON();
+		int fixedEpsilon = floatToFixed(epsilon);
+
 		final int COPLANAR = 0;
 		final int FRONT = 1;
 		final int BACK = 2;
-		final int SPANNING = 3; // == some in the FRONT + some in the BACK
-		boolean []memoryError = new boolean[] {false};
+		final int SPANNING = 3;
+		boolean[] memoryError = new boolean[]{false};
 		Plane myPlane = this.plane;
+
 		final class PolygonListManager {
 		    // Polygon index data
 		    final int[] mypolygonStartIndex;
 		    final int[] mypolygonSize;
 		    int[] space = new int[polygonNumber];
 		    
-		    // Plane information - high precision
-		    float planeNormalXinternal_hi = planeNormalX_h[0];
-		    float planeNormalXinternal_lo = planeNormalX_l[0];
-		    float planeNormalYinternal_hi = planeNormalY_h[0];
-		    float planeNormalYinternal_lo = planeNormalY_l[0];
-		    float planeNormalZinternal_hi = planeNormalZ_h[0];
-		    float planeNormalZinternal_lo = planeNormalZ_l[0];
-		    float planeNormalDistanceInternal_hi = planeNormalDistance_h[0];
-		    float planeNormalDistanceInternal_lo = planeNormalDistance_l[0];
+		    // Plane information - fixed point
+		    int planeNormalXInternal = planeNormalX;
+		    int planeNormalYInternal = planeNormalY;
+		    int planeNormalZInternal = planeNormalZ;
+		    int planeNormalDistanceInternal = planeNormalDistance;
 		    
-		    // Point data - high precision
-		    float[] polygonPointX_hi = polygonPointX_h;
-		    float[] polygonPointX_lo = polygonPointX_l;
-		    float[] polygonPointY_hi = polygonPointY_h;
-		    float[] polygonPointY_lo = polygonPointY_l;
-		    float[] polygonPointZ_hi = polygonPointZ_h;
-		    float[] polygonPointZ_lo = polygonPointZ_l;
+		    // Point data - fixed point
+		    int[] polygonPointXFixed = polygonPointX;
+		    int[] polygonPointYFixed = polygonPointY;
+		    int[] polygonPointZFixed = polygonPointZ;
 		    
-		    // Polygon Normals - high precision
-		    float[] NormalPolygonX_hi = h_NormalPolygonX;
-		    float[] NormalPolygonX_lo = l_NormalPolygonX;
-		    float[] NormalPolygonY_hi = h_NormalPolygonY;
-		    float[] NormalPolygonY_lo = l_NormalPolygonY;
-		    float[] NormalPolygonZ_hi = h_NormalPolygonZ;
-		    float[] NormalPolygonZ_lo = l_NormalPolygonZ;
-		    float[] NormalPolygonDistance_hi = h_NormalPolygonDistance;
-		    float[] NormalPolygonDistance_lo = l_NormalPolygonDistance;
-		    		    
+		    // Polygon Normals - fixed point
+		    int[] normalPolygonXFixed = normalPolygonX;
+		    int[] normalPolygonYFixed = normalPolygonY;
+		    int[] normalPolygonZFixed = normalPolygonZ;
+		    int[] normalPolygonDistanceFixed = normalPolygonDistance;
+		    
 		    PolygonListManager(int[] polygonStartIndex, int[] polygonSize) {
 		        this.mypolygonStartIndex = polygonStartIndex;
 		        this.mypolygonSize = polygonSize;
@@ -454,7 +442,9 @@ public final class Node {
 		            space[i] = ExtraSpace;
 		        }
 		    }
-
+		    float fixedToFloat(int fixed) {
+			    return ((float)fixed) / FIXED_ONE;
+			}
 		    int size(int polygonIndex) {
 		        return mypolygonSize[polygonIndex];
 		    }
@@ -480,13 +470,13 @@ public final class Node {
 		    void incrementSize(int polygonIndex) {
 		        mypolygonSize[polygonIndex]++;
 		        int ni = mypolygonSize[polygonIndex];
-		        if(polygonIndex==mypolygonSize.length-1) {
-		            if(ni>=pointsNumber) {
-		                memoryError[0]=true;
+		        if(polygonIndex == mypolygonSize.length - 1) {
+		            if(ni >= pointsNumber) {
+		                memoryError[0] = true;
 		            }
-		        }else {
-		            if (ni+mypolygonStartIndex[polygonIndex] == mypolygonStartIndex[polygonIndex+1] ) {
-		                memoryError[0]=true;
+		        } else {
+		            if (ni + mypolygonStartIndex[polygonIndex] == mypolygonStartIndex[polygonIndex + 1]) {
+		                memoryError[0] = true;
 		            }
 		        }
 		    }
@@ -494,203 +484,98 @@ public final class Node {
 		    int writeIncrementPoint(int polygonIndex, int source) {
 		        int pointInPolygon = mypolygonSize[polygonIndex];
 		        incrementSize(polygonIndex);
-		        float x_hi = polygonPointX_hi[source];
-		        float x_lo = polygonPointX_lo[source];
-		        float y_hi = polygonPointY_hi[source];
-		        float y_lo = polygonPointY_lo[source];
-		        float z_hi = polygonPointZ_hi[source];
-		        float z_lo = polygonPointZ_lo[source];
-		        return writePoint(polygonIndex, pointInPolygon, x_hi, x_lo, y_hi, y_lo, z_hi, z_lo);
+		        int x = polygonPointXFixed[source];
+		        int y = polygonPointYFixed[source];
+		        int z = polygonPointZFixed[source];
+		        return writePoint(polygonIndex, pointInPolygon, x, y, z);
 		    }
 
 		    int interpolate(int polygonIndex, int vi, int vj, Vertex vi2, Vertex vj2, List<Vertex> f, List<Vertex> b) {
-		    	
-				double tol = 0.0001;
-				double dot = myPlane.getNormal().dot(vi2.pos);
-				double dist = myPlane.getDist();
-
-				
-		        // High-precision computation of g = planeNormalDistanceInternal - planeDotPoint(polygonIndex, vi)
-		        float[] planeDot = new float[2];
-		        int globalIndex = getGlobalPointIndex(polygonIndex, vi);
-		        dotHighPrecision(planeNormalXinternal_hi, planeNormalXinternal_lo,
-		                        planeNormalYinternal_hi, planeNormalYinternal_lo,
-		                        planeNormalZinternal_hi, planeNormalZinternal_lo,
-		                        polygonPointX_hi[globalIndex], polygonPointX_lo[globalIndex],
-		                        polygonPointY_hi[globalIndex], polygonPointY_lo[globalIndex],
-		                        polygonPointZ_hi[globalIndex], polygonPointZ_lo[globalIndex], planeDot);
+		        double tol = 0.0001;
+		        int fixedTol = floatToFixed((float)tol);
 		        
-		        float[] g = new float[2];
-		        subtractHighPrecision(planeNormalDistanceInternal_hi, planeNormalDistanceInternal_lo, 
-		                             planeDot[0], planeDot[1], g);
-		        double mydist = combineDoubles(planeNormalDistanceInternal_hi, planeNormalDistanceInternal_lo);
-		        double mydot = combineDoubles(planeDot[0], planeDot[1]);
-		        double myD = mydist-mydot;
-				double d = dist - dot;
-				Vector3d minus = vj2.pos.minus(vi2.pos);
-				double dotMinusOld = myPlane.getNormal().dot(minus);
-				double tOld =d / dotMinusOld;
-				Vector3d times = minus.times(tOld);
-				Vector3d intrp = vi2.pos.plus(times);
-		    	// High-precision computation of dotMinus = planeDotPointMinusPoint(polygonIndex, vj, vi)
-		        float[] dotMinus = new float[2];
+		        double dot = myPlane.getNormal().dot(vi2.pos);
+		        double dist = myPlane.getDist();
+		        
+		        // Fixed point computation of g = planeNormalDistanceInternal - planeDotPoint(polygonIndex, vi)
+		        int globalIndex = getGlobalPointIndex(polygonIndex, vi);
+		        int planeDot = dotProductFixed(planeNormalXInternal, planeNormalYInternal, planeNormalZInternal,
+		                                      polygonPointXFixed[globalIndex], polygonPointYFixed[globalIndex], polygonPointZFixed[globalIndex]);
+		        
+		        int g = planeNormalDistanceInternal - planeDot;
+		        
+		        double mydist = fixedToDouble(planeNormalDistanceInternal);
+		        double mydot = fixedToDouble(planeDot);
+		        double myD = mydist - mydot;
+		        double d = dist - dot;
+		        
+		        Vector3d minus = vj2.pos.minus(vi2.pos);
+		        double dotMinusOld = myPlane.getNormal().dot(minus);
+		        double tOld = d / dotMinusOld;
+		        Vector3d times = minus.times(tOld);
+		        Vector3d intrp = vi2.pos.plus(times);
+		        
+		        // Fixed point computation of dotMinus = planeDotPointMinusPoint(polygonIndex, vj, vi)
 		        int globalVi = getGlobalPointIndex(polygonIndex, vi);
 		        int globalVj = getGlobalPointIndex(polygonIndex, vj);
 		        
-		        float[] diff_x_1 = new float[2];
-		        float[] diff_y_1 = new float[2];
-		        float[] diff_z_1 = new float[2];
+		        int diff_x = polygonPointXFixed[globalVj] - polygonPointXFixed[globalVi];
+		        int diff_y = polygonPointYFixed[globalVj] - polygonPointYFixed[globalVi];
+		        int diff_z = polygonPointZFixed[globalVj] - polygonPointZFixed[globalVi];
 		        
-		        subtractHighPrecision(polygonPointX_hi[globalVj], polygonPointX_lo[globalVj],
-		                             polygonPointX_hi[globalVi], polygonPointX_lo[globalVi], diff_x_1);
-		        subtractHighPrecision(polygonPointY_hi[globalVj], polygonPointY_lo[globalVj],
-		                             polygonPointY_hi[globalVi], polygonPointY_lo[globalVi], diff_y_1);
-		        subtractHighPrecision(polygonPointZ_hi[globalVj], polygonPointZ_lo[globalVj],
-		                             polygonPointZ_hi[globalVi], polygonPointZ_lo[globalVi], diff_z_1);
+		        int dotMinus = dotProductFixed(planeNormalXInternal, planeNormalYInternal, planeNormalZInternal,
+		                                      diff_x, diff_y, diff_z);
 		        
-		        dotHighPrecision(planeNormalXinternal_hi, planeNormalXinternal_lo,
-		                        planeNormalYinternal_hi, planeNormalYinternal_lo,
-		                        planeNormalZinternal_hi, planeNormalZinternal_lo,
-		                        diff_x_1[0], diff_x_1[1], diff_y_1[0], diff_y_1[1], diff_z_1[0], diff_z_1[1], dotMinus);
-		        
-
-		        
-		        // High-precision division: t = g / dotMinus
-		        float[] t = new float[2];
-		        divideHighPrecision(g[0], g[1], dotMinus[0], dotMinus[1], t);
+		        // Fixed point division: t = g / dotMinus
+		        int t = fixedDivide(g, dotMinus);
 		        
 		        int pointInPolygon = mypolygonSize[polygonIndex];
 		        incrementSize(polygonIndex);
-//		        if(memoryError[0])
-//		            return -1;
-		            
-		        // Get high-precision coordinates
 		        
-		        float xvi_hi = polygonPointX_hi[globalVi];
-		        float xvi_lo = polygonPointX_lo[globalVi];
-		        float yvi_hi = polygonPointY_hi[globalVi];
-		        float yvi_lo = polygonPointY_lo[globalVi];
-		        float zvi_hi = polygonPointZ_hi[globalVi];
-		        float zvi_lo = polygonPointZ_lo[globalVi];
+		        // Get fixed point coordinates
+		        int xvi = polygonPointXFixed[globalVi];
+		        int yvi = polygonPointYFixed[globalVi];
+		        int zvi = polygonPointZFixed[globalVi];
 		        
-		        float xvj_hi = polygonPointX_hi[globalVj];
-		        float xvj_lo = polygonPointX_lo[globalVj];
-		        float yvj_hi = polygonPointY_hi[globalVj];
-		        float yvj_lo = polygonPointY_lo[globalVj];
-		        float zvj_hi = polygonPointZ_hi[globalVj];
-		        float zvj_lo = polygonPointZ_lo[globalVj];
+		        int xvj = polygonPointXFixed[globalVj];
+		        int yvj = polygonPointYFixed[globalVj];
+		        int zvj = polygonPointZFixed[globalVj];
 		        
-		        // High-precision interpolation: lerp = vi + (vj - vi) * t
-		        float[] diff_x = new float[2];
-		        float[] diff_y = new float[2];
-		        float[] diff_z = new float[2];
+		        // Fixed point interpolation: lerp = vi + (vj - vi) * t
+		        int lerp_x = xvi + fixedMultiply(diff_x, t);
+		        int lerp_y = yvi + fixedMultiply(diff_y, t);
+		        int lerp_z = zvi + fixedMultiply(diff_z, t);
 		        
-		        subtractHighPrecision(xvj_hi, xvj_lo, xvi_hi, xvi_lo, diff_x);
-		        subtractHighPrecision(yvj_hi, yvj_lo, yvi_hi, yvi_lo, diff_y);
-		        subtractHighPrecision(zvj_hi, zvj_lo, zvi_hi, zvi_lo, diff_z);
+		        int ret = writePoint(polygonIndex, pointInPolygon, lerp_x, lerp_y, lerp_z);
 		        
-		        float[] mult_x = new float[2];
-		        float[] mult_y = new float[2];
-		        float[] mult_z = new float[2];
+		        double x = fixedToDouble(polygonPointXFixed[ret]);
+		        double y = fixedToDouble(polygonPointYFixed[ret]);
+		        double z = fixedToDouble(polygonPointZFixed[ret]);
 		        
-		        multiplyHighPrecision(diff_x[0], diff_x[1], t[0], t[1], mult_x);
-		        multiplyHighPrecision(diff_y[0], diff_y[1], t[0], t[1], mult_y);
-		        multiplyHighPrecision(diff_z[0], diff_z[1], t[0], t[1], mult_z);
+		        double abs2 = Math.abs(intrp.x - (x / scale));
+		        double abs3 = Math.abs(intrp.y - (y / scale));
+		        double abs4 = Math.abs(intrp.z - (z / scale));
 		        
-		        float[] lerp_x = new float[2];
-		        float[] lerp_y = new float[2];
-		        float[] lerp_z = new float[2];
+		        if (abs2 > tol || abs3 > tol || abs4 > tol) {
+		            memoryError[0] = true;
+		            return -1;
+		        }
 		        
-		        addHighPrecision(xvi_hi, xvi_lo, mult_x[0], mult_x[1], lerp_x);
-		        addHighPrecision(yvi_hi, yvi_lo, mult_y[0], mult_y[1], lerp_y);
-		        addHighPrecision(zvi_hi, zvi_lo, mult_z[0], mult_z[1], lerp_z);
-		        int ret = writePoint(polygonIndex, pointInPolygon, lerp_x[0], lerp_x[1], lerp_y[0], lerp_y[1], lerp_z[0], lerp_z[1]);
-				double x = combineDoubles(polygonPointX_h, polygonPointX_l, ret);
-				double y = combineDoubles(polygonPointY_h, polygonPointY_l, ret);
-				double z = combineDoubles(polygonPointZ_h, polygonPointZ_l, ret);
-				double abs2 = Math.abs(intrp.x-(x/scale));
-				double abs3 = Math.abs(intrp.y-(y/scale));
-				double abs4 = Math.abs(intrp.z-(z/scale));
-				if(	abs2>tol||
-					abs3>tol||
-					abs4>tol) {
-					memoryError[0]=true;
-					return -1;
-				}
-				addPoint(f, new Vertex(intrp,vj2.normal));
-				addPoint(b,new Vertex(intrp.clone(),vj2.normal));
+		        addPoint(f, new Vertex(intrp, vj2.normal));
+		        addPoint(b, new Vertex(intrp.clone(), vj2.normal));
 		        return ret;
 		    }
 		    
-		    // High-precision arithmetic helper methods
-		    private void addHighPrecision(float a_hi, float a_lo, float b_hi, float b_lo, float[] result) {
-		        float s = a_hi + b_hi;
-		        float v = s - a_hi;
-		        float e = (a_hi - (s - v)) + (b_hi - v);
-		        float t = a_lo + b_lo + e;
-		        result[0] = s + t;
-		        result[1] = t - (result[0] - s);
+		    // Fixed point dot product
+		    private int dotProductFixed(int ax, int ay, int az, int bx, int by, int bz) {
+		        return fixedMultiply(ax, bx) + fixedMultiply(ay, by) + fixedMultiply(az, bz);
 		    }
 		    
-		    private void subtractHighPrecision(float a_hi, float a_lo, float b_hi, float b_lo, float[] result) {
-		        addHighPrecision(a_hi, a_lo, -b_hi, -b_lo, result);
-		    }
-		    
-		    private void multiplyHighPrecision(float a_hi, float a_lo, float b_hi, float b_lo, float[] result) {
-		        float p = a_hi * b_hi;
-		        
-		        float a_split = FLOAT_SPLITTER * a_hi;
-		        float a_hi_hi = a_split - (a_split - a_hi);
-		        float a_hi_lo = a_hi - a_hi_hi;
-		        
-		        float b_split = FLOAT_SPLITTER * b_hi;
-		        float b_hi_hi = b_split - (b_split - b_hi);
-		        float b_hi_lo = b_hi - b_hi_hi;
-		        
-		        float e = ((a_hi_hi * b_hi_hi - p) + a_hi_hi * b_hi_lo + a_hi_lo * b_hi_hi) + a_hi_lo * b_hi_lo;
-		        e += a_hi * b_lo + a_lo * b_hi;
-		        
-		        result[0] = p + e;
-		        result[1] = e - (result[0] - p);
-		    }
-		    
-		    private void divideHighPrecision(float a_hi, float a_lo, float b_hi, float b_lo, float[] result) {
-		        float q = a_hi / b_hi;
-		        
-		        float[] mult = new float[2];
-		        multiplyHighPrecision(b_hi, b_lo, q, 0.0f, mult);
-		        
-		        float[] remainder = new float[2];
-		        subtractHighPrecision(a_hi, a_lo, mult[0], mult[1], remainder);
-		        
-		        float correction = remainder[0] / b_hi;
-		        result[0] = q + correction;
-		        result[1] = correction - (result[0] - q);
-		    }
-		    
-		    private void dotHighPrecision(float ax_hi, float ax_lo, float ay_hi, float ay_lo, float az_hi, float az_lo,
-		                                 float bx_hi, float bx_lo, float by_hi, float by_lo, float bz_hi, float bz_lo,
-		                                 float[] result) {
-		        float[] prod_x = new float[2];
-		        float[] prod_y = new float[2];
-		        float[] prod_z = new float[2];
-		        
-		        multiplyHighPrecision(ax_hi, ax_lo, bx_hi, bx_lo, prod_x);
-		        multiplyHighPrecision(ay_hi, ay_lo, by_hi, by_lo, prod_y);
-		        multiplyHighPrecision(az_hi, az_lo, bz_hi, bz_lo, prod_z);
-		        
-		        float[] temp = new float[2];
-		        addHighPrecision(prod_x[0], prod_x[1], prod_y[0], prod_y[1], temp);
-		        addHighPrecision(temp[0], temp[1], prod_z[0], prod_z[1], result);
-		    }
-		    int writePoint(int polygonIndex, int pointInPolygon, float x_hi, float x_lo, float y_hi, float y_lo, float z_hi, float z_lo) {
+		    int writePoint(int polygonIndex, int pointInPolygon, int x, int y, int z) {
 		        int pointIndex = getPointIndex(polygonIndex, pointInPolygon);
-		        polygonPointX_hi[pointIndex] = x_hi;
-		        polygonPointX_lo[pointIndex] = x_lo;
-		        polygonPointY_hi[pointIndex] = y_hi;
-		        polygonPointY_lo[pointIndex] = y_lo;
-		        polygonPointZ_hi[pointIndex] = z_hi;
-		        polygonPointZ_lo[pointIndex] = z_lo;
+		        polygonPointXFixed[pointIndex] = x;
+		        polygonPointYFixed[pointIndex] = y;
+		        polygonPointZFixed[pointIndex] = z;
 		        return pointIndex;
 		    }
 		    
@@ -704,70 +589,26 @@ public final class Node {
 		    
 		    float polygonPointDistance(int polygonIndex, int pointIndex) {
 		        int globalIndex = getGlobalPointIndex(polygonIndex, pointIndex);
-		        float[] dotResult = new float[2];
-		        dotHighPrecision(NormalPolygonX_hi[polygonIndex], NormalPolygonX_lo[polygonIndex],
-		                        NormalPolygonY_hi[polygonIndex], NormalPolygonY_lo[polygonIndex],
-		                        NormalPolygonZ_hi[polygonIndex], NormalPolygonZ_lo[polygonIndex],
-		                        polygonPointX_hi[globalIndex], polygonPointX_lo[globalIndex],
-		                        polygonPointY_hi[globalIndex], polygonPointY_lo[globalIndex],
-		                        polygonPointZ_hi[globalIndex], polygonPointZ_lo[globalIndex], dotResult);
+		        int dotResult = dotProductFixed(normalPolygonXFixed[polygonIndex], normalPolygonYFixed[polygonIndex], normalPolygonZFixed[polygonIndex],
+		                                       polygonPointXFixed[globalIndex], polygonPointYFixed[globalIndex], polygonPointZFixed[globalIndex]);
 		        
-		        float[] result = new float[2];
-		        subtractHighPrecision(dotResult[0], dotResult[1], 
-		                             NormalPolygonDistance_hi[polygonIndex], NormalPolygonDistance_lo[polygonIndex], result);
-		        return result[0] + result[1];
-		    }
-		    
-		    private void planeDotPointHighPrecision(int polygonIndex, int pointIndex, float[] result) {
-		        int globalIndex = getGlobalPointIndex(polygonIndex, pointIndex);
-		        dotHighPrecision(planeNormalXinternal_hi, planeNormalXinternal_lo,
-		                        planeNormalYinternal_hi, planeNormalYinternal_lo,
-		                        planeNormalZinternal_hi, planeNormalZinternal_lo,
-		                        polygonPointX_hi[globalIndex], polygonPointX_lo[globalIndex],
-		                        polygonPointY_hi[globalIndex], polygonPointY_lo[globalIndex],
-		                        polygonPointZ_hi[globalIndex], polygonPointZ_lo[globalIndex], result);
+		        int result = dotResult - normalPolygonDistanceFixed[polygonIndex];
+		        return fixedToFloat(result);
 		    }
 		    
 		    float planePointDistance(int polygonIndex, int pointIndex) {
-		        float[] dotResult = new float[2];
-		        planeDotPointHighPrecision(polygonIndex, pointIndex, dotResult);
+		        int globalIndex = getGlobalPointIndex(polygonIndex, pointIndex);
+		        int dotResult = dotProductFixed(planeNormalXInternal, planeNormalYInternal, planeNormalZInternal,
+		                                       polygonPointXFixed[globalIndex], polygonPointYFixed[globalIndex], polygonPointZFixed[globalIndex]);
 		        
-		        float[] result = new float[2];
-		        subtractHighPrecision(dotResult[0], dotResult[1], 
-		                             planeNormalDistanceInternal_hi, planeNormalDistanceInternal_lo, result);
-		        return result[0] + result[1];
-		    }
-		    
-		    private void planeDotPointMinusPointHighPrecision(int polygonIndex, int vj, int vi, float[] result) {
-		        int globalVi = getGlobalPointIndex(polygonIndex, vi);
-		        int globalVj = getGlobalPointIndex(polygonIndex, vj);
-		        
-		        float[] diff_x = new float[2];
-		        float[] diff_y = new float[2];
-		        float[] diff_z = new float[2];
-		        
-		        subtractHighPrecision(polygonPointX_hi[globalVj], polygonPointX_lo[globalVj],
-		                             polygonPointX_hi[globalVi], polygonPointX_lo[globalVi], diff_x);
-		        subtractHighPrecision(polygonPointY_hi[globalVj], polygonPointY_lo[globalVj],
-		                             polygonPointY_hi[globalVi], polygonPointY_lo[globalVi], diff_y);
-		        subtractHighPrecision(polygonPointZ_hi[globalVj], polygonPointZ_lo[globalVj],
-		                             polygonPointZ_hi[globalVi], polygonPointZ_lo[globalVi], diff_z);
-		        
-		        dotHighPrecision(planeNormalXinternal_hi, planeNormalXinternal_lo,
-		                        planeNormalYinternal_hi, planeNormalYinternal_lo,
-		                        planeNormalZinternal_hi, planeNormalZinternal_lo,
-		                        diff_x[0], diff_x[1], diff_y[0], diff_y[1], diff_z[0], diff_z[1], result);
+		        int result = dotResult - planeNormalDistanceInternal;
+		        return fixedToFloat(result);
 		    }
 		    
 		    float planeDotPolygonNormal(int polygonIndex) {
-		        float[] result = new float[2];
-		        dotHighPrecision(planeNormalXinternal_hi, planeNormalXinternal_lo,
-		                        planeNormalYinternal_hi, planeNormalYinternal_lo,
-		                        planeNormalZinternal_hi, planeNormalZinternal_lo,
-		                        NormalPolygonX_hi[polygonIndex], NormalPolygonX_lo[polygonIndex],
-		                        NormalPolygonY_hi[polygonIndex], NormalPolygonY_lo[polygonIndex],
-		                        NormalPolygonZ_hi[polygonIndex], NormalPolygonZ_lo[polygonIndex], result);
-		        return result[0] + result[1];
+		        int result = dotProductFixed(planeNormalXInternal, planeNormalYInternal, planeNormalZInternal,
+		                                    normalPolygonXFixed[polygonIndex], normalPolygonYFixed[polygonIndex], normalPolygonZFixed[polygonIndex]);
+		        return fixedToFloat(result);
 		    }
 		}
 		PolygonListManager polygonManager = new PolygonListManager(polygonStartIndex, polygonSize);
@@ -903,19 +744,16 @@ public final class Node {
 		for (int k = 0; k < polygonNumber; k++) {
 			Polygon polygon = polygons.get(k);
 			add(coplanarFront, k, coplanarFrontStartIndex, coplanarFrontSize, orderedPoints, 
-					polygonPointX_h,polygonPointY_h, polygonPointZ_h,
-					polygonPointX_l,polygonPointY_l, polygonPointZ_l,
+					polygonPointX,polygonPointY, polygonPointZ,
+					
 					polygon);
 			add(coplanarBack, k, coplanarBackStartIndex, coplanarBackSize, orderedPoints,
-					polygonPointX_h,polygonPointY_h, polygonPointZ_h,
-					polygonPointX_l,polygonPointY_l, polygonPointZ_l, polygon);
+					polygonPointX,polygonPointY, polygonPointZ, polygon);
 			add(front, k, frontStartIndex, frontSize, orderedPoints, 
-					polygonPointX_h,polygonPointY_h, polygonPointZ_h,
-					polygonPointX_l,polygonPointY_l, polygonPointZ_l,
+					polygonPointX,polygonPointY, polygonPointZ,
 					polygon);
 			add(coplanarFront, k, coplanarFrontStartIndex, coplanarFrontSize, orderedPoints,
-					polygonPointX_h,polygonPointY_h, polygonPointZ_h,
-					polygonPointX_l,polygonPointY_l, polygonPointZ_l, polygon);
+					polygonPointX,polygonPointY, polygonPointZ, polygon);
 
 		}
 	}
