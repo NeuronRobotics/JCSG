@@ -2018,7 +2018,7 @@ public class CSG implements IuserAPI, Serializable {
 	public static void gpuRun(int numberOfPoints, Kernel kernel, float[] done, String type, BooleanSupplier test,
 			int itr, int expectedIterations) {
 
-		progressMoniter.progressUpdate(0, 100, "Start " + typOfCPU(kernel) + type, null);
+		//progressMoniter.progressUpdate(0, 100, "Start " + typOfCPU(kernel) + type, null);
 		if (!useGPU) {
 			String valueOf = String.valueOf(Runtime.getRuntime().availableProcessors() * 4);
 			progressMoniter.progressUpdate(0, 100, "CPU mode " + valueOf, null);
@@ -2035,16 +2035,19 @@ public class CSG implements IuserAPI, Serializable {
 				long sinceStart = System.currentTimeMillis() - begin;
 				long took = sinceStart / iteration[0];
 				long expected = took * (expectedIterations + 2);
-				long remaining = expected - sinceStart;
-				for (int i = 0; i < done.length; i++) {
-					done[i] = 0;
+				if(expected>1500) {
+					long remaining = expected - sinceStart;
+					if(done!=null)
+						for (int i = 0; i < done.length; i++) {
+							done[i] = 0;
+						}
+					if (remaining < 0)
+						remaining = 0;
+					String dur = makeTimestamp(expected);
+					String rem = makeTimestamp(remaining);
+					progressMoniter.progressUpdate(iteration[0], expectedIterations, "Rem->" + rem + " " + type
+							+ typOfCPU(kernel) + "(" + iteration[0] + ") Estimated Total: " + dur, null);
 				}
-				if (remaining < 0)
-					remaining = 0;
-				String dur = makeTimestamp(expected);
-				String rem = makeTimestamp(remaining);
-				progressMoniter.progressUpdate(iteration[0], expectedIterations, "Rem->" + rem + " " + type
-						+ typOfCPU(kernel) + "(" + iteration[0] + ") Estimated Total: " + dur, null);
 			} while (test.getAsBoolean());
 		});
 		thread.start();
@@ -2052,25 +2055,13 @@ public class CSG implements IuserAPI, Serializable {
 			if (kernel.getTargetDevice().getType().toString().contains("JTP")) {
 				useGPU = false;
 			}
-			if (!useGPU) {
-				float doneness = 0;
-				for (int i = 0; i < done.length; i++) {
-					doneness += done[i];
-				}
-				float percent = doneness / ((float) done.length) * 100.0f;
-				// int currentPass = kernel.getCurrentPass();
-				// percent=(float)currentPass/(float)numberOfPoints;
-				if (expectedIterations == 1)
-					progressMoniter.progressUpdate((int) (percent), 100,
-							typOfCPU(kernel) + type + "(" + iteration[0] + ")", null);
-			}
 			try {
-				Thread.sleep(useGPU ? 1 : 100);
+				Thread.sleep( 1);
 			} catch (InterruptedException e) {
 				// Auto-generated catch block
 				e.printStackTrace();
 			}
-		} while (kernel.isExecuting() && thread.isAlive());
+		} while (kernel.isExecuting());
 		try {
 			thread.join();
 		} catch (InterruptedException e) {
