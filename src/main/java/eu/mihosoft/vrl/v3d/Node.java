@@ -229,7 +229,7 @@ public final class Node {
 
 	private static void add(List<Polygon> l, int polygonIndex, int[] polygonStartIndex, int[] polygonSize,
 			ArrayList<Vertex> orderedPoints, 
-			long [] polygonPointX,long [] polygonPointY,long [] polygonPointZ,
+			double [] polygonPointX,double [] polygonPointY,double [] polygonPointZ,
 			Polygon polygon) {
 		int polygonBase = polygonStartIndex[polygonIndex];
 		int size = polygonSize[polygonIndex];
@@ -240,9 +240,9 @@ public final class Node {
 			if (i < orderedPoints.size()) {
 				f.add(orderedPoints.get(i).clone());
 			} else {
-				double x = Double.longBitsToDouble(polygonPointX[i]);
-				double y = Double.longBitsToDouble(polygonPointY[i]);
-				double z = Double.longBitsToDouble(polygonPointZ[i]);
+				double x = (polygonPointX[i]);
+				double y = (polygonPointY[i]);
+				double z = (polygonPointZ[i]);
 				Vertex v = new Vertex(new Vector3d(x/scale, y/scale, z/scale), polygon.plane.getNormal());
 				addPoint(f, v);
 			}
@@ -306,10 +306,10 @@ public final class Node {
 		int[] newPointStartIndex = new int[polygonNumber];
 
 		// Convert to fixed point arrays
-		long[] normalPolygonX = new long[polygonNumber];
-		long[] normalPolygonY = new long[polygonNumber];
-		long[] normalPolygonZ = new long[polygonNumber];
-		long[] normalPolygonDistance = new long[polygonNumber];
+		double[] normalPolygonX = new double[polygonNumber];
+		double[] normalPolygonY = new double[polygonNumber];
+		double[] normalPolygonZ = new double[polygonNumber];
+		double[] normalPolygonDistance = new double[polygonNumber];
 
 		for (int k = 0; k < polygonNumber; k++) {
 		    Polygon polygon = polygons.get(k);
@@ -322,10 +322,10 @@ public final class Node {
 		    polygonSize[k] = size;
 		    
 		    // Convert to fixed point
-		    normalPolygonX[k] = Double.doubleToLongBits(polygon.getPlane().getNormal().x);
-		    normalPolygonY[k] = Double.doubleToLongBits(polygon.getPlane().getNormal().y);
-		    normalPolygonZ[k] = Double.doubleToLongBits(polygon.getPlane().getNormal().z);
-		    normalPolygonDistance[k] = Double.doubleToLongBits(polygon.getPlane().getDist());
+		    normalPolygonX[k] =(polygon.getPlane().getNormal().x);
+		    normalPolygonY[k] = (polygon.getPlane().getNormal().y);
+		    normalPolygonZ[k] = (polygon.getPlane().getNormal().z);
+		    normalPolygonDistance[k] = (polygon.getPlane().getDist());
 		    
 		    orderedPoints.addAll(vertices);
 		}
@@ -352,25 +352,25 @@ public final class Node {
 		int[] types = new int[max];
 
 		// Convert point arrays to fixed point
-		long[] polygonPointX = new long[pointsNumber];
-		long[] polygonPointY = new long[pointsNumber];
-		long[] polygonPointZ = new long[pointsNumber];
+		double[] polygonPointX = new double[pointsNumber];
+		double[] polygonPointY = new double[pointsNumber];
+		double[] polygonPointZ = new double[pointsNumber];
 
 		for (; pointsEmptyIndex < orderedPoints.size(); pointsEmptyIndex++) {
 		    Vertex vertex = orderedPoints.get(pointsEmptyIndex);
-		    polygonPointX[pointsEmptyIndex] = Double.doubleToLongBits(vertex.getX());
-		    polygonPointY[pointsEmptyIndex] = Double.doubleToLongBits(vertex.getY());
-		    polygonPointZ[pointsEmptyIndex] = Double.doubleToLongBits(vertex.getZ());
+		    polygonPointX[pointsEmptyIndex] = (vertex.getX());
+		    polygonPointY[pointsEmptyIndex] = (vertex.getY());
+		    polygonPointZ[pointsEmptyIndex] = (vertex.getZ());
 		}
 
 		// Convert plane normal to fixed point
-		long planeNormalX = Double.doubleToLongBits(this.plane.getNormal().x);
-		long planeNormalY = Double.doubleToLongBits(this.plane.getNormal().y);
-		long planeNormalZ = Double.doubleToLongBits(this.plane.getNormal().z);
-		long planeNormalDistance = Double.doubleToLongBits(this.plane.getDist());
+		double planeNormalX = (this.plane.getNormal().x);
+		double planeNormalY = (this.plane.getNormal().y);
+		double planeNormalZ = (this.plane.getNormal().z);
+		double planeNormalDistance = (this.plane.getDist());
 
-		float epsilon = (float) Plane.getEPSILON();
-		long fixedEpsilon = Double.doubleToLongBits(epsilon);
+		double epsilon =  Plane.getEPSILON();
+
 
 		final int COPLANAR = 0;
 		final int FRONT = 1;
@@ -386,21 +386,21 @@ public final class Node {
 		    int[] space = new int[polygonNumber];
 		    
 		    // Plane information - fixed point
-		    long planeNormalXInternal = planeNormalX;
-		    long planeNormalYInternal = planeNormalY;
-		    long planeNormalZInternal = planeNormalZ;
-		    long planeNormalDistanceInternal = planeNormalDistance;
+		    double planeNormalXInternal = planeNormalX;
+		    double planeNormalYInternal = planeNormalY;
+		    double planeNormalZInternal = planeNormalZ;
+		    double planeNormalDistanceInternal = planeNormalDistance;
 		    
 		    // Point data - fixed point
-		    long[] polygonPointXFixed = polygonPointX;
-		    long[] polygonPointYFixed = polygonPointY;
-		    long[] polygonPointZFixed = polygonPointZ;
+		    double[] polygonPointXFixed = polygonPointX;
+		    double[] polygonPointYFixed = polygonPointY;
+		    double[] polygonPointZFixed = polygonPointZ;
 		    
 		    // Polygon Normals - fixed point
-		    long[] normalPolygonXFixed = normalPolygonX;
-		    long[] normalPolygonYFixed = normalPolygonY;
-		    long[] normalPolygonZFixed = normalPolygonZ;
-		    long[] normalPolygonDistanceFixed = normalPolygonDistance;
+		    double[] normalPolygonXFixed = normalPolygonX;
+		    double[] normalPolygonYFixed = normalPolygonY;
+		    double[] normalPolygonZFixed = normalPolygonZ;
+		    double[] normalPolygonDistanceFixed = normalPolygonDistance;
 		    
 		    PolygonListManager(int[] polygonStartIndex, int[] polygonSize) {
 		        this.mypolygonStartIndex = polygonStartIndex;
@@ -409,534 +409,7 @@ public final class Node {
 		            space[i] = ExtraSpace;
 		        }
 		    }
-		    
-		    /**
-		     * Extract sign bit from long
-		     */
-		     boolean getSign(long bits) {
-		        return (bits & SIGN_MASK) != 0;
-		    }
-		    
-		    /**
-		     * Extract exponent from long
-		     */
-		    int getExponent(long bits) {
-		        return (int)((bits & EXPONENT_MASK_LONG) >>> 52);
-		    }
-		    
-		    /**
-		     * Extract mantissa from long
-		     */
-		     long getMantissa(long bits) {
-		        return bits & MANTISSA_MASK;
-		    }
-		    
-		     /**
-		      * Create IEEE 754 double from components
-		      */
-		     long createBits(boolean sign, int exponent, long mantissa) {
-		         long result = 0;
-
-		         if (sign) {
-		             result |= SIGN_MASK;  // 0x8000000000000000L
-		         }
-
-		         // The exponent should be 11 bits (0-2047), not masked with EXPONENT_MASK
-		         // EXPONENT_MASK is used for EXTRACTING the exponent, not for creating it
-		         result |= ((long)exponent << 52);  // Remove the mask here!
-		         result |= (mantissa & MANTISSA_MASK);
-
-		         return result;
-		     }
-		    
-		    /**
-		     * Check if value is zero
-		     */
-		    boolean isZero(long bits) {
-		        return (bits & 0x7FFFFFFFFFFFFFFFL) == 0;
-		    }
-		    
-		    /**
-		     * Check if value is infinity
-		     */
-		     boolean isInfinity(long bits) {
-		        return ((bits & EXPONENT_MASK_LONG) == EXPONENT_MASK_LONG) && 
-		               ((bits & MANTISSA_MASK) == 0);
-		    }
-		    
-//		    /**
-//		     * Check if value is NaN
-//		     */
-//		    boolean isNaN(long bits) {
-//		        return ((bits & EXPONENT_MASK_LONG) == EXPONENT_MASK_LONG) && 
-//		               ((bits & MANTISSA_MASK) != 0);
-//		    }
-//		    
-		    /**
-		     * Normalize mantissa and adjust exponent
-		     */
-		     int normalize(long[] mantissa, int exponent) {
-		        if (mantissa[0] == 0) {
-		            return 0; // Zero
-		        }
-		        
-		        // Find leading bit
-		        int leadingZeros = 0;
-		        long temp = mantissa[0];
-		        
-		        if ((temp & 0xFFF0000000000000L) == 0) {
-		            leadingZeros += 12;
-		            temp <<= 12;
-		        }
-		        if ((temp & 0xFC00000000000000L) == 0) {
-		            leadingZeros += 6;
-		            temp <<= 6;
-		        }
-		        if ((temp & 0xF000000000000000L) == 0) {
-		            leadingZeros += 4;
-		            temp <<= 4;
-		        }
-		        if ((temp & 0xC000000000000000L) == 0) {
-		            leadingZeros += 2;
-		            temp <<= 2;
-		        }
-		        if ((temp & 0x8000000000000000L) == 0) {
-		            leadingZeros += 1;
-		        }
-		        
-		        mantissa[0] <<= leadingZeros;
-		        return exponent - leadingZeros;
-		    }
-		    
-		    /**
-		     * Add two double values represented as long bits
-		     */
-		    long add(long aBits, long bBits) {
-		        //return softFloatAdd(aBits, bBits);
-		    	 double a = Double.longBitsToDouble(aBits);
-		    	 double b = Double.longBitsToDouble(bBits);
-			     //long result = softFloatDiv(aBits, bBits);
-		    	 //double res = Double.longBitsToDouble(result);
-		         double calc = a+b;
-		         long cbits = Double.doubleToLongBits(calc);
-//		         double abs = Math.abs(res-calc);
-//		         if(result!=cbits) {
-//		        	 System.out.println("Failed multiply!");
-//		         }
-				return cbits;
-		    }
-
-			private long softFloatAdd(long aBits, long bBits) {
-				// Handle special cases
-		        if (isZero(aBits)) {
-		            return bBits;
-		        }
-		        if (isZero(bBits)) {
-		            return aBits;
-		        }
-		        if (isNaN(aBits) || isNaN(bBits)) {
-		            return 0x7FF8000000000000L; // NaN
-		        }
-		        
-		        boolean aSign = getSign(aBits);
-		        boolean bSign = getSign(bBits);
-		        int aExp = getExponent(aBits);
-		        int bExp = getExponent(bBits);
-		        long aMant = getMantissa(aBits);
-		        long bMant = getMantissa(bBits);
-		        
-		        // Add implicit leading bit for normalized numbers
-		        if (aExp != 0) aMant |= IMPLICIT_ONE;
-		        if (bExp != 0) bMant |= IMPLICIT_ONE;
-		        
-		        // Align mantissas
-		        int expDiff = aExp - bExp;
-		        if (expDiff > 0) {
-		            if (expDiff >= 64) {
-		                bMant = 0;
-		            } else {
-		                bMant >>>= expDiff;
-		            }
-		        } else if (expDiff < 0) {
-		            if (-expDiff >= 64) {
-		                aMant = 0;
-		                aExp = bExp;
-		                aSign = bSign;
-		            } else {
-		                aMant >>>= -expDiff;
-		                aExp = bExp;
-		            }
-		        }
-		        
-		        // Perform addition or subtraction
-		        long resultMant;
-		        boolean resultSign;
-		        
-		        if (aSign == bSign) {
-		            // Same sign: add
-		            resultMant = aMant + bMant;
-		            resultSign = aSign;
-		        } else {
-		            // Different signs: subtract
-		            if (aMant >= bMant) {
-		                resultMant = aMant - bMant;
-		                resultSign = aSign;
-		            } else {
-		                resultMant = bMant - aMant;
-		                resultSign = bSign;
-		            }
-		        }
-		        
-		        // Handle zero result
-		        if (resultMant == 0) {
-		            return 0L;
-		        }
-		        
-		        // Normalize result
-		        int resultExp = aExp;
-		        if ((resultMant & 0xFFE0000000000000L) != 0) {
-		            // Overflow: shift right
-		            resultMant >>>= 1;
-		            resultExp++;
-		        } else {
-		            // Find leading bit and shift left
-		            long[] mantArray = {resultMant};
-		            resultExp = normalize(mantArray, resultExp);
-		            resultMant = mantArray[0];
-		        }
-		        
-		        // Check for exponent overflow/underflow
-		        if (resultExp >= 0x7FF) {
-		            return createBits(resultSign, 0x7FF, 0); // Infinity
-		        }
-		        if (resultExp <= 0) {
-		            return createBits(resultSign, 0, 0); // Zero (underflow)
-		        }
-		        
-		        // Remove implicit leading bit
-		        resultMant &= MANTISSA_MASK;
-		        
-		        return createBits(resultSign, resultExp, resultMant);
-			}
-		    
-		    /**
-		     * Subtract two double values represented as long bits
-		     */
-		     long subtract(long aBits, long bBits) {
-		    	 double a = Double.longBitsToDouble(aBits);
-		    	 double b = Double.longBitsToDouble(bBits);
-			     //long result = softFloatDiv(aBits, bBits);
-		    	 //double res = Double.longBitsToDouble(result);
-		         double calc = a-b;
-		         long cbits = Double.doubleToLongBits(calc);
-//		         double abs = Math.abs(res-calc);
-//		         if(result!=cbits) {
-//		        	 System.out.println("Failed multiply!");
-//		         }
-				return cbits;
-//		        return softFLoatSub(aBits, bBits);
-		    }
-
-			private long softFLoatSub(long aBits, long bBits) {
-				// Flip sign of b and add
-		        long negBBits = bBits ^ SIGN_MASK;
-		        return add(aBits, negBBits);
-			}
-		    int numberOfLeadingZeros(long i) {
-		         // HD, Count leading 0's
-		         if (i <= 0)
-		             return i == 0 ? 32 : 0;
-		         int n = 63;
-		         if (i >= 1 << 32) { n -= 32; i >>>= 32; }
-		         if (i >= 1 << 16) { n -= 16; i >>>= 16; }
-		         if (i >= 1 <<  8) { n -=  8; i >>>=  8; }
-		         if (i >= 1 <<  4) { n -=  4; i >>>=  4; }
-		         if (i >= 1 <<  2) { n -=  2; i >>>=  2; }
-		         return (int) (n - (i >>> 1));
-		     }
-		     /**
-		      * Multiply two double values represented as long bits
-		      */
-		     long multiply(long aBits, long bBits) {
-		    	 double a = Double.longBitsToDouble(aBits);
-		    	 double b = Double.longBitsToDouble(bBits);
 		   
-		         //long result = f64_mulRaw( aBits,  bBits);
-		    	 //double res = Double.longBitsToDouble(result);
-		         double calc = a*b;
-		         long cbits = Double.doubleToLongBits(calc);
-//		         double abs = Math.abs(res-calc);
-//		         if(result!=cbits) {
-//		        	 System.out.println("Failed multiply!");
-//		         }
-		         return cbits;
-		     }
-
-		     long f64_mulRaw(long uiA, long uiB) {
-		    	    final int EXP_MASK = 0x7FF;
-		    	    final long FRAC_MASK = 0xFFFFFFFFFFFFFL;
-		    	    final int BIAS = 0x3FF;
-		    	    
-		    	    boolean signA = (uiA >>> 63) != 0;
-		    	    boolean signB = (uiB >>> 63) != 0;
-		    	    boolean signZ = signA ^ signB;
-		    	    int expA = (int) ((uiA >>> 52) & EXP_MASK);
-		    	    int expB = (int) ((uiB >>> 52) & EXP_MASK);
-		    	    long fracA = uiA & FRAC_MASK;
-		    	    long fracB = uiB & FRAC_MASK;
-
-		    	    // Special cases: NaN, infinities, zero * inf invalid case
-		    	    if (expA == EXP_MASK) {
-		    	        if ((fracA != 0) || (expB == EXP_MASK && fracB != 0)) return propagateNaN(uiA, uiB);
-		    	        if (expB == 0 && fracB == 0) return defaultNaN();
-		    	        return pack(signZ, EXP_MASK, 0);
-		    	    }
-		    	    if (expB == EXP_MASK) {
-		    	        if (fracB != 0) return propagateNaN(uiA, uiB);
-		    	        if (expA == 0 && fracA == 0) return defaultNaN();
-		    	        return pack(signZ, EXP_MASK, 0);
-		    	    }
-
-		    	    // Handle zero operands
-		    	    if ((expA == 0 && fracA == 0) || (expB == 0 && fracB == 0)) {
-		    	        return pack(signZ, 0, 0);
-		    	    }
-
-		    	    // Normalize subnormals and add implicit bit
-		    	    if (expA == 0) {
-		    	        int shift = Long.numberOfLeadingZeros(fracA) - (64 - 53);
-		    	        fracA <<= shift;
-		    	        expA = 1 - shift;
-		    	    } else {
-		    	        fracA |= 1L << 52;
-		    	    }
-		    	    
-		    	    if (expB == 0) {
-		    	        int shift = Long.numberOfLeadingZeros(fracB) - (64 - 53);
-		    	        fracB <<= shift;
-		    	        expB = 1 - shift;
-		    	    } else {
-		    	        fracB |= 1L << 52;
-		    	    }
-
-		    	    // Compute result exponent
-		    	    int expZ = expA + expB - BIAS;
-
-		    	    // Multiply significands (53 bits × 53 bits = 106 bits)
-		    	    long[] back=multiply128(fracA, fracB);
-		    	    long hi = back[0];
-		    	    long lo = back[1];
-
-		    	    // The result is in hi:lo (106 bits total)
-		    	    // We need to normalize to get the most significant 53 bits
-		    	    long zFrac;
-		    	    boolean sticky = false;
-		    	    
-		    	    if ((hi & (1L << 63)) != 0) {
-		    	        // Result is already normalized (>= 2.0)
-		    	        zFrac = hi;
-		    	        sticky = (lo != 0);
-		    	    } else {
-		    	        // Result needs left shift by 1 (< 2.0)
-		    	        zFrac = (hi << 1) | (lo >>> 63);
-		    	        sticky = (lo & 0x7FFFFFFFFFFFFFFFL) != 0;
-		    	        expZ--;
-		    	    }
-
-		    	    // Handle overflow
-		    	    if (expZ >= EXP_MASK) {
-		    	        return pack(signZ, EXP_MASK, 0);
-		    	    }
-
-		    	    // Handle underflow (subnormal results)
-		    	    if (expZ <= 0) {
-		    	        if (expZ < -52) {
-		    	            return pack(signZ, 0, 0);
-		    	        }
-		    	        
-		    	        // Shift right for subnormal
-		    	        int shift = 1 - expZ;
-		    	        if (shift >= 64) {
-		    	            return pack(signZ, 0, 0);
-		    	        }
-		    	        
-		    	        // Preserve sticky bits during right shift
-		    	        long shiftMask = (1L << shift) - 1;
-		    	        sticky |= (zFrac & shiftMask) != 0;
-		    	        zFrac >>>= shift;
-		    	        expZ = 0;
-		    	    }
-
-		    	    // Round to nearest, ties to even
-		    	    // The rounding boundary is at bit 11 (counting from bit 0)
-		    	    long roundBit = 1L << 11;
-		    	    long roundMask = roundBit - 1;
-		    	    boolean guard = (zFrac & roundBit) != 0;
-		    	    sticky |= (zFrac & roundMask) != 0;
-		    	    
-		    	    // Extract the 53-bit significand
-		    	    long significand = zFrac >>> 12;
-		    	    
-		    	    // Apply rounding
-		    	    if (guard && (sticky || (significand & 1L) != 0)) {
-		    	        significand++;
-		    	        
-		    	        if (expZ == 0) {
-		    	            // Subnormal case - check if we became normal
-		    	            if ((significand & (1L << 52)) != 0) {
-		    	                expZ = 1;
-		    	                significand &= FRAC_MASK;
-		    	            }
-		    	        } else {
-		    	            // Normal case - check for overflow
-		    	            if ((significand & (1L << 53)) != 0) {
-		    	                significand >>>= 1;
-		    	                expZ++;
-		    	                if (expZ >= EXP_MASK) {
-		    	                    return pack(signZ, EXP_MASK, 0);
-		    	                }
-		    	            }
-		    	        }
-		    	    }
-
-		    	    // Final result
-		    	    long fracZ = significand & FRAC_MASK;
-		    	    return pack(signZ, expZ, fracZ);
-		    	}
-
-		    	    // Multiply two 64-bit numbers and return 128-bit result as [hi, lo]
-		    	     long[] multiply128(long a, long b) {
-		    	        // Split into 32-bit parts
-		    	        long a0 = a & 0xFFFFFFFFL;
-		    	        long a1 = a >>> 32;
-		    	        long b0 = b & 0xFFFFFFFFL;
-		    	        long b1 = b >>> 32;
-		    	        
-		    	        // Compute partial products
-		    	        long p0 = a0 * b0;
-		    	        long p1 = a0 * b1;
-		    	        long p2 = a1 * b0;
-		    	        long p3 = a1 * b1;
-		    	        
-		    	        // Combine partial products
-		    	        long middle = (p0 >>> 32) + (p1 & 0xFFFFFFFFL) + (p2 & 0xFFFFFFFFL);
-		    	        long hi = p3 + (p1 >>> 32) + (p2 >>> 32) + (middle >>> 32);
-		    	        long lo = (middle << 32) + (p0 & 0xFFFFFFFFL);
-		    	        
-		    	        return new long[]{hi, lo};
-		    	    }
-
-		    	long pack(boolean sign, int exp, long frac) {
-		    	    return ((sign ? 1L : 0L) << 63)
-		    	         | ((long) (exp & 0x7FF) << 52)
-		    	         | (frac & 0xFFFFFFFFFFFFFL);
-		    	}
-
-		    	long defaultNaN() { 
-		    	    return 0x7FF8000000000000L; 
-		    	}
-
-		    	boolean isNaN(long ui) {
-		    	    return (((ui >>> 52) & 0x7FF) == 0x7FF) && ((ui & 0xFFFFFFFFFFFFFL) != 0);
-		    	}
-
-		    	long propagateNaN(long a, long b) {
-		    	    if (isNaN(a)) return a | (1L << 51);
-		    	    if (isNaN(b)) return b | (1L << 51);
-		    	    return defaultNaN();
-		    	}
-		    /**
-		     * Divide two double values represented as long bits
-		     */
-		     long divide(long aBits, long bBits) {
-		    	 double a = Double.longBitsToDouble(aBits);
-		    	 double b = Double.longBitsToDouble(bBits);
-			     //long result = softFloatDiv(aBits, bBits);
-		    	 //double res = Double.longBitsToDouble(result);
-		         double calc = a/b;
-		         long cbits = Double.doubleToLongBits(calc);
-//		         double abs = Math.abs(res-calc);
-//		         if(result!=cbits) {
-//		        	 System.out.println("Failed multiply!");
-//		         }
-				return cbits;
-		    }
-
-			private long softFloatDiv(long aBits, long bBits) {
-				// Handle special cases
-		        if (isZero(bBits)) {
-		            // Division by zero
-		            boolean sign = getSign(aBits) ^ getSign(bBits);
-		            return createBits(sign, 0x7FF, 0); // Infinity
-		        }
-		        if (isZero(aBits)) {
-		            boolean sign = getSign(aBits) ^ getSign(bBits);
-		            return createBits(sign, 0, 0);
-		        }
-		        if (isNaN(aBits) || isNaN(bBits)) {
-		            return 0x7FF8000000000000L; // NaN
-		        }
-		        
-		        boolean aSign = getSign(aBits);
-		        boolean bSign = getSign(bBits);
-		        int aExp = getExponent(aBits);
-		        int bExp = getExponent(bBits);
-		        long aMant = getMantissa(aBits);
-		        long bMant = getMantissa(bBits);
-		        
-		        // Add implicit leading bit for normalized numbers
-		        if (aExp != 0) aMant |= IMPLICIT_ONE;
-		        if (bExp != 0) bMant |= IMPLICIT_ONE;
-		        
-		        // Calculate result sign and exponent
-		        boolean resultSign = aSign ^ bSign;
-		        int resultExp = aExp - bExp + EXPONENT_BIAS;
-		        
-		        // Divide mantissas using long division
-		        long dividend = aMant;
-		        long divisor = bMant;
-		        long quotient = 0;
-		        
-		        // Align dividend and divisor for division
-		        if (dividend < divisor) {
-		            dividend <<= 1;
-		            resultExp--;
-		        }
-		        
-		        // Perform long division
-		        for (int i = 0; i < 53; i++) {
-		            quotient <<= 1;
-		            if (dividend >= divisor) {
-		                dividend -= divisor;
-		                quotient |= 1;
-		            }
-		            dividend <<= 1;
-		        }
-		        
-		        // Normalize result
-		        if ((quotient & 0x8000000000000000L) != 0) {
-		            quotient >>>= 1;
-		            resultExp++;
-		        } else {
-		            long[] mantArray = {quotient};
-		            resultExp = normalize(mantArray, resultExp);
-		            quotient = mantArray[0];
-		        }
-		        
-		        // Check for exponent overflow/underflow
-		        if (resultExp >= 0x7FF) {
-		            return createBits(resultSign, 0x7FF, 0); // Infinity
-		        }
-		        if (resultExp <= 0) {
-		            return createBits(resultSign, 0, 0); // Zero (underflow)
-		        }
-		        
-		        // Remove implicit leading bit
-		        quotient &= MANTISSA_MASK;
-		        
-		        return createBits(resultSign, resultExp, quotient);
-			}
-
 		    int size(int polygonIndex) {
 		        return mypolygonSize[polygonIndex];
 		    }
@@ -976,9 +449,9 @@ public final class Node {
 		    int writeIncrementPoint(int polygonIndex, int source) {
 		        int pointInPolygon = mypolygonSize[polygonIndex];
 		        incrementSize(polygonIndex);
-		        long x = polygonPointXFixed[source];
-		        long y = polygonPointYFixed[source];
-		        long z = polygonPointZFixed[source];
+		        double x = polygonPointXFixed[source];
+		        double y = polygonPointYFixed[source];
+		        double z = polygonPointZFixed[source];
 		        return writePoint(polygonIndex, pointInPolygon, x, y, z);
 		    }
 
@@ -990,10 +463,10 @@ public final class Node {
 		        
 		        // Fixed point computation of g = planeNormalDistanceInternal - planeDotPoint(polygonIndex, vi)
 		        int globalIndex = getGlobalPointIndex(polygonIndex, vi);
-		        long planeDot = dotProductFixed(planeNormalXInternal, planeNormalYInternal, planeNormalZInternal,
+		        double planeDot = dotProductFixed(planeNormalXInternal, planeNormalYInternal, planeNormalZInternal,
 		                                      polygonPointXFixed[globalIndex], polygonPointYFixed[globalIndex], polygonPointZFixed[globalIndex]);
 		        
-		        long g = subtract(planeNormalDistanceInternal , planeDot);
+		        double g = (planeNormalDistanceInternal - planeDot);
 //		        double mydot = Double.longBitsToDouble(planeDot);
 //		        double mydist = Double.longBitsToDouble(planeNormalDistanceInternal);
 //		        double myD = mydist - mydot;
@@ -1009,28 +482,28 @@ public final class Node {
 		        int globalVi = getGlobalPointIndex(polygonIndex, vi);
 		        int globalVj = getGlobalPointIndex(polygonIndex, vj);
 		        
-		        long diff_x = subtract(polygonPointXFixed[globalVj] , polygonPointXFixed[globalVi]);
-		        long diff_y = subtract(polygonPointYFixed[globalVj] , polygonPointYFixed[globalVi]);
-		        long diff_z = subtract(polygonPointZFixed[globalVj] , polygonPointZFixed[globalVi]);
+		        double diff_x = (polygonPointXFixed[globalVj] - polygonPointXFixed[globalVi]);
+		        double diff_y = (polygonPointYFixed[globalVj] - polygonPointYFixed[globalVi]);
+		        double diff_z = (polygonPointZFixed[globalVj] - polygonPointZFixed[globalVi]);
 		        
-		        long dotMinus = dotProductFixed(planeNormalXInternal, planeNormalYInternal, planeNormalZInternal,
+		        double dotMinus = dotProductFixed(planeNormalXInternal, planeNormalYInternal, planeNormalZInternal,
 		                                      diff_x, diff_y, diff_z);
 		        
 		        // Fixed point division: t = g / dotMinus
-		        long t = divide(g, dotMinus);
+		        double t = (g/ dotMinus);
 		        
 		        int pointInPolygon = mypolygonSize[polygonIndex];
 		        incrementSize(polygonIndex);
 		        
 		        // Get fixed point coordinates
-		        long xvi = polygonPointXFixed[globalVi];
-		        long yvi = polygonPointYFixed[globalVi];
-		        long zvi = polygonPointZFixed[globalVi];
+		        double xvi = polygonPointXFixed[globalVi];
+		        double yvi = polygonPointYFixed[globalVi];
+		        double zvi = polygonPointZFixed[globalVi];
 		        
 		        // Fixed point interpolation: lerp = vi + (vj - vi) * t
-		        long lerp_x = add(xvi , multiply(diff_x, t));
-		        long lerp_y = add(yvi , multiply(diff_y, t));
-		        long lerp_z = add(zvi , multiply(diff_z, t));
+		        double lerp_x = (xvi + (diff_x* t));
+		        double lerp_y = (yvi + (diff_y* t));
+		        double lerp_z = (zvi + (diff_z* t));
 		        
 		        int ret = writePoint(polygonIndex, pointInPolygon, lerp_x, lerp_y, lerp_z);
 		        
@@ -1053,32 +526,16 @@ public final class Node {
 		    }
 		    
 		    // Fixed point dot product
-		    private long dotProductFixed(long ax, long ay, long az, long bx, long by, long bz) {
-		        long multiply = multiply(az, bz);
-				long multiply2 = multiply(ay, by);
-				long multiply3 = multiply(ax, bx);
-				long aBits = add(multiply3 , multiply2);
-				long l = add(aBits , multiply);
-//				double dax= Double.longBitsToDouble(ax);
-//				double day= Double.longBitsToDouble(ay);
-//				double daz= Double.longBitsToDouble(az);
-//				double dbx= Double.longBitsToDouble(bx);
-//				double dby= Double.longBitsToDouble(by);
-//				double dbz= Double.longBitsToDouble(bz);
-//				
-//				double m1 =Double.longBitsToDouble(multiply); 
-//
-//				double m2 =Double.longBitsToDouble(multiply2);
-//
-//				double m3 =Double.longBitsToDouble(multiply3);
-//
-//				double a =Double.longBitsToDouble(aBits);
-//
-//				double ld =Double.longBitsToDouble(l);
+		    private double dotProductFixed(double ax, double ay, double az, double bx, double by, double bz) {
+		        double multiply = (az *bz);
+				double multiply2 = (ay * by);
+				double multiply3 = (ax * bx);
+				double aBits = (multiply3 + multiply2);
+				double l = (aBits + multiply);
 				return l;
 		    }
 		    
-		    int writePoint(int polygonIndex, int pointInPolygon, long x, long y, long z) {
+		    int writePoint(int polygonIndex, int pointInPolygon, double x, double y, double z) {
 		        int pointIndex = getPointIndex(polygonIndex, pointInPolygon);
 		        polygonPointXFixed[pointIndex] = x;
 		        polygonPointYFixed[pointIndex] = y;
@@ -1094,114 +551,28 @@ public final class Node {
 		        return mypolygonStartIndex[polygonIndex] + point;
 		    }
 		    
-		    float polygonPointDistance(int polygonIndex, int pointIndex) {
+		    double polygonPointDistance(int polygonIndex, int pointIndex) {
 		        int globalIndex = getGlobalPointIndex(polygonIndex, pointIndex);
-		        long dotResult = dotProductFixed(normalPolygonXFixed[polygonIndex], normalPolygonYFixed[polygonIndex], normalPolygonZFixed[polygonIndex],
+		        double dotResult = dotProductFixed(normalPolygonXFixed[polygonIndex], normalPolygonYFixed[polygonIndex], normalPolygonZFixed[polygonIndex],
 		                                       polygonPointXFixed[globalIndex], polygonPointYFixed[globalIndex], polygonPointZFixed[globalIndex]);
 		        
-		        long result = subtract(dotResult , normalPolygonDistanceFixed[polygonIndex]);
-		        return fixedToFloat(result);
+		        double result = (dotResult - normalPolygonDistanceFixed[polygonIndex]);
+		        return (result);
 		    }
 		    
-		    float planePointDistance(int polygonIndex, int pointIndex) {
+		    double planePointDistance(int polygonIndex, int pointIndex) {
 		        int globalIndex = getGlobalPointIndex(polygonIndex, pointIndex);
-		        long dotResult = dotProductFixed(planeNormalXInternal, planeNormalYInternal, planeNormalZInternal,
+		        double dotResult = dotProductFixed(planeNormalXInternal, planeNormalYInternal, planeNormalZInternal,
 		                                       polygonPointXFixed[globalIndex], polygonPointYFixed[globalIndex], polygonPointZFixed[globalIndex]);
 		        
-		        long result = subtract(dotResult , planeNormalDistanceInternal);
-		        return fixedToFloat(result);
+		        double result = (dotResult - planeNormalDistanceInternal);
+		        return (result);
 		    }
 		    
-		    float planeDotPolygonNormal(int polygonIndex) {
-		    	long result = dotProductFixed(planeNormalXInternal, planeNormalYInternal, planeNormalZInternal,
+		    double planeDotPolygonNormal(int polygonIndex) {
+		    	double result = dotProductFixed(planeNormalXInternal, planeNormalYInternal, planeNormalZInternal,
 		                                    normalPolygonXFixed[polygonIndex], normalPolygonYFixed[polygonIndex], normalPolygonZFixed[polygonIndex]);
-		        return fixedToFloat(result);
-		    }
-		    /**
-		     * Convert a stored double (as long bits) to float without using Double/Float classes
-		     * Manually implements IEEE 754 double to float conversion
-		     */
-		    float fixedToFloat(long doubleBits) {
-		        // Handle special cases first
-		        if (isZero(doubleBits)) {
-		            return (doubleBits & SIGN_MASK) != 0 ? -0.0f : 0.0f;
-		        }
-		        if (isNaN(doubleBits)) {
-		            return Float.NaN;
-		        }
-		        if (isInfinity(doubleBits)) {
-		            return (doubleBits & SIGN_MASK) != 0 ? Float.NEGATIVE_INFINITY : Float.POSITIVE_INFINITY;
-		        }
-		        
-		        // Extract double components
-		        boolean sign = (doubleBits & SIGN_MASK) != 0;
-		        int doubleExp = (int)((doubleBits & EXPONENT_MASK_LONG) >>> 52);
-		        long doubleMant = doubleBits & MANTISSA_MASK;
-		        
-		        // Convert exponent from double bias (1023) to float bias (127)
-		        int floatExp = doubleExp - EXPONENT_BIAS + 127;
-		        
-		        // Handle exponent overflow (too large for float)
-		        if (floatExp >= 255) {
-		            // Return infinity
-		            int floatBits = sign ? 0xFF800000 : 0x7F800000;
-		            return Float.intBitsToFloat(floatBits);
-		        }
-		        
-		        // Handle exponent underflow (too small for float)
-		        if (floatExp <= 0) {
-		            // Handle subnormal numbers
-		            if (floatExp > -24) {
-		                // Can represent as subnormal
-		                long mantissa = doubleMant;
-		                if (doubleExp != 0) {
-		                    mantissa |= IMPLICIT_ONE; // Add implicit bit for normalized double
-		                }
-		                
-		                // Shift mantissa for subnormal representation
-		                int shift = 52 - 23 + (1 - floatExp);
-		                mantissa >>>= shift;
-		                
-		                int floatBits = (sign ? 0x80000000 : 0) | (int)mantissa;
-		                return Float.intBitsToFloat(floatBits);
-		            } else {
-		                // Too small, return zero
-		                return sign ? -0.0f : 0.0f;
-		            }
-		        }
-		        
-		        // Normal case: convert mantissa from 52 bits to 23 bits
-		        long floatMant = doubleMant >>> (52 - 23); // Take top 23 bits
-		        
-		        // Handle rounding (round to nearest, ties to even)
-		        long roundBit = (doubleMant >>> (52 - 23 - 1)) & 1;
-		        long stickyBits = doubleMant & ((1L << (52 - 23 - 1)) - 1);
-		        
-		        if (roundBit != 0 && (stickyBits != 0 || (floatMant & 1) != 0)) {
-		            floatMant++;
-		            
-		            // Check for mantissa overflow
-		            if (floatMant >= (1L << 23)) {
-		                floatMant = 0;
-		                floatExp++;
-		                
-		                // Check for exponent overflow after rounding
-		                if (floatExp >= 255) {
-		                    int floatBits = sign ? 0xFF800000 : 0x7F800000;
-		                    return Float.intBitsToFloat(floatBits);
-		                }
-		            }
-		        }
-		        
-		        // Construct float bits
-		        int floatBits = 0;
-		        if (sign) {
-		            floatBits |= 0x80000000;
-		        }
-		        floatBits |= (floatExp & 0xFF) << 23;
-		        floatBits |= (int)(floatMant & 0x7FFFFF);
-		        
-		        return Float.intBitsToFloat(floatBits);
+		        return (result);
 		    }
 		}
 		PolygonListManager polygonManager = new PolygonListManager(polygonStartIndex, polygonSize);
@@ -1217,16 +588,16 @@ public final class Node {
 			Polygon polygon = polygons.get(polygonIndex);
 
 			// search for the epsilon values of the incoming plane
-			float negEpsilon = -epsilon;
-			float posEpsilon = epsilon;
+			double negEpsilon = -epsilon;
+			double posEpsilon = epsilon;
 			for (int i = 0; i < polygonManager.size(polygonIndex); i++) {
-				double tOld= polygon.getPlane().getNormal().dot(polygon.getVertices().get(i).pos);
+//				double tOld= polygon.getPlane().getNormal().dot(polygon.getVertices().get(i).pos);
+//				double abs =Math.abs(tOld-t/scale);
+//				if(abs>epsilon) {
+////					memoryError[0]=true;
+////					break;
+//				}
 				double t = (polygonManager.polygonPointDistance(polygonIndex, i) );
-				double abs =Math.abs(tOld-t/scale);
-				if(abs>epsilon) {
-//					memoryError[0]=true;
-//					break;
-				}
 				if (t > posEpsilon) {
 					// com.neuronrobotics.sdk.common.Log.error("Non flat polygon, increasing
 					// positive epsilon "+t);
@@ -1243,15 +614,15 @@ public final class Node {
 			boolean somePointsInBack = false;
 			for (int i = 0; i < polygonManager.size(polygonIndex); i++) {
 
-				float t = polygonManager.planePointDistance(polygonIndex, i);
+				double t = polygonManager.planePointDistance(polygonIndex, i);
 
-				double tOld = this.getPlane().getNormal().dot(polygon.getVertices().get(i).pos)
-						- this.getPlane().getDist();
-				double delta = Math.abs(tOld-t);
-				if(delta>epsilon) {
-					//throw new RuntimeException("Algorithm fail!");
-				}
-				int type = (tOld < negEpsilon) ? BACK : (tOld > posEpsilon) ? FRONT : COPLANAR;
+//				double tOld = this.getPlane().getNormal().dot(polygon.getVertices().get(i).pos)
+//						- this.getPlane().getDist();
+//				double delta = Math.abs(tOld-t);
+//				if(delta>epsilon) {
+//					//throw new RuntimeException("Algorithm fail!");
+//				}
+				int type = (t < negEpsilon) ? BACK : (t > posEpsilon) ? FRONT : COPLANAR;
 				if (type == BACK)
 					somePointsInBack = true;
 				if (type == FRONT)
