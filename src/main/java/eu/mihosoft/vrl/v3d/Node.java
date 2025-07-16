@@ -398,331 +398,249 @@ public final class Node {
 		int loops = polygonNumber / chunkSize;
 		if (loops < 0)
 			loops = 1;
-		Plane myPlane = this.plane;
+		Kernel splitPolygons = new Kernel() {
 
-		final class PolygonListManager {
-		    // Polygon index data
-		    final int[] mypolygonStartIndex;
-		    final int[] mypolygonSize;
-		    int[] space = new int[polygonNumber];
-		    
-		    // Plane information - fixed point
-		    double planeNormalXInternal = planeNormalX;
-		    double planeNormalYInternal = planeNormalY;
-		    double planeNormalZInternal = planeNormalZ;
-		    double planeNormalDistanceInternal = planeNormalDistance;
-		    
-		    // Point data - fixed point
-		    double[] polygonPointXFixed = polygonPointX;
-		    double[] polygonPointYFixed = polygonPointY;
-		    double[] polygonPointZFixed = polygonPointZ;
-		    
-		    // Polygon Normals - fixed point
-		    double[] normalPolygonXFixed = normalPolygonX;
-		    double[] normalPolygonYFixed = normalPolygonY;
-		    double[] normalPolygonZFixed = normalPolygonZ;
-		    double[] normalPolygonDistanceFixed = normalPolygonDistance;
-		    
-		    PolygonListManager(int[] polygonStartIndex, int[] polygonSize) {
-		        this.mypolygonStartIndex = polygonStartIndex;
-		        this.mypolygonSize = polygonSize;
-		        for (int i = 0; i < polygonNumber; i++) {
-		            space[i] = ExtraSpace;
-		        }
-		    }
-		   
-		    int size(int polygonIndex) {
-		        return mypolygonSize[polygonIndex];
-		    }
-
-		    int addPolygon(int polygonIndex, int size) {
-		        int w = polygonIndex;
-		        mypolygonStartIndex[w] = newPointStartIndex[w];
-		        newPointStartIndex[w] += size;
-		        mypolygonSize[w] = size;
-		        space[w] -= size;
-		        return space[w];
-		    }
-
-		    void copy(int polygonIndex) {
-		        mypolygonStartIndex[polygonIndex] = polygonStartIndex[polygonIndex];
-		        mypolygonSize[polygonIndex] = polygonSize[polygonIndex];
-		    }
-
-		    void clear(int polygonIndex) {
-		        mypolygonSize[polygonIndex] = 0;
-		    }
-
-		    void incrementSize(int polygonIndex) {
-		        mypolygonSize[polygonIndex]++;
-		        int ni = mypolygonSize[polygonIndex];
-		        if(polygonIndex == mypolygonSize.length - 1) {
-		            if(ni >= pointsNumber) {
-		                memoryError[polygonIndex] = true;
-		            }
-		        } else {
-		            if (ni + mypolygonStartIndex[polygonIndex] == mypolygonStartIndex[polygonIndex + 1]) {
-		                memoryError[polygonIndex] = true;
-		            }
-		        }
-		    }
-		    
-		    int writeIncrementPoint(int polygonIndex, int source) {
-		        int pointInPolygon = mypolygonSize[polygonIndex];
-		        incrementSize(polygonIndex);
-		        double x = polygonPointXFixed[source];
-		        double y = polygonPointYFixed[source];
-		        double z = polygonPointZFixed[source];
-		        return writePoint(polygonIndex, pointInPolygon, x, y, z);
-		    }
-
-		    int interpolate(int polygonIndex, int vi, int vj) {
-//		        double tol = Plane.getEPSILON();
-//		      
-//		        double dot = myPlane.getNormal().dot(vi2.pos);
-//		        double dist = myPlane.getDist();
-		        
-		        // Fixed point computation of g = planeNormalDistanceInternal - planeDotPoint(polygonIndex, vi)
-		        int globalIndex = getGlobalPointIndex(polygonIndex, vi);
-		        double planeDot = dotProductFixed(planeNormalXInternal, planeNormalYInternal, planeNormalZInternal,
-		                                      polygonPointXFixed[globalIndex], polygonPointYFixed[globalIndex], polygonPointZFixed[globalIndex]);
-		        
-		        double g = (planeNormalDistanceInternal - planeDot);
-//		        double mydot = Double.longBitsToDouble(planeDot);
-//		        double mydist = Double.longBitsToDouble(planeNormalDistanceInternal);
-//		        double myD = mydist - mydot;
-//		        double d = dist - dot;
-//		        
-//		        Vector3d minus = vj2.pos.minus(vi2.pos);
-//		        double dotMinusOld = myPlane.getNormal().dot(minus);
-//		        double tOld = d / dotMinusOld;
-//		        Vector3d times = minus.times(tOld);
-//		        Vector3d intrp = vi2.pos.plus(times);
-		        
-		        // Fixed point computation of dotMinus = planeDotPointMinusPoint(polygonIndex, vj, vi)
-		        int globalVi = getGlobalPointIndex(polygonIndex, vi);
-		        int globalVj = getGlobalPointIndex(polygonIndex, vj);
-		        
-		        double diff_x = (polygonPointXFixed[globalVj] - polygonPointXFixed[globalVi]);
-		        double diff_y = (polygonPointYFixed[globalVj] - polygonPointYFixed[globalVi]);
-		        double diff_z = (polygonPointZFixed[globalVj] - polygonPointZFixed[globalVi]);
-		        
-		        double dotMinus = dotProductFixed(planeNormalXInternal, planeNormalYInternal, planeNormalZInternal,
-		                                      diff_x, diff_y, diff_z);
-		        
-		        // Fixed point division: t = g / dotMinus
-		        double t = (g/ dotMinus);
-		        
-		        int pointInPolygon = mypolygonSize[polygonIndex];
-		        incrementSize(polygonIndex);
-		        
-		        // Get fixed point coordinates
-		        double xvi = polygonPointXFixed[globalVi];
-		        double yvi = polygonPointYFixed[globalVi];
-		        double zvi = polygonPointZFixed[globalVi];
-		        
-		        // Fixed point interpolation: lerp = vi + (vj - vi) * t
-		        double lerp_x = (xvi + (diff_x* t));
-		        double lerp_y = (yvi + (diff_y* t));
-		        double lerp_z = (zvi + (diff_z* t));
-		        
-		        int ret = writePoint(polygonIndex, pointInPolygon, lerp_x, lerp_y, lerp_z);
-		        
-//		        double x = Double.longBitsToDouble(polygonPointXFixed[ret]);
-//		        double y = Double.longBitsToDouble(polygonPointYFixed[ret]);
-//		        double z = Double.longBitsToDouble(polygonPointZFixed[ret]);
-		        
-//		        double abs2 = Math.abs(intrp.x - (x / scale));
-//		        double abs3 = Math.abs(intrp.y - (y / scale));
-//		        double abs4 = Math.abs(intrp.z - (z / scale));
-//		        
-//		        if (abs2 > tol || abs3 > tol || abs4 > tol) {
-//		            memoryError[polygonIndex] = true;
-//		            return -1;
-//		        }
-		        
-//		        addPoint(f, new Vertex(intrp, vj2.normal));
-//		        addPoint(b, new Vertex(intrp.clone(), vj2.normal));
-		        return ret;
-		    }
-		    
-		    // Fixed point dot product
-		    private double dotProductFixed(double ax, double ay, double az, double bx, double by, double bz) {
-		        double multiply = (az *bz);
-				double multiply2 = (ay * by);
-				double multiply3 = (ax * bx);
-				double aBits = (multiply3 + multiply2);
-				double l = (aBits + multiply);
-				return l;
-		    }
-		    
-		    int writePoint(int polygonIndex, int pointInPolygon, double x, double y, double z) {
-		        int pointIndex = getPointIndex(polygonIndex, pointInPolygon);
-		        polygonPointXFixed[pointIndex] = x;
-		        polygonPointYFixed[pointIndex] = y;
-		        polygonPointZFixed[pointIndex] = z;
-		        return pointIndex;
-		    }
-		    
-		    private int getGlobalPointIndex(int polygonIndex, int point) {
-		        return polygonStartIndex[polygonIndex] + point;
-		    }
-		    
-		    private int getPointIndex(int polygonIndex, int point) {
-		        return mypolygonStartIndex[polygonIndex] + point;
-		    }
-		    
-		    double polygonPointDistance(int polygonIndex, int pointIndex) {
-		        int globalIndex = getGlobalPointIndex(polygonIndex, pointIndex);
-		        double dotResult = dotProductFixed(normalPolygonXFixed[polygonIndex], normalPolygonYFixed[polygonIndex], normalPolygonZFixed[polygonIndex],
-		                                       polygonPointXFixed[globalIndex], polygonPointYFixed[globalIndex], polygonPointZFixed[globalIndex]);
-		        
-		        double result = (dotResult - normalPolygonDistanceFixed[polygonIndex]);
-		        return (result);
-		    }
-		    
-		    double planePointDistance(int polygonIndex, int pointIndex) {
-		        int globalIndex = getGlobalPointIndex(polygonIndex, pointIndex);
-		        double dotResult = dotProductFixed(planeNormalXInternal, planeNormalYInternal, planeNormalZInternal,
-		                                       polygonPointXFixed[globalIndex], polygonPointYFixed[globalIndex], polygonPointZFixed[globalIndex]);
-		        
-		        double result = (dotResult - planeNormalDistanceInternal);
-		        return (result);
-		    }
-		    
-		    double planeDotPolygonNormal(int polygonIndex) {
-		    	double result = dotProductFixed(planeNormalXInternal, planeNormalYInternal, planeNormalZInternal,
-		                                    normalPolygonXFixed[polygonIndex], normalPolygonYFixed[polygonIndex], normalPolygonZFixed[polygonIndex]);
-		        return (result);
-		    }
-		}
-		PolygonListManager polygonManager = new PolygonListManager(polygonStartIndex, polygonSize);
-		PolygonListManager coplanarFrontManager = new PolygonListManager(coplanarFrontStartIndex, coplanarFrontSize);
-		PolygonListManager coplanarBackManager = new PolygonListManager(coplanarBackStartIndex, coplanarBackSize);
-		PolygonListManager frontManager = new PolygonListManager(frontStartIndex, frontSize);
-		PolygonListManager backManager = new PolygonListManager(backStartIndex, backSize);
-		boolean newalgo=true;
-
-		for (int polygonIndex = 0; polygonIndex < polygons.size(); polygonIndex++) {
-			if (memoryError[polygonIndex])
-				break;
-			Polygon polygon = polygons.get(polygonIndex);
-
-			// search for the epsilon values of the incoming plane
-			double negEpsilon = -epsilon;
-			double posEpsilon = epsilon;
-			for (int i = 0; i < polygonManager.size(polygonIndex); i++) {
-//				double tOld= polygon.getPlane().getNormal().dot(polygon.getVertices().get(i).pos);
-//				double abs =Math.abs(tOld-t/scale);
-//				if(abs>epsilon) {
-////					memoryError[polygonIndex]=true;
-////					break;
-//				}
-				double t = (polygonManager.polygonPointDistance(polygonIndex, i) );
-				if (t > posEpsilon) {
-					// com.neuronrobotics.sdk.common.Log.error("Non flat polygon, increasing
-					// positive epsilon "+t);
-					posEpsilon = (float) (t + epsilon);
-				}
-				if (t < negEpsilon) {
-					// com.neuronrobotics.sdk.common.Log.error("Non flat polygon, decreasing
-					// negative epsilon "+t);
-					negEpsilon = (float) (t - epsilon);
-				}
+			int size(int polygonIndex, int[] mypolygonSize) {
+				return mypolygonSize[polygonIndex];
 			}
-			int polygonType = COPLANAR;
-			boolean somePointsInfront = false;
-			boolean somePointsInBack = false;
-			for (int i = 0; i < polygonManager.size(polygonIndex); i++) {
 
-				double t = polygonManager.planePointDistance(polygonIndex, i);
-
-//				double tOld = this.getPlane().getNormal().dot(polygon.getVertices().get(i).pos)
-//						- this.getPlane().getDist();
-//				double delta = Math.abs(tOld-t);
-//				if(delta>epsilon) {
-//					//throw new RuntimeException("Algorithm fail!");
-//				}
-				int type = (t < negEpsilon) ? BACK : (t > posEpsilon) ? FRONT : COPLANAR;
-				if (type == BACK)
-					somePointsInBack = true;
-				if (type == FRONT)
-					somePointsInfront = true;
-				types[i] = type;
+			int addPolygon(int polygonIndex, int size, int[] mypolygonStartIndex, int[] mypolygonSize, int[] space) {
+				int w = polygonIndex;
+				mypolygonStartIndex[w] = newPointStartIndex[w];
+				newPointStartIndex[w] += size;
+				mypolygonSize[w] = size;
+				space[w] -= size;
+				return space[w];
 			}
-			if (somePointsInBack && somePointsInfront)
-				polygonType = SPANNING;
-			else if (somePointsInBack) {
-				polygonType = BACK;
-			} else if (somePointsInfront)
-				polygonType = FRONT;
-			//newalgo=true;
-					
-			// Put the polygon in the correct list, splitting it when necessary.
-			switch (polygonType) {
-			case COPLANAR:
-				if (polygonManager.planeDotPolygonNormal(polygonIndex) > 0) {
-					coplanarFrontManager.copy(polygonIndex);
-					if(!newalgo)coplanarFront.add(polygon);
+
+			void copy(int polygonIndex, int[] mypolygonStartIndex, int[] mypolygonSize) {
+				mypolygonStartIndex[polygonIndex] = polygonStartIndex[polygonIndex];
+				mypolygonSize[polygonIndex] = polygonSize[polygonIndex];
+			}
+
+			void clear(int polygonIndex, int[] mypolygonSize) {
+				mypolygonSize[polygonIndex] = 0;
+			}
+
+			void incrementSize(int polygonIndex, int[] mypolygonStartIndex, int[] mypolygonSize) {
+				mypolygonSize[polygonIndex]++;
+				int ni = mypolygonSize[polygonIndex];
+				if (polygonIndex == polygonNumber - 1) {
+					if (ni >= pointsNumber) {
+						memoryError[polygonIndex] = true;
+					}
 				} else {
-					coplanarBackManager.copy(polygonIndex);
-					if(!newalgo)coplanarBack.add(polygon);
-				}
-				break;
-			case FRONT:
-				frontManager.copy(polygonIndex);
-				if(!newalgo)front.add(polygon);
-				break;
-			case BACK:
-				backManager.copy(polygonIndex);
-				if(!newalgo)back.add(polygon);
-				break;
-			case SPANNING:
-//				List<Vertex> f = new ArrayList<>();
-//				List<Vertex> b = new ArrayList<>();
-				int size = polygonManager.size(polygonIndex);
-				int retF = frontManager.addPolygon(polygonIndex, size + 1);
-				if (retF < 0) {
-					memoryError[polygonIndex] = true;
-					break;
-				}
-				int retB = backManager.addPolygon(polygonIndex, size + 1);
-				if (retB < 0) {
-					memoryError[polygonIndex] = true;
-					break;
-				}
-				frontManager.clear(polygonIndex);
-				backManager.clear(polygonIndex);
-
-				for (int i = 0; i < size; i++) {
-					int j = (i + 1) % size;
-					int ti = types[i];
-					int tj = types[j];
-//					Vertex vi = polygon.getVertices().get(i);
-//					Vertex vj = polygon.getVertices().get(j);
-					int viIndex = polygonManager.getPointIndex(polygonIndex, i);
-//					int vjIndex = polygonManager.getPointIndex(polygonIndex, j);
-					if (ti != BACK) {
-						frontManager.writeIncrementPoint(polygonIndex, viIndex);
-//						if(!newalgo)addPoint(f, vi);
-					}
-					if (ti != FRONT) {
-//						if(!newalgo)addPoint(b,ti != BACK ? vi.clone() : vi);
-						backManager.writeIncrementPoint(polygonIndex, viIndex);
-					}
-					if ((ti | tj) == SPANNING) {
-						int v = frontManager.interpolate(polygonIndex, i, j);						
-						if (memoryError[polygonIndex])
-							break;
-						backManager.writeIncrementPoint(polygonIndex, v);
+					if (ni + mypolygonStartIndex[polygonIndex] == mypolygonStartIndex[polygonIndex + 1]) {
+						memoryError[polygonIndex] = true;
 					}
 				}
-//				if(!newalgo)add(front, f,polygon);
-//				if(!newalgo)add(back, b,polygon);
-				break;
 			}
-		} // outer for loop of all polygons
 
+			int writeIncrementPoint(int polygonIndex, int source, int[] mypolygonStartIndex, int[] mypolygonSize) {
+				int pointInPolygon = mypolygonSize[polygonIndex];// get the end of the current list
+				incrementSize(polygonIndex, mypolygonStartIndex, mypolygonSize);
+				double x = polygonPointX[source];
+				double y = polygonPointY[source];
+				double z = polygonPointZ[source];
+				return writePoint(polygonIndex, pointInPolygon, x, y, z, mypolygonStartIndex);
+			}
+
+			int interpolate(int polygonIndex, int vi, int vj, int[] mypolygonStartIndex, int[] mypolygonSize) {
+//			        double tol = Plane.getEPSILON();
+//			      
+//			        double dot = myPlane.getNormal().dot(vi2.pos);
+//			        double dist = myPlane.getDist();
+
+				// Fixed point computation of g = planeNormalDistance -
+				// planeDotPoint(polygonIndex, vi)
+				int globalIndex = getGlobalPointIndex(polygonIndex, vi);
+				double planeDot = dotProductFixed(planeNormalX, planeNormalY, planeNormalZ, polygonPointX[globalIndex],
+						polygonPointY[globalIndex], polygonPointZ[globalIndex]);
+
+				double g = (planeNormalDistance - planeDot);
+//			        double mydot = Double.longBitsToDouble(planeDot);
+//			        double mydist = Double.longBitsToDouble(planeNormalDistance);
+//			        double myD = mydist - mydot;
+//			        double d = dist - dot;
+//			        
+//			        Vector3d minus = vj2.pos.minus(vi2.pos);
+//			        double dotMinusOld = myPlane.getNormal().dot(minus);
+//			        double tOld = d / dotMinusOld;
+//			        Vector3d times = minus.times(tOld);
+//			        Vector3d intrp = vi2.pos.plus(times);
+
+				// Fixed point computation of dotMinus = planeDotPointMinusPoint(polygonIndex,
+				// vj, vi)
+				int globalVi = getGlobalPointIndex(polygonIndex, vi);
+				int globalVj = getGlobalPointIndex(polygonIndex, vj);
+
+				double diff_x = (polygonPointX[globalVj] - polygonPointX[globalVi]);
+				double diff_y = (polygonPointY[globalVj] - polygonPointY[globalVi]);
+				double diff_z = (polygonPointZ[globalVj] - polygonPointZ[globalVi]);
+
+				double dotMinus = dotProductFixed(planeNormalX, planeNormalY, planeNormalZ, diff_x, diff_y, diff_z);
+
+				// Fixed point division: t = g / dotMinus
+				double t = (g / dotMinus);
+
+				int pointInPolygon = mypolygonSize[polygonIndex];
+				incrementSize(polygonIndex, mypolygonStartIndex, mypolygonSize);
+
+				// Get fixed point coordinates
+				double xvi = polygonPointX[globalVi];
+				double yvi = polygonPointY[globalVi];
+				double zvi = polygonPointZ[globalVi];
+
+				// Fixed point interpolation: lerp = vi + (vj - vi) * t
+				double lerp_x = (xvi + (diff_x * t));
+				double lerp_y = (yvi + (diff_y * t));
+				double lerp_z = (zvi + (diff_z * t));
+
+				int ret = writePoint(polygonIndex, pointInPolygon, lerp_x, lerp_y, lerp_z, mypolygonStartIndex);
+
+				return ret;
+			}
+
+			double dotProductFixed(double ax, double ay, double az, double bx, double by, double bz) {
+				return az * bz + ay * by + ax * bx;
+			}
+
+			int writePoint(int polygonIndex, int pointInPolygon, double x, double y, double z,
+					int[] mypolygonStartIndex) {
+				int pointIndex = getPointIndex(polygonIndex, pointInPolygon, mypolygonStartIndex);
+				polygonPointX[pointIndex] = x;
+				polygonPointY[pointIndex] = y;
+				polygonPointZ[pointIndex] = z;
+				return pointIndex;
+			}
+
+			int getGlobalPointIndex(int polygonIndex, int point) {
+				return polygonStartIndex[polygonIndex] + point;
+			}
+
+			int getPointIndex(int polygonIndex, int point, int[] mypolygonStartIndex) {
+				return mypolygonStartIndex[polygonIndex] + point;
+			}
+
+			double polygonPointDistance(int polygonIndex, int pointIndex) {
+				int globalIndex = getGlobalPointIndex(polygonIndex, pointIndex);
+				double dotResult = dotProductFixed(normalPolygonX[polygonIndex], normalPolygonY[polygonIndex],
+						normalPolygonZ[polygonIndex], polygonPointX[globalIndex], polygonPointY[globalIndex],
+						polygonPointZ[globalIndex]);
+
+				double result = (dotResult - normalPolygonDistance[polygonIndex]);
+				return (result);
+			}
+
+			double planePointDistance(int polygonIndex, int pointIndex) {
+				int globalIndex = getGlobalPointIndex(polygonIndex, pointIndex);
+				double dotResult = dotProductFixed(planeNormalX, planeNormalY, planeNormalZ, polygonPointX[globalIndex],
+						polygonPointY[globalIndex], polygonPointZ[globalIndex]);
+
+				double result = (dotResult - planeNormalDistance);
+				return (result);
+			}
+
+			double planeDotPolygonNormal(int polygonIndex) {
+				double result = dotProductFixed(planeNormalX, planeNormalY, planeNormalZ, normalPolygonX[polygonIndex],
+						normalPolygonY[polygonIndex], normalPolygonZ[polygonIndex]);
+				return (result);
+			}
+
+			@Override
+			public void run() {
+				int pi = getGlobalId() * chunkSize;
+				int end = pi + chunkSize;
+				for (int polygonIndex = pi; (polygonIndex < end) && (polygonIndex < polygonNumber); polygonIndex++) {
+					if (memoryError[polygonIndex])
+						return;
+					// search for the epsilon values of the incoming plane
+					double negEpsilon = -epsilon;
+					double posEpsilon = epsilon;
+					for (int i = 0; i < size(polygonIndex, polygonSize); i++) {
+						double t = polygonPointDistance(polygonIndex, i);
+						if (t > posEpsilon) {
+							posEpsilon = (float) (t + epsilon);
+						}
+						if (t < negEpsilon) {
+							negEpsilon = (float) (t - epsilon);
+						}
+					}
+					int polygonType = COPLANAR;
+					boolean somePointsInfront = false;
+					boolean somePointsInBack = false;
+					for (int i = 0; i < size(polygonIndex, polygonSize); i++) {
+						double t = planePointDistance(polygonIndex, i);
+						int type = (t < negEpsilon) ? BACK : (t > posEpsilon) ? FRONT : COPLANAR;
+						if (type == BACK)
+							somePointsInBack = true;
+						if (type == FRONT)
+							somePointsInfront = true;
+						types[i] = type;
+					}
+					if (somePointsInBack && somePointsInfront)
+						polygonType = SPANNING;
+					else if (somePointsInBack) {
+						polygonType = BACK;
+					} else if (somePointsInfront) {
+						polygonType = FRONT;
+					}
+					if (polygonType == COPLANAR) {
+						if (planeDotPolygonNormal(polygonIndex) > 0) {
+							copy(polygonIndex, coplanarFrontStartIndex, coplanarFrontSize);
+						} else {
+							copy(polygonIndex, coplanarBackStartIndex, coplanarBackSize);
+						}
+					}
+					if (polygonType == FRONT) {
+						copy(polygonIndex, frontStartIndex, frontSize);
+					}
+					if (polygonType == BACK) {
+						copy(polygonIndex, backStartIndex, backSize);
+					}
+					if (polygonType == SPANNING) {
+						int size = size(polygonIndex, polygonSize);
+						int retF = addPolygon(polygonIndex, size + 1, frontStartIndex, frontSize, frontspace);
+						if (retF < 0) {
+							memoryError[polygonIndex] = true;
+							return;
+						}
+						int retB = addPolygon(polygonIndex, size + 1, backStartIndex, backSize, backspace);
+						if (retB < 0) {
+							memoryError[polygonIndex] = true;
+							return;
+						}
+						clear(polygonIndex, frontSize);
+						clear(polygonIndex, backSize);
+
+						for (int i = 0; i < size; i++) {
+							int j = (i + 1) % size;
+							int ti = types[i];
+							int tj = types[j];
+							int viIndex = getGlobalPointIndex(polygonIndex, i);
+							if (ti != BACK) {
+								writeIncrementPoint(polygonIndex, viIndex, frontStartIndex, frontSize);
+							}
+							if (ti != FRONT) {
+								writeIncrementPoint(polygonIndex, viIndex, backStartIndex, backSize);
+							}
+							if ((ti == FRONT && tj == BACK) || (ti == BACK && tj == FRONT)) {
+								int v = interpolate(polygonIndex, i, j, frontStartIndex, frontSize); // ← Should be
+																									// backStartIndex,
+																									// backSize
+								if (memoryError[polygonIndex])
+									return;
+								writeIncrementPoint(polygonIndex, v, backStartIndex, backSize); // ← Should be
+																									// frontStartIndex,
+																									// frontSize
+							}
+						}
+
+					}
+				} // outer for loop of all polygons
+			}// run
+		};
+		splitPolygons.run();
 //		CSG.gpuRun(loops, splitPolygons, null, "split ", () -> {
 //			return false;
 //		}, 1, 1);
