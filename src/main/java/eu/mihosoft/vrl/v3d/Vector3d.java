@@ -85,15 +85,16 @@ public class Vector3d extends javax.vecmath.Vector3d {
      * @param z z value
      */
     public Vector3d(double x, double y, double z) {
+    	if(!Double.isFinite(x)||!Double.isFinite(y)||!Double.isFinite(z)) {
+    		throw new NumberFormatException("Vectors must be real "+x+" "+y+" "+z);
+    	}
         this.x = x;
         this.y = y;
         this.z = z;
     }
     
     public Vector3d(Number x, Number y, Number z) {
-        this.x = x.doubleValue();
-        this.y = y.doubleValue();
-        this.z = z.doubleValue();
+    	this(x.doubleValue(),y.doubleValue(),z.doubleValue());
     }
 
 
@@ -105,16 +106,11 @@ public class Vector3d extends javax.vecmath.Vector3d {
      * @param y y value
      */
     public Vector3d(double x, double y) {
-
-        this.x = x;
-        this.y = y;
-        this.z = 0;
+    	this(x, y, (double) 0);
     }
     
     public Vector3d(Number x, Number y) {
-    	
     	this(x, y, (double) 0);
-    	
     }
 
 

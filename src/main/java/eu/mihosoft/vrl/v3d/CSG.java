@@ -1319,9 +1319,14 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return the csg
 	 */
 	private CSG _differenceCSGBoundsOpt(CSG csg) {
+		CSG a1 = this._differenceNoOpt(csg.getBounds().toCSG());
+		CSG a2 = this.intersect(csg.getBounds().toCSG());
 
-		CSG	result = this._differenceNoOpt(csg).optimization(getOptType());
-
+		CSG result = null;
+		if (a2.getPolygons().size() > 0)
+			result = a2._differenceNoOpt(csg)._unionIntersectOpt(a1).optimization(getOptType());
+		else
+			result = a1;
 		if (getName().length() != 0 && csg.getName().length() != 0) {
 			result.setName(name);
 		}

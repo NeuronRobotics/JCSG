@@ -56,7 +56,6 @@ import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
  */
 public final class Node {
 	private static final int LIMIT_FOR_GPU = 10000;
-	private static double scale = 1;
 	// Fixed point math configuration
 	// IEEE 754 double precision constants
 	private static final long EXPONENT_MASK_LONG = 0x7FF0000000000000L;
@@ -241,6 +240,7 @@ public final class Node {
 			testAddPolygon(l, orderedPoints, polygonPointX, polygonPointY, polygonPointZ, polygon, polygonBase, size,
 					false);
 		} catch (Exception ex) {
+			ex.printStackTrace();
 			System.err.println("Pruning bad polygon Node::splitPolygon::add " + l.size() );
 		}
 	}
@@ -255,7 +255,7 @@ public final class Node {
 				double x = (polygonPointX[i]);
 				double y = (polygonPointY[i]);
 				double z = (polygonPointZ[i]);
-				Vertex v = new Vertex(new Vector3d(x / scale, y / scale, z / scale), polygon.plane.getNormal());
+				Vertex v = new Vertex(new Vector3d(x , y , z ), polygon.plane.getNormal());
 				addPoint(f, v);
 			}
 		}
@@ -285,7 +285,7 @@ public final class Node {
 		Polygon fpoly = new Polygon(f, polygon.getStorage(), true, new Plane(polygon.getPlane().getNormal(), f))
 				.setColor(polygon.getColor());
 		// test triangulation of new polygon before adding
-		PolygonUtil.concaveToConvex(fpoly);
+		//PolygonUtil.concaveToConvex(fpoly);
 		if (!test)
 			l.add(fpoly);
 
@@ -363,12 +363,12 @@ public final class Node {
 		int[] backspace = new int[polygonNumber];
 		int[] backSize = new int[polygonNumber];
 
-		int pointsNumber = numberOfPointsTmp + 1 + ((ExtraSpace) * (polygonNumber + 2));
+		int pointsNumber = numberOfPointsTmp + 1 + ((ExtraSpace) * (polygonNumber+1 )*2);
 		boolean[] memoryError = new boolean[polygonNumber];
 		boolean[] isCopy = new boolean[polygonNumber];
 
 		for (int k = 0; k < polygonNumber; k++) {
-			newPointStartIndex[k] = numberOfPointsTmp + (k * ExtraSpace);
+			newPointStartIndex[k] = numberOfPointsTmp + (k * ExtraSpace* 2);
 			coplanarFrontStartIndex[k] = -1;
 			coplanarBackStartIndex[k] = -1;
 			frontStartIndex[k] = -1;
@@ -380,7 +380,7 @@ public final class Node {
 		}
 
 		int pointsEmptyIndex = 0;
-		int[] types = new int[max];
+		int[] types = new int[max*polygonNumber];
 
 		// Convert point arrays to fixed point
 		double[] polygonPointX = new double[pointsNumber];
@@ -393,7 +393,11 @@ public final class Node {
 			polygonPointY[pointsEmptyIndex] = (vertex.getY());
 			polygonPointZ[pointsEmptyIndex] = (vertex.getZ());
 		}
-
+		for (int i=orderedPoints.size();i<polygonPointX.length;i++) {
+			polygonPointX[i] = -1;
+			polygonPointY[i] = -1;
+			polygonPointZ[i] = -1;
+		}
 		// Convert plane normal to fixed point
 		double planeNormalX = (this.plane.getNormal().x);
 		double planeNormalY = (this.plane.getNormal().y);
@@ -407,7 +411,7 @@ public final class Node {
 		final int BACK = 2;
 		final int SPANNING = 3;
 
-		int chunkSize = polygonNumber;
+		int chunkSize = 100;
 		int loops = polygonNumber / chunkSize;
 		if (loops < 0)
 			loops = 1;
@@ -423,6 +427,13 @@ public final class Node {
 				newPointStartIndex[w] += size;
 				mypolygonSize[w] = size;
 				space[w] -= size;
+				double fx = polygonPointX[mypolygonStartIndex[w]];
+				double fy = polygonPointY[mypolygonStartIndex[w]];
+				double fz = polygonPointZ[mypolygonStartIndex[w]];
+				if (Math.abs(fx + 1) > epsilon || Math.abs(fy + 1) > epsilon||Math.abs(fz+1)>epsilon) {
+					memoryError[polygonIndex]=true;
+					return -1;
+				}
 				return space[w];
 			}
 
@@ -466,7 +477,7 @@ public final class Node {
 
 				// Fixed point computation of g = planeNormalDistance -
 				// planeDotPoint(polygonIndex, vi)
-				int globalIndex = getGlobalPointIndex(polygonIndex, vi);
+				int globalIndex = polygonStartIndex[polygonIndex] +  vi;
 				double planeDot = dotProductFixed(planeNormalX, planeNormalY, planeNormalZ, polygonPointX[globalIndex],
 						polygonPointY[globalIndex], polygonPointZ[globalIndex]);
 
@@ -484,8 +495,8 @@ public final class Node {
 
 				// Fixed point computation of dotMinus = planeDotPointMinusPoint(polygonIndex,
 				// vj, vi)
-				int globalVi = getGlobalPointIndex(polygonIndex, vi);
-				int globalVj = getGlobalPointIndex(polygonIndex, vj);
+				int globalVi = polygonStartIndex[polygonIndex] + vi;
+				int globalVj = polygonStartIndex[polygonIndex] +vj;
 
 				double diff_x = (polygonPointX[globalVj] - polygonPointX[globalVi]);
 				double diff_y = (polygonPointY[globalVj] - polygonPointY[globalVi]);
@@ -493,7 +504,6 @@ public final class Node {
 
 				double dotMinus = dotProductFixed(planeNormalX, planeNormalY, planeNormalZ, diff_x, diff_y, diff_z);
 
-				// Fixed point division: t = g / dotMinus
 				double t = (g / dotMinus);
 
 
@@ -522,23 +532,15 @@ public final class Node {
 
 			int writePoint(int polygonIndex, int pointInPolygon, double x, double y, double z,
 					int[] mypolygonStartIndex) {
-				int pointIndex = getPointIndex(polygonIndex, pointInPolygon, mypolygonStartIndex);
+				int pointIndex = mypolygonStartIndex[polygonIndex] + pointInPolygon;
 				polygonPointX[pointIndex] = x;
 				polygonPointY[pointIndex] = y;
 				polygonPointZ[pointIndex] = z;
 				return pointIndex;
 			}
 
-			int getGlobalPointIndex(int polygonIndex, int point) {
-				return polygonStartIndex[polygonIndex] + point;
-			}
-
-			int getPointIndex(int polygonIndex, int point, int[] mypolygonStartIndex) {
-				return mypolygonStartIndex[polygonIndex] + point;
-			}
-
 			double polygonPointDistance(int polygonIndex, int pointIndex) {
-				int globalIndex = getGlobalPointIndex(polygonIndex, pointIndex);
+				int globalIndex = polygonStartIndex[polygonIndex] +pointIndex;
 				double dotResult = dotProductFixed(normalPolygonX[polygonIndex], normalPolygonY[polygonIndex],
 						normalPolygonZ[polygonIndex], polygonPointX[globalIndex], polygonPointY[globalIndex],
 						polygonPointZ[globalIndex]);
@@ -548,7 +550,7 @@ public final class Node {
 			}
 
 			double planePointDistance(int polygonIndex, int pointIndex) {
-				int globalIndex = getGlobalPointIndex(polygonIndex, pointIndex);
+				int globalIndex = polygonStartIndex[polygonIndex] +pointIndex;
 				double dotResult = dotProductFixed(planeNormalX, planeNormalY, planeNormalZ, polygonPointX[globalIndex],
 						polygonPointY[globalIndex], polygonPointZ[globalIndex]);
 
@@ -591,7 +593,7 @@ public final class Node {
 							somePointsInBack = true;
 						if (type == FRONT)
 							somePointsInfront = true;
-						types[i] = type;
+						types[i*polygonNumber] = type;
 					}
 					if (somePointsInBack && somePointsInfront)
 						polygonType = SPANNING;
@@ -619,12 +621,12 @@ public final class Node {
 					if (polygonType == SPANNING) {
 						isCopy[polygonIndex] = false;
 						int size = size(polygonIndex, polygonSize);
-						int retF = addPolygon(polygonIndex, size + 1, frontStartIndex, frontSize, frontspace);
+						int retF = addPolygon(polygonIndex, size + 2, frontStartIndex, frontSize, frontspace);
 						if (retF < 0) {
 							memoryError[polygonIndex] = true;
 							return;
 						}
-						int retB = addPolygon(polygonIndex, size + 1, backStartIndex, backSize, backspace);
+						int retB = addPolygon(polygonIndex, size + 2, backStartIndex, backSize, backspace);
 						if (retB < 0) {
 							memoryError[polygonIndex] = true;
 							return;
@@ -634,9 +636,9 @@ public final class Node {
 
 						for (int i = 0; i < size; i++) {
 							int j = (i + 1) % size;
-							int ti = types[i];
-							int tj = types[j];
-							int viIndex = getGlobalPointIndex(polygonIndex, i);
+							int ti = types[i*polygonNumber];
+							int tj = types[j*polygonNumber];
+							int viIndex = polygonStartIndex[polygonIndex] +i;
 							if (ti != BACK) {
 								writeIncrementPoint(polygonIndex, viIndex, frontStartIndex, frontSize);
 							}
@@ -645,19 +647,25 @@ public final class Node {
 							}
 							if ((ti == FRONT && tj == BACK) || (ti == BACK && tj == FRONT)) {
 								int v = interpolate(polygonIndex, i, j, frontStartIndex, frontSize);
-								if (memoryError[polygonIndex])
-									return;
 								writeIncrementPoint(polygonIndex, v, backStartIndex, backSize);
+							}
+							if (memoryError[polygonIndex])
+								return;
+							int fsize = frontSize[polygonIndex];
+							int bsize = backSize[polygonIndex];
+							if(fsize>size+2 || bsize>size+2) {
+								memoryError[polygonIndex]=true;
+								return;
 							}
 						}
 					}
 				} // outer for loop of all polygons
 			}// run
 		};
-		splitPolygons.run();
-//		CSG.gpuRun(loops, splitPolygons, null, "split ", () -> {
-//			return false;
-//		}, 1, 1);
+		//splitPolygons.run();
+		CSG.gpuRun(loops, splitPolygons, null, "split ", () -> {
+			return false;
+		}, 1, 1);
 		for (int k = 0; k < polygonNumber; k++)
 			if (memoryError[k])
 				throw new RuntimeException("Memory error here!");

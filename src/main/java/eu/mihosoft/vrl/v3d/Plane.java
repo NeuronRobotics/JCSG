@@ -136,9 +136,11 @@ public class Plane implements Serializable {
 			normal.y += (current.z - next.z) * (current.x + next.x); // (z1-z2)(x1+x2)
 			normal.z += (current.x - next.x) * (current.y + next.y);
 			if (n >= 3) {
-				Vector3d normalized = normal.normalized();
-				if (isValidNormal(normalized, getEPSILON() / 10)) {
-					lastValid = normalized;
+				if(normal.magnitude()>0) {
+					Vector3d normalized = normal.normalized();
+					if (isValidNormal(normalized, getEPSILON() / 10)) {
+						lastValid = normalized;
+					}
 				}
 			}
 		}
