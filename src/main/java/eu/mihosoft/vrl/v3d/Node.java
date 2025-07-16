@@ -214,6 +214,7 @@ public final class Node {
 			return;
 		if (isCopy[polygonIndex]) {
 			l.add(polygon);
+			return;
 		}
 		try {
 			testAddPolygon(l, orderedPoints, polygonPointX, polygonPointY, polygonPointZ, polygon, polygonBase, size,
@@ -287,9 +288,9 @@ public final class Node {
 	 */
 	public void splitPolygon(ArrayList<Polygon> polygons, List<Polygon> coplanarFront, List<Polygon> coplanarBack,
 			List<Polygon> front, List<Polygon> back) throws Exception {
-//		if (polygons.size() > LIMIT_FOR_GPU)
-//			splitPolygonGPU(polygons, coplanarFront, coplanarBack, front, back);
-//		else
+		if (polygons.size() > LIMIT_FOR_GPU)
+			splitPolygonGPU(polygons, coplanarFront, coplanarBack, front, back);
+		else
 			splitPolygonOriginal(polygons, coplanarFront, coplanarBack, front, back);
 
 	}
@@ -401,7 +402,7 @@ public final class Node {
 		final int BACK = 2;
 		final int SPANNING = 3;
 
-		int chunkSize = 5000;
+		int chunkSize = 100;
 		int loops = polygonNumber / chunkSize;
 		if (loops < 0)
 			loops = 1;

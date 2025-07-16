@@ -85,9 +85,9 @@ public class Vector3d extends javax.vecmath.Vector3d {
      * @param z z value
      */
     public Vector3d(double x, double y, double z) {
-    	if(!Double.isFinite(x)||!Double.isFinite(y)||!Double.isFinite(z)) {
-    		throw new NumberFormatException("Vectors must be real "+x+" "+y+" "+z);
-    	}
+//    	if(!Double.isFinite(x)||!Double.isFinite(y)||!Double.isFinite(z)) {
+//    		throw new NumberFormatException("Vectors must be real "+x+" "+y+" "+z);
+//    	}
         this.x = x;
         this.y = y;
         this.z = z;
