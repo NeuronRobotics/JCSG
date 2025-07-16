@@ -693,7 +693,8 @@ public final class Node {
 			// search for the epsilon values of the incoming plane
 			double negEpsilon = -Plane.getEPSILON();
 			double posEpsilon = Plane.getEPSILON();
-			for (int i = 0; i < polygon.getVertices().size(); i++) {
+			int size = polygon.getVertices().size();
+			for (int i = 0; i < size; i++) {
 				double t = polygon.getPlane().getNormal().dot(polygon.getVertices().get(i).pos)
 						- polygon.getPlane().getDist();
 				if (t > posEpsilon) {
@@ -711,7 +712,7 @@ public final class Node {
 			List<Integer> types = new ArrayList<>();
 			boolean somePointsInfront = false;
 			boolean somePointsInBack = false;
-			for (int i = 0; i < polygon.getVertices().size(); i++) {
+			for (int i = 0; i < size; i++) {
 				double t = plane.getNormal().dot(polygon.getVertices().get(i).pos) - plane.getDist();
 				int type = (t < negEpsilon) ? BACK : (t > posEpsilon) ? FRONT : COPLANAR;
 				if (type == BACK)
@@ -739,10 +740,10 @@ public final class Node {
 				back.add(polygon);
 				break;
 			case SPANNING:
-				List<Vertex> f = new ArrayList<>();
-				List<Vertex> b = new ArrayList<>();
-				for (int i = 0; i < polygon.getVertices().size(); i++) {
-					int j = (i + 1) % polygon.getVertices().size();
+				List<Vertex> f = new ArrayList<>(size);
+				List<Vertex> b = new ArrayList<>(size);
+				for (int i = 0; i < size; i++) {
+					int j = (i + 1) % size;
 					int ti = types.get(i);
 					int tj = types.get(j);
 					Vertex vi = polygon.getVertices().get(i);
