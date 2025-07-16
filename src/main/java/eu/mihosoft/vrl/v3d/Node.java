@@ -56,26 +56,6 @@ import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
  */
 public final class Node {
 	private static final int LIMIT_FOR_GPU = 10000;
-	// Fixed point math configuration
-	// IEEE 754 double precision constants
-	private static final long EXPONENT_MASK_LONG = 0x7FF0000000000000L;
-	// IEEE 754 double precision constants
-	// IEEE 754 double precision constants
-	private static final long SIGN_MASK = 0x8000000000000000L;
-	private static final long EXPONENT_MASK = 0x7FF0000000000000L;
-	private static final long MANTISSA_MASK = 0x000FFFFFFFFFFFFFL;
-	private static final long IMPLICIT_ONE = 0x0010000000000000L;
-	private static final int MANTISSA_BITS = 52;
-	private static final int EXPONENT_BITS = 11;
-	private static final int EXPONENT_BIAS = 1023;
-	private static final int EXPONENT_MAX = 2047;
-
-	// Special values
-	private static final long POSITIVE_INFINITY = 0x7FF0000000000000L;
-	private static final long NEGATIVE_INFINITY = 0xFFF0000000000000L;
-	private static final long NAN = 0x7FF8000000000000L;
-	private static final long POSITIVE_ZERO = 0x0000000000000000L;
-	private static final long NEGATIVE_ZERO = 0x8000000000000000L;
 
 	/**
 	 * Polygons.
@@ -208,9 +188,9 @@ public final class Node {
 		if (this.getPlane() == null) {
 			throw new RuntimeException("Plane can not be null");
 		}
-
-		ArrayList<Polygon> frontP = new ArrayList<>();
-		ArrayList<Polygon> backP = new ArrayList<>();
+		// preallocate the lists so they do not use dynamic memory in split
+		ArrayList<Polygon> frontP = new ArrayList<>(polygons.size());
+		ArrayList<Polygon> backP = new ArrayList<>(polygons.size());
 
 		splitPolygon(polygons, frontP, backP, frontP, backP);
 		if (this.front != null) {
@@ -218,10 +198,9 @@ public final class Node {
 		}
 		if (this.back != null) {
 			backP = this.back.clipPolygons(backP);
-		} else {
-			backP = new ArrayList<>(0);
+		}else {
+			backP.clear();
 		}
-
 		frontP.addAll(backP);
 		return frontP;
 	}
@@ -285,10 +264,10 @@ public final class Node {
 		Polygon fpoly = new Polygon(f, polygon.getStorage(), true, new Plane(polygon.getPlane().getNormal(), f))
 				.setColor(polygon.getColor());
 		// test triangulation of new polygon before adding
-		//PolygonUtil.concaveToConvex(fpoly);
 		if (!test)
 			l.add(fpoly);
-
+		else
+			PolygonUtil.concaveToConvex(fpoly);
 	}
 
 	/**
@@ -314,7 +293,17 @@ public final class Node {
 			splitPolygonOriginal(polygons, coplanarFront, coplanarBack, front, back);
 
 	}
-
+	/**
+	 * An attempt to make part of the CSG stack GPu accelerated
+	 * So far this expands into too much memort so is deactiveadted for now
+	 * this is worth exploring in the future
+	 * @param polygons
+	 * @param coplanarFront
+	 * @param coplanarBack
+	 * @param front
+	 * @param back
+	 * @throws Exception
+	 */
 	public void splitPolygonGPU(ArrayList<Polygon> polygons, List<Polygon> coplanarFront, List<Polygon> coplanarBack,
 			List<Polygon> front, List<Polygon> back) throws Exception {
 
@@ -351,7 +340,7 @@ public final class Node {
 			normalPolygonDistance[k] = (polygon.getPlane().getDist());
 			orderedPoints.addAll(vertices);
 		}
-		int ExtraSpace = max + 2;
+		int ExtraSpace = max*2 + 2;
 		int[] coplanarFrontStartIndex = new int[polygonNumber];
 		int[] coplanarFrontSize = new int[polygonNumber];
 		int[] coplanarBackStartIndex = new int[polygonNumber];
@@ -380,7 +369,8 @@ public final class Node {
 		}
 
 		int pointsEmptyIndex = 0;
-		int[] types = new int[max*polygonNumber];
+		int[] types = new int[max*(polygonNumber+1)];
+		int maxPolygonSize = max;
 
 		// Convert point arrays to fixed point
 		double[] polygonPointX = new double[pointsNumber];
@@ -411,7 +401,7 @@ public final class Node {
 		final int BACK = 2;
 		final int SPANNING = 3;
 
-		int chunkSize = 100;
+		int chunkSize = 5000;
 		int loops = polygonNumber / chunkSize;
 		if (loops < 0)
 			loops = 1;
@@ -470,54 +460,36 @@ public final class Node {
 			}
 
 			int interpolate(int polygonIndex, int vi, int vj, int[] mypolygonStartIndex, int[] mypolygonSize) {
-//			        double tol = Plane.getEPSILON();
-//			      
-//			        double dot = myPlane.getNormal().dot(vi2.pos);
-//			        double dist = myPlane.getDist();
 
-				// Fixed point computation of g = planeNormalDistance -
-				// planeDotPoint(polygonIndex, vi)
-				int globalIndex = polygonStartIndex[polygonIndex] +  vi;
-				double planeDot = dotProductFixed(planeNormalX, planeNormalY, planeNormalZ, polygonPointX[globalIndex],
-						polygonPointY[globalIndex], polygonPointZ[globalIndex]);
-
-				double g = (planeNormalDistance - planeDot);
-//			        double mydot = Double.longBitsToDouble(planeDot);
-//			        double mydist = Double.longBitsToDouble(planeNormalDistance);
-//			        double myD = mydist - mydot;
-//			        double d = dist - dot;
-//			        
-//			        Vector3d minus = vj2.pos.minus(vi2.pos);
-//			        double dotMinusOld = myPlane.getNormal().dot(minus);
-//			        double tOld = d / dotMinusOld;
-//			        Vector3d times = minus.times(tOld);
-//			        Vector3d intrp = vi2.pos.plus(times);
-
-				// Fixed point computation of dotMinus = planeDotPointMinusPoint(polygonIndex,
-				// vj, vi)
 				int globalVi = polygonStartIndex[polygonIndex] + vi;
 				int globalVj = polygonStartIndex[polygonIndex] +vj;
+				double planeDot = dotProductFixed(planeNormalX, planeNormalY, planeNormalZ, polygonPointX[globalVi],
+						polygonPointY[globalVi], polygonPointZ[globalVi]);
 
-				double diff_x = (polygonPointX[globalVj] - polygonPointX[globalVi]);
-				double diff_y = (polygonPointY[globalVj] - polygonPointY[globalVi]);
-				double diff_z = (polygonPointZ[globalVj] - polygonPointZ[globalVi]);
-
-				double dotMinus = dotProductFixed(planeNormalX, planeNormalY, planeNormalZ, diff_x, diff_y, diff_z);
-
-				double t = (g / dotMinus);
-
-
-
+				double g = (planeNormalDistance - planeDot);
 				// Get fixed point coordinates
 				double xvi = polygonPointX[globalVi];
 				double yvi = polygonPointY[globalVi];
 				double zvi = polygonPointZ[globalVi];
+				double diff_x = (polygonPointX[globalVj] - xvi);
+				double diff_y = (polygonPointY[globalVj] - yvi);
+				double diff_z = (polygonPointZ[globalVj] - zvi);
+
+				double dotMinus = dotProductFixed(planeNormalX, planeNormalY, planeNormalZ, diff_x, diff_y, diff_z);
+				// Paralell case where one point is slightly infront by the same amount that the 
+				// other is slightly behind. when summed, they make a point that is exactly on the plane
+				// therefor the intersection point is halfway between i and j
+				double t=0.5;
+				if(dotMinus!=0)
+					t = (g / dotMinus);
 
 				// Fixed point interpolation: lerp = vi + (vj - vi) * t
 				double lerp_x = (xvi + (diff_x * t));
 				double lerp_y = (yvi + (diff_y * t));
 				double lerp_z = (zvi + (diff_z * t));
 				
+//				new Vertex(new Vector3d(lerp_x , lerp_y , lerp_z ), polygons.get(polygonIndex).plane.getNormal());
+
 				int pointInPolygon = mypolygonSize[polygonIndex];
 				incrementSize(polygonIndex, mypolygonStartIndex, mypolygonSize);
 				
@@ -593,7 +565,7 @@ public final class Node {
 							somePointsInBack = true;
 						if (type == FRONT)
 							somePointsInfront = true;
-						types[i*polygonNumber] = type;
+						types[i+polygonNumber*maxPolygonSize] = type;
 					}
 					if (somePointsInBack && somePointsInfront)
 						polygonType = SPANNING;
@@ -620,13 +592,15 @@ public final class Node {
 					}
 					if (polygonType == SPANNING) {
 						isCopy[polygonIndex] = false;
+						
 						int size = size(polygonIndex, polygonSize);
-						int retF = addPolygon(polygonIndex, size + 2, frontStartIndex, frontSize, frontspace);
+						int polygonMax = size*2;
+						int retF = addPolygon(polygonIndex, polygonMax, frontStartIndex, frontSize, frontspace);
 						if (retF < 0) {
 							memoryError[polygonIndex] = true;
 							return;
 						}
-						int retB = addPolygon(polygonIndex, size + 2, backStartIndex, backSize, backspace);
+						int retB = addPolygon(polygonIndex, polygonMax, backStartIndex, backSize, backspace);
 						if (retB < 0) {
 							memoryError[polygonIndex] = true;
 							return;
@@ -636,28 +610,36 @@ public final class Node {
 
 						for (int i = 0; i < size; i++) {
 							int j = (i + 1) % size;
-							int ti = types[i*polygonNumber];
-							int tj = types[j*polygonNumber];
-							int viIndex = polygonStartIndex[polygonIndex] +i;
+							int ti = types[i+polygonNumber*maxPolygonSize];
+							int tj = types[j+polygonNumber*maxPolygonSize];
+							int sourctPointIndex = polygonStartIndex[polygonIndex] +i;
 							if (ti != BACK) {
-								writeIncrementPoint(polygonIndex, viIndex, frontStartIndex, frontSize);
+								writeIncrementPoint(polygonIndex, sourctPointIndex, frontStartIndex, frontSize);
 							}
 							if (ti != FRONT) {
-								writeIncrementPoint(polygonIndex, viIndex, backStartIndex, backSize);
+								writeIncrementPoint(polygonIndex, sourctPointIndex, backStartIndex, backSize);
 							}
 							if ((ti == FRONT && tj == BACK) || (ti == BACK && tj == FRONT)) {
-								int v = interpolate(polygonIndex, i, j, frontStartIndex, frontSize);
-								writeIncrementPoint(polygonIndex, v, backStartIndex, backSize);
+								int newPointIndex = interpolate(polygonIndex, i, j, frontStartIndex, frontSize);
+								if(newPointIndex>0) {
+									writeIncrementPoint(polygonIndex, newPointIndex, backStartIndex, backSize);
+								}
 							}
 							if (memoryError[polygonIndex])
 								return;
 							int fsize = frontSize[polygonIndex];
 							int bsize = backSize[polygonIndex];
-							if(fsize>size+2 || bsize>size+2) {
+							if(fsize>(polygonMax) || bsize>(polygonMax)) {
 								memoryError[polygonIndex]=true;
 								return;
 							}
 						}
+//						testAddPolygon(front, orderedPoints, polygonPointX, polygonPointY, polygonPointZ, 
+//								polygons.get(polygonIndex), frontStartIndex[polygonIndex], frontSize[polygonIndex],
+//								true);
+//						testAddPolygon(back, orderedPoints, polygonPointX, polygonPointY, polygonPointZ, 
+//								polygons.get(polygonIndex), backStartIndex[polygonIndex], backSize[polygonIndex],
+//								true);
 					}
 				} // outer for loop of all polygons
 			}// run
@@ -773,58 +755,51 @@ public final class Node {
 						addPoint(b, (ti != BACK ? vi.clone() : vi));
 					}
 					if ((ti == FRONT && tj == BACK) || (ti == BACK && tj == FRONT)) {
-//						double t = (plane.getDist() - plane.getNormal().dot(vi.pos))
-//								/ plane.getNormal().dot(vj.pos.minus(vi.pos));
-//						Vertex v = vi.interpolate(vj, t);
-//						addPoint(f,v);
-//						addPoint(b,v.clone());
 						double dot = this.plane.getNormal().dot(vi.pos);
 						double dist = this.plane.getDist();
 
-						// Fixed point computation of g = planeNormalDistance -
-						// planeDotPoint(polygonIndex, vi)
 						double d = dist - dot;
 
-//				        Vector3d minus = vj.pos.minus(vi.pos);
-//				        double dotMinusOld = this.plane.getNormal().dot(minus);
-//				        double tOld = d / dotMinusOld;
-//				        Vector3d times = minus.times(tOld);
-//				        Vector3d intrp = vi.pos.plus(times);
-
 						// Extract the vector components
-						final double xi = vi.pos.x;
-						final double yi = vi.pos.y;
-						final double zi = vi.pos.z;
+						double xi = vi.pos.x;
+						double yi = vi.pos.y;
+						double zi = vi.pos.z;
 
-						final double xj = vj.pos.x;
-						final double yj = vj.pos.y;
-						final double zj = vj.pos.z;
+						double xj = vj.pos.x;
+						double yj = vj.pos.y;
+						double zj = vj.pos.z;
 
 						// Compute the difference vector (vj - vi)
-						final double dx = xj - xi;
-						final double dy = yj - yi;
-						final double dz = zj - zi;
+						double dx = xj - xi;
+						double dy = yj - yi;
+						double dz = zj - zi;
 
 						// Assuming plane.getNormal() returns a Vector3d or similar with x, y, z fields
-						final double nx = plane.getNormal().x;
-						final double ny = plane.getNormal().y;
-						final double nz = plane.getNormal().z;
+						double nx = plane.getNormal().x;
+						double ny = plane.getNormal().y;
+						double nz = plane.getNormal().z;
 
 						// Compute dot product
-						final double dotMinusOld = nx * dx + ny * dy + nz * dz;
+						double dotMinus = nx * dx + ny * dy + nz * dz;
 
-						// Compute scalar tOld
-						final double tOld = d / dotMinusOld;
+						// Compute scalar t
+						// Paralell case where one point is slightly infront by the same amount that the
+						// other is slightly behind. when summed, they make a point that is exactly on
+						// the plane
+						// therefor the intersection point is halfway between i and j
+						double t = 0.5;
+						if (dotMinus != 0)
+							t = (d / dotMinus);
 
 						// Scale difference vector by tOld
-						final double sx = dx * tOld;
-						final double sy = dy * tOld;
-						final double sz = dz * tOld;
+						double sx = dx * t;
+						double sy = dy * t;
+						double sz = dz * t;
 
 						// Compute interpolated point intrp = vi + scaled vector
-						final double intrpX = xi + sx;
-						final double intrpY = yi + sy;
-						final double intrpZ = zi + sz;
+						double intrpX = xi + sx;
+						double intrpY = yi + sy;
+						double intrpZ = zi + sz;
 						Vector3d intrp = new Vector3d(intrpX, intrpY, intrpZ);
 						addPoint(f, new Vertex(intrp, polygon.plane.getNormal()));
 						addPoint(b, new Vertex(intrp, polygon.plane.getNormal()));
@@ -920,8 +895,8 @@ public final class Node {
 		}
 		// this.polygons.add(polygons.get(0));
 
-		ArrayList<Polygon> frontP = new ArrayList<>();
-		ArrayList<Polygon> backP = new ArrayList<>();
+		ArrayList<Polygon> frontP = new ArrayList<>(polygons.size());
+		ArrayList<Polygon> backP = new ArrayList<>(polygons.size());
 
 		// parellel version does not work here
 

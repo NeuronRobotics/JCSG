@@ -39,7 +39,7 @@ public class StlExportTest {
 		FileUtil.write(Paths.get("3-TextScaledStl.stl"),
 				badExport.toStlString());
 		System.out.println("Perform difference");
-		CSG movey = new Cube(180,40,10).toCSG().toZMin().toXMin().toYMin().movey(-5);
+		CSG movey = new Cube(180,40,10).toCSG().toZMin().toXMin().toYMin().movey(-5).movez(-2);
 		FileUtil.write(Paths.get("4-InMemTextDifferencedStl.stl"),
 				movey.difference(inMem).toStlString());
 		CSG difference = movey.difference(badExport);
