@@ -478,9 +478,9 @@ public class PolygonUtil {
 	 * Calculates a quaternion-based transform that rotates `from` vector to align
 	 * with (0,0,1).
 	 */
-	private static Transform calculateQuaternionTransform(Vector3d from) {
+	private static Transform calculateQuaternionTransform(Polygon concave) {
 		// Normalize inputs
-		Vector3d u = from.clone().normalized();
+		Vector3d u = concave.getPlane().getNormal().clone().normalized();
 		Vector3d v = new Vector3d(0, 0, 1);
 
 		double dot = u.dot(v);
@@ -488,33 +488,23 @@ public class PolygonUtil {
 		if (dot > 1.0 - Plane.getEPSILON()) {
 			return new Transform();
 		}
-
-		// If u ≈ -v → 180° rotation around any axis orthogonal to u
 		if (dot < -1.0 + Plane.getEPSILON()) {
-			Vector3d orthoBasis = (Math.abs(u.x) < Math.abs(u.y) && Math.abs(u.x) < Math.abs(u.z))
-					? new Vector3d(1, 0, 0)
-					: (Math.abs(u.y) < Math.abs(u.z)) ? new Vector3d(0, 1, 0) : new Vector3d(0, 0, 1);
-			Vector3d axis = u.cross(orthoBasis).normalized();
-			// w = 0 gives sin(ϕ/2)=1 ⇒ ϕ = π
-			Quat4d q = new Quat4d(axis.x, axis.y, axis.z, 0);
-			Matrix4d mat = new Matrix4d();
-			mat.set(q);
-			return new Transform(mat);
+			return new Transform().rotX(180);
 		}
-
-		// General case: halfway quaternion
-		Vector3d half = u.clone();
-		half.add(v);
-		half.normalize(); // safe since u != -v
-		Vector3d axis = u.cross(half);
-		double w = u.dot(half);
-
-		Quat4d q = new Quat4d(axis.x, axis.y, axis.z, w);
-		q.normalize(); // ensure unit quaternion
-
-		Matrix4d mat = new Matrix4d();
-		mat.set(q);
-		return new Transform(mat);
+		double aboutZ = Math.toDegrees(Math.atan2(u.y, u.x));
+		
+		Transform transform1 =new Transform().rotZ(aboutZ);
+		Vector3d u2= u.transformed(transform1);
+		double aboutY = Math.toDegrees(Math.atan2(u2.x, u2.z));
+		Transform transform =new Transform().rotY(aboutY).apply(transform1);
+		Vector3d u3= u.transformed(transform).normalized();
+//		
+		Polygon test = concave.transformed(transform);
+		if (1 - Math.abs(test.plane.getNormal().z) > Plane.getEPSILON()) {
+			System.out.println("Error with " + test);
+			throw new RuntimeException("Failed to reorent the polygon for processing!");
+		}
+		return transform;
 	}
 
 	/**
@@ -539,46 +529,18 @@ public class PolygonUtil {
 		Vector3d normal = concave.getPlane().getNormal().clone();
 
 		if (reorient) {
-			Transform orientation = calculateQuaternionTransform(normalOfPlane);
-
-			if (debug) {
-				Debug3dProvider.clearScreen();
-				Debug3dProvider.addObject(incoming);
-			}
-
+			Transform orientation = calculateQuaternionTransform(incoming);
 			concave = incoming.transformed(orientation);
 			orientationInv = orientation.inverse();
-
-			// Ensure correct winding order (normal points up in +Z direction)
-			Vector3d transformedNormal = concave.getPlane().getNormal();
-			if (transformedNormal.z < 0) {
-				// Flip around Z-axis to correct winding order
-				Matrix4d flipMat = new Matrix4d();
-				flipMat.set(new Quat4d(0, 0, 0, 1)); // 180° rotation around Z-axis
-				Transform flip = new Transform(flipMat);
-
-				concave = concave.transformed(flip);
-				orientationInv = flip.inverse();
-			}
-
-			// Verification (optional - can be removed in production)
-			Polygon transformed = concave.transformed(orientationInv);
-			checkForValidPolyOrentation(normal, transformed);
+//			// Verification (optional - can be removed in production)
+//			Polygon transformed = concave.transformed(orientationInv);
+//			checkForValidPolyOrentation(normal, transformed);
 		}
 
 		boolean cw = !Extrude.isCCW(concave);
 		if (cw && toCCW)
 			concave = Extrude.toCCW(concave);
-		if (debug) {
-			Debug3dProvider.clearScreen();
-			Debug3dProvider.addObject(concave);
-			// Debug3dProvider.clearScreen();
-		}
 		double zplane = concave.getVertices().get(0).pos.z;
-		if (1 - Math.abs(concave.plane.getNormal().z) > 0.5) {
-			System.out.println("Error with " + concave);
-			throw new RuntimeException("Failed to reorent the polygon for processing!");
-		}
 		try {
 			makeTriangles(concave, cw, result, zplane, normal, debug, orientationInv, reorient, incoming.getColor());
 		} catch (java.lang.IllegalStateException ex) {
