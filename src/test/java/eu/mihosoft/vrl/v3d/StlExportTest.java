@@ -32,6 +32,17 @@ public class StlExportTest {
 		System.out.println("Load saved stl");
 		File file = new File("1-TextStl.stl");
 		CSG loaded = STL.file(file.toPath());
+		for(Polygon p:loaded.getPolygons()) {
+			if(p.getPoints().size()!=3) {
+				fail("An STL is composed of triangles only, this must be impossible");
+			}
+		}
+		try {
+			loaded.triangulate(true);
+		}catch(Exception ex) {
+			ex.printStackTrace();
+			fail("Manifold courupted data");
+		}
 		FileUtil.write(Paths.get("2-TextLoadedStl.stl"),
 				loaded.toStlString());
 		System.out.println("Perform scale");
