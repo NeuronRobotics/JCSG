@@ -2098,9 +2098,9 @@ public class CSG implements IuserAPI, Serializable {
 			toAdd.add(p);
 		} else {
 
-			try {
+//			try {
 				if (!p.areAllPointsCollinear()) {
-					List<Polygon> triangles = PolygonUtil.concaveToConvex(p);
+					List<Polygon> triangles = PolygonUtil.concaveToConvex(Extrude.toCCW(p));
 					for (Polygon poly : triangles) {
 						toAdd.add(poly);
 					}
@@ -2108,12 +2108,12 @@ public class CSG implements IuserAPI, Serializable {
 					System.err.println("Polygon is colinear, removing " + p);
 					return;
 				}
-			} catch (Throwable ex) {
-//				System.err.println("Failed to triangulate "+p);
-				ex.printStackTrace();
-				progressMoniter.progressUpdate(1, 1, "Pruning bad polygon CSG::updatePolygons " + p, null);
-				return;
-			}
+//			} catch (Throwable ex) {
+////				System.err.println("Failed to triangulate "+p);
+//				ex.printStackTrace();
+//				progressMoniter.progressUpdate(1, 1, "Pruning bad polygon CSG::updatePolygons " + p, null);
+//				return;
+//			}
 
 		}
 		return;
