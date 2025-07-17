@@ -1137,7 +1137,7 @@ public class CSG implements IuserAPI, Serializable {
 				back.setName(name);
 			}
 			return back;
-		}catch(Exception ex) {
+		} catch (Exception ex) {
 			ex.printStackTrace();
 			return this;
 		}
@@ -1376,7 +1376,7 @@ public class CSG implements IuserAPI, Serializable {
 		try {
 			Node a = new Node(this.clone().getPolygons());
 			Node b = new Node(csg.clone().getPolygons());
-	
+
 			a.invert();
 			a.clipTo(b);
 			b.clipTo(a);
@@ -1385,13 +1385,13 @@ public class CSG implements IuserAPI, Serializable {
 			b.invert();
 			a.build(b.allPolygons());
 			a.invert();
-	
+
 			CSG csgA = CSG.fromPolygons(a.allPolygons()).optimization(getOptType());
 			if (getName().length() != 0 && csg.getName().length() != 0) {
 				csgA.setName(name);
 			}
 			return csgA;
-		}catch(Exception ex) {
+		} catch (Exception ex) {
 			ex.printStackTrace();
 			return this;
 		}
@@ -1457,7 +1457,7 @@ public class CSG implements IuserAPI, Serializable {
 				back.setName(name);
 			}
 			return back;
-		}catch(Exception ex) {
+		} catch (Exception ex) {
 			ex.printStackTrace();
 			return this;
 		}
@@ -2018,7 +2018,8 @@ public class CSG implements IuserAPI, Serializable {
 	public static void gpuRun(int numberOfPoints, Kernel kernel, float[] done, String type, BooleanSupplier test,
 			int itr, int expectedIterations) {
 
-		//progressMoniter.progressUpdate(0, 100, "Start " + typOfCPU(kernel) + type, null);
+		// progressMoniter.progressUpdate(0, 100, "Start " + typOfCPU(kernel) + type,
+		// null);
 		if (!useGPU) {
 			String valueOf = String.valueOf(Runtime.getRuntime().availableProcessors() * 4);
 			progressMoniter.progressUpdate(0, 100, "CPU mode " + valueOf, null);
@@ -2027,48 +2028,46 @@ public class CSG implements IuserAPI, Serializable {
 		}
 		int[] iteration = new int[] { 0 };
 
-		Thread thread = new Thread(() -> {
-			long begin = System.currentTimeMillis();
+		long begin = System.currentTimeMillis();
+		boolean print = false;
+		long timeSinceLastPrint = 0;
+		long printLimit = 800;
+		try {
 			do {
 				kernel.execute(numberOfPoints);
+				while (kernel.isExecuting())
+					;
 				iteration[0] += 1;
-				long sinceStart = System.currentTimeMillis() - begin;
+				long now = System.currentTimeMillis();
+				long sinceStart = now - begin;
 				long took = sinceStart / iteration[0];
 				long expected = took * (expectedIterations + 2);
-				if(expected>1500) {
-					long remaining = expected - sinceStart;
-					if(done!=null)
-						for (int i = 0; i < done.length; i++) {
-							done[i] = 0;
-						}
-					if (remaining < 0)
-						remaining = 0;
-					String dur = makeTimestamp(expected);
-					String rem = makeTimestamp(remaining);
-					progressMoniter.progressUpdate(iteration[0], expectedIterations, "Rem->" + rem + " " + type
-							+ typOfCPU(kernel) + "(" + iteration[0] + ") Estimated Total: " + dur, null);
+				print = expected > printLimit || print;
+				if (print) {
+					if (now - timeSinceLastPrint > printLimit) {
+						timeSinceLastPrint = now;
+						long remaining = expected - sinceStart;
+						if (done != null)
+							for (int i = 0; i < done.length; i++) {
+								done[i] = 0;
+							}
+						if (remaining < 0)
+							remaining = 0;
+						String dur = makeTimestamp(expected);
+						String rem = makeTimestamp(remaining);
+						progressMoniter.progressUpdate(iteration[0], expectedIterations, "Rem->" + rem + " " + type
+								+ typOfCPU(kernel) + "(" + iteration[0] + ") Estimated Total: " + dur, null);
+					}
 				}
+
 			} while (test.getAsBoolean());
-		});
-		thread.start();
-		do {
-			if (kernel.getTargetDevice().getType().toString().contains("JTP")) {
-				useGPU = false;
-			}
-			try {
-				Thread.sleep( 1);
-			} catch (InterruptedException e) {
-				// Auto-generated catch block
-				e.printStackTrace();
-			}
-		} while (kernel.isExecuting());
-		try {
-			thread.join();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (Exception ex) {
+			ex.printStackTrace();
 		}
-		progressMoniter.progressUpdate(100, 100, "Finished on " + typOfCPU(kernel), null);
+		long sinceStart = System.currentTimeMillis() - begin;
+		if (print)
+			progressMoniter.progressUpdate(100, 100,
+					"Took " + makeTimestamp(sinceStart) + " Finished " + type + " on " + typOfCPU(kernel), null);
 	}
 
 	private static String typOfCPU(Kernel kernel) {
@@ -2081,8 +2080,15 @@ public class CSG implements IuserAPI, Serializable {
 		long hours = duration.toHours();
 		long minutes = duration.toMinutes() % 60;
 		long seconds = duration.getSeconds() % 60;
-
-		String dur = String.format("%02d:%02d:%02d", hours, minutes, seconds);
+		long ms = duration.getNano() / 1000000;
+		if (hours > 0) {
+			return String.format("h%02d:m%02d", hours, minutes);
+		}
+		if (minutes > 0)
+			return String.format("m%02d:s%02d", minutes, seconds);
+		if (seconds > 0)
+			return String.format("s%02d:ms%03d", seconds, ms);
+		String dur = String.format("ms%03d", ms);
 		return dur;
 	}
 
@@ -3753,10 +3759,10 @@ public class CSG implements IuserAPI, Serializable {
 
 	public static void setPreventNonManifoldTriangles(boolean preventNonManifoldTriangles) {
 		if (!preventNonManifoldTriangles) {
-			if(!warned)
+			if (!warned)
 				System.err.println(
-					"WARNING:This will make STL's incompatible with low quality slicing engines like Slice3r and PrusaSlicer");
-			warned=true;
+						"WARNING:This will make STL's incompatible with low quality slicing engines like Slice3r and PrusaSlicer");
+			warned = true;
 		}
 		CSG.preventNonManifoldTriangles = preventNonManifoldTriangles;
 	}
