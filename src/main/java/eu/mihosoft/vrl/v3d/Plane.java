@@ -145,7 +145,7 @@ public class Plane implements Serializable {
 			}
 		}
 		if (isValidNormal(lastValid, getEPSILON() / 10)) {
-			return lastValid;
+			return lastValid.normalized();
 		}
 		throw new RuntimeException("Mesh has problems, can not work around it");
 //	    // Second attempt: Find three non-colinear points
@@ -351,7 +351,7 @@ public class Plane implements Serializable {
 
 	public void setNormal(Vector3d normal) {
 		if (Double.isFinite(normal.x) && Double.isFinite(normal.y) && Double.isFinite(normal.z))
-			this.normal = normal;
+			this.normal = normal.normalized();
 		else {
 
 			NumberFormatException numberFormatException = new NumberFormatException();
@@ -391,7 +391,7 @@ public class Plane implements Serializable {
 //												.movez(transform_in.getZ());
 		Vector3d newNormal = this.normal.transformed(trans_rot);
 		newNormal = newNormal.negated();
-		this.setNormal(newNormal.normalized());
+		this.setNormal(newNormal);
 		this.setDist(this.normal.dot(a));
 
 	}
