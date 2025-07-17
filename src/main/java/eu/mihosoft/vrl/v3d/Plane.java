@@ -390,7 +390,7 @@ public class Plane implements Serializable {
 //												.movey(transform_in.getY())
 //												.movez(transform_in.getZ());
 		Vector3d newNormal = this.normal.transformed(trans_rot);
-		newNormal = newNormal.negated();
+		//newNormal = newNormal.negated();
 		this.setNormal(newNormal);
 		this.setDist(this.normal.dot(a));
 

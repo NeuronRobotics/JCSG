@@ -520,31 +520,29 @@ public class PolygonUtil {
 			return result;
 		if (incoming.getVertices().size() < 3)
 			return result;
-		Polygon concave = incoming;
+		Polygon tmp = incoming;
 		Vector3d normalOfPlane = incoming.getPlane().getNormal().clone();
 		normalOfPlane.normalize();
 		boolean reorient = Math.abs(normalOfPlane.z - 1.0) > Plane.getEPSILON();
 		Transform orientationInv = null;
 		boolean debug = false;
-		Vector3d normal = concave.getPlane().getNormal().clone();
+		Vector3d normal = tmp.getPlane().getNormal().clone();
 
 		if (reorient) {
 			Transform orientation = calculateQuaternionTransform(incoming);
-			concave = incoming.transformed(orientation);
+			tmp = incoming.transformed(orientation);
 			orientationInv = orientation.inverse();
 //			// Verification (optional - can be removed in production)
 //			Polygon transformed = concave.transformed(orientationInv);
 //			checkForValidPolyOrentation(normal, transformed);
 		}
-
-		boolean cw = !Extrude.isCCW(concave);
-		if (cw && toCCW)
-			concave = Extrude.toCCW(concave);
+		boolean cw = !Extrude.isCCW(tmp);
+		Polygon concave=(cw && toCCW)?Extrude.toCCW(tmp):tmp;
 		double zplane = concave.getVertices().get(0).pos.z;
 		try {
 			makeTriangles(concave, cw, result, zplane, normal, debug, orientationInv, reorient, incoming.getColor());
 		} catch (java.lang.IllegalStateException ex) {
-			System.out.println("Error with " + concave);
+			System.out.println("PolygonUtil::concaveToConvex Error with " + concave);
 			ex.printStackTrace();
 //			throw new RuntimeException(ex);
 			int start = concave.getVertices().size();
