@@ -50,6 +50,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import javax.vecmath.Matrix4d;
+import javax.vecmath.Quat4d;
+
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -63,7 +66,7 @@ import org.locationtech.jts.triangulate.polygon.ConstrainedDelaunayTriangulator;
  * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
  */
 public class PolygonUtil {
-	private static final double triangleScale = 1.0/Plane.getEPSILON()*10;
+	private static final double triangleScale = 1.0 / Plane.getEPSILON() * 10;
 	private static IPolygonRepairTool repair = concave1 -> {
 
 		ArrayList<Edge> edges = new ArrayList<Edge>();
@@ -98,8 +101,7 @@ public class PolygonUtil {
 						}
 					}
 					if (start == 0) {
-						CSG.getProgressMoniter().progressUpdate((i * (edges.size() / perThread)),
-								edges.size(),
+						CSG.getProgressMoniter().progressUpdate((i * (edges.size() / perThread)), edges.size(),
 								" Repairing intersecting polygon (Hint in Inkscape->Path->Simplify): found # "
 										+ toRemove.size(),
 								null);
@@ -128,7 +130,7 @@ public class PolygonUtil {
 								Vertex vBad = test.getCommonPoint(test2);
 								toRemove.add(vBad);
 							} catch (Exception e) {
-								//throw new RuntimeException(e);
+								// throw new RuntimeException(e);
 								return;
 							}
 						}
@@ -473,6 +475,49 @@ public class PolygonUtil {
 	}
 
 	/**
+	 * Calculates a quaternion-based transform that rotates `from` vector to align
+	 * with (0,0,1).
+	 */
+	private static Transform calculateQuaternionTransform(Vector3d from) {
+		// Normalize inputs
+		Vector3d u = from.clone().normalized();
+		Vector3d v = new Vector3d(0, 0, 1);
+
+		double dot = u.dot(v);
+		// If u ≈ v → identity
+		if (dot > 1.0 - Plane.getEPSILON()) {
+			return new Transform();
+		}
+
+		// If u ≈ -v → 180° rotation around any axis orthogonal to u
+		if (dot < -1.0 + Plane.getEPSILON()) {
+			Vector3d orthoBasis = (Math.abs(u.x) < Math.abs(u.y) && Math.abs(u.x) < Math.abs(u.z))
+					? new Vector3d(1, 0, 0)
+					: (Math.abs(u.y) < Math.abs(u.z)) ? new Vector3d(0, 1, 0) : new Vector3d(0, 0, 1);
+			Vector3d axis = u.cross(orthoBasis).normalized();
+			// w = 0 gives sin(ϕ/2)=1 ⇒ ϕ = π
+			Quat4d q = new Quat4d(axis.x, axis.y, axis.z, 0);
+			Matrix4d mat = new Matrix4d();
+			mat.set(q);
+			return new Transform(mat);
+		}
+
+		// General case: halfway quaternion
+		Vector3d half = u.clone();
+		half.add(v);
+		half.normalize(); // safe since u != -v
+		Vector3d axis = u.cross(half);
+		double w = u.dot(half);
+
+		Quat4d q = new Quat4d(axis.x, axis.y, axis.z, w);
+		q.normalize(); // ensure unit quaternion
+
+		Matrix4d mat = new Matrix4d();
+		mat.set(q);
+		return new Transform(mat);
+	}
+
+	/**
 	 * Concave to convex.
 	 *
 	 * @param incoming the concave
@@ -486,39 +531,39 @@ public class PolygonUtil {
 		if (incoming.getVertices().size() < 3)
 			return result;
 		Polygon concave = incoming;
-		Vector3d normalOfPlane = incoming.getPlane().getNormal();
-		boolean reorent = normalOfPlane.z < 1.0 - Plane.getEPSILON();
-		Transform orentationInv = null;
+		Vector3d normalOfPlane = incoming.getPlane().getNormal().clone();
+		normalOfPlane.normalize();
+		boolean reorient = Math.abs(normalOfPlane.z - 1.0) > Plane.getEPSILON();
+		Transform orientationInv = null;
 		boolean debug = false;
 		Vector3d normal = concave.getPlane().getNormal().clone();
 
-		if (reorent) {
+		if (reorient) {
+			Transform orientation = calculateQuaternionTransform(normalOfPlane);
 
-			double degreesToRotate = Math.toDegrees(Math.atan2(normalOfPlane.x, normalOfPlane.z));
-			Transform orentation = new Transform().roty(degreesToRotate);
-
-			Polygon tmp = incoming.transformed(orentation);
-
-			Vector3d tmpnorm = tmp.getPlane().getNormal();
-			double degreesToRotate2 = 90 + Math.toDegrees(Math.atan2(tmpnorm.z, tmpnorm.y));
-			Transform orentation2 = orentation.rotx(degreesToRotate2);// th triangulation function needs
-			// the polygon on the xy plane
 			if (debug) {
 				Debug3dProvider.clearScreen();
 				Debug3dProvider.addObject(incoming);
 			}
-			concave = incoming.transformed(orentation2);
-			orentationInv = orentation2.inverse();
-			if (concave.getPlane().getNormal().z < 0) {
-				Transform orentation3 = orentation2.rotx(180);
-				concave = incoming.transformed(orentation3);
-				orentationInv = orentation3.inverse();
-			}
-			// System.err.println("Re-orenting polygon " + concave);
-			Polygon transformed = concave.transformed(orentationInv);
-			// System.err.println("corrected-orenting polygon " + transformed);
-			checkForValidPolyOrentation(normal, transformed);
 
+			concave = incoming.transformed(orientation);
+			orientationInv = orientation.inverse();
+
+			// Ensure correct winding order (normal points up in +Z direction)
+			Vector3d transformedNormal = concave.getPlane().getNormal();
+			if (transformedNormal.z < 0) {
+				// Flip around Z-axis to correct winding order
+				Matrix4d flipMat = new Matrix4d();
+				flipMat.set(new Quat4d(0, 0, 0, 1)); // 180° rotation around Z-axis
+				Transform flip = new Transform(flipMat);
+
+				concave = concave.transformed(flip);
+				orientationInv = flip.inverse();
+			}
+
+			// Verification (optional - can be removed in production)
+			Polygon transformed = concave.transformed(orientationInv);
+			checkForValidPolyOrentation(normal, transformed);
 		}
 
 		boolean cw = !Extrude.isCCW(concave);
@@ -530,16 +575,20 @@ public class PolygonUtil {
 			// Debug3dProvider.clearScreen();
 		}
 		double zplane = concave.getVertices().get(0).pos.z;
-
+		if (1 - Math.abs(concave.plane.getNormal().z) > 0.5) {
+			System.out.println("Error with " + concave);
+			throw new RuntimeException("Failed to reorent the polygon for processing!");
+		}
 		try {
-			makeTriangles(concave, cw, result, zplane, normal, debug, orentationInv, reorent, incoming.getColor());
+			makeTriangles(concave, cw, result, zplane, normal, debug, orientationInv, reorient, incoming.getColor());
 		} catch (java.lang.IllegalStateException ex) {
-//			ex.printStackTrace();
+			System.out.println("Error with " + concave);
+			ex.printStackTrace();
 //			throw new RuntimeException(ex);
 			int start = concave.getVertices().size();
 			concave = repairOverlappingEdges(concave);
 			int end = concave.getVertices().size();
-			makeTriangles(concave, cw, result, zplane, normal, debug, orentationInv, reorent, incoming.getColor());
+			makeTriangles(concave, cw, result, zplane, normal, debug, orientationInv, reorient, incoming.getColor());
 			System.out.println("Repaired the polygon! pruned " + (start - end));
 		}
 
