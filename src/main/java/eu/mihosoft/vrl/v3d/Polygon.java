@@ -92,6 +92,7 @@ public final class Polygon implements Serializable{
 
         return PolygonUtil.concaveToConvex(p);
     }
+    
 
     /**
      * Decomposes the specified concave polygon into convex polygons.
@@ -173,13 +174,22 @@ public final class Polygon implements Serializable{
 	}
 	private void validateAndInit( boolean allowDegenerate) {
 		vertices=pruneDuplicatePoints(vertices);
-		if(getPlane()==null)
-			this.setPlane(Plane.createFromPoints(
-	                vertices));
-		for (Vertex v : getVertices()) {
-			v.normal = getPlane().getNormal();
-			//v.pos.roundToEpsilon();
+		if(getPlane()==null) {
+			Plane p = null;
+			try {
+				p=Plane.createFromPoints( vertices);
+			}catch(Exception ex) {
+				if(getPlane()==null)
+					throw ex;
+				ex.printStackTrace();
+			}
+			this.setPlane(p);
 		}
+
+		if(!getPlane().checkNormal(vertices)) {
+			new RuntimeException("Failed! the normal provided mismatched to calculated normal").printStackTrace();;
+		}		
+
 		setDegenerate(true);
 		if (Vector3d.ZERO.equals(getPlane().getNormal())) {
 			valid = false;
@@ -202,6 +212,10 @@ public final class Polygon implements Serializable{
 			// throw runtimeException;
 			new RuntimeException("This polygon is colinear").printStackTrace();
 		}
+	}
+	public void rotatePoints() {
+		Vertex b = vertices.remove(0);
+		vertices.add(b);
 	}
     /**
      * Constructor. Creates a new polygon that consists of the specified
@@ -237,13 +251,13 @@ public final class Polygon implements Serializable{
      * @return this polygon
      */
     public Polygon flip() {
-        getVertices().forEach((vertex) -> {
-            vertex.flip();
-        });
+
         Collections.reverse(getVertices());
 
         getPlane().flip();
-
+		if(!getPlane().checkNormal(vertices)) {
+			new RuntimeException("Failed! the normal provided mismatched to calculated normal").printStackTrace();;
+		}	
         return this;
     }
 
@@ -360,6 +374,9 @@ public final class Polygon implements Serializable{
             flip();
 
         }
+		if(!getPlane().checkNormal(vertices)) {
+			new RuntimeException("Failed! the normal provided mismatched to calculated normal").printStackTrace();;
+		}	
         return this;
     }
 //    public Vector3d computeNormal(List<Vertex> vertices) {
@@ -444,11 +461,11 @@ public final class Polygon implements Serializable{
 
         for (Vector3d p : points) {
             Vector3d vec = p.clone();
-            Vertex vertex = new Vertex(vec, normal);
+            Vertex vertex = new Vertex(vec);
             vertices.add(vertex);
         }
 
-        return new Polygon(vertices, shared,allowDegenerate,null);
+        return new Polygon(vertices, shared,allowDegenerate,plane);
     }
 
     /**
@@ -836,5 +853,10 @@ public final class Polygon implements Serializable{
 		if(plane==null)
 			throw new RuntimeException("Plane can not be null!");
 		this.plane = plane;
+	}
+
+	public int size() {
+		
+		return getVertices().size();
 	}
 }

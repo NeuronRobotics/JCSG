@@ -143,11 +143,7 @@ public class Cube extends Primitive {
                         center.y + dimensions.y * (1 * Math.min(1, i & 2) - 0.5),
                         center.z + dimensions.z * (1 * Math.min(1, i & 4) - 0.5)
                 );
-                vertices.add(new Vertex(pos, new Vector3d(
-                        (double) info[1][0],
-                        (double) info[1][1],
-                        (double) info[1][2]
-                )));
+                vertices.add(new Vertex(pos));
             }
             polygons.add(new Polygon(vertices, properties));
         }

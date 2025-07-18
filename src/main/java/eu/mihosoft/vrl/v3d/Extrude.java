@@ -260,7 +260,6 @@ public class Extrude {
 
 		return result;
 	}
-
 	/**
 	 * Checks if is ccw.
 	 *
@@ -268,18 +267,26 @@ public class Extrude {
 	 * @return true, if is ccw
 	 */
 	public static boolean isCCW(Polygon polygon) {
+		return isCCW( polygon.getVertices());
+	}
+	/**
+	 * Checks if is ccw.
+	 *
+	 * @param polygon the polygon
+	 * @return true, if is ccw
+	 */
+	public static boolean isCCW(List<Vertex> vertices) {
 
 		// thanks to Sepp Reiter for explaining me the algorithm!
-
-		if (polygon.getVertices().size() < 3) {
+		if (vertices.size() < 3) {
 			throw new IllegalArgumentException("Only polygons with at least 3 vertices are supported!");
 		}
 
 		// search highest left vertex
 		int highestLeftVertexIndex = 0;
-		Vertex highestLeftVertex = polygon.getVertices().get(0);
-		for (int i = 0; i < polygon.getVertices().size(); i++) {
-			Vertex v = polygon.getVertices().get(i);
+		Vertex highestLeftVertex = vertices.get(0);
+		for (int i = 0; i < vertices.size(); i++) {
+			Vertex v = vertices.get(i);
 
 			if (v.pos.y > highestLeftVertex.pos.y) {
 				highestLeftVertex = v;
@@ -291,13 +298,13 @@ public class Extrude {
 		}
 
 		// determine next and previous vertex indices
-		int nextVertexIndex = (highestLeftVertexIndex + 1) % polygon.getVertices().size();
+		int nextVertexIndex = (highestLeftVertexIndex + 1) % vertices.size();
 		int prevVertexIndex = highestLeftVertexIndex - 1;
 		if (prevVertexIndex < 0) {
-			prevVertexIndex = polygon.getVertices().size() - 1;
+			prevVertexIndex = vertices.size() - 1;
 		}
-		Vertex nextVertex = polygon.getVertices().get(nextVertexIndex);
-		Vertex prevVertex = polygon.getVertices().get(prevVertexIndex);
+		Vertex nextVertex = vertices.get(nextVertexIndex);
+		Vertex prevVertex = vertices.get(prevVertexIndex);
 
 		// edge 1
 		double a1 = normalizedX(highestLeftVertex.pos, nextVertex.pos);
@@ -314,12 +321,12 @@ public class Extrude {
 			selectedVIndex = prevVertexIndex;
 		}
 
-		if (selectedVIndex == 0 && highestLeftVertexIndex == polygon.getVertices().size() - 1) {
-			selectedVIndex = polygon.getVertices().size();
+		if (selectedVIndex == 0 && highestLeftVertexIndex == vertices.size() - 1) {
+			selectedVIndex = vertices.size();
 		}
 
-		if (highestLeftVertexIndex == 0 && selectedVIndex == polygon.getVertices().size() - 1) {
-			highestLeftVertexIndex = polygon.getVertices().size();
+		if (highestLeftVertexIndex == 0 && selectedVIndex == vertices.size() - 1) {
+			highestLeftVertexIndex = vertices.size();
 		}
 
 		// indicates whether edge points from highestLeftVertexIndex towards
@@ -800,16 +807,20 @@ public class Extrude {
 
 	public static Polygon toCCW(Polygon concave) {
 		if (!isCCW(concave)) {
-			List<Vector3d> points = concave.getPoints();
-			List<Vector3d> result = new ArrayList<>(points);
-			Collections.reverse(result);
-			return Polygon.fromPoints(result);
-//			List<Vertex> points = concave.getVertices();
-//			List<Vertex> result = new ArrayList<>(points);
+//			List<Vector3d> points = concave.getPoints();
+//			List<Vector3d> result = new ArrayList<>(points);
 //			Collections.reverse(result);
-//			Plane p = concave.getPlane().clone();
-//			p.flip();
-//			return new Polygon(result, concave.getStorage(), true, p);
+//			return Polygon.fromPoints(result);
+			List<Vertex> points = concave.getVertices();
+			List<Vertex> result = new ArrayList<>(points);
+			Collections.reverse(result);
+			Plane p = concave.getPlane().clone();
+			p.flip();
+			Polygon polygon = new Polygon(result, concave.getStorage(), true, null);
+			if(Math.abs( p.getNormal().minus(polygon.plane.getNormal()).magnitude()) > Plane.getEPSILON()) {
+				throw new RuntimeException("Failed! the normal of flip is not the same as calculated");
+			}
+			return polygon;
 		}
 		return concave;
 	}

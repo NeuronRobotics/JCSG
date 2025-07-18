@@ -1572,11 +1572,14 @@ public class CSG implements IuserAPI, Serializable {
 		try {
 			sb.append("solid v3d.csg\n");
 			for (Polygon p : getPolygons()) {
+				if(p.areAllPointsCollinear())
+					continue;
 				try {
 					Plane.computeNormal(p.getVertices());
 					p.toStlString(sb);
 				} catch (Exception ex) {
-					System.out.println("Prune Polygon on export");
+					ex.printStackTrace();
+					System.out.println("Prune Polygon on export "+p);
 				}
 			}
 			sb.append("endsolid v3d.csg\n");
@@ -1711,7 +1714,7 @@ public class CSG implements IuserAPI, Serializable {
 		float eps = 0.00001f;
 		float epsSq = (float) (eps * eps);
 		int[] added = new int[numberOfPolygons];
-		int testPointChunk = 50;
+		int testPointChunk = 20;
 		int snapChunk = 500;
 		int[] tp = new int[] { 0, snapChunk };
 
@@ -2000,7 +2003,7 @@ public class CSG implements IuserAPI, Serializable {
 //				}
 				// pointIndexSet.add(pointIndex);
 				Vector3d thispoint = orderedPoints[pointIndex];
-				points.add(new Vertex(thispoint, pl.getNormal()));
+				points.add(new Vertex(thispoint));
 			}
 			if (points.size() < 3) {
 				System.out.println("ERR polygon " + i + " pruned because of too few points");
@@ -2181,8 +2184,8 @@ public class CSG implements IuserAPI, Serializable {
 			int startingIndex = vertices.size() + 1;
 			sb.append("\n# Reference Datum").append("\n");
 			for (Transform t : datumReferences) {
-				Vertex v = new Vertex(new Vector3d(0, 0, 0), new Vector3d(0, 0, 1)).transform(t);
-				Vertex v1 = new Vertex(new Vector3d(0, 0, 1), new Vector3d(0, 0, 1)).transform(t);
+				Vertex v = new Vertex(new Vector3d(0, 0, 0)).transform(t);
+				Vertex v1 = new Vertex(new Vector3d(0, 0, 1)).transform(t);
 				mapping.put(v, startingIndex++);
 				mapping.put(v1, startingIndex++);
 				mappingTF.put(t, v);

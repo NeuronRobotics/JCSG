@@ -51,10 +51,10 @@ public class Vertex  implements Serializable{
      */
     public Vector3d pos;
 
-    /**
-     * Normal.
-     */
-    public Vector3d normal;
+//    /**
+//     * Normal.
+//     */
+//    public Vector3d normal;
     
     /** The weight. */
     private double weight = 1.0;
@@ -65,9 +65,8 @@ public class Vertex  implements Serializable{
      * @param pos position
      * @param normal normal
      */
-    public Vertex(Vector3d pos, Vector3d normal) {
+    public Vertex(Vector3d pos) {
         this.pos = pos;
-        this.normal = normal;
     }
 
     
@@ -78,9 +77,8 @@ public class Vertex  implements Serializable{
      * @param normal normal
      * @param weight weight
      */
-    private Vertex(Vector3d pos, Vector3d normal, double weight) {
+    private Vertex(Vector3d pos, double weight) {
         this.pos = pos;
-        this.normal = normal;
         this.weight = weight;
     }
 
@@ -89,15 +87,9 @@ public class Vertex  implements Serializable{
      */
     @Override
     public Vertex clone() {
-        return new Vertex(pos.clone(), normal.clone(), weight);
+        return new Vertex(pos.clone(),  weight);
     }
 
-    /**
-     * Inverts all orientation-specific data. (e.g. vertex normal).
-     */
-    public void flip() {
-        normal = normal.negated();
-    }
 
     /**
      * Create a new vertex between this vertex and the specified vertex by
@@ -108,8 +100,7 @@ public class Vertex  implements Serializable{
      * @return a new vertex between this and the specified vertex
      */
     public Vertex interpolate(Vertex other, double t) {
-        return new Vertex(pos.lerp(other.pos, t),
-                normal.lerp(other.normal, t));
+        return new Vertex(pos.lerp(other.pos, t));
     }
 
     /**

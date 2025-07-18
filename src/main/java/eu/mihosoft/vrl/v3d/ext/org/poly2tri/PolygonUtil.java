@@ -43,9 +43,11 @@ import eu.mihosoft.vrl.v3d.Polygon;
 import eu.mihosoft.vrl.v3d.Transform;
 import eu.mihosoft.vrl.v3d.Vector3d;
 import eu.mihosoft.vrl.v3d.Vertex;
+import javafx.collections.ModifiableObservableListBase;
 import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -66,18 +68,28 @@ import org.locationtech.jts.triangulate.polygon.ConstrainedDelaunayTriangulator;
  * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
  */
 public class PolygonUtil {
-	private static final double triangleScale = 1.0 / Plane.getEPSILON() * 10;
+	public static final double triangleScale = 10000;
 	private static IPolygonRepairTool repair = concave1 -> {
 
 		ArrayList<Edge> edges = new ArrayList<Edge>();
 		ArrayList<Vertex> toRemove = new ArrayList<Vertex>();
-		List<Vertex> v = concave1.getVertices();
+		List<Vertex> v1 = concave1.getVertices();
 		ArrayList<Vertex> modifiable = new ArrayList<Vertex>();
-		modifiable.addAll(v);
-		for (int i = 0; i < v.size(); i++) {
-			Edge e = new Edge(v.get(i), v.get((i + 1) % v.size()));
+
+		for (int i = 0; i < v1.size(); i++) {
+			boolean match = false;
+			for (int j = 0; j < modifiable.size(); j++) {
+				if (v1.get(i).pos.test(modifiable.get(j).pos, 1E-3)) {
+					match = true;
+				}
+			}
+			if (!match)
+				modifiable.add(v1.get(i));
+		}
+		for (int i = 0; i < modifiable.size(); i++) {
+			Edge e = new Edge(modifiable.get(i), modifiable.get((i + 1) % modifiable.size()));
 			double l = e.length();
-			if (l < 0.0001)
+			if (l < 0.001)
 				System.out.println("Length of edge is " + l);
 			// System.out.println(e);
 			edges.add(e);
@@ -118,7 +130,7 @@ public class PolygonUtil {
 						if (c) {
 							int x;
 							for (x = i + 1; x < j; x++) {
-								toRemove.add(v.get(x));
+								toRemove.add(modifiable.get(x));
 							}
 //								System.out
 //										.println("Edges cross! " + cross.get() +
@@ -150,7 +162,14 @@ public class PolygonUtil {
 			}
 		for (Vertex vr : toRemove)
 			modifiable.remove(vr);
-		return new Polygon(modifiable, concave1.getStorage(), false, concave1.getPlane());
+		ArrayList<Polygon> back = new ArrayList<>();
+		if (modifiable.size() > 3) {
+			back.add(new Polygon(modifiable, concave1.getStorage(), false, concave1.getPlane()));
+		}
+		if (toRemove.size() > 3) {
+			back.add(new Polygon(toRemove, concave1.getStorage(), false, concave1.getPlane()));
+		}
+		return back;
 
 	};
 
@@ -492,18 +511,18 @@ public class PolygonUtil {
 			return new Transform().rotX(180);
 		}
 		double aboutZ = Math.toDegrees(Math.atan2(u.y, u.x));
-		
-		Transform transform1 =new Transform().rotZ(aboutZ);
-		Vector3d u2= u.transformed(transform1);
+
+		Transform transform1 = new Transform().rotZ(aboutZ);
+		Vector3d u2 = u.transformed(transform1);
 		double aboutY = Math.toDegrees(Math.atan2(u2.x, u2.z));
-		Transform transform =new Transform().rotY(aboutY).apply(transform1);
-		Vector3d u3= u.transformed(transform).normalized();
+		Transform transform = new Transform().rotY(aboutY).apply(transform1);
+//		Vector3d u3= u.transformed(transform).normalized();
 //		
-		Polygon test = concave.transformed(transform);
-		if (1 - Math.abs(test.plane.getNormal().z) > Plane.getEPSILON()) {
-			System.out.println("Error with " + test);
-			throw new RuntimeException("Failed to reorent the polygon for processing!");
-		}
+//		Polygon test = concave.transformed(transform);
+//		if (1 - Math.abs(test.plane.getNormal().z) > 0.1) {
+//			System.out.println("Error with " + test);
+//			throw new RuntimeException("Failed to reorent the polygon for processing!");
+//		}
 		return transform;
 	}
 
@@ -536,137 +555,146 @@ public class PolygonUtil {
 //			Polygon transformed = concave.transformed(orientationInv);
 //			checkForValidPolyOrentation(normal, transformed);
 		}
+
 		boolean cw = !Extrude.isCCW(tmp);
-		Polygon concave=(cw && toCCW)?Extrude.toCCW(tmp):tmp;
+		Polygon concave = (cw && toCCW) ? Extrude.toCCW(tmp) : tmp;
 		double zplane = concave.getVertices().get(0).pos.z;
 		try {
 			makeTriangles(concave, cw, result, zplane, normal, debug, orientationInv, reorient, incoming.getColor());
 		} catch (java.lang.IllegalStateException ex) {
-			System.out.println("PolygonUtil::concaveToConvex Error with " + concave);
-			ex.printStackTrace();
-//			throw new RuntimeException(ex);
-			int start = concave.getVertices().size();
-			concave = repairOverlappingEdges(concave);
-			int end = concave.getVertices().size();
-			makeTriangles(concave, cw, result, zplane, normal, debug, orientationInv, reorient, incoming.getColor());
-			System.out.println("Repaired the polygon! pruned " + (start - end));
+
+			ArrayList<Polygon> repairedList = repairOverlappingEdges(concave);
+			for (Polygon repaired : repairedList) {
+				int end = repaired.getVertices().size();
+				if (end == 3) {
+					result.add(repaired);
+				} else if (end == 4) {
+					fourPointSpecialCase(concave, cw, result, zplane, normal, debug, orientationInv, reorient,
+							incoming.getColor());
+				} else
+					makeTrianglesInternal(repaired, cw, result, zplane, normal, debug, orientationInv, reorient,
+							incoming.getColor());
+				// System.out.println("Rapaired polygon: "+repaired);
+				// System.out.println("Repaired the polygon! pruned " + (start - end));
+			}
 		}
 
 		return result;
 	}
 
-	private static Polygon repairOverlappingEdges(Polygon concave) {
+	private static ArrayList<Polygon> repairOverlappingEdges(Polygon concave) {
 
 		return getRepair().repairOverlappingEdges(concave);
 	}
 
-//	private static void makeTrianglespoly2triMethod(List<Polygon> result, Polygon concave, boolean cw, boolean reorent,
-//			Transform orentationInv, Vector3d normal) {
-//		ArrayList<PolygonPoint> points = new ArrayList<PolygonPoint>();
-//		for (Vector3d v : concave.getPoints()) {
-//			points.add(new PolygonPoint(v.x, v.y, v.z));
-//
-//		}
-//		org.poly2tri.geometry.polygon.Polygon poly2tri = new org.poly2tri.geometry.polygon.Polygon(points);
-//		try {
-//			Poly2Tri.triangulate(poly2tri);
-//			List<DelaunayTriangle> triangles = poly2tri.getTriangles();
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			throw new RuntimeException(e);
-//		}
-//
-//	}
+	private static void fourPointSpecialCase(Polygon concave, boolean cw, List<Polygon> result, double zplane,
+			Vector3d normal, boolean debug, Transform orentationInv, boolean reorent, Color color) {
+		List<Vector3d> points = concave.getPoints();
+		int size = points.size();
+		for (int i = 0; i < size; i++) {
+			// Get first two points to establish a direction vector
+			Vector3d p1 = points.get(i);
+			Vector3d p2 = points.get((i + 1) % size);
 
-//	private static void makeTrianglespoly2triMethod(Polygon incoming, List<Polygon> result, Polygon concave, boolean cw) {
-//		// System.err.println("Failed to triangulate "+concave);
-//		Polygon p = incoming;
-//		int size = p.getVertices().size();
-//		int sizeOfVect = 3;
-//		double[] points = new double[size * sizeOfVect];
-//
-//		for (int i = 0; i < size; i++) {
-//			Vector3d v = p.getVertices().get(i).pos;
-//			points[i * sizeOfVect + 0] = v.x;
-//			points[i * sizeOfVect + 1] = v.y;
-//			points[i * sizeOfVect + 2] = v.z;
-//		}
-//		List<Integer> triangles = Earcut.earcut(points, null, sizeOfVect);
-//		int numTri = triangles.size() / 3;
-//
-//		for (int i = 0; i < numTri; i++) {
-//			int p1 = triangles.get(i * 3 + 0);
-//			int p2 = triangles.get(i * 3 + 1);
-//			int p3 = triangles.get(i * 3 + 2);
-//			ArrayList<Vertex> tripoints = new ArrayList<Vertex>();
-//			tripoints.add(p.getVertices().get(p1));
-//			tripoints.add(p.getVertices().get(p2));
-//			tripoints.add(p.getVertices().get(p3));
-//
-//			if (tripoints.size() == 3) {
-//
-//				Polygon poly = new Polygon(tripoints, p.getStorage(), false, p.getPlane());
-//				boolean b = !Extrude.isCCW(poly);
-//				if (cw != b) {
-//					// System.err.println("Triangle not matching incoming");
-//					Collections.reverse(tripoints);
-//					poly = new Polygon(tripoints, p.getStorage(), true, p.getPlane());
-//					b = !Extrude.isCCW(poly);
-//					if (cw != b) {
-//						// com.neuronrobotics.sdk.common.Log.error("Error, polygon is reversed!");
-//					}
-//				}
-////					if (reorent) {
-////						poly = poly.transform(orentationInv);
-////
-////						poly = checkForValidPolyOrentation(normal, poly);
-////					}
-//				result.add(poly);
-//			}
-//		}
-//		// check result for overlapping polygons
-////		int startSize = result.size();
-////		ArrayList <Polygon> aP = new ArrayList<>();
-////		ArrayList <Polygon> bP= new ArrayList<>();
-////		aP.addAll(result);
-////		bP.addAll(result);
-////		Node a = new Node(aP);
-////		Node b = new Node(bP);
-////		a.clipTo(b);
-////		b.clipTo(a);
-////		result = new ArrayList<>();;
-////		result.addAll(a.allPolygons());
-//		
-//
-//		return;// no overlapping polygons to remove!
-//	
-//	}
+			// Calculate the direction vector between first two points
+			Vector3d direction = p1.minus(p2);
+			// Normalize the direction vector
+			double length = direction.length();
+			double ep = Plane.getEPSILON();
+			if (length < ep) { // If points are effectively identical
+				continue;
+			}
+			direction.normalize();
+			Vector3d p3 = points.get((i + 2) % size);
 
-	private static Polygon checkForValidPolyOrentation(Vector3d normal, Polygon poly) {
-		Vector3d normal2 = poly.getPlane().getNormal();
-		Vector3d minus = normal.minus(normal2);
-		double length = minus.length();
-		double d = 1.0e-3;
-		if (length > d * 10 && length < (2 - d)) {
-			List<Vector3d> points = poly.getPoints();
-			List<Vector3d> r = new ArrayList<>(points);
-			Collections.reverse(r);
-			Polygon fromPoints = Polygon.fromPoints(r);
-			double l = normal.minus(fromPoints.getPlane().getNormal()).length();
-			if (l > d * 10 && l < (2 - d)) {
-//				throw new RuntimeException(
-//				"Error, the reorentation of the polygon resulted in a different normal than the triangles produced from it");
-			} else {
-				poly = fromPoints;
+			// Calculate cross product
+			Vector3d cross = direction.cross(p1.minus(p3));
+			// Calculate magnitude of cross product
+			double magnitude = Math.abs(cross.length());
 
+			// If magnitude is not close to zero, points are not collinear
+			if (magnitude > ep) {
+
+				Plane normal2 = concave.plane;
+				Polygon one = new Polygon(
+						new ArrayList<Vertex>(Arrays.asList(new Vertex(p1),
+								new Vertex(p2), new Vertex(p3))),
+						concave.getStorage(), true, normal2);
+				Polygon two = new Polygon(
+						new ArrayList<Vertex>(Arrays.asList(new Vertex(points.get((i + 3) % size)),
+								new Vertex(points.get((i + 4) % size)),
+								new Vertex(points.get((i + 5) % size)))),
+						concave.getStorage(), true, normal2);
+				if (reorent) {
+					one = one.transform(orentationInv);
+				}
+				one.setColor(color);
+				result.add(one);
+				if (reorent) {
+					two = two.transform(orentationInv);
+				}
+				two.setColor(color);
+				result.add(two);
+				return;
 			}
 		}
-		return poly;
+
 	}
 
-	private static Geometry makeTriangles(Polygon concave, boolean cw, List<Polygon> result, double zplane,
+	private static void makeTrianglesInternal(Polygon concave, boolean cw, List<Polygon> result, double zplane,
 			Vector3d normal, boolean debug, Transform orentationInv, boolean reorent, Color color) {
-		Geometry triangles;
+		ArrayList<Vector3d> points = new ArrayList<>(concave.getPoints());
+		while (points.size() > 0) {
+			int size = points.size();
+			for (int i = 0; i < size; i++) {
+				// Get first two points to establish a direction vector
+				Vector3d p1 = points.get(i);
+				Vector3d p2 = points.get((i + 1) % size);
+
+				// Calculate the direction vector between first two points
+				Vector3d direction = p1.minus(p2);
+				// Normalize the direction vector
+				double length = direction.length();
+				double ep = Plane.getEPSILON();
+				if (length < ep) { // If points are effectively identical
+					continue;
+				}
+				direction.normalize();
+				Vector3d p3 = points.get((i + 2) % size);
+
+				// Calculate cross product
+				Vector3d cross = direction.cross(p1.minus(p3));
+				// Calculate magnitude of cross product
+				double magnitude = Math.abs(cross.length());
+
+				// If magnitude is not close to zero, points are not collinear
+				if (magnitude > ep) {
+
+					Plane normal2 = concave.plane;
+					Vector3d normal3 = normal2.getNormal();
+					Polygon one = new Polygon(new ArrayList<Vertex>(
+							Arrays.asList(new Vertex(p1), new Vertex(p2), new Vertex(p3))),
+							concave.getStorage(), true, normal2);
+					points.remove(p2);
+					if (points.size() == 2)
+						points.clear();
+					if (reorent) {
+						one = one.transform(orentationInv);
+					}
+					one.setColor(color);
+					result.add(one);
+				} else {
+					if (points.size() == 3)
+						return;// skip a colinear final segment
+				}
+			}
+		}
+
+	}
+
+	private static void makeTriangles(Polygon concave, boolean cw, List<Polygon> result, double zplane, Vector3d normal,
+			boolean debug, Transform orentationInv, boolean reorent, Color color) {
+
 		Polygon toTri = concave;
 //	if(cw) {
 //		toTri=Extrude.toCCW(concave);
@@ -681,7 +709,7 @@ public class PolygonUtil {
 				v.z * triangleScale);
 		// use the default factory, which gives full double-precision
 		Geometry geom = new GeometryFactory().createPolygon(coordinates);
-		triangles = ConstrainedDelaunayTriangulator.triangulate(geom);
+		Geometry triangles = ConstrainedDelaunayTriangulator.triangulate(geom);
 		ArrayList<Vertex> triPoints = new ArrayList<>();
 
 		for (int i = 0; i < triangles.getNumGeometries(); i++) {
@@ -693,25 +721,25 @@ public class PolygonUtil {
 			for (int j = 0; j < 3; j++) {
 				Coordinate tp = coords[j];
 				Vector3d pos = new Vector3d(tp.getX() / triangleScale, tp.getY() / triangleScale, zplane);
-				triPoints.add(new Vertex(pos, normal));
+				triPoints.add(new Vertex(pos));
 
 				if (counter == 2) {
-					if (!cw) {
+					Plane p1 = concave.getPlane().clone();
+					boolean ccw = Extrude.isCCW(triPoints);
+					if ((!cw) != ccw) {
 						Collections.reverse(triPoints);
+						p1.flip();
 					}
-					Polygon poly = new Polygon(triPoints, concave.getStorage(), true, concave.getPlane());
+					boolean ccwAfter = Extrude.isCCW(triPoints);
+					if (!p1.checkNormal(triPoints)) {
+						new RuntimeException("Failed! the normal provided mismatched to calculated normal")
+								.printStackTrace();
+						;
+					}
+					Polygon poly = new Polygon(triPoints, concave.getStorage(), true, p1);
 					// poly = Extrude.toCCW(poly);
 					poly.getPlane().setNormal(concave.getPlane().getNormal());
-					boolean b = !Extrude.isCCW(poly);
-					if (cw != b) {
-						// System.err.println("Triangle not matching incoming");
-						Collections.reverse(triPoints);
-						poly = new Polygon(triPoints, concave.getStorage(), true, concave.getPlane());
-						b = !Extrude.isCCW(poly);
-						if (cw != b) {
-							// com.neuronrobotics.sdk.common.Log.error("Error, polygon is reversed!");
-						}
-					}
+
 					if (debug) {
 						// Debug3dProvider.clearScreen();
 						// Debug3dProvider.addObject(concave);
@@ -721,7 +749,7 @@ public class PolygonUtil {
 					if (reorent) {
 						poly = poly.transform(orentationInv);
 
-						poly = checkForValidPolyOrentation(normal, poly);
+						// poly = checkForValidPolyOrentation(normal, poly);
 					}
 					// poly.plane.setNormal(normalOfPlane);
 					poly.setColor(color);
@@ -733,8 +761,6 @@ public class PolygonUtil {
 				}
 			}
 		}
-
-		return triangles;
 	}
 
 	public static IPolygonRepairTool getRepair() {

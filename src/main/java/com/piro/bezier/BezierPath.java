@@ -184,7 +184,7 @@ public class BezierPath {
 			}
 		}
 		if(plInternal.size()>1) {
-			Edge e = new Edge(new Vertex(plInternal.get(end-1),null), new Vertex(plInternal.get(end),null));
+			Edge e = new Edge(new Vertex(plInternal.get(end-1)), new Vertex(plInternal.get(end)));
 			if(e.colinear(eval)) {
 				plInternal.set(end, eval);
 				return true;

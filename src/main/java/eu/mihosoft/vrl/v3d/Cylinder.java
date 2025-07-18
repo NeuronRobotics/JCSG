@@ -227,8 +227,8 @@ public class Cylinder extends Primitive {
         final Vector3d axisX = new Vector3d(isY ? 1 : 0, !isY ? 1 : 0, 0).
                 cross(axisZ).normalized();
         final Vector3d axisY = axisX.cross(axisZ).normalized();
-        Vertex startV = new Vertex(s, axisZ.negated());
-        Vertex endV = new Vertex(e, axisZ.normalized());
+        Vertex startV = new Vertex(s);
+        Vertex endV = new Vertex(e);
         List<Polygon> polygons = new ArrayList<>();
 
         for (int i = 0; i < numSlices; i++) {
@@ -279,7 +279,7 @@ public class Cylinder extends Primitive {
         Vector3d out = axisX.times(Math.cos(angle)).plus(axisY.times(Math.sin(angle)));
         Vector3d pos = s.plus(ray.times(stack)).plus(out.times(r));
         Vector3d normal = out.times(1.0 - Math.abs(normalBlend)).plus(axisZ.times(normalBlend));
-        return new Vertex(pos, normal);
+        return new Vertex(pos);
     }
 
     /**

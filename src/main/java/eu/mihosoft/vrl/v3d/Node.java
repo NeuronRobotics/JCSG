@@ -237,7 +237,7 @@ public final class Node {
 				double x = (polygonPointX[i]);
 				double y = (polygonPointY[i]);
 				double z = (polygonPointZ[i]);
-				Vertex v = new Vertex(new Vector3d(x, y, z), polygon.plane.getNormal());
+				Vertex v = new Vertex(new Vector3d(x, y, z));
 				addPoint(f, v);
 			}
 		}
@@ -289,9 +289,9 @@ public final class Node {
 	 */
 	public void splitPolygon(ArrayList<Polygon> polygons, List<Polygon> coplanarFront, List<Polygon> coplanarBack,
 			List<Polygon> front, List<Polygon> back) throws Exception {
-		if (polygons.size() > LIMIT_FOR_GPU)
-			splitPolygonGPU(polygons, coplanarFront, coplanarBack, front, back);
-		else
+//		if (polygons.size() > LIMIT_FOR_GPU)
+//			splitPolygonGPU(polygons, coplanarFront, coplanarBack, front, back);
+//		else
 			splitPolygonOriginal(polygons, coplanarFront, coplanarBack, front, back);
 
 	}
@@ -843,8 +843,8 @@ public final class Node {
 						double intrpY = yi + sy;
 						double intrpZ = zi + sz;
 						Vector3d intrp = new Vector3d(intrpX, intrpY, intrpZ);
-						addPoint(f, new Vertex(intrp, polygon.plane.getNormal()));
-						addPoint(b, new Vertex(intrp, polygon.plane.getNormal()));
+						addPoint(f, new Vertex(intrp));
+						addPoint(b, new Vertex(intrp));
 					}
 				}
 				add(front, f, polygon);

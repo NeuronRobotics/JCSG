@@ -49,16 +49,16 @@ public class SvgExportTest {
 		List<Polygon> polygons = new ArrayList<Polygon>();
 
 		List<Vertex> vertices = new ArrayList<Vertex>();
-		vertices.add(new Vertex(new Vector3d(-30, 0), new Vector3d(0, 0)));
-		vertices.add(new Vertex(new Vector3d(100, 0), new Vector3d(0, 0)));
-		vertices.add(new Vertex(new Vector3d(100, 100), new Vector3d(0, 0)));
-		vertices.add(new Vertex(new Vector3d(-30, 100), new Vector3d(0, 0)));
+		vertices.add(new Vertex(new Vector3d(-30, 0)));
+		vertices.add(new Vertex(new Vector3d(100, 0)));
+		vertices.add(new Vertex(new Vector3d(100, 100)));
+		vertices.add(new Vertex(new Vector3d(-30, 100)));
 
 		List<Vertex> vertices2 = new ArrayList<Vertex>();
-		vertices2.add(new Vertex(new Vector3d(50, 50), new Vector3d(0, 0)));
-		vertices2.add(new Vertex(new Vector3d(75, 50), new Vector3d(0, 0)));
-		vertices2.add(new Vertex(new Vector3d(75, 75), new Vector3d(0, 0)));
-		vertices2.add(new Vertex(new Vector3d(50, 75), new Vector3d(0, 0)));
+		vertices2.add(new Vertex(new Vector3d(50, 50)));
+		vertices2.add(new Vertex(new Vector3d(75, 50)));
+		vertices2.add(new Vertex(new Vector3d(75, 75)));
+		vertices2.add(new Vertex(new Vector3d(50, 75)));
 
 		Polygon outline2 = new Polygon(vertices2);
 		Polygon outline = new Polygon(vertices);
@@ -75,16 +75,16 @@ public class SvgExportTest {
 		List<Polygon> polygons = new ArrayList<Polygon>();
 
 		List<Vertex> vertices = new ArrayList<Vertex>();
-		vertices.add(new Vertex(new Vector3d(-30, 0), new Vector3d(0, 0)));
-		vertices.add(new Vertex(new Vector3d(100, 0), new Vector3d(0, 0)));
-		vertices.add(new Vertex(new Vector3d(100, 100), new Vector3d(0, 0)));
-		vertices.add(new Vertex(new Vector3d(-30, 100), new Vector3d(0, 0)));
+		vertices.add(new Vertex(new Vector3d(-30, 0)));
+		vertices.add(new Vertex(new Vector3d(100, 0)));
+		vertices.add(new Vertex(new Vector3d(100, 100)));
+		vertices.add(new Vertex(new Vector3d(-30, 100)));
 
 		List<Vertex> vertices2 = new ArrayList<Vertex>();
-		vertices2.add(new Vertex(new Vector3d(50, 50), new Vector3d(0, 0)));
-		vertices2.add(new Vertex(new Vector3d(75, 50), new Vector3d(0, 0)));
-		vertices2.add(new Vertex(new Vector3d(75, 75), new Vector3d(0, 0)));
-		vertices2.add(new Vertex(new Vector3d(50, 75), new Vector3d(0, 0)));
+		vertices2.add(new Vertex(new Vector3d(50, 50)));
+		vertices2.add(new Vertex(new Vector3d(75, 50)));
+		vertices2.add(new Vertex(new Vector3d(75, 75)));
+		vertices2.add(new Vertex(new Vector3d(50, 75)));
 
 		Polygon outline2 = new Polygon(vertices2);
 		Polygon outline = new Polygon(vertices);

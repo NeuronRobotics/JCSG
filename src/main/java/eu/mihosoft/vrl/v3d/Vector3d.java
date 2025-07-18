@@ -454,7 +454,7 @@ public class Vector3d extends javax.vecmath.Vector3d {
         final Vector3d other = (Vector3d) obj;
         double distance =distance(other);
         double abs = Math.abs(distance);
-		if(abs>epsilon*1000)
+		if(abs>epsilon)
         	return false;
         return true;
 	}

@@ -124,10 +124,6 @@ public class Edge {
 //                collect(Collectors.toList());
 		Polygon p = Polygon.fromPoints(points);
 
-		p.getVertices().stream().forEachOrdered((vertex) -> {
-			vertex.normal = plane.getNormal().clone();
-		});
-
 //        // we try to detect wrong orientation by comparing normals
 //        if (p.plane.normal.angle(plane.normal) > 0.1) {
 //            p.flip();
