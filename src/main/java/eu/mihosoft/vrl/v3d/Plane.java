@@ -160,9 +160,9 @@ public class Plane implements Serializable {
 			normal.x += (current.y - next.y) * (current.z + next.z); // (y1-y2)(z1+z2)
 			normal.y += (current.z - next.z) * (current.x + next.x); // (z1-z2)(x1+x2)
 			normal.z += (current.x - next.x) * (current.y + next.y);
-			if (i > 2) {
+			if (i==(n-2)) {
 				Vector3d normalized = normal.normalized();
-				if (isValidNormal(normalized, getEPSILON() / 10)) {
+				if (isValidNormal(normal, getEPSILON() / 10)) {
 					lastValid = normalized;
 				}
 			}
@@ -251,12 +251,13 @@ public class Plane implements Serializable {
 			Vector3d normal = p.getNormal();
 			Vector3d normal2 = getNormal();
 			// check for actual misallignment
-			if ((normal.x) - (normal2.x) > Plane.getEPSILON() * 100
-					|| (normal.y) - (normal2.y) > Plane.getEPSILON() * 100
-					|| (normal.z) - (normal2.z) > Plane.getEPSILON() * 100) {
-				if (Math.abs(normal.x) - Math.abs(normal2.x) > Plane.getEPSILON() * 100
-						|| Math.abs(normal.y) - Math.abs(normal2.y) > Plane.getEPSILON() * 100
-						|| Math.abs(normal.z) - Math.abs(normal2.z) > Plane.getEPSILON() * 100) {
+			double d = 0.0001;
+			if ((normal.x) - (normal2.x) > d
+					|| (normal.y) - (normal2.y) > d
+					|| (normal.z) - (normal2.z) > d) {
+				if (Math.abs(normal.x) - Math.abs(normal2.x) > d
+						|| Math.abs(normal.y) - Math.abs(normal2.y) > d
+						|| Math.abs(normal.z) - Math.abs(normal2.z) > d) {
 					return false;
 				}
 				return false;
