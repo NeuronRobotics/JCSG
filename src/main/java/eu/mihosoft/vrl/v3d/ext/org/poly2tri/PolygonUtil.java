@@ -711,7 +711,7 @@ public class PolygonUtil {
 		Geometry geom = new GeometryFactory().createPolygon(coordinates);
 		Geometry triangles = ConstrainedDelaunayTriangulator.triangulate(geom);
 		ArrayList<Vertex> triPoints = new ArrayList<>();
-
+		Plane p1 = concave.getPlane().clone();
 		for (int i = 0; i < triangles.getNumGeometries(); i++) {
 			Geometry tri = triangles.getGeometryN(i);
 			Coordinate[] coords = tri.getCoordinates();
@@ -724,17 +724,8 @@ public class PolygonUtil {
 				triPoints.add(new Vertex(pos));
 
 				if (counter == 2) {
-					Plane p1 = concave.getPlane().clone();
-					boolean ccw = Extrude.isCCW(triPoints);
-					if ((!cw) != ccw) {
+					if(Extrude.isCCW(triPoints) == cw) {
 						Collections.reverse(triPoints);
-						p1.flip();
-					}
-					boolean ccwAfter = Extrude.isCCW(triPoints);
-					if (!p1.checkNormal(triPoints)) {
-						new RuntimeException("Failed! the normal provided mismatched to calculated normal")
-								.printStackTrace();
-						;
 					}
 					Polygon poly = new Polygon(triPoints, concave.getStorage(), true, p1);
 					// poly = Extrude.toCCW(poly);
