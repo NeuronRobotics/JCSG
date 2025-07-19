@@ -84,12 +84,6 @@ public class Extrude {
 		private CSG monotoneExtrude(Vector3d dir, Polygon polygon1) {
 			ArrayList<Polygon> newPolygons = new ArrayList<>();
 			CSG extrude;
-			//polygon1=polygon1.flipped();
-//			List<Vertex> newVertices = new ArrayList<>();
-//			polygon1.getVertices().forEach((vertex) -> {
-//	            newVertices.add(vertex.clone());
-//	        });
-//	        Polygon top= new Polygon(newVertices, polygon1.getStorage(),true,polygon1.getPlane().clone()).setColor(polygon1.getColor());
 	        Polygon top=polygon1.flipped();
 			newPolygons.addAll(PolygonUtil.concaveToConvex(top));
 			Polygon polygon2 = polygon1.transformed(new Transform().move(dir));
@@ -237,7 +231,7 @@ public class Extrude {
 
 		List<Vector3d> result = new ArrayList<>(points);
 
-		if (!isCCW(Polygon.fromPoints(result))) {
+		if (!isCCWv3d(result)) {
 			Collections.reverse(result);
 		}
 
@@ -254,7 +248,7 @@ public class Extrude {
 
 		List<Vector3d> result = new ArrayList<>(points);
 
-		if (isCCW(Polygon.fromPoints(result))) {
+		if (isCCWv3d(result)) {
 			Collections.reverse(result);
 		}
 
@@ -267,7 +261,7 @@ public class Extrude {
 	 * @return true, if is ccw
 	 */
 	public static boolean isCCW(Polygon polygon) {
-		return isCCW( polygon.getVertices());
+		return isCCWv3d( polygon.getPoints());
 	}
 	/**
 	 * Checks if is ccw.
@@ -276,6 +270,18 @@ public class Extrude {
 	 * @return true, if is ccw
 	 */
 	public static boolean isCCW(List<Vertex> vertices) {
+		List<Vector3d> points = new ArrayList<Vector3d>();
+		for(Vertex v:vertices)
+			points.add(v.pos);
+		return isCCWv3d(points);
+	}
+	/**
+	 * Checks if is ccw.
+	 *
+	 * @param polygon the polygon
+	 * @return true, if is ccw
+	 */
+	public static boolean isCCWv3d(List<Vector3d> vertices) {
 
 		// thanks to Sepp Reiter for explaining me the algorithm!
 		if (vertices.size() < 3) {
@@ -284,14 +290,18 @@ public class Extrude {
 
 		// search highest left vertex
 		int highestLeftVertexIndex = 0;
-		Vertex highestLeftVertex = vertices.get(0);
+		Vector3d highestLeftVertex = vertices.get(0);
+		double zSet = highestLeftVertex.z;
 		for (int i = 0; i < vertices.size(); i++) {
-			Vertex v = vertices.get(i);
-
-			if (v.pos.y > highestLeftVertex.pos.y) {
+			
+			Vector3d v = vertices.get(i);
+			if(Math.abs(zSet-v.z)>Plane.getEPSILON()) {
+				throw new RuntimeException("isCCW can only be performed on the X Y plane");
+			}
+			if (v.y > highestLeftVertex.y) {
 				highestLeftVertex = v;
 				highestLeftVertexIndex = i;
-			} else if (v.pos.y == highestLeftVertex.pos.y && v.pos.x < highestLeftVertex.pos.x) {
+			} else if (v.y == highestLeftVertex.y && v.x < highestLeftVertex.x) {
 				highestLeftVertex = v;
 				highestLeftVertexIndex = i;
 			}
@@ -303,14 +313,14 @@ public class Extrude {
 		if (prevVertexIndex < 0) {
 			prevVertexIndex = vertices.size() - 1;
 		}
-		Vertex nextVertex = vertices.get(nextVertexIndex);
-		Vertex prevVertex = vertices.get(prevVertexIndex);
+		Vector3d nextVertex = vertices.get(nextVertexIndex);
+		Vector3d prevVertex = vertices.get(prevVertexIndex);
 
 		// edge 1
-		double a1 = normalizedX(highestLeftVertex.pos, nextVertex.pos);
+		double a1 = normalizedX(highestLeftVertex, nextVertex);
 
 		// edge 2
-		double a2 = normalizedX(highestLeftVertex.pos, prevVertex.pos);
+		double a2 = normalizedX(highestLeftVertex, prevVertex);
 
 		// select vertex with lowest x value
 		int selectedVIndex;
