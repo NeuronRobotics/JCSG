@@ -560,12 +560,23 @@ public class PolygonUtil {
 		boolean cw = !Extrude.isCCW(tmp);
 		Polygon concave = (cw && toCCW) ? Extrude.toCCW(tmp) : tmp;
 		double zplane = concave.getVertices().get(0).pos.z;
+		for(Vector3d v:concave.getPoints()) {
+			if(Math.abs(zplane-v.z)>Plane.getEPSILON()) {
+				throw new RuntimeException("Failed to triangulate, points must be coplainer");
+			}
+		}
 		try {
 			makeTriangles(concave, cw, result, zplane, normal, debug, orientationInv, reorient, incoming.getColor());
 		} catch (java.lang.IllegalStateException ex) {
 
 			ArrayList<Polygon> repairedList = repairOverlappingEdges(concave);
 			for (Polygon repaired : repairedList) {
+				double z = repaired.getVertices().get(0).pos.z;
+				for(Vector3d v:repaired.getPoints()) {
+					if(Math.abs(z-v.z)>Plane.getEPSILON()) {
+						throw new RuntimeException("Failed to triangulate, points must be coplainer");
+					}
+				}
 				int end = repaired.getVertices().size();
 				if (end == 3) {
 					result.add(repaired);
@@ -645,13 +656,24 @@ public class PolygonUtil {
 	private static void makeTrianglesInternal(Polygon concave, boolean cw, List<Polygon> result, double zplane,
 			Vector3d normal, boolean debug, Transform orentationInv, boolean reorent, Color color) {
 		ArrayList<Vector3d> points = new ArrayList<>(concave.getPoints());
+		double z = concave.getVertices().get(0).pos.z;
+		for(Vector3d v:points) {
+			if(Math.abs(z-v.z)>Plane.getEPSILON()) {
+				throw new RuntimeException("Failed to triangulate, points must be coplainer");
+			}
+		}
 		while (points.size() > 0) {
 			int size = points.size();
 			for (int i = 0; i < size; i++) {
 				// Get first two points to establish a direction vector
 				Vector3d p1 = points.get(i);
 				Vector3d p2 = points.get((i + 1) % size);
-
+				if(Math.abs(z-p1.z)>Plane.getEPSILON()) {
+					throw new RuntimeException("Failed to triangulate, points must be coplainer");
+				}
+				if(Math.abs(z-p2.z)>Plane.getEPSILON()) {
+					throw new RuntimeException("Failed to triangulate, points must be coplainer");
+				}
 				// Calculate the direction vector between first two points
 				Vector3d direction = p1.minus(p2);
 				// Normalize the direction vector
@@ -662,6 +684,9 @@ public class PolygonUtil {
 				}
 				direction.normalize();
 				Vector3d p3 = points.get((i + 2) % size);
+				if(Math.abs(z-p3.z)>Plane.getEPSILON()) {
+					throw new RuntimeException("Failed to triangulate, points must be coplainer");
+				}
 
 				// Calculate cross product
 				Vector3d cross = direction.cross(p1.minus(p3));
@@ -673,8 +698,8 @@ public class PolygonUtil {
 
 					Plane normal2 = concave.plane;
 					ArrayList<Vertex> vertices = new ArrayList<Vertex>(
-							Arrays.asList(new Vertex(p1), new Vertex(p2), new Vertex(p3)));
-					Polygon one = new Polygon(vertices,concave.getStorage(), true, normal2);
+							Arrays.asList(new Vertex(p1.clone()), new Vertex(p2.clone()), new Vertex(p3.clone())));
+					Polygon one = new Polygon(vertices,concave.getStorage(), true, normal2.clone());
 					points.remove(p2);
 
 					if (reorent) {
