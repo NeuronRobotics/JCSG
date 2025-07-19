@@ -110,19 +110,40 @@ public class Plane implements Serializable {
 
 	/**
 	 * Creates a plane defined by the the specified points.
+	 * 
+	 * @param vector3d
 	 *
-	 * @param a first point
-	 * @param b second point
-	 * @param c third point
+	 * @param a        first point
+	 * @param b        second point
+	 * @param c        third point
 	 * @return a plane
 	 */
 	public static Plane createFromPoints(List<Vertex> vertices) {
+		return createFromPoints(vertices, null);
+	}
+
+	/**
+	 * Creates a plane defined by the the specified points.
+	 * 
+	 * @param vector3d
+	 *
+	 * @param a        first point
+	 * @param b        second point
+	 * @param c        third point
+	 * @return a plane
+	 */
+	public static Plane createFromPoints(List<Vertex> vertices, Vector3d testNorm) {
 		Vector3d a = vertices.get(0).pos;
-		Vector3d n = computeNormal(vertices);
+		Vector3d n = computeNormal(vertices, testNorm);
 		return new Plane(n, n.dot(a));
 	}
 
 	public static Vector3d computeNormal(List<Vertex> vertices) {
+		return computeNormal(vertices, null);
+	}
+
+	public static Vector3d computeNormal(List<Vertex> vertices, Vector3d testNorm) {
+
 		if (vertices == null || vertices.size() < 3) {
 			return new Vector3d(0, 0, 1); // Default normal for degenerate cases
 		}
@@ -139,97 +160,105 @@ public class Plane implements Serializable {
 			normal.x += (current.y - next.y) * (current.z + next.z); // (y1-y2)(z1+z2)
 			normal.y += (current.z - next.z) * (current.x + next.x); // (z1-z2)(x1+x2)
 			normal.z += (current.x - next.x) * (current.y + next.y);
-			if (i>2) {
+			if (i > 2) {
 				Vector3d normalized = normal.normalized();
 				if (isValidNormal(normalized, getEPSILON() / 10)) {
 					lastValid = normalized;
 				}
 			}
 		}
-		if(lastValid!=null)
-			if (isValidNormal(lastValid, getEPSILON() / 10)) {
-				return lastValid;
-			}
-		return computeNormalCrossProduct(vertices);
+		if (lastValid == null)
+			lastValid = computeNormalCrossProduct(vertices);
+		if (isValidNormal(lastValid, getEPSILON() / 10)) {
+//			if (testNorm != null)
+//				if ((lastValid.x) - (testNorm.x) > Plane.getEPSILON() * 100
+//						|| (lastValid.y) - (testNorm.y) > Plane.getEPSILON() * 100
+//						|| (lastValid.z) - (testNorm.z) > Plane.getEPSILON() * 100) {
+//					lastValid = lastValid.negated();
+//				}
+			return lastValid;
+		}
+		throw new RuntimeException("Failed to compute the normal!");
 	}
 
-	public static Vector3d computeNormalCrossProduct(List<Vertex> v) {
-		boolean ccw = Extrude.isCCW(v);
-		List<Vertex> vertices = v;
-		if (ccw) {
-			vertices = new ArrayList<>(v);
-			Collections.reverse(vertices);
-		}
-		if (vertices == null || vertices.size() < 3) {
+	public static Vector3d computeNormalCrossProduct(List<Vertex> verts) {
+		int n = verts.size();
+		if (n < 3)
 			return new Vector3d(0, 0, 1);
-		}
 
-		// For triangles only
-		Vertex v0 = vertices.get(0);
-		Vertex v1 = vertices.get(1);
-		Vertex v2 = vertices.get(2);
-
-		Vector3d e0 = v1.pos.minus(v0.pos);
-		Vector3d e1 = v2.pos.minus(v1.pos);
-		Vector3d e2 = v0.pos.minus(v2.pos);
-
-		// Compute squared lengths
-		double l0 = e0.dot(e0);
-		double l1 = e1.dot(e1);
-		double l2 = e2.dot(e2);
-
-		// Sort edges by length ascending
-		class Edge {
-			Vector3d vec;
-			double len2;
-		}
-		Edge[] edges = new Edge[] { new Edge() {
-			{
-				vec = e0;
-				len2 = l0;
-			}
-		}, new Edge() {
-			{
-				vec = e1;
-				len2 = l1;
-			}
-		}, new Edge() {
-			{
-				vec = e2;
-				len2 = l2;
-			}
-		}, };
-		Arrays.sort(edges, Comparator.comparingDouble(e -> e.len2));
-
-		// Try cross product of shortest with the next one that's non‑colinear
-		for (int i = 0; i < 2; i++) {
-			Vector3d a = edges[i].vec;
-			Vector3d b = edges[i + 1].vec;
-			// Check if not colinear: cross magnitude squared > epsilon * product of lengths
-			Vector3d cross = a.cross(b);
-			if (cross.dot(cross) > Plane.getEPSILON() * a.dot(a) * b.dot(b)) {
-				Vector3d normalized = cross.normalized();
-//				if(!ccw)
-//					normalized=normalized.negated();
-				return normalized;
+		// 1. Build all edge vectors
+		List<Vector3d> edges = new ArrayList<>();
+		for (int i = 0; i < n; i++) {
+			for (int j = i + 1; j < n; j++) {
+				Vector3d e = verts.get(j).pos.minus(verts.get(i).pos);
+				if (e.dot(e) > Plane.getEPSILON()) {
+					edges.add(e);
+				}
 			}
 		}
-		throw new RuntimeException("Degenerate triangle – can't compute stable normal");
+
+		// 2. Find pair with smallest |dot| / (|e1||e2|)
+		double bestScore = Double.POSITIVE_INFINITY;
+		Vector3d bestE1 = null, bestE2 = null;
+		for (int i = 0; i < edges.size(); i++) {
+			Vector3d e1 = edges.get(i);
+			double len1 = e1.length();
+			for (int j = i + 1; j < edges.size(); j++) {
+				Vector3d e2 = edges.get(j);
+				double len2 = e2.length();
+				double score = Math.abs(e1.dot(e2)) / (len1 * len2);
+				if (score < bestScore) {
+					bestScore = score;
+					bestE1 = e1;
+					bestE2 = e2;
+					bestScore = score;
+				}
+			}
+		}
+
+		// 3. Fallback: use first three vertices if no good pair found
+		if (bestE1 == null) {
+			Vector3d v0 = verts.get(0).pos;
+			bestE1 = verts.get(1).pos.minus(v0);
+			bestE2 = verts.get(2).pos.minus(v0);
+		}
+
+		// 4. Compute normal
+		Vector3d normal = bestE1.cross(bestE2).normalized();
+		if (normal.length() < Plane.getEPSILON()) {
+			// fallback unavoidably degenerate
+			Vector3d v0 = verts.get(0).pos;
+			normal = verts.get(1).pos.minus(v0).cross(verts.get(2).pos.minus(v0)).normalized();
+		}
+
+		// fallback: orient according to (v0,v1,v2)
+		Vector3d v0 = verts.get(0).pos;
+		Vector3d std = verts.get(1).pos.minus(v0).cross(verts.get(2).pos.minus(v0)).normalized();
+		if (normal.dot(std) < 0) {
+			normal = normal.negated();
+		}
+		return normal;
 	}
 
 	public boolean checkNormal(ArrayList<Vertex> vertex) {
 		Plane p = null;
 		try {
-			p = Plane.createFromPoints(vertex);
+			p = Plane.createFromPoints(vertex, getNormal());
 		} catch (Exception ex) {
 			// ex.printStackTrace();
 		}
 		if (p != null) {
 			Vector3d normal = p.getNormal();
 			Vector3d normal2 = getNormal();
-			if (	   Math.abs(normal.x) - Math.abs(normal2.x) > Plane.getEPSILON()*100
-					|| Math.abs(normal.y) - Math.abs(normal2.y) > Plane.getEPSILON()*100
-					|| Math.abs(normal.z) - Math.abs(normal2.z) > Plane.getEPSILON()*100) {
+			// check for actual misallignment
+			if ((normal.x) - (normal2.x) > Plane.getEPSILON() * 100
+					|| (normal.y) - (normal2.y) > Plane.getEPSILON() * 100
+					|| (normal.z) - (normal2.z) > Plane.getEPSILON() * 100) {
+				if (Math.abs(normal.x) - Math.abs(normal2.x) > Plane.getEPSILON() * 100
+						|| Math.abs(normal.y) - Math.abs(normal2.y) > Plane.getEPSILON() * 100
+						|| Math.abs(normal.z) - Math.abs(normal2.z) > Plane.getEPSILON() * 100) {
+					return false;
+				}
 				return false;
 			}
 		}
@@ -485,16 +514,4 @@ public class Plane implements Serializable {
 		EPSILON = ePSILON;
 	}
 
-	public void transformPlane(Transform transform_in, Vector3d a) {
-		Transform trans_rot = transform_in.copy()// .inverse()
-				.setToOrigin();
-//		Transform trans_dist = new Transform().movex(transform_in.getX())
-//												.movey(transform_in.getY())
-//												.movez(transform_in.getZ());
-		Vector3d newNormal = this.normal.transformed(trans_rot);
-		newNormal = newNormal.negated();
-		this.setNormal(newNormal);
-		this.setDist(this.normal.dot(a));
-
-	}
 }
