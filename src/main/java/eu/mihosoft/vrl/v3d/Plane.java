@@ -37,6 +37,7 @@ import java.io.Serializable;
 // # class Plane
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -122,7 +123,43 @@ public class Plane implements Serializable {
 	}
 
 	public static Vector3d computeNormal(List<Vertex> vertices) {
-		boolean ccw = Extrude.isCCW(vertices);
+		if (vertices == null || vertices.size() < 3) {
+			return new Vector3d(0, 0, 1); // Default normal for degenerate cases
+		}
+
+		// First attempt: Newell's method
+		Vector3d normal = new Vector3d(0, 0, 0);
+		int n = vertices.size();
+		Vector3d lastValid = null;
+		for (int i = 0; i < n; i++) {
+			Vector3d current = vertices.get(i).pos;
+			Vector3d next = vertices.get((i + 1) % n).pos;
+
+			// Correct Newell's Method formulas
+			normal.x += (current.y - next.y) * (current.z + next.z); // (y1-y2)(z1+z2)
+			normal.y += (current.z - next.z) * (current.x + next.x); // (z1-z2)(x1+x2)
+			normal.z += (current.x - next.x) * (current.y + next.y);
+			if (i>2) {
+				Vector3d normalized = normal.normalized();
+				if (isValidNormal(normalized, getEPSILON() / 10)) {
+					lastValid = normalized;
+				}
+			}
+		}
+		if(lastValid!=null)
+			if (isValidNormal(lastValid, getEPSILON() / 10)) {
+				return lastValid;
+			}
+		return computeNormalCrossProduct(vertices);
+	}
+
+	public static Vector3d computeNormalCrossProduct(List<Vertex> v) {
+		boolean ccw = Extrude.isCCW(v);
+		List<Vertex> vertices = v;
+		if (ccw) {
+			vertices = new ArrayList<>(v);
+			Collections.reverse(vertices);
+		}
 		if (vertices == null || vertices.size() < 3) {
 			return new Vector3d(0, 0, 1);
 		}
@@ -172,13 +209,11 @@ public class Plane implements Serializable {
 			Vector3d cross = a.cross(b);
 			if (cross.dot(cross) > Plane.getEPSILON() * a.dot(a) * b.dot(b)) {
 				Vector3d normalized = cross.normalized();
-				if(!ccw)
-					normalized=normalized.negated();
+//				if(!ccw)
+//					normalized=normalized.negated();
 				return normalized;
 			}
 		}
-
-		// If all nearly colinear, fallback to full Newell’s or throw
 		throw new RuntimeException("Degenerate triangle – can't compute stable normal");
 	}
 
@@ -187,12 +222,14 @@ public class Plane implements Serializable {
 		try {
 			p = Plane.createFromPoints(vertex);
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			// ex.printStackTrace();
 		}
 		if (p != null) {
 			Vector3d normal = p.getNormal();
 			Vector3d normal2 = getNormal();
-			if (Math.abs(normal.minus(normal2).magnitude()) > Plane.getEPSILON()) {
+			if (	   Math.abs(normal.x) - Math.abs(normal2.x) > Plane.getEPSILON()*100
+					|| Math.abs(normal.y) - Math.abs(normal2.y) > Plane.getEPSILON()*100
+					|| Math.abs(normal.z) - Math.abs(normal2.z) > Plane.getEPSILON()*100) {
 				return false;
 			}
 		}
@@ -455,7 +492,7 @@ public class Plane implements Serializable {
 //												.movey(transform_in.getY())
 //												.movez(transform_in.getZ());
 		Vector3d newNormal = this.normal.transformed(trans_rot);
-		// newNormal = newNormal.negated();
+		newNormal = newNormal.negated();
 		this.setNormal(newNormal);
 		this.setDist(this.normal.dot(a));
 
