@@ -2008,6 +2008,11 @@ public class CSG implements IuserAPI, Serializable {
 				System.out.println("ERR polygon " + i + " pruned because of too few points");
 				continue;
 			}
+			try {
+				pl=Plane.createFromPoints(points);
+			}catch(Exception e) {
+				// if the normal can not be calculated, use the incoming one
+			}
 			Polygon p = new Polygon(points, polygon.getStorage(), true, pl);
 			newPoly.add(p);
 			polygon.getPoints().clear();
