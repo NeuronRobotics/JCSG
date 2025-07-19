@@ -1575,7 +1575,6 @@ public class CSG implements IuserAPI, Serializable {
 				if(p.areAllPointsCollinear())
 					continue;
 				try {
-					Plane.computeNormal(p.getVertices());
 					p.toStlString(sb);
 				} catch (Exception ex) {
 					ex.printStackTrace();
@@ -2103,7 +2102,7 @@ public class CSG implements IuserAPI, Serializable {
 
 //			try {
 				if (!p.areAllPointsCollinear()) {
-					List<Polygon> triangles = PolygonUtil.concaveToConvex(Extrude.toCCW(p));
+					List<Polygon> triangles = PolygonUtil.concaveToConvex(p);
 					for (Polygon poly : triangles) {
 						toAdd.add(poly);
 					}
