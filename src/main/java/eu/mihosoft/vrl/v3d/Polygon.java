@@ -188,11 +188,16 @@ public final class Polygon implements Serializable {
 		}
 
 		if (!getPlane().checkNormal(vertices)) {
-			new RuntimeException("Failed! the normal provided mismatched to calculated normal").printStackTrace();
-			;
+			ArrayList<Vertex> rev = new ArrayList<Vertex>(vertices);
+			Collections.reverse(rev);
+			p = Plane.createFromPoints(vertices);
+			Plane p2 = Plane.createFromPoints(rev);
+			if (!getPlane().checkNormal(rev))
+				new RuntimeException("Failed! the normal provided mismatched to calculated normal").printStackTrace();
+			vertices=rev;
 		}else {
 			if(p!=null) {
-				setPlane(p);
+				//setPlane(p);
 			}
 		}
 
@@ -251,7 +256,7 @@ public final class Polygon implements Serializable {
 		});
 		// TODO figure out why this isnt working
 		return new Polygon(newVertices, getStorage(), true, plane.clone()).setColor(getColor());
-		// return new Polygon(newVertices, getStorage(),true,null).setColor(getColor());
+//		return new Polygon(newVertices, getStorage(),true,null).setColor(getColor());
 	}
 
 	/**
@@ -262,7 +267,6 @@ public final class Polygon implements Serializable {
 	public Polygon flip() {
 
 		Collections.reverse(getVertices());
-
 		getPlane().flip();
 		if (!getPlane().checkNormal(vertices)) {
 			new RuntimeException("Failed! the normal provided mismatched to calculated normal").printStackTrace();
@@ -371,12 +375,12 @@ public final class Polygon implements Serializable {
 		});
 
 		Vector3d a = this.getVertices().get(0).pos;
-		try {
-			this.plane.setNormal(Plane.computeNormal(this.getVertices()));
-			this.plane.setDist(this.plane.getNormal().dot(a));
-		} catch (Exception ex) {
-			getPlane().transformPlane(transform, a);
-		}
+		
+		// Given how the relative locations of the points can change in a scale operations
+		// it is nessissary to reacalculated the normal on operation
+		this.plane.setNormal(Plane.computeNormal(this.getVertices()));
+		this.plane.setDist(this.plane.getNormal().dot(a));
+
 //        
 
 		if (transform.isMirror()) {
