@@ -181,8 +181,8 @@ public final class Polygon implements Serializable {
 				p = Plane.createFromPoints(vertices);
 			} catch (Exception ex) {
 				if (getPlane() == null)
-					throw ex;
-				ex.printStackTrace();
+					p = Plane.createFromPoints(vertices);
+//				ex.printStackTrace();
 			}
 			this.setPlane(p);
 		}
@@ -190,9 +190,9 @@ public final class Polygon implements Serializable {
 		if (!getPlane().checkNormal(vertices)) {
 			ArrayList<Vertex> rev = new ArrayList<Vertex>(vertices);
 			Collections.reverse(rev);
-//			if(p==null)
-//				p = Plane.createFromPoints(vertices);
-//			Plane p2 = Plane.createFromPoints(rev);
+			if(p==null)
+				p = Plane.createFromPoints(vertices);
+			Plane p2 = Plane.createFromPoints(rev);
 			if (!getPlane().checkNormal(rev))
 				new RuntimeException("Failed! the normal provided mismatched to calculated normal").printStackTrace();
 			else
@@ -471,11 +471,7 @@ public final class Polygon implements Serializable {
 	 */
 	private static Polygon fromPoints(List<Vector3d> points, PropertyStorage shared, Plane plane,
 			boolean allowDegenerate) {
-
-		Vector3d normal = (plane != null) ? plane.getNormal().clone() : new Vector3d(0, 0, 0);
-
 		List<Vertex> vertices = new ArrayList<>();
-
 		for (Vector3d p : points) {
 			Vector3d vec = p.clone();
 			Vertex vertex = new Vertex(vec);
@@ -593,7 +589,7 @@ public final class Polygon implements Serializable {
 	public List<Vector3d> getPoints() {
 		ArrayList<Vector3d> p = new ArrayList<>();
 		for (Vertex v : getVertices()) {
-			p.add(v.pos);
+			p.add(v.pos.clone());
 		}
 		return p;
 	}
