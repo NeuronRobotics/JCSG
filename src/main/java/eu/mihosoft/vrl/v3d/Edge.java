@@ -908,35 +908,36 @@ public class Edge {
 		return result;
 	}
 
-	/**
-	 * False boundary edge shared with other edge.
-	 *
-	 * @param fbe the fbe
-	 * @param e   the e
-	 * @return true, if successful
-	 */
 	public static boolean falseBoundaryEdgeSharedWithOtherEdge(Edge fbe, Edge e) {
+	    Vector3d p1 = fbe.getP1().pos;
+	    Vector3d p2 = fbe.getP2().pos;
+	    Vector3d q1 = e.getP1().pos;
+	    Vector3d q2 = e.getP2().pos;
 
-		// we don't consider edges with shared end-points since we are only
-		// interested in "false-boundary-edge"-cases
-		boolean sharedEndPointsp1 = e.getP1().pos.test(fbe.getP1().pos) || e.getP1().pos.test(fbe.getP2().pos);
-				
-		boolean sharedP2= e.getP2().pos.test(fbe.getP1().pos) || e.getP2().pos.test(fbe.getP2().pos);
+	    // 1. Skip edges sharing endpoints
+	    boolean sharedQ1 = q1.equals(p1) || q1.equals(p2);
+	    boolean sharedQ2 = q2.equals(p1) || q2.equals(p2);
+	    if (sharedQ1 && sharedQ2) return false;
 
-		boolean containsP2 = fbe.contains(e.getP2().pos);
-		boolean containsP1 = fbe.contains(e.getP1().pos);
+	    // 2. For each endpoint of e that lies “on” fbe segment, test if it's really colinear
+	    if (!sharedQ1 && fbe.contains(q1)) {
+	        if (distancePointToLine(q1, p1, p2) > Plane.EPSILON) return true;
+	    }
+	    if (!sharedQ2 && fbe.contains(q2)) {
+	        if (distancePointToLine(q2, p1, p2) > Plane.EPSILON) return true;
+	    }
 
-		if(containsP2||containsP1) {
-			//System.out.println("Edge Contains point!");
-		}
-		if ((!sharedP2) && containsP2) {
-			return true;
-		}
-		if ((!sharedEndPointsp1) && containsP1) {
-			return true;
-		}
-		return false;//fbe.contains(e.getP1().pos) || fbe.contains(e.getP2().pos);
+	    return false;
 	}
+
+	/** Distance from point r to the infinite line through a → b */
+	private static double distancePointToLine(Vector3d r, Vector3d a, Vector3d b) {
+		Vector3d ab = b.minus(a);
+		Vector3d ar = r.minus(a);
+		Vector3d cross = ab.cross(ar);
+	    return cross.length() / ab.length();
+	}
+
 
 	/**
 	 * Search plane groups.
