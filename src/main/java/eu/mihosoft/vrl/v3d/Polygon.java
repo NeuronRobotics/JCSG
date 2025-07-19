@@ -50,115 +50,115 @@ import javafx.scene.paint.Color;
  * polygon. This can be used to define per-polygon properties (such as surface
  * color).
  */
-public final class Polygon implements Serializable{
+public final class Polygon implements Serializable {
 
-    private static final long serialVersionUID = 2090322224114633535L;
+	private static final long serialVersionUID = 2090322224114633535L;
 	/** Polygon vertices. */
-    private ArrayList<Vertex> vertices;
-    /**
-     * Shared property (can be used for shared color etc.).
-     */
-    private PropertyStorage shared;
-    /**
-     * Plane defined by this polygon.
-     *
-     *  Note:  uses first three vertices to define the plane.
-     */
-    public  Plane plane=null;
-     private boolean isHole = false;
- 	private double r= CSG.getDefaultColor().getRed();
- 	private double g=CSG.getDefaultColor().getGreen();
- 	private double b= CSG.getDefaultColor().getBlue();
- 	private double o=CSG.getDefaultColor().getOpacity();
-    private boolean valid = true;
-	private boolean degenerate=false;
-    /**
-     * Sets the storage.
-     *
-     * @param storage the new storage
-     */
-    void setStorage(PropertyStorage storage) {
-        this.shared = storage;
-    }
+	private ArrayList<Vertex> vertices;
+	/**
+	 * Shared property (can be used for shared color etc.).
+	 */
+	private PropertyStorage shared;
+	/**
+	 * Plane defined by this polygon.
+	 *
+	 * Note: uses first three vertices to define the plane.
+	 */
+	public Plane plane = null;
+	private boolean isHole = false;
+	private double r = CSG.getDefaultColor().getRed();
+	private double g = CSG.getDefaultColor().getGreen();
+	private double b = CSG.getDefaultColor().getBlue();
+	private double o = CSG.getDefaultColor().getOpacity();
+	private boolean valid = true;
+	private boolean degenerate = false;
 
-    /**
-     * Decomposes the specified concave polygon into convex polygons.
-     *
-     * @param points the points that define the polygon
-     * @return the decomposed concave polygon (list of convex polygons)
-     */
-    public static List<Polygon> fromConcavePoints(Vector3d... points) {
-        Polygon p = fromPoints(points);
+	/**
+	 * Sets the storage.
+	 *
+	 * @param storage the new storage
+	 */
+	void setStorage(PropertyStorage storage) {
+		this.shared = storage;
+	}
 
-        return PolygonUtil.concaveToConvex(p);
-    }
-    
+	/**
+	 * Decomposes the specified concave polygon into convex polygons.
+	 *
+	 * @param points the points that define the polygon
+	 * @return the decomposed concave polygon (list of convex polygons)
+	 */
+	public static List<Polygon> fromConcavePoints(Vector3d... points) {
+		Polygon p = fromPoints(points);
 
-    /**
-     * Decomposes the specified concave polygon into convex polygons.
-     *
-     * @param points the points that define the polygon
-     * @return the decomposed concave polygon (list of convex polygons)
-     */
-    public static List<Polygon> fromConcavePoints(List<Vector3d> points) {
-        Polygon p = fromPoints(points);
+		return PolygonUtil.concaveToConvex(p);
+	}
 
-        return PolygonUtil.concaveToConvex(p);
-    }
+	/**
+	 * Decomposes the specified concave polygon into convex polygons.
+	 *
+	 * @param points the points that define the polygon
+	 * @return the decomposed concave polygon (list of convex polygons)
+	 */
+	public static List<Polygon> fromConcavePoints(List<Vector3d> points) {
+		Polygon p = fromPoints(points);
 
-    /**
-     * Constructor. Creates a new polygon that consists of the specified
-     * vertices.
-     *
-     *  Note:  the vertices used to initialize a polygon must be coplanar
-     * and form a convex loop.
-     *
-     * @param vertices polygon vertices
-     * @param shared shared property
-     */
-    public Polygon(List<Vertex> vertices, PropertyStorage shared, boolean allowDegenerate, Plane p) {
-        this.vertices = pruneDuplicatePoints(vertices);
-        this.shared = shared;
-	    if(p!=null)
-	    	setPlane(p.clone());
+		return PolygonUtil.concaveToConvex(p);
+	}
 
-        validateAndInit(allowDegenerate);
-    }
-    /**
-     * Constructor. Creates a new polygon that consists of the specified
-     * vertices.
-     *
-     *  Note:  the vertices used to initialize a polygon must be coplanar
-     * and form a convex loop.
-     *
-     * @param vertices polygon vertices
-     * @param shared shared property
-     */
-    public Polygon(List<Vertex> vertices, PropertyStorage shared) {
-        this(vertices,shared,true,null);
-    }
-    /**
-     * Constructor. Creates a new polygon that consists of the specified
-     * vertices.
-     *
-     *  Note:  the vertices used to initialize a polygon must be coplanar
-     * and form a convex loop.
-     *
-     * @param vertices polygon vertices
-     */
-    public Polygon(List<Vertex> vertices) {
-    	this(vertices,new PropertyStorage(),true,null);
-    }
-    public static ArrayList<Vertex> pruneDuplicatePoints(List<Vertex> incoming) {
-    	//return incoming;
+	/**
+	 * Constructor. Creates a new polygon that consists of the specified vertices.
+	 *
+	 * Note: the vertices used to initialize a polygon must be coplanar and form a
+	 * convex loop.
+	 *
+	 * @param vertices polygon vertices
+	 * @param shared   shared property
+	 */
+	public Polygon(List<Vertex> vertices, PropertyStorage shared, boolean allowDegenerate, Plane p) {
+		this.vertices = pruneDuplicatePoints(vertices);
+		this.shared = shared;
+		if (p != null)
+			setPlane(p.clone());
+
+		validateAndInit(allowDegenerate);
+	}
+
+	/**
+	 * Constructor. Creates a new polygon that consists of the specified vertices.
+	 *
+	 * Note: the vertices used to initialize a polygon must be coplanar and form a
+	 * convex loop.
+	 *
+	 * @param vertices polygon vertices
+	 * @param shared   shared property
+	 */
+	public Polygon(List<Vertex> vertices, PropertyStorage shared) {
+		this(vertices, shared, true, null);
+	}
+
+	/**
+	 * Constructor. Creates a new polygon that consists of the specified vertices.
+	 *
+	 * Note: the vertices used to initialize a polygon must be coplanar and form a
+	 * convex loop.
+	 *
+	 * @param vertices polygon vertices
+	 */
+	public Polygon(List<Vertex> vertices) {
+		this(vertices, new PropertyStorage(), true, null);
+	}
+
+	public static ArrayList<Vertex> pruneDuplicatePoints(List<Vertex> incoming) {
+		// return incoming;
 		ArrayList<Vertex> newPoints = new ArrayList<Vertex>();
 		for (int i = 0; i < incoming.size(); i++) {
 			Vertex v = incoming.get(i);
-			//v.pos.roundToEpsilon(Plane.getEPSILON());
+			// v.pos.roundToEpsilon(Plane.getEPSILON());
 			boolean duplicate = false;
 			for (Vertex vx : newPoints) {
-				if (vx.pos.test(v.pos,	Plane.getEPSILON())) {
-					//duplicate = true;
+				if (vx.pos.test(v.pos, Plane.getEPSILON())) {
+					// duplicate = true;
 				}
 			}
 			if (!duplicate) {
@@ -172,23 +172,29 @@ public final class Polygon implements Serializable{
 			return null;
 		}
 	}
-	private void validateAndInit( boolean allowDegenerate) {
-		vertices=pruneDuplicatePoints(vertices);
-		if(getPlane()==null) {
-			Plane p = null;
+
+	private void validateAndInit(boolean allowDegenerate) {
+		vertices = pruneDuplicatePoints(vertices);
+		Plane p = null;
+		if (getPlane() == null) {
 			try {
-				p=Plane.createFromPoints( vertices);
-			}catch(Exception ex) {
-				if(getPlane()==null)
+				p = Plane.createFromPoints(vertices);
+			} catch (Exception ex) {
+				if (getPlane() == null)
 					throw ex;
 				ex.printStackTrace();
 			}
 			this.setPlane(p);
 		}
 
-		if(!getPlane().checkNormal(vertices)) {
-			new RuntimeException("Failed! the normal provided mismatched to calculated normal").printStackTrace();;
-		}		
+		if (!getPlane().checkNormal(vertices)) {
+			new RuntimeException("Failed! the normal provided mismatched to calculated normal").printStackTrace();
+			;
+		}else {
+			if(p!=null) {
+				setPlane(p);
+			}
+		}
 
 		setDegenerate(true);
 		if (Vector3d.ZERO.equals(getPlane().getNormal())) {
@@ -213,111 +219,114 @@ public final class Polygon implements Serializable{
 			new RuntimeException("This polygon is colinear").printStackTrace();
 		}
 	}
+
 	public void rotatePoints() {
 		Vertex b = vertices.remove(0);
 		vertices.add(b);
 	}
-    /**
-     * Constructor. Creates a new polygon that consists of the specified
-     * vertices.
-     *
-     *  Note:  the vertices used to initialize a polygon must be coplanar
-     * and form a convex loop.
-     *
-     * @param vertices polygon vertices
-     *
-     */
-    public Polygon(Vertex... vertices) {
-        this(Arrays.asList(vertices));
-    }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#clone()
-     */
-    @Override
-    public Polygon clone() {
-        List<Vertex> newVertices = new ArrayList<>();
-        this.getVertices().forEach((vertex) -> {
-            newVertices.add(vertex.clone());
-        });
-        // TODO figure out why this isnt working
-        return new Polygon(newVertices, getStorage(),true,plane.clone()).setColor(getColor());
-        //return new Polygon(newVertices, getStorage(),true,null).setColor(getColor());
-    }
+	/**
+	 * Constructor. Creates a new polygon that consists of the specified vertices.
+	 *
+	 * Note: the vertices used to initialize a polygon must be coplanar and form a
+	 * convex loop.
+	 *
+	 * @param vertices polygon vertices
+	 *
+	 */
+	public Polygon(Vertex... vertices) {
+		this(Arrays.asList(vertices));
+	}
 
-    /**
-     * Flips this polygon.
-     *
-     * @return this polygon
-     */
-    public Polygon flip() {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#clone()
+	 */
+	@Override
+	public Polygon clone() {
+		List<Vertex> newVertices = new ArrayList<>();
+		this.getVertices().forEach((vertex) -> {
+			newVertices.add(vertex.clone());
+		});
+		// TODO figure out why this isnt working
+		return new Polygon(newVertices, getStorage(), true, plane.clone()).setColor(getColor());
+		// return new Polygon(newVertices, getStorage(),true,null).setColor(getColor());
+	}
 
-        Collections.reverse(getVertices());
+	/**
+	 * Flips this polygon.
+	 *
+	 * @return this polygon
+	 */
+	public Polygon flip() {
 
-        getPlane().flip();
-		if(!getPlane().checkNormal(vertices)) {
-			new RuntimeException("Failed! the normal provided mismatched to calculated normal").printStackTrace();;
-		}	
-        return this;
-    }
+		Collections.reverse(getVertices());
 
-    /**
-     * Returns a flipped copy of this polygon.
-     *
-     *  Note:  this polygon is not modified.
-     *
-     * @return a flipped copy of this polygon
-     */
-    public Polygon flipped() {
-        return clone().flip();
-    }
+		getPlane().flip();
+		if (!getPlane().checkNormal(vertices)) {
+			new RuntimeException("Failed! the normal provided mismatched to calculated normal").printStackTrace();
+			;
+		}
+		return this;
+	}
 
-    /**
-     * Returns this polygon in STL string format.
-     *
-     * @return this polygon in STL string format
-     */
-    public String toStlString() {
-        return toStlString(new StringBuilder()).toString();
-    }
+	/**
+	 * Returns a flipped copy of this polygon.
+	 *
+	 * Note: this polygon is not modified.
+	 *
+	 * @return a flipped copy of this polygon
+	 */
+	public Polygon flipped() {
+		return clone().flip();
+	}
 
-    /**
-     * Returns this polygon in STL string format.
-     *
-     * @param sb string builder
-     *
-     * @return the specified string builder
-     */
-    public StringBuilder toStlString(StringBuilder sb) {
+	/**
+	 * Returns this polygon in STL string format.
+	 *
+	 * @return this polygon in STL string format
+	 */
+	public String toStlString() {
+		return toStlString(new StringBuilder()).toString();
+	}
 
-        if (this.getVertices().size() == 3) {
+	/**
+	 * Returns this polygon in STL string format.
+	 *
+	 * @param sb string builder
+	 *
+	 * @return the specified string builder
+	 */
+	public StringBuilder toStlString(StringBuilder sb) {
 
-            // TODO: improve the triangulation?
-            //
-            // STL requires triangular polygons.
-            // If our polygon has more vertices, create
-            // multiple triangles:
+		if (this.getVertices().size() == 3) {
+
+			// TODO: improve the triangulation?
+			//
+			// STL requires triangular polygons.
+			// If our polygon has more vertices, create
+			// multiple triangles:
 			String firstVertexStl = this.getVertices().get(0).toStlString();
 
 			sb.append("  facet normal ").append(this.getPlane().getNormal().toStlString()).append("\n")
 					.append("    outer loop\n").append("      ").append(firstVertexStl).append("\n").append("      ");
-			this.getVertices().get( 1).toStlString(sb).append("\n").append("      ");
-			this.getVertices().get(2).toStlString(sb).append("\n")
-			.append("    endloop\n").append("  endfacet\n");
+			this.getVertices().get(1).toStlString(sb).append("\n").append("      ");
+			this.getVertices().get(2).toStlString(sb).append("\n").append("    endloop\n").append("  endfacet\n");
 
-        }else {
-        	throw new RuntimeException("Polygon must be a triangle before STL can be made "+getVertices().size());
-        }
+		} else {
+			throw new RuntimeException("Polygon must be a triangle before STL can be made " + getVertices().size());
+		}
 
-        return sb;
-    }
+		return sb;
+	}
 
-    /**
-     * Translates this polygon.
-     *
-     * @param v the vector that defines the translation
-     * @return this polygon
-     */
+	/**
+	 * Translates this polygon.
+	 *
+	 * @param v the vector that defines the translation
+	 * @return this polygon
+	 */
 //    public Polygon translate(Vector3d v) {
 //        getVertices().forEach((vertex) -> {
 //            vertex.pos = vertex.pos.plus(v);
@@ -345,40 +354,42 @@ public final class Polygon implements Serializable{
 //        return clone().translate(v);
 //    }
 
-    /**
-     * Applies the specified transformation to this polygon.
-     *
-     *  Note:  if the applied transformation performs a mirror operation
-     * the vertex order of this polygon is reversed.
-     *
-     * @param transform the transformation to apply
-     *
-     * @return this polygon
-     */
-    public Polygon transform(Transform transform) {
+	/**
+	 * Applies the specified transformation to this polygon.
+	 *
+	 * Note: if the applied transformation performs a mirror operation the vertex
+	 * order of this polygon is reversed.
+	 *
+	 * @param transform the transformation to apply
+	 *
+	 * @return this polygon
+	 */
+	public Polygon transform(Transform transform) {
 
-        this.getVertices().stream().forEach(
-                (v) -> {
-                    v.transform(transform);
-                }
-        );
+		this.getVertices().stream().forEach((v) -> {
+			v.transform(transform);
+		});
 
-        Vector3d a = this.getVertices().get(0).pos;
+		Vector3d a = this.getVertices().get(0).pos;
+		try {
+			this.plane.setNormal(Plane.computeNormal(this.getVertices()));
+			this.plane.setDist(this.plane.getNormal().dot(a));
+		} catch (Exception ex) {
+			getPlane().transformPlane(transform, a);
+		}
+//        
 
-//        this.plane.setNormal(Plane.computeNormal(this.getVertices()));
-//        this.plane.setDist(this.plane.getNormal().dot(a));
-        getPlane().transformPlane(transform, a);
+		if (transform.isMirror()) {
+			// the transformation includes mirroring. flip polygon
+			flip();
+		}
+		if (!getPlane().checkNormal(vertices)) {
+			new RuntimeException("Failed! the normal provided mismatched to calculated normal").printStackTrace();
+			;
+		}
+		return this;
+	}
 
-        if (transform.isMirror()) {
-            // the transformation includes mirroring. flip polygon
-            flip();
-
-        }
-		if(!getPlane().checkNormal(vertices)) {
-			new RuntimeException("Failed! the normal provided mismatched to calculated normal").printStackTrace();;
-		}	
-        return this;
-    }
 //    public Vector3d computeNormal(List<Vertex> vertices) {
 //        Vector3d normal = new Vector3d(0, 0, 0);
 //        int n = vertices.size();
@@ -394,201 +405,197 @@ public final class Polygon implements Serializable{
 //
 //        return normal.normalized();
 //    }
-    /**
-     * Returns a transformed copy of this polygon.
-     *
-     *  Note:  if the applied transformation performs a mirror operation
-     * the vertex order of this polygon is reversed.
-     *
-     *  Note:  this polygon is not modified
-     *
-     * @param transform the transformation to apply
-     * @return a transformed copy of this polygon
-     */
-    public Polygon transformed(Transform transform) {
-        return clone().transform(transform);
-    }
+	/**
+	 * Returns a transformed copy of this polygon.
+	 *
+	 * Note: if the applied transformation performs a mirror operation the vertex
+	 * order of this polygon is reversed.
+	 *
+	 * Note: this polygon is not modified
+	 *
+	 * @param transform the transformation to apply
+	 * @return a transformed copy of this polygon
+	 */
+	public Polygon transformed(Transform transform) {
+		return clone().transform(transform);
+	}
 
-    /**
-     * Creates a polygon from the specified point list.
-     *
-     * @param points the points that define the polygon
-     * @param shared shared property storage
-     * @return a polygon defined by the specified point list
-     */
-    public static Polygon fromPoints(List<Vector3d> points,
-            PropertyStorage shared) {
-        return fromPoints(points, shared, null,true);
-    }
+	/**
+	 * Creates a polygon from the specified point list.
+	 *
+	 * @param points the points that define the polygon
+	 * @param shared shared property storage
+	 * @return a polygon defined by the specified point list
+	 */
+	public static Polygon fromPoints(List<Vector3d> points, PropertyStorage shared) {
+		return fromPoints(points, shared, null, true);
+	}
 
-    /**
-     * Creates a polygon from the specified point list.
-     *
-     * @param points the points that define the polygon
-     * @return a polygon defined by the specified point list
-     */
-    public static Polygon fromPoints(List<Vector3d> points) {
-        return fromPoints(points, new PropertyStorage(), null,true);
-    }
+	/**
+	 * Creates a polygon from the specified point list.
+	 *
+	 * @param points the points that define the polygon
+	 * @return a polygon defined by the specified point list
+	 */
+	public static Polygon fromPoints(List<Vector3d> points) {
+		return fromPoints(points, new PropertyStorage(), null, true);
+	}
 
-    /**
-     * Creates a polygon from the specified points.
-     *
-     * @param points the points that define the polygon
-     * @return a polygon defined by the specified point list
-     */
-    public static Polygon fromPoints(Vector3d... points) {
-        return fromPoints(Arrays.asList(points), new PropertyStorage(), null,true);
-    }
+	/**
+	 * Creates a polygon from the specified points.
+	 *
+	 * @param points the points that define the polygon
+	 * @return a polygon defined by the specified point list
+	 */
+	public static Polygon fromPoints(Vector3d... points) {
+		return fromPoints(Arrays.asList(points), new PropertyStorage(), null, true);
+	}
+
 	public static Polygon fromPointsAllowDegenerate(List<Vector3d> vertices2) {
 		return fromPoints(vertices2, new PropertyStorage(), null, true);
 	}
-    /**
-     * Creates a polygon from the specified point list.
-     *
-     * @param points the points that define the polygon
-     * @param shared the shared
-     * @param plane may be null
-     * @return a polygon defined by the specified point list
-     */
-    private static Polygon fromPoints(
-            List<Vector3d> points, PropertyStorage shared, Plane plane, boolean allowDegenerate) {
 
-        Vector3d normal
-                = (plane != null) ? plane.getNormal().clone() : new Vector3d(0, 0, 0);
+	/**
+	 * Creates a polygon from the specified point list.
+	 *
+	 * @param points the points that define the polygon
+	 * @param shared the shared
+	 * @param plane  may be null
+	 * @return a polygon defined by the specified point list
+	 */
+	private static Polygon fromPoints(List<Vector3d> points, PropertyStorage shared, Plane plane,
+			boolean allowDegenerate) {
 
-        List<Vertex> vertices = new ArrayList<>();
+		Vector3d normal = (plane != null) ? plane.getNormal().clone() : new Vector3d(0, 0, 0);
 
-        for (Vector3d p : points) {
-            Vector3d vec = p.clone();
-            Vertex vertex = new Vertex(vec);
-            vertices.add(vertex);
-        }
+		List<Vertex> vertices = new ArrayList<>();
 
-        return new Polygon(vertices, shared,allowDegenerate,plane);
-    }
+		for (Vector3d p : points) {
+			Vector3d vec = p.clone();
+			Vertex vertex = new Vertex(vec);
+			vertices.add(vertex);
+		}
 
-    /**
-     * Returns the bounds of this polygon.
-     *
-     * @return bouds of this polygon
-     */
-    public Bounds getBounds() {
-        double minX = Double.POSITIVE_INFINITY;
-        double minY = Double.POSITIVE_INFINITY;
-        double minZ = Double.POSITIVE_INFINITY;
+		return new Polygon(vertices, shared, allowDegenerate, plane);
+	}
 
-        double maxX = Double.NEGATIVE_INFINITY;
-        double maxY = Double.NEGATIVE_INFINITY;
-        double maxZ = Double.NEGATIVE_INFINITY;
+	/**
+	 * Returns the bounds of this polygon.
+	 *
+	 * @return bouds of this polygon
+	 */
+	public Bounds getBounds() {
+		double minX = Double.POSITIVE_INFINITY;
+		double minY = Double.POSITIVE_INFINITY;
+		double minZ = Double.POSITIVE_INFINITY;
 
-        for (int i = 0; i < getVertices().size(); i++) {
+		double maxX = Double.NEGATIVE_INFINITY;
+		double maxY = Double.NEGATIVE_INFINITY;
+		double maxZ = Double.NEGATIVE_INFINITY;
 
-            Vertex vert = getVertices().get(i);
+		for (int i = 0; i < getVertices().size(); i++) {
 
-            if (vert.pos.x < minX) {
-                minX = vert.pos.x;
-            }
-            if (vert.pos.y < minY) {
-                minY = vert.pos.y;
-            }
-            if (vert.pos.z < minZ) {
-                minZ = vert.pos.z;
-            }
+			Vertex vert = getVertices().get(i);
 
-            if (vert.pos.x > maxX) {
-                maxX = vert.pos.x;
-            }
-            if (vert.pos.y > maxY) {
-                maxY = vert.pos.y;
-            }
-            if (vert.pos.z > maxZ) {
-                maxZ = vert.pos.z;
-            }
+			if (vert.pos.x < minX) {
+				minX = vert.pos.x;
+			}
+			if (vert.pos.y < minY) {
+				minY = vert.pos.y;
+			}
+			if (vert.pos.z < minZ) {
+				minZ = vert.pos.z;
+			}
 
-        } // end for vertices
+			if (vert.pos.x > maxX) {
+				maxX = vert.pos.x;
+			}
+			if (vert.pos.y > maxY) {
+				maxY = vert.pos.y;
+			}
+			if (vert.pos.z > maxZ) {
+				maxZ = vert.pos.z;
+			}
 
-        return new Bounds(
-                new Vector3d(minX, minY, minZ),
-                new Vector3d(maxX, maxY, maxZ));
-    }
+		} // end for vertices
 
-    /**
-     * Contains.
-     *
-     * @param p the p
-     * @return true, if successful
-     */
-    public boolean contains(Vector3d p) {
-        // taken from http://www.java-gaming.org/index.php?topic=26013.0
-        // and http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
-        double px = p.x;
-        double py = p.y;
-        boolean oddNodes = false;
-        double x2 = getVertices().get(getVertices().size() - 1).pos.x;
-        double y2 = getVertices().get(getVertices().size() - 1).pos.y;
-        double x1, y1;
-        for (int i = 0; i < getVertices().size(); x2 = x1, y2 = y1, ++i) {
-            x1 = getVertices().get(i).pos.x;
-            y1 = getVertices().get(i).pos.y;
-            if (((y1 < py) && (y2 >= py))
-                    || (y1 >= py) && (y2 < py)) {
-                if ((py - y1) / (y2 - y1)
-                        * (x2 - x1) < (px - x1)) {
-                    oddNodes = !oddNodes;
-                }
-            }
-        }
-        return oddNodes;
-    }
-    
-    /**
-     * Contains.
-     *
-     * @param p the p
-     * @return true, if successful
-     */
-    public boolean contains(Polygon p) {
-        
-        for (Vertex v : p.getVertices()) {
-            if (!contains(v.pos)) {
-                return false;
-            }
-        }
-        
-        return true;
-    }
+		return new Bounds(new Vector3d(minX, minY, minZ), new Vector3d(maxX, maxY, maxZ));
+	}
 
-    /**
- * Gets the storage.
- *
- * @return the shared
- */
-    public PropertyStorage getStorage() {
+	/**
+	 * Contains.
+	 *
+	 * @param p the p
+	 * @return true, if successful
+	 */
+	public boolean contains(Vector3d p) {
+		// taken from http://www.java-gaming.org/index.php?topic=26013.0
+		// and http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+		double px = p.x;
+		double py = p.y;
+		boolean oddNodes = false;
+		double x2 = getVertices().get(getVertices().size() - 1).pos.x;
+		double y2 = getVertices().get(getVertices().size() - 1).pos.y;
+		double x1, y1;
+		for (int i = 0; i < getVertices().size(); x2 = x1, y2 = y1, ++i) {
+			x1 = getVertices().get(i).pos.x;
+			y1 = getVertices().get(i).pos.y;
+			if (((y1 < py) && (y2 >= py)) || (y1 >= py) && (y2 < py)) {
+				if ((py - y1) / (y2 - y1) * (x2 - x1) < (px - x1)) {
+					oddNodes = !oddNodes;
+				}
+			}
+		}
+		return oddNodes;
+	}
 
-        if (shared == null) {
-            shared = new PropertyStorage();
-        }
+	/**
+	 * Contains.
+	 *
+	 * @param p the p
+	 * @return true, if successful
+	 */
+	public boolean contains(Polygon p) {
 
-        return shared;
-    }
+		for (Vertex v : p.getVertices()) {
+			if (!contains(v.pos)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Gets the storage.
+	 *
+	 * @return the shared
+	 */
+	public PropertyStorage getStorage() {
+
+		if (shared == null) {
+			shared = new PropertyStorage();
+		}
+
+		return shared;
+	}
 
 //	public Exception getCreationEventStackTrace() {
 //		return creationEventStackTrace;
 //	}
 
 	public List<Vector3d> getPoints() {
-		ArrayList<Vector3d> p =new ArrayList<>();
-		for(Vertex v:getVertices()) {
+		ArrayList<Vector3d> p = new ArrayList<>();
+		for (Vertex v : getVertices()) {
 			p.add(v.pos);
 		}
 		return p;
 	}
+
 	/**
 	 * Movey.
 	 *
-	 * @param howFarToMove
-	 *            the how far to move
+	 * @param howFarToMove the how far to move
 	 * @return the csg
 	 */
 	// Helper/wrapper functions for movement
@@ -599,8 +606,7 @@ public final class Polygon implements Serializable{
 	/**
 	 * Movez.
 	 *
-	 * @param howFarToMove
-	 *            the how far to move
+	 * @param howFarToMove the how far to move
 	 * @return the csg
 	 */
 	public Polygon movez(Number howFarToMove) {
@@ -610,8 +616,7 @@ public final class Polygon implements Serializable{
 	/**
 	 * Movex.
 	 *
-	 * @param howFarToMove
-	 *            the how far to move
+	 * @param howFarToMove the how far to move
 	 * @return the csg
 	 */
 	public Polygon movex(Number howFarToMove) {
@@ -621,8 +626,7 @@ public final class Polygon implements Serializable{
 	/**
 	 * Rotz.
 	 *
-	 * @param degreesToRotate
-	 *            the degrees to rotate
+	 * @param degreesToRotate the degrees to rotate
 	 * @return the csg
 	 */
 	// Rotation function, rotates the object
@@ -633,8 +637,7 @@ public final class Polygon implements Serializable{
 	/**
 	 * Roty.
 	 *
-	 * @param degreesToRotate
-	 *            the degrees to rotate
+	 * @param degreesToRotate the degrees to rotate
 	 * @return the csg
 	 */
 	public Polygon roty(Number degreesToRotate) {
@@ -644,8 +647,7 @@ public final class Polygon implements Serializable{
 	/**
 	 * Rotx.
 	 *
-	 * @param degreesToRotate
-	 *            the degrees to rotate
+	 * @param degreesToRotate the degrees to rotate
 	 * @return the csg
 	 */
 	public Polygon rotx(Number degreesToRotate) {
@@ -655,8 +657,7 @@ public final class Polygon implements Serializable{
 	/**
 	 * Scalez.
 	 *
-	 * @param scaleValue
-	 *            the scale value
+	 * @param scaleValue the scale value
 	 * @return the csg
 	 */
 	// Scale function, scales the object
@@ -667,8 +668,7 @@ public final class Polygon implements Serializable{
 	/**
 	 * Scaley.
 	 *
-	 * @param scaleValue
-	 *            the scale value
+	 * @param scaleValue the scale value
 	 * @return the csg
 	 */
 	public Polygon scaley(Number scaleValue) {
@@ -678,8 +678,7 @@ public final class Polygon implements Serializable{
 	/**
 	 * Scalex.
 	 *
-	 * @param scaleValue
-	 *            the scale value
+	 * @param scaleValue the scale value
 	 * @return the csg
 	 */
 	public Polygon scalex(Number scaleValue) {
@@ -689,98 +688,97 @@ public final class Polygon implements Serializable{
 	/**
 	 * Scale.
 	 *
-	 * @param scaleValue
-	 *            the scale value
+	 * @param scaleValue the scale value
 	 * @return the csg
 	 */
 	public Polygon scale(Number scaleValue) {
 		return this.transformed(new Transform().scale(scaleValue.doubleValue()));
 	}
 
-	 /**
-     * Indicates whether this polyon is valid, i.e., if it
-     *
-     * @return
-     */
-    public boolean isValid() {
-        return valid;
-    }
-
-
-
+	/**
+	 * Indicates whether this polyon is valid, i.e., if it
+	 *
+	 * @return
+	 */
+	public boolean isValid() {
+		return valid;
+	}
 
 	public void setDegenerate(boolean degenerate) {
 		this.degenerate = degenerate;
 	}
+
 	public boolean isDegenerate() {
-		
+
 		return degenerate;
 	}
-	
+
 	public ArrayList<Vertex> getDegeneratePoints() {
 		ArrayList<Vertex> back = new ArrayList<Vertex>();
-		if(!isDegenerate())
+		if (!isDegenerate())
 			return back;
 		Edge longEdge = getLongEdge();
-		for(int i=0;i<getVertices().size();i++) {
+		for (int i = 0; i < getVertices().size(); i++) {
 			Vertex vertex = getVertices().get(i);
-			if(vertex!= longEdge.getP1()&& vertex!=longEdge.getP2() ) {
+			if (vertex != longEdge.getP1() && vertex != longEdge.getP2()) {
 				back.add(vertex);
 			}
 		}
-		if(back.size()==0)
+		if (back.size() == 0)
 			throw new RuntimeException("Failed to find the degenerate point in the polygon");
 		return back;
 	}
 
 	public Edge getLongEdge() {
-		if(!isDegenerate())
+		if (!isDegenerate())
 			return null;
-		ArrayList<Edge> e =edges();
-		Edge longEdge =e.get(0);
-		for(int i=1;i<e.size();i++) {
+		ArrayList<Edge> e = edges();
+		Edge longEdge = e.get(0);
+		for (int i = 1; i < e.size(); i++) {
 			Edge edge = e.get(i);
-			if(edge.length()>longEdge.length()) {
-				longEdge=edge;
+			if (edge.length() > longEdge.length()) {
+				longEdge = edge;
 			}
 		}
 		return longEdge;
 	}
 
 	public ArrayList<Edge> edges() {
-		ArrayList<Edge> e=new  ArrayList<Edge>();
-		for(int i=0;i<getVertices().size();i++) {
+		ArrayList<Edge> e = new ArrayList<Edge>();
+		for (int i = 0; i < getVertices().size(); i++) {
 			int i1 = i;
-			int i2=i+1;
-			if(i2==getVertices().size()) {
-				i2=0;
+			int i2 = i + 1;
+			if (i2 == getVertices().size()) {
+				i2 = 0;
 			}
-			e.add(new Edge(getVertices().get(i1),getVertices().get(i2)));
+			e.add(new Edge(getVertices().get(i1), getVertices().get(i2)));
 		}
 		return e;
 	}
 
 	public Polygon setColor(Color color) {
-		if(color!=null) {
-			r=color.getRed();
-			g=color.getGreen();
-			b=color.getBlue();
-			o=color.getOpacity();
-		}else {
+		if (color != null) {
+			r = color.getRed();
+			g = color.getGreen();
+			b = color.getBlue();
+			o = color.getOpacity();
+		} else {
 			setColor(CSG.getDefaultColor());
 		}
 		return this;
 	}
+
 	public Color getColor() {
 		return new Color(r, g, b, o);
 	}
+
 	@Override
 	public String toString() {
-		String ret="# points="+getVertices().size()+" normal="+getPlane().getNormal().toStlString()+" [ ";
-		for(Vertex v:getVertices()) {
-			ret+=" "+v.pos.toStlString()+" , ";
+		String ret = "# points=" + getVertices().size() + " normal=" + getPlane().getNormal().toStlString() + " [ ";
+		for (Vertex v : getVertices()) {
+			ret += " " + v.pos.toStlString() + " , ";
 		}
-		return ret+" ] ";
+		return ret + " ] ";
 	}
 
 	public boolean isHole() {
@@ -797,13 +795,13 @@ public final class Polygon implements Serializable{
 	public List<Vertex> getVertices() {
 		return vertices;
 	}
-	
+
 	public Polygon add(int index, Vertex v) {
 //		for(Vertex vr:vertices)
 //			if(vr.pos.test(v.pos, Plane.getEPSILON()))
 //				return this;
-		vertices.add(index,v);
-		
+		vertices.add(index, v);
+
 		return this;
 	}
 
@@ -850,13 +848,13 @@ public final class Polygon implements Serializable{
 	}
 
 	public void setPlane(Plane plane) {
-		if(plane==null)
+		if (plane == null)
 			throw new RuntimeException("Plane can not be null!");
 		this.plane = plane;
 	}
 
 	public int size() {
-		
+
 		return getVertices().size();
 	}
 }
