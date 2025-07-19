@@ -499,7 +499,7 @@ public class PolygonUtil {
 	 */
 	private static Transform calculateQuaternionTransform(Polygon concave) {
 		// Normalize inputs
-		Vector3d u = concave.getPlane().getNormal().clone().normalized();
+		Vector3d u = concave.getPlane().getNormal();
 		Vector3d v = new Vector3d(0, 0, 1);
 
 		double dot = u.dot(v);
