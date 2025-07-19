@@ -190,11 +190,13 @@ public final class Polygon implements Serializable {
 		if (!getPlane().checkNormal(vertices)) {
 			ArrayList<Vertex> rev = new ArrayList<Vertex>(vertices);
 			Collections.reverse(rev);
-			p = Plane.createFromPoints(vertices);
-			Plane p2 = Plane.createFromPoints(rev);
+//			if(p==null)
+//				p = Plane.createFromPoints(vertices);
+//			Plane p2 = Plane.createFromPoints(rev);
 			if (!getPlane().checkNormal(rev))
 				new RuntimeException("Failed! the normal provided mismatched to calculated normal").printStackTrace();
-			vertices=rev;
+			else
+				vertices=rev;
 		}else {
 			if(p!=null) {
 				//setPlane(p);
