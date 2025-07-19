@@ -815,11 +815,8 @@ public class Extrude {
 			List<Vertex> result = new ArrayList<>(points);
 			Collections.reverse(result);
 			Plane p = concave.getPlane().clone();
-			p.flip();
-			Polygon polygon = new Polygon(result, concave.getStorage(), true, null);
-			if(Math.abs( p.getNormal().minus(polygon.plane.getNormal()).magnitude()) > Plane.getEPSILON()) {
-				throw new RuntimeException("Failed! the normal of flip is not the same as calculated");
-			}
+//			p.flip();
+			Polygon polygon = new Polygon(result, concave.getStorage(), true, p);
 			return polygon;
 		}
 		return concave;
