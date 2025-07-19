@@ -165,9 +165,13 @@ public class PolygonUtil {
 		ArrayList<Polygon> back = new ArrayList<>();
 		if (modifiable.size() > 3) {
 			back.add(new Polygon(modifiable, concave1.getStorage(), false, concave1.getPlane()));
+		}else {
+			System.out.println("Pruned "+modifiable.size());
 		}
 		if (toRemove.size() > 3) {
 			back.add(new Polygon(toRemove, concave1.getStorage(), false, concave1.getPlane()));
+		}else {
+			System.out.println("Pruned "+toRemove.size());
 		}
 		return back;
 
@@ -551,9 +555,6 @@ public class PolygonUtil {
 			Transform orientation = calculateQuaternionTransform(incoming);
 			tmp = incoming.transformed(orientation);
 			orientationInv = orientation.inverse();
-//			// Verification (optional - can be removed in production)
-//			Polygon transformed = concave.transformed(orientationInv);
-//			checkForValidPolyOrentation(normal, transformed);
 		}
 
 		boolean cw = !Extrude.isCCW(tmp);
@@ -569,7 +570,7 @@ public class PolygonUtil {
 				if (end == 3) {
 					result.add(repaired);
 				} else if (end == 4) {
-					fourPointSpecialCase(concave, cw, result, zplane, normal, debug, orientationInv, reorient,
+					fourPointSpecialCase(repaired, cw, result, zplane, normal, debug, orientationInv, reorient,
 							incoming.getColor());
 				} else
 					makeTrianglesInternal(repaired, cw, result, zplane, normal, debug, orientationInv, reorient,
@@ -671,22 +672,29 @@ public class PolygonUtil {
 				if (magnitude > ep) {
 
 					Plane normal2 = concave.plane;
-					Vector3d normal3 = normal2.getNormal();
-					Polygon one = new Polygon(new ArrayList<Vertex>(
-							Arrays.asList(new Vertex(p1), new Vertex(p2), new Vertex(p3))),
-							concave.getStorage(), true, normal2);
+					ArrayList<Vertex> vertices = new ArrayList<Vertex>(
+							Arrays.asList(new Vertex(p1), new Vertex(p2), new Vertex(p3)));
+					Polygon one = new Polygon(vertices,concave.getStorage(), true, normal2);
 					points.remove(p2);
-					if (points.size() == 2)
-						points.clear();
+
 					if (reorent) {
 						one = one.transform(orentationInv);
 					}
 					one.setColor(color);
 					result.add(one);
+					if (points.size() == 2) {
+						points.clear();
+						return;
+					}
+					break;
 				} else {
 					if (points.size() == 3)
 						return;// skip a colinear final segment
 				}
+			}
+			if(size == points.size()) {
+				if(result.size()==0)
+					throw new RuntimeException("Error! All remaining points are colinear!");
 			}
 		}
 
