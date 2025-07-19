@@ -149,15 +149,15 @@ public final class Node {
 			polygon.flip();
 		});
 
-		if (this.getPlane() == null && !polygons.isEmpty()) {
-			this.setPlane(polygons.get(0).getPlane().clone());
-		} else if (this.getPlane() == null && polygons.isEmpty()) {
-
-			// com.neuronrobotics.sdk.common.Log.error("Please fix me! I don't know what to
-			// do?");
-			throw new RuntimeException("Please fix me! Plane = " + plane + " and polygons are empty");
-			// return;
-		}
+//		if (this.getPlane() == null && !polygons.isEmpty()) {
+//			this.setPlane(polygons.get(0).getPlane().clone());
+//		} else if (this.getPlane() == null && polygons.isEmpty()) {
+//
+//			// com.neuronrobotics.sdk.common.Log.error("Please fix me! I don't know what to
+//			// do?");
+//			throw new RuntimeException("Please fix me! Plane = " + plane + " and polygons are empty");
+//			// return;
+//		}
 
 		this.getPlane().flip();
 
@@ -266,8 +266,6 @@ public final class Node {
 			return;
 		Polygon fpoly = new Polygon(f, polygon.getStorage(), true, new Plane(polygon.getPlane().getNormal(), f))
 				.setColor(polygon.getColor());
-		// test triangulation of new polygon before adding
-		PolygonUtil.concaveToConvex(fpoly);
 		if (!test)
 			l.add(fpoly);			
 	}
@@ -828,11 +826,10 @@ public final class Node {
 						// other is slightly behind. when summed, they make a point that is exactly on
 						// the plane
 						// therefor the intersection point is halfway between i and j
-						double t = 0.5;
-						if (dotMinus != 0)
-							t = (d / dotMinus);
-						else
+						double t = (d / dotMinus);
+						if(!Double.isFinite(t)) {
 							continue;
+						}
 						// Scale difference vector by tOld
 						double sx = dx * t;
 						double sy = dy * t;
