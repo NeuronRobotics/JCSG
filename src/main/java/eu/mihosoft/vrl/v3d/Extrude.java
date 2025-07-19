@@ -81,15 +81,17 @@ public class Extrude {
 
 			return monotoneExtrude(dir, polygon1);
 		}
+
 		private CSG monotoneExtrude(Vector3d dir, Polygon polygon1) {
 			ArrayList<Polygon> newPolygons = new ArrayList<>();
 			CSG extrude;
-	        Polygon top=polygon1.flipped();
+			Polygon top = polygon1.flipped();
 			newPolygons.addAll(PolygonUtil.concaveToConvex(top));
 			Polygon polygon2 = polygon1.transformed(new Transform().move(dir));
 
 			int numvertices = polygon1.getVertices().size();
-			//com.neuronrobotics.sdk.common.Log.error("Building Polygon "+polygon1.getPoints().size());
+			// com.neuronrobotics.sdk.common.Log.error("Building Polygon
+			// "+polygon1.getPoints().size());
 			for (int i = 0; i < numvertices; i++) {
 
 				int nexti = (i + 1) % numvertices;
@@ -99,21 +101,22 @@ public class Extrude {
 				Vector3d bottomV2 = polygon1.getVertices().get(nexti).pos;
 				Vector3d topV2 = polygon2.getVertices().get(nexti).pos;
 				double distance = bottomV1.minus(bottomV2).magnitude();
-				if(Math.abs(distance)<0.001) {
-					//com.neuronrobotics.sdk.common.Log.error("Skipping invalid polygon "+i+" to "+nexti);
+				if (Math.abs(distance) < 0.001) {
+					// com.neuronrobotics.sdk.common.Log.error("Skipping invalid polygon "+i+" to
+					// "+nexti);
 					continue;
 				}
 				try {
 					newPolygons.add(Polygon.fromPoints(Arrays.asList(bottomV2, topV2, topV1), polygon1.getStorage()));
-					newPolygons.add(Polygon.fromPoints(Arrays.asList(bottomV2, topV1, bottomV1), polygon1.getStorage()));
-				}catch(Exception ex) {
-					//com.neuronrobotics.sdk.common.Log.error("Polygon has problems: ");
+					newPolygons
+							.add(Polygon.fromPoints(Arrays.asList(bottomV2, topV1, bottomV1), polygon1.getStorage()));
+				} catch (Exception ex) {
+					// com.neuronrobotics.sdk.common.Log.error("Polygon has problems: ");
 					ex.printStackTrace();
 				}
 			}
 
 			ArrayList<Polygon> topPolygons = PolygonUtil.concaveToConvex(polygon2);
-
 			newPolygons.addAll(topPolygons);
 			extrude = CSG.fromPolygons(newPolygons);
 
@@ -254,6 +257,7 @@ public class Extrude {
 
 		return result;
 	}
+
 	/**
 	 * Checks if is ccw.
 	 *
@@ -261,8 +265,9 @@ public class Extrude {
 	 * @return true, if is ccw
 	 */
 	public static boolean isCCW(Polygon polygon) {
-		return isCCWv3d( polygon.getPoints());
+		return isCCWv3d(polygon.getPoints());
 	}
+
 	/**
 	 * Checks if is ccw.
 	 *
@@ -271,10 +276,11 @@ public class Extrude {
 	 */
 	public static boolean isCCW(List<Vertex> vertices) {
 		List<Vector3d> points = new ArrayList<Vector3d>();
-		for(Vertex v:vertices)
+		for (Vertex v : vertices)
 			points.add(v.pos);
 		return isCCWv3d(points);
 	}
+
 	/**
 	 * Checks if is ccw.
 	 *
@@ -293,9 +299,9 @@ public class Extrude {
 		Vector3d highestLeftVertex = vertices.get(0);
 		double zSet = highestLeftVertex.z;
 		for (int i = 0; i < vertices.size(); i++) {
-			
+
 			Vector3d v = vertices.get(i);
-			if(Math.abs(zSet-v.z)>Plane.getEPSILON()) {
+			if (Math.abs(zSet - v.z) > Plane.getEPSILON()) {
 				throw new RuntimeException("isCCW can only be performed on the X Y plane");
 			}
 			if (v.y > highestLeftVertex.y) {
@@ -482,7 +488,7 @@ public class Extrude {
 		Vector3d pointBStart = pathB.eval(0);
 		double x = pointAStart.x, y = pointAStart.y, z = pointBStart.y;
 		double lastx = x, lasty = y, lastz = z;
-		// double  min = (double ) 0.0001;
+		// double min = (double ) 0.0001;
 		int startIndex = 0;
 		if (controlA != null) {
 			startIndex = 1;
@@ -492,7 +498,8 @@ public class Extrude {
 			double rise = zdiff;
 			double run = Math.sqrt((ydiff * ydiff) + (xdiff * xdiff));
 			double rotz = 90 - Math.toDegrees(Math.atan2(xdiff, ydiff));
-			// //com.neuronrobotics.sdk.common.Log.error("Rot z = "+rotz+" x="+xdiff+" y="+ydiff);
+			// //com.neuronrobotics.sdk.common.Log.error("Rot z = "+rotz+" x="+xdiff+"
+			// y="+ydiff);
 			double roty = Math.toDegrees(Math.atan2(rise, run));
 			Transform t = new Transform();
 			t.translateX(x);
@@ -511,7 +518,7 @@ public class Extrude {
 		double rotz;
 		double roty;
 		for (int i = startIndex; i < iterations - 1; i++) {
-			double  pathFunction = (double ) (((double ) i) / ((double ) (iterations - 1)));
+			double pathFunction = (double) (((double) i) / ((double) (iterations - 1)));
 
 			Vector3d pointA = pathA.eval(pathFunction);
 			Vector3d pointB = pathB.eval(pathFunction);
@@ -525,8 +532,8 @@ public class Extrude {
 			t.translateY(y);
 			t.translateZ(z);
 
-			Vector3d pointAEst = pathA.eval((double ) (pathFunction + d));
-			Vector3d pointBEst = pathB.eval((double ) (pathFunction + d));
+			Vector3d pointAEst = pathA.eval((double) (pathFunction + d));
+			Vector3d pointBEst = pathB.eval((double) (pathFunction + d));
 			double xest = pointAEst.x;
 			double yest = pointAEst.y;
 			double zest = pointBEst.y;
@@ -538,13 +545,15 @@ public class Extrude {
 			rise = zdiff;
 			run = Math.sqrt((ydiff * ydiff) + (xdiff * xdiff));
 			rotz = 90 - Math.toDegrees(Math.atan2(xdiff, ydiff));
-			// //com.neuronrobotics.sdk.common.Log.error("Rot z = "+rotz+" x="+xdiff+" y="+ydiff);
+			// //com.neuronrobotics.sdk.common.Log.error("Rot z = "+rotz+" x="+xdiff+"
+			// y="+ydiff);
 			roty = Math.toDegrees(Math.atan2(rise, run));
 
 			t.rotZ(-rotz);
 			t.rotY(roty);
 			// if(i==0)
-			// //com.neuronrobotics.sdk.common.Log.error( " Tr = "+x+" "+y+" "+z+" path = "+pathFunction);
+			// //com.neuronrobotics.sdk.common.Log.error( " Tr = "+x+" "+y+" "+z+" path =
+			// "+pathFunction);
 			// println "z = "+rotz+" y = "+roty
 			p.add(t);
 			lastx = x;
@@ -552,8 +561,8 @@ public class Extrude {
 			lastz = z;
 		}
 
-		Vector3d pointA = pathA.eval((double ) 1);
-		Vector3d pointB = pathB.eval((double ) 1);
+		Vector3d pointA = pathA.eval((double) 1);
+		Vector3d pointB = pathB.eval((double) 1);
 
 		x = pointA.x;
 		y = pointA.y;
@@ -597,13 +606,18 @@ public class Extrude {
 		path2.parsePathString(b);
 		// newParts.remove(parts.size()-1)
 		// newParts.remove(0)
-		// //com.neuronrobotics.sdk.common.Log.error("Parsing "+startString+" \nand\n"+b);
+		// //com.neuronrobotics.sdk.common.Log.error("Parsing "+startString+"
+		// \nand\n"+b);
 		return bezierToTransforms(path, path2, iterations, controlA, controlB);
 	}
+
 	public static CSG sweep(Polygon p, Transform increment, Transform offset, int steps) {
-		return sweep(p,increment,offset,steps, (u,d)->{return new Transform();});
+		return sweep(p, increment, offset, steps, (u, d) -> {
+			return new Transform();
+		});
 	}
-	public static CSG sweep(Polygon p, Transform increment, Transform offset, int steps,ITransformProvider provider) {
+
+	public static CSG sweep(Polygon p, Transform increment, Transform offset, int steps, ITransformProvider provider) {
 		Polygon offsetP = p.transformed(offset);
 		ArrayList<Polygon> newPolygons = new ArrayList<>();
 		newPolygons.addAll(PolygonUtil.concaveToConvex(offsetP));
@@ -611,7 +625,7 @@ public class Extrude {
 		Polygon prev = offsetP.transformed(provider.get(0, steps));
 		for (int i = 0; i < steps; i++) {
 			running.apply(increment);
-			double unit = ((double)i)/((double)steps);
+			double unit = ((double) i) / ((double) steps);
 			Polygon step = offsetP.transformed(provider.get(unit, steps)).transformed(running);
 			List<Polygon> parts = monotoneExtrude(prev, step);
 			prev = step;
@@ -627,6 +641,7 @@ public class Extrude {
 	public static CSG sweep(Polygon p, double angle, double z, double radius, int steps) {
 		return sweep(p, new Transform().rotX(angle).movex(z), new Transform().movey(radius), steps);
 	}
+
 	public static List<Polygon> monotoneExtrude(Polygon polygon2, Polygon polygon1) {
 		List<Polygon> newPolygons = new ArrayList<>();
 
@@ -641,18 +656,29 @@ public class Extrude {
 			Vector3d bottomV2 = polygon1.getVertices().get(nexti).pos;
 			Vector3d topV2 = polygon2.getVertices().get(nexti).pos;
 			double distance = bottomV1.minus(bottomV2).magnitude();
-			if (Math.abs(distance) < Plane.getEPSILON()) {
-				continue;
+			double z1Dist = topV1.minus(bottomV1).magnitude();
+			if (Math.abs(distance) > Plane.getEPSILON() && Math.abs(z1Dist) > Plane.getEPSILON()) {
+				List<Vector3d> asList = Arrays.asList(bottomV2.clone(), topV1.clone(), bottomV1.clone());
+				try {
+					newPolygons.add(Polygon.fromPoints(asList, polygon1.getStorage()));
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
 			}
-			try {
-				newPolygons.add(Polygon.fromPoints(Arrays.asList(bottomV2, topV2, topV1), polygon1.getStorage()));
-				newPolygons.add(Polygon.fromPoints(Arrays.asList(bottomV2, topV1, bottomV1), polygon1.getStorage()));
-			} catch (Exception ex) {
-				ex.printStackTrace();
+			double distance2 = topV2.minus(topV1).magnitude();
+			double z1Dist2 = topV2.minus(bottomV2).magnitude();
+			if (Math.abs(distance2) > Plane.getEPSILON() && Math.abs(z1Dist2) > Plane.getEPSILON()) {
+				List<Vector3d> asList2 = Arrays.asList(bottomV2.clone(), topV2.clone(), topV1.clone());
+				try {
+					newPolygons.add(Polygon.fromPoints(asList2, polygon1.getStorage()));
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
 			}
 		}
 		return newPolygons;
 	}
+
 	public static ArrayList<CSG> revolve(CSG slice, double radius, int numSlices) {
 		return revolve(slice, radius, 360.0, null, numSlices);
 	}
@@ -799,7 +825,7 @@ public class Extrude {
 	}
 
 	public static ArrayList<CSG> moveBezier(CSG slice, BezierPath pathA, int numSlices) {
-		Vector3d pointA = pathA.eval((double ) 1.0);
+		Vector3d pointA = pathA.eval((double) 1.0);
 		String zpath = "C 0,0 " + pointA.x + "," + pointA.y + " " + pointA.x + "," + pointA.y;
 		BezierPath pathB = new BezierPath();
 		pathB.parsePathString(zpath);
