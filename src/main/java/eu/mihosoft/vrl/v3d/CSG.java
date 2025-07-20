@@ -2107,7 +2107,7 @@ public class CSG implements IuserAPI, Serializable {
 
 //			try {
 				if (!p.areAllPointsCollinear()) {
-					List<Polygon> triangles = PolygonUtil.concaveToConvex(p);
+					List<Polygon> triangles = PolygonUtil.triangulatePolygon(p);
 					for (Polygon poly : triangles) {
 						toAdd.add(poly);
 					}
