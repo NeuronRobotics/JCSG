@@ -154,17 +154,7 @@ public final class Polygon implements Serializable {
 		ArrayList<Vertex> newPoints = new ArrayList<Vertex>();
 		for (int i = 0; i < incoming.size(); i++) {
 			Vertex v = incoming.get(i);
-			// v.pos.roundToEpsilon(Plane.getEPSILON());
-			boolean duplicate = false;
-			for (Vertex vx : newPoints) {
-				if (vx.pos.test(v.pos, Plane.getEPSILON())) {
-					// duplicate = true;
-				}
-			}
-			if (!duplicate) {
-				newPoints.add(v);
-			}
-
+			newPoints.add(v.clone());
 		}
 		try {
 			return newPoints;
@@ -380,19 +370,16 @@ public final class Polygon implements Serializable {
 		
 		// Given how the relative locations of the points can change in a scale operations
 		// it is nessissary to reacalculated the normal on operation
-		this.plane.setNormal(Plane.computeNormal(this.getVertices()));
-		this.plane.setDist(this.plane.getNormal().dot(a));
-
+		this.plane=Plane.createFromPoints(vertices);
 //        
-
 		if (transform.isMirror()) {
 			// the transformation includes mirroring. flip polygon
 			flip();
 		}
-		if (!getPlane().checkNormal(vertices)) {
-			new RuntimeException("Failed! the normal provided mismatched to calculated normal").printStackTrace();
-			;
-		}
+//		if (!getPlane().checkNormal(vertices)) {
+//			new RuntimeException("Failed! the normal provided mismatched to calculated normal").printStackTrace();
+//			;
+//		}
 		return this;
 	}
 
