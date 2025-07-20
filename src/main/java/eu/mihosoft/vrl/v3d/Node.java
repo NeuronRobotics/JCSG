@@ -732,9 +732,16 @@ public final class Node {
 			double negEpsilon = -Plane.getEPSILON();
 			double posEpsilon = Plane.getEPSILON();
 			int size = polygon.getVertices().size();
+			Vector3d normal = polygon.getPlane().getNormal();
 			for (int i = 0; i < size; i++) {
-				double t = polygon.getPlane().getNormal().dot(polygon.getVertices().get(i).pos)
-						- polygon.getPlane().getDist();
+				double dist = polygon.getPlane().getDist();
+				Vector3d pos = polygon.getVertices().get(i).pos;
+				double dot = normal.dot(pos);
+				double t = dot
+						- dist;
+				if(Math.abs(t)>0.01) {
+					throw new RuntimeException("A plane epsilon of "+t+" is impossible");
+				}
 				if (t > posEpsilon) {
 					// com.neuronrobotics.sdk.common.Log.error("Non flat polygon, increasing
 					// positive epsilon "+t);
@@ -769,7 +776,7 @@ public final class Node {
 			// Put the polygon in the correct list, splitting it when necessary.
 			switch (polygonType) {
 			case COPLANAR:
-				(plane.getNormal().dot(polygon.getPlane().getNormal()) > 0 ? coplanarFront : coplanarBack).add(polygon);
+				(plane.getNormal().dot(normal) > 0 ? coplanarFront : coplanarBack).add(polygon);
 				break;
 			case FRONT:
 				front.add(polygon);
