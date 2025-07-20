@@ -36,12 +36,7 @@ package eu.mihosoft.vrl.v3d;
 import java.io.Serializable;
 // # class Plane
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-
-import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
 
 /**
  * Represents a plane in 3D space.
@@ -145,38 +140,28 @@ public class Plane implements Serializable {
 	public static Vector3d computeNormal(List<Vertex> vertices, Vector3d testNorm) {
 
 		if (vertices == null || vertices.size() < 3) {
-			return new Vector3d(0, 0, 1); // Default normal for degenerate cases
+			throw new RuntimeException("Can not find normal without at least 3 points "+vertices);
 		}
-
 		// First attempt: Newell's method
 		Vector3d normal = new Vector3d(0, 0, 0);
 		int n = vertices.size();
-		Vector3d lastValid = null;
 		for (int i = 0; i < n; i++) {
-			Vector3d current = vertices.get(i).pos;
-			Vector3d next = vertices.get((i + 1) % n).pos;
-
-			// Correct Newell's Method formulas
-			normal.x += (current.y - next.y) * (current.z + next.z); // (y1-y2)(z1+z2)
-			normal.y += (current.z - next.z) * (current.x + next.x); // (z1-z2)(x1+x2)
-			normal.z += (current.x - next.x) * (current.y + next.y);
-			if (i==(n-2)) {
-				Vector3d normalized = normal.normalized();
-				if (isValidNormal(normal, getEPSILON() / 10)) {
-					lastValid = normalized;
-				}
-			}
+		    Vector3d current = vertices.get(i).pos;
+		    Vector3d next = vertices.get((i + 1) % n).pos;
+		    
+		    double d = (current.y - next.y) * (current.z + next.z);
+		    double e = (current.z - next.z) * (current.x + next.x);
+		    double e2 = (current.x - next.x) * (current.y + next.y);
+			normal.x += d;
+			normal.y += e;
+			normal.z += e2;
 		}
-		if (lastValid == null)
-			lastValid = computeNormalCrossProduct(vertices);
-		if (isValidNormal(lastValid, getEPSILON() / 10)) {
-//			if (testNorm != null)
-//				if ((lastValid.x) - (testNorm.x) > Plane.getEPSILON() * 100
-//						|| (lastValid.y) - (testNorm.y) > Plane.getEPSILON() * 100
-//						|| (lastValid.z) - (testNorm.z) > Plane.getEPSILON() * 100) {
-//					lastValid = lastValid.negated();
-//				}
-			return lastValid;
+		if (isValidNormal(normal, getEPSILON() / 10)) {
+			return normal.normalized();
+		}
+		normal = computeNormalCrossProduct(vertices);
+		if (isValidNormal(normal, getEPSILON() / 10)) {
+			return normal.normalized();
 		}
 		throw new RuntimeException("Failed to compute the normal!");
 	}
@@ -188,14 +173,13 @@ public class Plane implements Serializable {
 
 		// 1. Build all edge vectors
 		List<Vector3d> edges = new ArrayList<>();
-		for (int i = 0; i < n; i++) {
-			for (int j = i + 1; j < n; j++) {
-				Vector3d e = verts.get(j).pos.minus(verts.get(i).pos);
-				if (e.dot(e) > Plane.getEPSILON()) {
-					edges.add(e);
-				}
-			}
+
+		for (int j = 0; j < n; j++) {
+			Vector3d e = verts.get((j+1)%n).pos.minus(verts.get(j).pos);
+			edges.add(e);
+			
 		}
+		
 
 		// 2. Find pair with smallest |dot| / (|e1||e2|)
 		double bestScore = Double.POSITIVE_INFINITY;
@@ -211,7 +195,6 @@ public class Plane implements Serializable {
 					bestScore = score;
 					bestE1 = e1;
 					bestE2 = e2;
-					bestScore = score;
 				}
 			}
 		}
@@ -226,12 +209,8 @@ public class Plane implements Serializable {
 		// 4. Compute normal
 		Vector3d normal = bestE1.cross(bestE2).normalized();
 		if (normal.length() < Plane.getEPSILON()) {
-			// fallback unavoidably degenerate
-			Vector3d v0 = verts.get(0).pos;
-			normal = verts.get(1).pos.minus(v0).cross(verts.get(2).pos.minus(v0)).normalized();
+			throw new RuntimeException("Fail! Normal can not be computed");
 		}
-
-		// fallback: orient according to (v0,v1,v2)
 		Vector3d v0 = verts.get(0).pos;
 		Vector3d std = verts.get(1).pos.minus(v0).cross(verts.get(2).pos.minus(v0)).normalized();
 		if (normal.dot(std) < 0) {
@@ -245,7 +224,7 @@ public class Plane implements Serializable {
 		try {
 			p = Plane.createFromPoints(vertex, getNormal());
 		} catch (Exception ex) {
-			// ex.printStackTrace();
+			 //ex.printStackTrace();
 		}
 		if (p != null) {
 			Vector3d normal = p.getNormal();
@@ -513,6 +492,10 @@ public class Plane implements Serializable {
 
 	public static void setEPSILON(double ePSILON) {
 		EPSILON = ePSILON;
+	}
+	@Override
+	public String toString() {
+		return "Normal"+normal+" distance "+dist;
 	}
 
 }
