@@ -345,7 +345,7 @@ public class PolygonUtil {
 	private static int orientation(double[] p, double[] q, double[] r) {
 		double val = (q[1] - p[1]) * (r[0] - q[0]) - (q[0] - p[0]) * (r[1] - q[1]);
 
-		if (Math.abs(val) < 1e-10)
+		if (Math.abs(val) < Plane.getEPSILON())
 			return 0; // collinear
 		return (val > 0) ? 1 : 2; // clockwise or counterclockwise
 	}
@@ -425,7 +425,7 @@ public class PolygonUtil {
 		double denominatorTerm = normal.dot(lineDirection);
 
 		// If the line is parallel to the plane, no intersection
-		if (Math.abs(denominatorTerm) < 1e-10) {
+		if (Math.abs(denominatorTerm) < Plane.getEPSILON()) {
 			return false;
 		}
 
@@ -493,8 +493,8 @@ public class PolygonUtil {
 	 * @param incoming the concave
 	 * @return the list
 	 */
-	public static ArrayList<Polygon> concaveToConvex(Polygon incoming) {
-		return concaveToConvex(incoming, true);
+	public static ArrayList<Polygon> triangulatePolygon(Polygon incoming) {
+		return triangulatePolygon(incoming, true);
 	}
 
 	/**
@@ -537,7 +537,7 @@ public class PolygonUtil {
 	 * @param incoming the concave
 	 * @return the list
 	 */
-	public static ArrayList<Polygon> concaveToConvex(Polygon incoming, boolean toCCW) {
+	public static ArrayList<Polygon> triangulatePolygon(Polygon incoming, boolean toCCW) {
 		ArrayList<Polygon> result = new ArrayList<>();
 
 		if (incoming == null)
