@@ -520,13 +520,14 @@ public class PolygonUtil {
 		Vector3d u2 = u.transformed(transform1);
 		double aboutY = Math.toDegrees(Math.atan2(u2.x, u2.z));
 		Transform transform = new Transform().rotY(aboutY).apply(transform1);
-//		Vector3d u3= u.transformed(transform).normalized();
-//		
-//		Polygon test = concave.transformed(transform);
-//		if (1 - Math.abs(test.plane.getNormal().z) > 0.1) {
-//			System.out.println("Error with " + test);
-//			throw new RuntimeException("Failed to reorent the polygon for processing!");
-//		}
+		Vector3d u3= u.transformed(transform).normalized();
+		
+		Polygon test = concave.transformed(transform);
+		if (1 - Math.abs(test.plane.getNormal().z) > Plane.getEPSILON()) {
+			System.out.println("Error with " + test);
+			Plane p=Plane.createFromPoints(test.getVertices());
+			throw new RuntimeException("Failed to reorent the polygon for processing!");
+		}
 		return transform;
 	}
 
