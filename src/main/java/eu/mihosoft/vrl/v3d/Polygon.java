@@ -91,7 +91,7 @@ public final class Polygon implements Serializable {
 	public static List<Polygon> fromConcavePoints(Vector3d... points) {
 		Polygon p = fromPoints(points);
 
-		return PolygonUtil.concaveToConvex(p);
+		return PolygonUtil.triangulatePolygon(p);
 	}
 
 	/**
@@ -103,7 +103,7 @@ public final class Polygon implements Serializable {
 	public static List<Polygon> fromConcavePoints(List<Vector3d> points) {
 		Polygon p = fromPoints(points);
 
-		return PolygonUtil.concaveToConvex(p);
+		return PolygonUtil.triangulatePolygon(p);
 	}
 
 	/**

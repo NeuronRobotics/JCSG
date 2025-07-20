@@ -901,7 +901,7 @@ public class Edge {
 			if (!holesOfPresult.isPresent()) {
 				result.add(p);
 			} else {
-				result.addAll(PolygonUtil.concaveToConvex(p));
+				result.addAll(PolygonUtil.triangulatePolygon(p));
 			}
 		}
 

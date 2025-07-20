@@ -86,7 +86,7 @@ public class Extrude {
 			ArrayList<Polygon> newPolygons = new ArrayList<>();
 			CSG extrude;
 			Polygon top = polygon1.flipped();
-			newPolygons.addAll(PolygonUtil.concaveToConvex(top));
+			newPolygons.addAll(PolygonUtil.triangulatePolygon(top));
 			Polygon polygon2 = polygon1.transformed(new Transform().move(dir));
 
 			int numvertices = polygon1.getVertices().size();
@@ -116,7 +116,7 @@ public class Extrude {
 				}
 			}
 
-			ArrayList<Polygon> topPolygons = PolygonUtil.concaveToConvex(polygon2);
+			ArrayList<Polygon> topPolygons = PolygonUtil.triangulatePolygon(polygon2);
 			newPolygons.addAll(topPolygons);
 			extrude = CSG.fromPolygons(newPolygons);
 
@@ -150,7 +150,7 @@ public class Extrude {
 
 		ArrayList<Polygon> newPolygons = new ArrayList<>();
 		CSG extrude;
-		newPolygons.addAll(PolygonUtil.concaveToConvex(polygon1.flipped()));
+		newPolygons.addAll(PolygonUtil.triangulatePolygon(polygon1.flipped()));
 		if (polygon1.getVertices().size() != polygon2.getVertices().size()) {
 			throw new RuntimeException("These polygons do not match");
 		}
@@ -172,7 +172,7 @@ public class Extrude {
 		}
 
 		polygon2 = polygon2.flipped();
-		List<Polygon> topPolygons = PolygonUtil.concaveToConvex(polygon2.flipped());
+		List<Polygon> topPolygons = PolygonUtil.triangulatePolygon(polygon2.flipped());
 
 		newPolygons.addAll(topPolygons);
 		extrude = CSG.fromPolygons(newPolygons);
@@ -621,7 +621,7 @@ public class Extrude {
 	public static CSG sweep(Polygon p, Transform increment, Transform offset, int steps, ITransformProvider provider) {
 		Polygon offsetP = p.transformed(offset);
 		ArrayList<Polygon> newPolygons = new ArrayList<>();
-		newPolygons.addAll(PolygonUtil.concaveToConvex(offsetP));
+		newPolygons.addAll(PolygonUtil.triangulatePolygon(offsetP));
 		Transform running = new Transform();
 		Polygon prev = offsetP.transformed(provider.get(0, steps));
 		for (int i = 0; i < steps; i++) {
@@ -633,7 +633,7 @@ public class Extrude {
 			newPolygons.addAll(parts);
 		}
 		Polygon polygon2 = prev.clone();
-		List<Polygon> topPolygons = PolygonUtil.concaveToConvex(polygon2.flipped());
+		List<Polygon> topPolygons = PolygonUtil.triangulatePolygon(polygon2.flipped());
 		newPolygons.addAll(topPolygons);
 
 		return CSG.fromPolygons(newPolygons);
