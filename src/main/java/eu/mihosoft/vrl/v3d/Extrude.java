@@ -301,7 +301,8 @@ public class Extrude {
 		for (int i = 0; i < vertices.size(); i++) {
 
 			Vector3d v = vertices.get(i);
-			if (Math.abs(zSet - v.z) > Plane.getEPSILON()) {
+			double abs = Math.abs(zSet - v.z);
+			if (abs > Plane.getEPSILON()) {
 				throw new RuntimeException("isCCW can only be performed on the X Y plane");
 			}
 			if (v.y > highestLeftVertex.y) {
