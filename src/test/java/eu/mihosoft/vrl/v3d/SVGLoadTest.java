@@ -19,26 +19,26 @@ public class SVGLoadTest {
 	//Alexes_Bad.svg
 	@Test
 	public void Alexes_Bad() throws IOException {
-//		JavaFXInitializer.go();
-//		File svg = new File("Alexes_Bad.svg");
-//		if (!svg.exists())
-//			throw new RuntimeException("Test file missing!" + svg.getAbsolutePath());
-//		SVGLoad s = new SVGLoad(svg.toURI());
-//		ArrayList<CSG>p =run(s);
-//		ArrayList<CSG> parts = new ArrayList<CSG>();
-//		parts.addAll(p);
-//		for(CSG c:p) {
-//			parts.add(c.rotx(180).rotz(5).toZMin().difference(c).movez(30).setColor(Color.YELLOW));
-//		}
-//		if(parts.size()==0)
-//			throw new RuntimeException("Failed to load");
-//		try {
-//			ThumbnailImage.setCullFaceValue(CullFace.NONE);
-//			ThumbnailImage.writeImage(parts,new File(svg.getAbsolutePath()+".png")).join();
-//		} catch (InterruptedException e) {
-//			// Auto-generated catch block
-//			e.printStackTrace();
-//		}
+		JavaFXInitializer.go();
+		File svg = new File("Alexes_Bad.svg");
+		if (!svg.exists())
+			throw new RuntimeException("Test file missing!" + svg.getAbsolutePath());
+		SVGLoad s = new SVGLoad(svg.toURI());
+		ArrayList<CSG>p =run(s);
+		ArrayList<CSG> parts = new ArrayList<CSG>();
+		parts.addAll(p);
+		for(CSG c:p) {
+			parts.add(c.rotx(180).rotz(5).toZMin().difference(c).movez(30).setColor(Color.YELLOW));
+		}
+		if(parts.size()==0)
+			throw new RuntimeException("Failed to load");
+		try {
+			ThumbnailImage.setCullFaceValue(CullFace.NONE);
+			ThumbnailImage.writeImage(parts,new File(svg.getAbsolutePath()+".png")).join();
+		} catch (InterruptedException e) {
+			// Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	@Test
 	public void box() throws IOException {
