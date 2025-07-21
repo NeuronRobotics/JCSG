@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -44,6 +45,9 @@ public class SVGLoadTest {
 			// Auto-generated catch block
 			e.printStackTrace();
 		}
+		for(int i=0;i<parts.size();i++)
+			FileUtil.write(Paths.get(i+"-alex.stl"),
+					parts.get(i).toStlString());
 	}
 	@Test
 	public void box() throws IOException {
@@ -60,6 +64,9 @@ public class SVGLoadTest {
 			// Auto-generated catch block
 			e.printStackTrace();
 		}
+		for(int i=0;i<parts.size();i++)
+			FileUtil.write(Paths.get(i+"-box.stl"),
+					parts.get(i).toStlString());
 	}
 	@Test
 	public void inside() throws IOException {
@@ -76,6 +83,9 @@ public class SVGLoadTest {
 			// Auto-generated catch block
 			e.printStackTrace();
 		}
+		for(int i=0;i<parts.size();i++)
+			FileUtil.write(Paths.get(i+"-InsideOutsideTest.stl"),
+					parts.get(i).toStlString());
 	}
 	@Test
 	public void adversarial() throws IOException {
@@ -120,7 +130,7 @@ public class SVGLoadTest {
 		double depth = 5 + (layers.size() * 5);
 		for (int i = 0; i < layers.size(); i++) {
 			String layerName = layers.get(i);
-			HashMap<String, ArrayList<CSG>> extrudeLayerToCSG = s.extrudeLayers(depth,0.1, layerName);
+			HashMap<String, ArrayList<CSG>> extrudeLayerToCSG = s.extrudeLayers(depth, layerName);
 			// extrudeLayerToCSG.setColor(Color.web(SVGExporter.colorNames.get(i)));
 			for(String key:extrudeLayerToCSG.keySet()) {
 				//System.out.println("Adding layer: "+key);
