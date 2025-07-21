@@ -18,7 +18,7 @@ public class BezierPath {
 	BezierListProducer path;
 
 	private ArrayList<Vector3d> plInternal = new ArrayList<Vector3d>();
-	double resolution = 0.2;
+	private static double resolution = 0.2;
 
 	/** Creates a new instance of Animate */
 	public BezierPath() {
@@ -108,51 +108,51 @@ public class BezierPath {
 				break;
 			case 'Q':
 				path.curvetoQuadraticAbs(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens), nextFloat(tokens));
-				for (double i = resolution; i < 1; i += resolution) {
+				for (double i = getResolution(); i < 1; i += getResolution()) {
 					addingPoint(i);
 				}
 				break;
 			case 'q':
 				path.curvetoQuadraticAbs(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens), nextFloat(tokens));
-				for (double i = resolution; i < 1; i += resolution) {
+				for (double i = getResolution(); i < 1; i += getResolution()) {
 					addingPoint(i);
 				}
 				break;
 			case 'T':
 				path.curvetoQuadraticSmoothAbs(nextFloat(tokens), nextFloat(tokens));
-				for (double i = resolution; i < 1; i += resolution) {
+				for (double i = getResolution(); i < 1; i += getResolution()) {
 					addingPoint(i);
 				}
 				break;
 			case 't':
 				path.curvetoQuadraticSmoothRel(nextFloat(tokens), nextFloat(tokens));
-				for (double i = resolution; i < 1; i += resolution) {
+				for (double i = getResolution(); i < 1; i += getResolution()) {
 					addingPoint(i);
 				}
 				break;
 			case 'C':
 				path.curvetoCubicAbs(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens), nextFloat(tokens),
 						nextFloat(tokens), nextFloat(tokens));
-				for (double i = resolution; i < 1; i += resolution) {
+				for (double i = getResolution(); i < 1; i += getResolution()) {
 					addingPoint(i);
 				}
 				break;
 			case 'c':
 				path.curvetoCubicRel(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens), nextFloat(tokens),
 						nextFloat(tokens), nextFloat(tokens));
-				for (double i = resolution; i < 1; i += resolution) {
+				for (double i = getResolution(); i < 1; i += getResolution()) {
 					addingPoint(i);
 				}
 				break;
 			case 'S':
 				path.curvetoCubicSmoothAbs(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens), nextFloat(tokens));
-				for (double i = resolution; i < 1; i += resolution) {
+				for (double i = getResolution(); i < 1; i += getResolution()) {
 					addingPoint(i);
 				}
 				break;
 			case 's':
 				path.curvetoCubicSmoothRel(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens), nextFloat(tokens));
-				for (double i = resolution; i < 1; i += resolution) {
+				for (double i = getResolution(); i < 1; i += getResolution()) {
 					addingPoint(i);
 				}
 				break;
@@ -233,6 +233,14 @@ public class BezierPath {
 	public ArrayList<Vector3d> evaluate() {
 
 		return plInternal;
+	}
+
+	public static double getResolution() {
+		return resolution;
+	}
+
+	public static void setResolution(double r) {
+		resolution = r;
 	}
 
 }
