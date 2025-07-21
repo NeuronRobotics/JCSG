@@ -45,6 +45,7 @@ import com.aparapi.device.OpenCLDevice;
 import com.aparapi.internal.kernel.KernelManager;
 
 import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
+import javafx.scene.paint.Color;
 
 //  Auto-generated Javadoc
 /**
@@ -149,15 +150,15 @@ public final class Node {
 			polygon.flip();
 		});
 
-//		if (this.getPlane() == null && !polygons.isEmpty()) {
-//			this.setPlane(polygons.get(0).getPlane().clone());
-//		} else if (this.getPlane() == null && polygons.isEmpty()) {
-//
-//			// com.neuronrobotics.sdk.common.Log.error("Please fix me! I don't know what to
-//			// do?");
-//			throw new RuntimeException("Please fix me! Plane = " + plane + " and polygons are empty");
-//			// return;
-//		}
+		if (this.getPlane() == null && !polygons.isEmpty()) {
+			this.setPlane(polygons.get(0).getPlane().clone());
+		} else if (this.getPlane() == null && polygons.isEmpty()) {
+
+			// com.neuronrobotics.sdk.common.Log.error("Please fix me! I don't know what to
+			// do?");
+			throw new RuntimeException("Please fix me! Plane = " + plane + " and polygons are empty");
+			// return;
+		}
 
 		this.getPlane().flip();
 
@@ -199,7 +200,7 @@ public final class Node {
 		if (this.back != null) {
 			backP = this.back.clipPolygons(backP);
 		} else {
-			backP.clear();
+			backP=new ArrayList<Polygon>(0);
 		}
 		frontP.addAll(backP);
 		return frontP;
@@ -265,7 +266,7 @@ public final class Node {
 		if (f.size() < 3)
 			return;
 		try {
-			Polygon fpoly = new Polygon(f, polygon.getStorage(), true, Plane.createFromPoints(f))
+			Polygon fpoly = new Polygon(f, polygon.getStorage(), true, polygon.getPlane())
 					.setColor(polygon.getColor());
 			if (!test)
 				l.add(fpoly);	
@@ -759,24 +760,14 @@ public final class Node {
 			}
 			int polygonType = 0;
 			List<Integer> types = new ArrayList<>();
-			boolean somePointsInfront = false;
-			boolean somePointsInBack = false;
+
 			for (int i = 0; i < size; i++) {
 				double t = plane.getNormal().dot(polygon.getVertices().get(i).pos) - plane.getDist();
 				int type = (t < negEpsilon) ? BACK : (t > posEpsilon) ? FRONT : COPLANAR;
-				if (type == BACK)
-					somePointsInBack = true;
-				if (type == FRONT)
-					somePointsInfront = true;
+				// this bitwise or means that if some points are coplainar and some front, its front
+				polygonType |= type;
 				types.add(type);
 			}
-			if (somePointsInBack && somePointsInfront)
-				polygonType = SPANNING;
-			else if (somePointsInBack) {
-				polygonType = BACK;
-			} else if (somePointsInfront)
-				polygonType = FRONT;
-
 			// Put the polygon in the correct list, splitting it when necessary.
 			switch (polygonType) {
 			case COPLANAR:
@@ -838,7 +829,7 @@ public final class Node {
 						// the plane
 						// therefor the intersection point is halfway between i and j
 						double t = (d / dotMinus);
-						if (!Double.isFinite(t) || t < -Plane.EPSILON || t > 1.0 + Plane.EPSILON) {
+						if (!Double.isFinite(t) || t < 0 || t > 1.0) {
 						    continue;
 						}
 
@@ -860,6 +851,16 @@ public final class Node {
 				add(back, b, polygon);
 				break;
 			}
+		}
+		if(Debug3dProvider.isProviderAvailible()) {
+//			Debug3dProvider.clearScreen();
+//			Debug3dProvider.addObject(polygons.get(0).getVertices().get(0));
+//			Debug3dProvider.addObject(front.stream().map(polygon -> polygon.setColor(Color.RED)).collect(Collectors.toList()));
+//			List<Polygon> collect = back.stream().map(polygon -> polygon.setColor(Color.WHITE)).collect(Collectors.toList());
+//			Debug3dProvider.addObject(collect);
+//			Debug3dProvider.addObject(coplanarBack.stream().map(polygon -> polygon.setColor(Color.YELLOW)).collect(Collectors.toList()));
+//			Debug3dProvider.addObject(coplanarFront.stream().map(polygon -> polygon.setColor(Color.GREEN)).collect(Collectors.toList()));
+//			Debug3dProvider.clearScreen();
 		}
 	}
 
@@ -946,8 +947,8 @@ public final class Node {
 		}
 		// this.polygons.add(polygons.get(0));
 
-		ArrayList<Polygon> frontP = new ArrayList<>(polygons.size());
-		ArrayList<Polygon> backP = new ArrayList<>(polygons.size());
+		ArrayList<Polygon> frontP = new ArrayList<>();
+		ArrayList<Polygon> backP = new ArrayList<>();
 
 		// parellel version does not work here
 
