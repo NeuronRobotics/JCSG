@@ -893,17 +893,35 @@ public class CSG implements IuserAPI, Serializable {
 				throw new RuntimeException(e);
 			}
 		}
-		CSG result = this;
+		CSG solid = this.isHole()?null:this;
+		CSG hole = this.isHole()?this:null;
 
 		for (int i = 0; i < csgs.size(); i++) {
 			CSG csg = csgs.get(i);
-			result = result.union(csg);
-			if (Thread.interrupted())
-				break;
-			progressMoniter.progressUpdate(i, csgs.size(), "Union", result);
+			if (!csg.isHole()) {
+				if(solid!=null)
+					solid = solid.union(csg);
+				else 
+					solid=csg;
+				if (Thread.interrupted())
+					break;
+				getProgressMoniter().progressUpdate(i, csgs.size(), "Union solid", solid);
+			}else {
+				if(hole!=null)
+					hole = hole.union(csg);
+				else
+					hole=csg;
+				hole.setIsHole(true);
+				if (Thread.interrupted())
+					break;
+				getProgressMoniter().progressUpdate(i, csgs.size(), "Union hole", hole);
+			}
 		}
-
-		return result;
+		if(solid!=null && hole==null)
+			return solid;
+		if(solid==null&& hole!=null)
+			return hole;
+		return solid.difference(hole);
 	}
 
 	/**
@@ -1320,17 +1338,37 @@ public class CSG implements IuserAPI, Serializable {
 	 */
 	private CSG _differenceCSGBoundsOpt(CSG csg) {
 		CSG a1 = this._differenceNoOpt(csg.getBounds().toCSG());
+//		if(Debug3dProvider.isProviderAvailible()) {
+//			Debug3dProvider.clearScreen();
+//			Debug3dProvider.addObject(a1);
+//		}
 		CSG a2 = this.intersect(csg.getBounds().toCSG());
-
+//		if(Debug3dProvider.isProviderAvailible()) {
+//			Debug3dProvider.clearScreen();
+//			Debug3dProvider.addObject(a2);
+//		}
 		CSG result = null;
-		if (a2.getPolygons().size() > 0)
-			result = a2._differenceNoOpt(csg)._unionIntersectOpt(a1).optimization(getOptType());
-		else
+		if (a2.getPolygons().size() > 0) {
+			CSG _differenceNoOpt = a2._differenceNoOpt(csg);
+//			if(Debug3dProvider.isProviderAvailible()) {
+//				Debug3dProvider.clearScreen();
+//				Debug3dProvider.addObject(_differenceNoOpt);
+//			}
+			CSG _unionIntersectOpt = _differenceNoOpt._unionIntersectOpt(a1);
+//			if(Debug3dProvider.isProviderAvailible()) {
+//				Debug3dProvider.clearScreen();
+//				Debug3dProvider.addObject(_unionIntersectOpt);
+//			}
+			result = _unionIntersectOpt.optimization(getOptType());
+		} else
 			result = a1;
 		if (getName().length() != 0 && csg.getName().length() != 0) {
 			result.setName(name);
 		}
 		result.setColor(getColor());
+		if(Debug3dProvider.isProviderAvailible()) {
+			Debug3dProvider.clearScreen();
+		}
 		return result;
 	}
 
@@ -1376,7 +1414,6 @@ public class CSG implements IuserAPI, Serializable {
 		try {
 			Node a = new Node(this.clone().getPolygons());
 			Node b = new Node(csg.clone().getPolygons());
-
 			a.invert();
 			a.clipTo(b);
 			b.clipTo(a);
@@ -1572,13 +1609,13 @@ public class CSG implements IuserAPI, Serializable {
 		try {
 			sb.append("solid v3d.csg\n");
 			for (Polygon p : getPolygons()) {
-				if(p.areAllPointsCollinear())
+				if (p.areAllPointsCollinear())
 					continue;
 				try {
 					p.toStlString(sb);
 				} catch (Exception ex) {
 					ex.printStackTrace();
-					System.out.println("Prune Polygon on export "+p);
+					System.out.println("Prune Polygon on export " + p);
 				}
 			}
 			sb.append("endsolid v3d.csg\n");
@@ -2000,7 +2037,7 @@ public class CSG implements IuserAPI, Serializable {
 					System.out.println("ERR polygon " + i + " already has a point " + pointIndex);
 					continue;
 				}
-				 pointIndexSet.add(pointIndex);
+				pointIndexSet.add(pointIndex);
 				Vector3d thispoint = orderedPoints[pointIndex];
 				points.add(new Vertex(thispoint));
 			}
@@ -2009,11 +2046,11 @@ public class CSG implements IuserAPI, Serializable {
 				continue;
 			}
 			try {
-				pl=Plane.createFromPoints(points);
+				pl = Plane.createFromPoints(points);
 				Polygon p = new Polygon(points, polygon.getStorage(), true, pl);
 				newPoly.add(p);
 				polygon.getPoints().clear();
-			}catch(Exception e) {
+			} catch (Exception e) {
 				// if the normal can not be calculated, use the incoming one
 				e.printStackTrace();
 			}
@@ -2108,22 +2145,22 @@ public class CSG implements IuserAPI, Serializable {
 		} else {
 
 //			try {
-				if (!p.areAllPointsCollinear()) {
-					List<Polygon> triangles;
-					try {
-						triangles = PolygonUtil.triangulatePolygon(p);
-						for (Polygon poly : triangles) {
-							toAdd.add(poly);
-						}
-					} catch (ColinearPointsException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+			if (!p.areAllPointsCollinear()) {
+				List<Polygon> triangles;
+				try {
+					triangles = PolygonUtil.triangulatePolygon(p);
+					for (Polygon poly : triangles) {
+						toAdd.add(poly);
 					}
-
-				} else {
-					System.err.println("Polygon is colinear, removing " + p);
-					return;
+				} catch (ColinearPointsException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
+
+			} else {
+				System.err.println("Polygon is colinear, removing " + p);
+				return;
+			}
 //			} catch (Throwable ex) {
 ////				System.err.println("Failed to triangulate "+p);
 //				ex.printStackTrace();
@@ -2269,13 +2306,13 @@ public class CSG implements IuserAPI, Serializable {
 		}
 
 		ArrayList<Polygon> newpolygons = this.getPolygons().stream().map(p -> {
-			if(p.areAllPointsCollinear())
+			if (p.areAllPointsCollinear())
 				return null;
 			try {
 				return p.transformed(transform);
 			} catch (Exception e) {
 				// e.printStackTrace();
-				System.err.println("Removing Polygon during transform "+p);
+				System.err.println("Removing Polygon during transform " + p);
 				return null;
 			}
 		}).filter(Objects::nonNull).collect(Collectors.toCollection(ArrayList::new));
