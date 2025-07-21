@@ -56,8 +56,8 @@ public class Plane implements Serializable {
 	 * 0.00000001;
 	 */
 
-	public static double EPSILON = 1.0e-7;
-	public static double EPSILON_Point = getEPSILON();
+	private static double EPSILON = 1.0e-6;
+	private static double EPSILON_Point = getEPSILON();
 	// public static double EPSILON_duplicate = 1.0e-4;
 	/**
 	 * XY plane.
@@ -104,7 +104,17 @@ public class Plane implements Serializable {
 		this.setNormal(normal.normalized());
 		this.setDist(normal.dot(vertices.get(0).pos));
 	}
-
+	/**
+	 * Constructor. Creates a new plane defined by its normal vector and the
+	 * distance to the origin.
+	 *
+	 * @param normal plane normal
+	 * @param dist   distance from origin
+	 */
+	public Plane(Vector3d normal, Vector3d vertice) {
+		this.setNormal(normal.normalized());
+		this.setDist(normal.dot(vertice));
+	}
 	/**
 	 * Creates a plane defined by the the specified points.
 	 * 
@@ -493,12 +503,20 @@ public class Plane implements Serializable {
 		return EPSILON;
 	}
 
-	public static void setEPSILON(double ePSILON) {
+	public static void setEpsilon(double ePSILON) {
 		EPSILON = ePSILON;
 	}
 	@Override
 	public String toString() {
 		return "Normal"+normal+" distance "+dist;
+	}
+
+	public static double getEPSILON_Point() {
+		return EPSILON_Point;
+	}
+
+	public static void setEPSILON_Point(double ePSILON_Point) {
+		EPSILON_Point = ePSILON_Point;
 	}
 
 }
