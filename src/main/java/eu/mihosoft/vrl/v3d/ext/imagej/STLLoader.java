@@ -34,47 +34,12 @@ import eu.mihosoft.vrl.v3d.Vertex;
  */
 public class STLLoader {
 
-//        /**
-//         * Load the specified stl file and returns the result as a hash map, mapping
-//         * the object names to the corresponding <code>CustomMesh</code> objects.
-//         */
-//        public static Map<String, CustomMesh> load(String stlfile)
-//                        throws IOException {
-//                STLLoader sl = new STLLoader();
-//                try {
-//                        sl.parse(stlfile);
-//                } catch (RuntimeException e) {
-//                        ////System.out.println("error reading " + sl.name);
-//                        throw e;
-//                }
-//                return sl.meshes;
-//        }
-//
 	/**
 	 * Instantiates a new STL loader.
 	 */
-//        private HashMap<String, CustomMesh> meshes;
 	public STLLoader() {
 	}
 
-	/** The line. */
-	String line;
-
-	/** The in. */
-	BufferedReader in;
-
-	/** The vertices. */
-	// attributes of the currently read mesh
-	private ArrayList<Polygon> polygons = new ArrayList<>();
-	/** The normal. */
-	//private Vector3d normal = new Vector3d(0.0f, 0.0f, 0.0f); // to be used for file checking
-
-	/** The fis. */
-	private FileInputStream fis;
-
-	/** The triangles. */
-	private int triangles;
-//    private DecimalFormat decimalFormat = new DecimalFormat("0.0E0");
 
 
 	/**
@@ -112,11 +77,11 @@ public class STLLoader {
 		byte[] buffer = new byte[84];
 		fs.read(buffer, 0, 84);
 		fs.close();
-		triangles = (int) (((buffer[83] & 0xff) << 24) | ((buffer[82] & 0xff) << 16) | ((buffer[81] & 0xff) << 8)
+		int triangles = (int) (((buffer[83] & 0xff) << 24) | ((buffer[82] & 0xff) << 16) | ((buffer[81] & 0xff) << 8)
 				| (buffer[80] & 0xff));
 		if (((f.length() - 84) / 50) == triangles) {
 			////// System.out.println("Looks like a binary STL");
-			parseBinary(f,polygons);
+			parseBinary(f,polygons, triangles);
 			return polygons;
 		}
 		// System.out.println("File is not a valid STL");
@@ -130,10 +95,13 @@ public class STLLoader {
 	 * @param f the f
 	 */
 	private void parseAscii(File f,ArrayList<Polygon> polygons) {
+		BufferedReader in=null;
+		String line="";
 		try {
 			in = new BufferedReader(new FileReader(f));
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
+			return;
 		}
 		ArrayList<Vertex> vertices = new ArrayList<>();
 		try {
@@ -157,6 +125,7 @@ public class STLLoader {
 						vertices.clear();
 					}
 				} else if (numbers[0].equals("facet") && numbers[1].equals("normal")) {
+					normal = new Vector3d(0, 0,0);
 					normal.x = parseDouble(numbers[2]);
 					normal.y = parseDouble(numbers[3]);
 					normal.z = parseDouble(numbers[4]);
@@ -176,10 +145,9 @@ public class STLLoader {
 	 * @param f the f
 	 * @param polygons2 
 	 */
-	private void parseBinary(File f, ArrayList<Polygon> polygons2) {
-		ArrayList<Vertex> vertices = new ArrayList<Vertex>();
+	private void parseBinary(File f, ArrayList<Polygon> polygons,int triangles) {
 		try {
-			fis = new FileInputStream(f);
+			FileInputStream fis = new FileInputStream(f);
 			for (int h = 0; h < 84; h++) {
 				fis.read();// skip the header bytes
 			}
@@ -188,6 +156,7 @@ public class STLLoader {
 				for (int tb = 0; tb < 50; tb++) {
 					tri[tb] = (byte) fis.read();
 				}
+				ArrayList<Vertex> vertices = new ArrayList<Vertex>();
 				Vector3d normal = new Vector3d(0, 0,0);
 				normal.x = leBytesToFloat(tri[0], tri[1], tri[2], tri[3]);
 				normal.y = leBytesToFloat(tri[4], tri[5], tri[6], tri[7]);
@@ -214,7 +183,7 @@ public class STLLoader {
 			fis.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
