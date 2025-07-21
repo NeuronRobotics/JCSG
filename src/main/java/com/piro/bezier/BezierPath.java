@@ -18,7 +18,7 @@ public class BezierPath {
 	BezierListProducer path;
 
 	private ArrayList<Vector3d> plInternal = new ArrayList<Vector3d>();
-	private static double resolution = 0.2;
+	private static int resolutionPoints = 2;
 
 	/** Creates a new instance of Animate */
 	public BezierPath() {
@@ -111,24 +111,28 @@ public class BezierPath {
 				for (double i = getResolution(); i < 1; i += getResolution()) {
 					addingPoint(i);
 				}
+				addingPoint(1);
 				break;
 			case 'q':
 				path.curvetoQuadraticAbs(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens), nextFloat(tokens));
 				for (double i = getResolution(); i < 1; i += getResolution()) {
 					addingPoint(i);
 				}
+				addingPoint(1);
 				break;
 			case 'T':
 				path.curvetoQuadraticSmoothAbs(nextFloat(tokens), nextFloat(tokens));
 				for (double i = getResolution(); i < 1; i += getResolution()) {
 					addingPoint(i);
 				}
+				addingPoint(1);
 				break;
 			case 't':
 				path.curvetoQuadraticSmoothRel(nextFloat(tokens), nextFloat(tokens));
 				for (double i = getResolution(); i < 1; i += getResolution()) {
 					addingPoint(i);
 				}
+				addingPoint(1);
 				break;
 			case 'C':
 				path.curvetoCubicAbs(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens), nextFloat(tokens),
@@ -136,6 +140,7 @@ public class BezierPath {
 				for (double i = getResolution(); i < 1; i += getResolution()) {
 					addingPoint(i);
 				}
+				addingPoint(1);
 				break;
 			case 'c':
 				path.curvetoCubicRel(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens), nextFloat(tokens),
@@ -143,18 +148,21 @@ public class BezierPath {
 				for (double i = getResolution(); i < 1; i += getResolution()) {
 					addingPoint(i);
 				}
+				addingPoint(1);
 				break;
 			case 'S':
 				path.curvetoCubicSmoothAbs(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens), nextFloat(tokens));
 				for (double i = getResolution(); i < 1; i += getResolution()) {
 					addingPoint(i);
 				}
+				addingPoint(1);
 				break;
 			case 's':
 				path.curvetoCubicSmoothRel(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens), nextFloat(tokens));
 				for (double i = getResolution(); i < 1; i += getResolution()) {
 					addingPoint(i);
 				}
+				addingPoint(1);
 				break;
 			case 'Z':
 			case 'z':
@@ -168,6 +176,11 @@ public class BezierPath {
 				throw new RuntimeException("Invalid path element");
 			}
 		}
+	}
+
+	private double getResolution() {
+		double points = 1.0/((double)(getResolutionPoints()+1));
+		return points;
 	}
 
 	private boolean addingPoint(double i) {
@@ -235,12 +248,12 @@ public class BezierPath {
 		return plInternal;
 	}
 
-	public static double getResolution() {
-		return resolution;
+	public static int getResolutionPoints() {
+		return resolutionPoints;
 	}
 
-	public static void setResolution(double r) {
-		resolution = r;
+	public static void setResolution(int r) {
+		resolutionPoints = r;
 	}
 
 }
