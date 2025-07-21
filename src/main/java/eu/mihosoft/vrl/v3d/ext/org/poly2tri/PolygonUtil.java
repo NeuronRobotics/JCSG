@@ -34,6 +34,7 @@
 package eu.mihosoft.vrl.v3d.ext.org.poly2tri;
 
 import eu.mihosoft.vrl.v3d.CSG;
+import eu.mihosoft.vrl.v3d.ColinearPointsException;
 import eu.mihosoft.vrl.v3d.Debug3dProvider;
 import eu.mihosoft.vrl.v3d.Edge;
 import eu.mihosoft.vrl.v3d.Extrude;
@@ -153,26 +154,39 @@ public class PolygonUtil {
 			threads.add(t);
 			t.start();
 		}
-		for (Thread t : threads)
+		for (int i = 0; i < threads.size(); i++) {
+			Thread t = threads.get(i);
 			try {
 				t.join();
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			System.out.println("Reapir thread finished "+i+" "+threads.size());
+		}
 		for (Vertex vr : toRemove)
 			modifiable.remove(vr);
 		ArrayList<Polygon> back = new ArrayList<>();
-		if (modifiable.size() > 3) {
-			back.add(new Polygon(modifiable, concave1.getStorage(), false, concave1.getPlane()));
+		if (modifiable.size() > 2) {
+			try {
+				back.add(new Polygon(modifiable, concave1.getStorage(), false, concave1.getPlane()));
+			} catch (ColinearPointsException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		} else {
-			System.out.println("Pruned " + modifiable.size());
+			if (toRemove.size() > 3) {
+				try {
+					back.add(new Polygon(toRemove, concave1.getStorage(), false, concave1.getPlane()));
+				} catch (ColinearPointsException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			} else {
+				System.out.println("Pruned " + toRemove.size());
+			}
 		}
-		if (toRemove.size() > 3) {
-			back.add(new Polygon(toRemove, concave1.getStorage(), false, concave1.getPlane()));
-		} else {
-			System.out.println("Pruned " + toRemove.size());
-		}
+
 		return back;
 
 	};
@@ -492,16 +506,18 @@ public class PolygonUtil {
 	 *
 	 * @param incoming the concave
 	 * @return the list
+	 * @throws ColinearPointsException 
 	 */
-	public static ArrayList<Polygon> triangulatePolygon(Polygon incoming) {
+	public static ArrayList<Polygon> triangulatePolygon(Polygon incoming) throws ColinearPointsException {
 		return triangulatePolygon(incoming, true);
 	}
 
 	/**
 	 * Calculates a quaternion-based transform that rotates `from` vector to align
 	 * with (0,0,1).
+	 * @throws ColinearPointsException 
 	 */
-	private static Transform calculateQuaternionTransform(Polygon concave) {
+	private static Transform calculateQuaternionTransform(Polygon concave) throws ColinearPointsException {
 		// Normalize inputs
 		Vector3d u = concave.getPlane().getNormal();
 		Vector3d v = new Vector3d(0, 0, 1);
@@ -536,8 +552,9 @@ public class PolygonUtil {
 	 *
 	 * @param incoming the concave
 	 * @return the list
+	 * @throws ColinearPointsException 
 	 */
-	public static ArrayList<Polygon> triangulatePolygon(Polygon incoming, boolean toCCW) {
+	public static ArrayList<Polygon> triangulatePolygon(Polygon incoming, boolean toCCW) throws ColinearPointsException {
 		ArrayList<Polygon> result = new ArrayList<>();
 
 		if (incoming == null)
@@ -607,7 +624,7 @@ public class PolygonUtil {
 	}
 
 	private static void fourPointSpecialCase(Polygon concave, boolean cw, List<Polygon> result, double zplane,
-			Vector3d normal, boolean debug, Transform orentationInv, boolean reorent, Color color) {
+			Vector3d normal, boolean debug, Transform orentationInv, boolean reorent, Color color) throws ColinearPointsException {
 		List<Vector3d> points = concave.getPoints();
 		int size = points.size();
 		for (int i = 0; i < size; i++) {
@@ -659,7 +676,7 @@ public class PolygonUtil {
 	}
 
 	private static void makeTrianglesInternal(Polygon concave, boolean cw, List<Polygon> result, double zplane,
-			Vector3d normal, boolean debug, Transform orentationInv, boolean reorent, Color color) {
+			Vector3d normal, boolean debug, Transform orentationInv, boolean reorent, Color color) throws ColinearPointsException {
 		ArrayList<Vector3d> points = new ArrayList<>(concave.getPoints());
 		double z = concave.getVertices().get(0).pos.z;
 		for (Vector3d v : points) {
@@ -725,6 +742,7 @@ public class PolygonUtil {
 			if (size == points.size()) {
 				if (result.size() == 0)
 					throw new RuntimeException("Error! All remaining points are colinear!");
+				return;
 			}
 		}
 
@@ -765,24 +783,31 @@ public class PolygonUtil {
 					if (Extrude.isCCW(triPoints) == cw) {
 						Collections.reverse(triPoints);
 					}
-					Polygon poly = new Polygon(triPoints, concave.getStorage(), true, p1);
-					// poly = Extrude.toCCW(poly);
-					poly.getPlane().setNormal(concave.getPlane().getNormal());
+					Polygon poly;
+					try {
+						poly = new Polygon(triPoints, concave.getStorage(), true, p1);
+						// poly = Extrude.toCCW(poly);
+						poly.getPlane().setNormal(concave.getPlane().getNormal());
 
-					if (debug) {
-						// Debug3dProvider.clearScreen();
-						// Debug3dProvider.addObject(concave);
-						Debug3dProvider.addObject(poly);
+						if (debug) {
+							// Debug3dProvider.clearScreen();
+							// Debug3dProvider.addObject(concave);
+							Debug3dProvider.addObject(poly);
+						}
+
+						if (reorent) {
+							poly = poly.transform(orentationInv);
+
+							// poly = checkForValidPolyOrentation(normal, poly);
+						}
+						// poly.plane.setNormal(normalOfPlane);
+						poly.setColor(color);
+						result.add(poly);
+					} catch (ColinearPointsException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
 
-					if (reorent) {
-						poly = poly.transform(orentationInv);
-
-						// poly = checkForValidPolyOrentation(normal, poly);
-					}
-					// poly.plane.setNormal(normalOfPlane);
-					poly.setColor(color);
-					result.add(poly);
 					counter = 0;
 					triPoints = new ArrayList<>();
 				} else {

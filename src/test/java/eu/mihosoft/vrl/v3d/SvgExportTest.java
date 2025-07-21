@@ -44,7 +44,7 @@ public class SvgExportTest {
 	}
 
 	@Test
-	public void test() throws IOException {
+	public void test() throws IOException, ColinearPointsException {
 
 		List<Polygon> polygons = new ArrayList<Polygon>();
 
@@ -70,7 +70,7 @@ public class SvgExportTest {
 	}
 
 	@Test
-	public void testSlices() throws IOException {
+	public void testSlices() throws IOException, ColinearPointsException {
 
 		List<Polygon> polygons = new ArrayList<Polygon>();
 

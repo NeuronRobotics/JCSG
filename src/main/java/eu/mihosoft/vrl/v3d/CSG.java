@@ -1989,18 +1989,18 @@ public class CSG implements IuserAPI, Serializable {
 			ArrayList<Vertex> points = new ArrayList<Vertex>();
 			int startIndex = polyStartIndex[i];
 			int polySize = polySizes[i];
-			// HashSet<Integer> pointIndexSet = new HashSet<Integer>();
+			HashSet<Integer> pointIndexSet = new HashSet<Integer>();
 			for (int j = 0; j < polySize; j++) {
 				int pointIndex = polygonPointOrder[startIndex + j];
 				if (pointIndex < 0) {
 					new RuntimeException("Algorithm error").printStackTrace();
 					continue;
 				}
-//				if (pointIndexSet.contains(pointIndex)) {
-//					System.out.println("ERR polygon " + i + " already has a point " + pointIndex);
-//					continue;
-//				}
-				// pointIndexSet.add(pointIndex);
+				if (pointIndexSet.contains(pointIndex)) {
+					System.out.println("ERR polygon " + i + " already has a point " + pointIndex);
+					continue;
+				}
+				 pointIndexSet.add(pointIndex);
 				Vector3d thispoint = orderedPoints[pointIndex];
 				points.add(new Vertex(thispoint));
 			}
@@ -2010,12 +2010,14 @@ public class CSG implements IuserAPI, Serializable {
 			}
 			try {
 				pl=Plane.createFromPoints(points);
+				Polygon p = new Polygon(points, polygon.getStorage(), true, pl);
+				newPoly.add(p);
+				polygon.getPoints().clear();
 			}catch(Exception e) {
 				// if the normal can not be calculated, use the incoming one
+				e.printStackTrace();
 			}
-			Polygon p = new Polygon(points, polygon.getStorage(), true, pl);
-			newPoly.add(p);
-			polygon.getPoints().clear();
+
 		}
 		polygons.clear();
 		polygons = newPoly;
@@ -2107,10 +2109,17 @@ public class CSG implements IuserAPI, Serializable {
 
 //			try {
 				if (!p.areAllPointsCollinear()) {
-					List<Polygon> triangles = PolygonUtil.triangulatePolygon(p);
-					for (Polygon poly : triangles) {
-						toAdd.add(poly);
+					List<Polygon> triangles;
+					try {
+						triangles = PolygonUtil.triangulatePolygon(p);
+						for (Polygon poly : triangles) {
+							toAdd.add(poly);
+						}
+					} catch (ColinearPointsException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
+
 				} else {
 					System.err.println("Polygon is colinear, removing " + p);
 					return;
@@ -2260,11 +2269,13 @@ public class CSG implements IuserAPI, Serializable {
 		}
 
 		ArrayList<Polygon> newpolygons = this.getPolygons().stream().map(p -> {
+			if(p.areAllPointsCollinear())
+				return null;
 			try {
 				return p.transformed(transform);
 			} catch (Exception e) {
 				// e.printStackTrace();
-				System.err.println("Removing Polygon during transform");
+				System.err.println("Removing Polygon during transform "+p);
 				return null;
 			}
 		}).filter(Objects::nonNull).collect(Collectors.toCollection(ArrayList::new));

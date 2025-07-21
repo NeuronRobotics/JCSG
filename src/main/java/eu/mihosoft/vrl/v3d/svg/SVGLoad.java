@@ -33,6 +33,7 @@ import org.w3c.dom.svg.SVGPointList;
 
 import com.piro.bezier.BezierPath;
 import eu.mihosoft.vrl.v3d.CSG;
+import eu.mihosoft.vrl.v3d.ColinearPointsException;
 import eu.mihosoft.vrl.v3d.Edge;
 import eu.mihosoft.vrl.v3d.Extrude;
 import eu.mihosoft.vrl.v3d.Polygon;
@@ -623,7 +624,7 @@ public class SVGLoad {
 
 	private void loadSingle(String code, double resolution, Transform startingFrame, String encapsulatingLayer,
 			Color c) {
-		if(encapsulatingLayer==null)
+		if (encapsulatingLayer == null)
 			throw new RuntimeException("Layer Name can not be null");
 		// println code
 		BezierPath path = new BezierPath();
@@ -637,23 +638,30 @@ public class SVGLoad {
 			point.transform(new Transform().rotZ(-180));
 			point.transform(new Transform().rotY(180));
 		}
-		
+
 		// //com.neuronrobotics.sdk.common.Log.error(" Path " + code);
-		Polygon poly = Polygon.fromPoints(p);
-		boolean hole = !Extrude.isCCW(poly);
-		if (getPolygonByLayers() == null)
-			setPolygonByLayers(new HashMap<String, List<Polygon>>());
-		if (getPolygonByLayers().get(encapsulatingLayer) == null)
-			getPolygonByLayers().put(encapsulatingLayer, new ArrayList<Polygon>());
-		List<Polygon> list = getPolygonByLayers().get(encapsulatingLayer);
-		
-		poly = Polygon.fromPoints(Extrude.toCCW(poly.getPoints()));
-		poly.setHole(hole);
-		if (c != null) {
-			colors.put(poly, c);
-			poly.setColor(c);
+		// Polygon poly = Polygon.fromPoints(p);
+		if (p.size() > 2) {
+			boolean hole = !Extrude.isCCWv3d(p);
+			if (getPolygonByLayers() == null)
+				setPolygonByLayers(new HashMap<String, List<Polygon>>());
+			if (getPolygonByLayers().get(encapsulatingLayer) == null)
+				getPolygonByLayers().put(encapsulatingLayer, new ArrayList<Polygon>());
+			List<Polygon> list = getPolygonByLayers().get(encapsulatingLayer);
+
+			try {
+				Polygon poly = Polygon.fromPoints(p);
+				poly.setHole(hole);
+				if (c != null) {
+					colors.put(poly, c);
+					poly.setColor(c);
+				}
+				list.add(poly);
+			} catch (ColinearPointsException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
-		list.add(poly);
 
 	}
 
@@ -706,7 +714,7 @@ public class SVGLoad {
 			boolean b = CSG.isPreventNonManifoldTriangles();
 			CSG.setPreventNonManifoldTriangles(false);
 			for (Polygon p : getPolygonByLayers().get(key)) {
-				boolean isHole =p.isHole();
+				boolean isHole = p.isHole();
 				CSG newbit;
 				try {
 					newbit = Extrude.getExtrusionEngine().extrude(new Vector3d(0, 0, thickness), p);
@@ -716,8 +724,8 @@ public class SVGLoad {
 					if (colors.get(p) != null) {
 						newbit.setColor(colors.get(p));
 					}
-					if(isHole) {
-						//newbit=newbit.movez(negativeThickness?0.5:-0.5);
+					if (isHole) {
+						// newbit=newbit.movez(negativeThickness?0.5:-0.5);
 						newbit.setIsHole(true);
 					}
 					newbit.triangulate();
@@ -731,7 +739,7 @@ public class SVGLoad {
 
 		return csgByLayers;
 	}
-	
+
 	public Color getColor(Polygon p) {
 		return colors.get(p);
 	}

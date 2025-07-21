@@ -145,7 +145,12 @@ public class Cube extends Primitive {
                 );
                 vertices.add(new Vertex(pos));
             }
-            polygons.add(new Polygon(vertices, properties));
+            try {
+				polygons.add(new Polygon(vertices, properties));
+			} catch (ColinearPointsException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
         }
 
         if (!centered) {
@@ -153,7 +158,12 @@ public class Cube extends Primitive {
             Transform centerTransform = Transform.unity().translate(dimensions.x / 2.0, dimensions.y / 2.0, dimensions.z / 2.0);
 
             for (Polygon p : polygons) {
-                p.transform(centerTransform);
+                try {
+					p.transform(centerTransform);
+				} catch (ColinearPointsException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
             }
         }
 

@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -27,9 +28,13 @@ public class SVGLoadTest {
 		ArrayList<CSG>p =run(s);
 		ArrayList<CSG> parts = new ArrayList<CSG>();
 		parts.addAll(p);
-		for(CSG c:p) {
+		
+		for (int i = 0; i < p.size(); i++) {
+			CSG c = p.get(i);
+			System.out.println("Perform difference "+i+" of "+p.size());
 			parts.add(c.rotx(180).rotz(5).toZMin().difference(c).movez(30).setColor(Color.YELLOW));
 		}
+		System.out.println("Difference complete");
 		if(parts.size()==0)
 			throw new RuntimeException("Failed to load");
 		try {
@@ -63,7 +68,7 @@ public class SVGLoadTest {
 		if (!svg.exists())
 			throw new RuntimeException("Test file missing!" + svg.getAbsolutePath());
 		SVGLoad s = new SVGLoad(svg.toURI());
-		ArrayList<CSG>parts =run(s);
+		ArrayList<CSG>parts =new ArrayList<>(Arrays.asList(CSG.unionAll(run(s))));
 		try {
 			ThumbnailImage.setCullFaceValue(CullFace.NONE);
 			ThumbnailImage.writeImage(parts,new File(svg.getAbsolutePath()+".png")).join();

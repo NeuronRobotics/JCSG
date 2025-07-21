@@ -8,6 +8,7 @@ package eu.mihosoft.vrl.v3d;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -68,11 +69,17 @@ public class Polyhedron extends Primitive {
 
         Function<List<Integer>, Polygon> faceListToPolygon
                 = (List<Integer> faceList) -> {
-                    return Polygon.fromPoints(faceList.stream().map(indexToPoint).
-                            collect(Collectors.toList()), properties);
+                    try {
+						return Polygon.fromPoints(faceList.stream().map(indexToPoint).
+						        collect(Collectors.toList()), properties);
+					} catch (ColinearPointsException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+                    return null;
                 };
 
-        return faces.stream().map(faceListToPolygon).
+        return faces.stream().map(faceListToPolygon).filter(Objects::nonNull).
                 collect(Collectors.toList());
     }
 

@@ -38,6 +38,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
+
 /**
  * Represents a plane in 3D space.
  *
@@ -113,7 +115,7 @@ public class Plane implements Serializable {
 	 * @param c        third point
 	 * @return a plane
 	 */
-	public static Plane createFromPoints(List<Vertex> vertices) {
+	public static Plane createFromPoints(List<Vertex> vertices) throws ColinearPointsException {
 		return createFromPoints(vertices, null);
 	}
 
@@ -127,17 +129,17 @@ public class Plane implements Serializable {
 	 * @param c        third point
 	 * @return a plane
 	 */
-	public static Plane createFromPoints(List<Vertex> vertices, Vector3d testNorm) {
+	public static Plane createFromPoints(List<Vertex> vertices, Vector3d testNorm) throws ColinearPointsException {
 		Vector3d a = vertices.get(0).pos;
 		Vector3d n = computeNormal(vertices, testNorm);
 		return new Plane(n, n.dot(a));
 	}
 
-	public static Vector3d computeNormal(List<Vertex> vertices) {
+	public static Vector3d computeNormal(List<Vertex> vertices) throws ColinearPointsException{
 		return computeNormal(vertices, null);
 	}
 
-	public static Vector3d computeNormal(List<Vertex> vertices, Vector3d testNorm) {
+	public static Vector3d computeNormal(List<Vertex> vertices, Vector3d testNorm) throws ColinearPointsException {
 
 		if (vertices == null || vertices.size() < 3) {
 			throw new RuntimeException("Can not find normal without at least 3 points "+vertices);
@@ -146,8 +148,8 @@ public class Plane implements Serializable {
 		Vector3d normal = new Vector3d(0, 0, 0);
 		int n = vertices.size();
 		for (int i = 0; i < n; i++) {
-		    Vector3d current = vertices.get(i).pos;
-		    Vector3d next = vertices.get((i + 1) % n).pos;
+		    Vector3d current = vertices.get(i).pos.times(PolygonUtil.triangleScale*10);
+		    Vector3d next = vertices.get((i + 1) % n).pos.times(PolygonUtil.triangleScale*10);
 		    
 		    double d = (current.y - next.y) * (current.z + next.z);
 		    double e = (current.z - next.z) * (current.x + next.x);
@@ -159,11 +161,11 @@ public class Plane implements Serializable {
 		if (isValidNormal(normal, getEPSILON() / 10)) {
 			return normal.normalized();
 		}
-		normal = computeNormalCrossProduct(vertices);
-		if (isValidNormal(normal, getEPSILON() / 10)) {
-			return normal.normalized();
-		}
-		throw new RuntimeException("Failed to compute the normal!");
+//		normal = computeNormalCrossProduct(vertices);
+//		if (isValidNormal(normal, getEPSILON() / 10)) {
+//			return normal.normalized();
+//		}
+		throw new ColinearPointsException("Failed to compute the normal!");
 	}
 
 	public static Vector3d computeNormalCrossProduct(List<Vertex> verts) {
@@ -175,7 +177,7 @@ public class Plane implements Serializable {
 		List<Vector3d> edges = new ArrayList<>();
 
 		for (int j = 0; j < n; j++) {
-			Vector3d e = verts.get((j+1)%n).pos.minus(verts.get(j).pos);
+			Vector3d e = verts.get((j+1)%n).pos.times(PolygonUtil.triangleScale).minus(verts.get(j).pos.times(PolygonUtil.triangleScale));
 			edges.add(e);
 			
 		}
@@ -207,10 +209,11 @@ public class Plane implements Serializable {
 		}
 
 		// 4. Compute normal
-		Vector3d normal = bestE1.cross(bestE2).normalized();
-		if (normal.length() < Plane.getEPSILON()) {
+		Vector3d normal = bestE1.cross(bestE2);
+		if (normal.magnitude() < Plane.getEPSILON()) {
 			throw new RuntimeException("Fail! Normal can not be computed");
 		}
+		normal.normalize();
 		Vector3d v0 = verts.get(0).pos;
 		Vector3d std = verts.get(1).pos.minus(v0).cross(verts.get(2).pos.minus(v0)).normalized();
 		if (normal.dot(std) < 0) {

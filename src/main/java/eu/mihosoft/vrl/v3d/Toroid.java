@@ -50,18 +50,19 @@ public class Toroid extends Primitive {
 	/** The properties. */
 	private final PropertyStorage properties = new PropertyStorage();
 	List<Polygon> polys;
+
 	public Toroid(double innerRadius, double OuterRadius) {
-		this(innerRadius,OuterRadius,20,16);
+		this(innerRadius, OuterRadius, 20, 16);
 	}
-	
+
 	public Toroid(double innerRadius, double OuterRadius, int numSlices, int facets) {
 		if (innerRadius < 0)
 			throw new RuntimeException("Inner radious must be positive");
 		if (innerRadius >= OuterRadius)
 			throw new RuntimeException("Outer radius must be larger than inner radius");
-		OuterRadius = innerRadius+((OuterRadius - innerRadius)/2.0);
+		OuterRadius = innerRadius + ((OuterRadius - innerRadius) / 2.0);
 		double crossSecRad = OuterRadius - innerRadius;
-		
+
 		ArrayList<Vertex> vertices = new ArrayList<>();
 		double f = facets;
 
@@ -70,47 +71,54 @@ public class Toroid extends Primitive {
 			double rad = index / f * 2 * Math.PI;
 			double a = Math.cos(rad) * crossSecRad;
 			double b = Math.sin(rad) * crossSecRad;
-			vertices.add(new Vertex(new Vector3d(a,b)));
+			vertices.add(new Vertex(new Vector3d(a, b)));
 		}
-		Polygon poly = new Polygon(vertices, properties);
-		ArrayList<Polygon> slices = new ArrayList<Polygon>();
+		Polygon poly;
+		try {
+			poly = new Polygon(vertices, properties);
 
-		for (int i = 0; i < numSlices; i++) {
-			double angle = 360.0 / ((double) numSlices) * ((double) i);
-			slices.add(poly.transformed(new Transform().movex(innerRadius+crossSecRad).roty(angle)));
-		}
-		List<Polygon> newPolygons = new ArrayList<>();
-		for (int j = 0; j < slices.size(); j++) {
-			int next = j + 1;
-			if (next == slices.size())
-				next = 0;
-			// println "Extruding "+i+" to "+next
-			Polygon polygon1=slices.get(j);
-			Polygon polygon2=slices.get(next);
-			if (polygon1.getVertices().size() != polygon2.getVertices().size()) {
-				throw new RuntimeException("These polygons do not match");
+			ArrayList<Polygon> slices = new ArrayList<Polygon>();
+
+			for (int i = 0; i < numSlices; i++) {
+				double angle = 360.0 / ((double) numSlices) * ((double) i);
+				slices.add(poly.transformed(new Transform().movex(innerRadius + crossSecRad).roty(angle)));
 			}
-	
-			int numvertices = polygon1.getVertices().size();
-			for (int i = 0; i < numvertices; i++) {
-	
-				int nexti = (i + 1) % numvertices;
-	
-				Vector3d bottomV1 = polygon1.getVertices().get(i).pos;
-				Vector3d topV1 = polygon2.getVertices().get(i).pos;
-				Vector3d bottomV2 = polygon1.getVertices().get(nexti).pos;
-				Vector3d topV2 = polygon2.getVertices().get(nexti).pos;
-	
-				List<Vector3d> pPoints = Arrays.asList(bottomV2, topV2, topV1, bottomV1);
-	
-				newPolygons.add(Polygon.fromPoints(pPoints, polygon1.getStorage()));
-	
+			List<Polygon> newPolygons = new ArrayList<>();
+			for (int j = 0; j < slices.size(); j++) {
+				int next = j + 1;
+				if (next == slices.size())
+					next = 0;
+				// println "Extruding "+i+" to "+next
+				Polygon polygon1 = slices.get(j);
+				Polygon polygon2 = slices.get(next);
+				if (polygon1.getVertices().size() != polygon2.getVertices().size()) {
+					throw new RuntimeException("These polygons do not match");
+				}
+
+				int numvertices = polygon1.getVertices().size();
+				for (int i = 0; i < numvertices; i++) {
+
+					int nexti = (i + 1) % numvertices;
+
+					Vector3d bottomV1 = polygon1.getVertices().get(i).pos;
+					Vector3d topV1 = polygon2.getVertices().get(i).pos;
+					Vector3d bottomV2 = polygon1.getVertices().get(nexti).pos;
+					Vector3d topV2 = polygon2.getVertices().get(nexti).pos;
+
+					List<Vector3d> pPoints = Arrays.asList(bottomV2, topV2, topV1, bottomV1);
+
+					newPolygons.add(Polygon.fromPoints(pPoints, polygon1.getStorage()));
+
+				}
+
+				polygon2 = polygon2.flipped();
+
 			}
-	
-			polygon2 = polygon2.flipped();
-	
+			polys = newPolygons;
+		} catch (ColinearPointsException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		polys = newPolygons;
 	}
 
 	/*

@@ -19,6 +19,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
+import eu.mihosoft.vrl.v3d.ColinearPointsException;
 import eu.mihosoft.vrl.v3d.Plane;
 import eu.mihosoft.vrl.v3d.Polygon;
 import eu.mihosoft.vrl.v3d.Vector3d;
@@ -147,7 +148,12 @@ public class STLLoader {
 					vertices.add(new Vertex(vertex));
 					if(vertices.size()==3) {
 						Plane pl = new Plane(normal, vertices);
-						polygons.add(new Polygon(vertices, null, false, pl));
+						try {
+							polygons.add(new Polygon(vertices, null, false, pl));
+						} catch (ColinearPointsException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 						vertices.clear();
 					}
 				} else if (numbers[0].equals("facet") && numbers[1].equals("normal")) {
@@ -195,7 +201,12 @@ public class STLLoader {
 					vertices.add(new Vertex(p));
 					if(vertices.size()==3) {
 						Plane pl = new Plane(normal, vertices);
-						polygons.add(new Polygon(vertices, null, false, pl));
+						try {
+							polygons.add(new Polygon(vertices, null, false, pl));
+						} catch (ColinearPointsException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 						vertices.clear();
 					}
 				}

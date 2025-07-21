@@ -118,7 +118,7 @@ public class Edge {
 	 * @param plane  the plane
 	 * @return the polygon
 	 */
-	public static Polygon toPolygon(List<Vector3d> points, Plane plane) {
+	public static Polygon toPolygon(List<Vector3d> points, Plane plane) throws ColinearPointsException{
 
 //        List<Vector3d> points = edges.stream().().map(e -> e.p1.pos).
 //                collect(Collectors.toList());
@@ -137,8 +137,9 @@ public class Edge {
 	 * @param boundaryEdges the boundary edges
 	 * @param plane         the plane
 	 * @return the list
+	 * @throws ColinearPointsException 
 	 */
-	public static List<Polygon> toPolygons(List<Edge> boundaryEdges, Plane plane) {
+	public static List<Polygon> toPolygons(List<Edge> boundaryEdges, Plane plane) throws ColinearPointsException {
 
 		List<Vector3d> boundaryPath = new ArrayList<>();
 
@@ -402,7 +403,7 @@ public class Edge {
 	 * @param boundaryEdges boundary edges (all paths must be closed)
 	 * @return the list
 	 */
-	public static List<Polygon> boundaryPaths(List<Edge> boundaryEdges) {
+	public static List<Polygon> boundaryPaths(List<Edge> boundaryEdges) throws ColinearPointsException{
 		List<Polygon> result = new ArrayList<>();
 
 		boolean[] used = new boolean[boundaryEdges.size()];
@@ -485,8 +486,9 @@ public class Edge {
 	 * @param boundaryEdges the boundary edges
 	 * @param plane         the plane
 	 * @return the list
+	 * @throws ColinearPointsException 
 	 */
-	public static List<Polygon> _toPolygons(List<Edge> boundaryEdges, Plane plane) {
+	public static List<Polygon> _toPolygons(List<Edge> boundaryEdges, Plane plane) throws ColinearPointsException {
 
 		List<Vector3d> boundaryPath = new ArrayList<>();
 
@@ -808,8 +810,9 @@ public class Edge {
 	 *
 	 * @param csg the csg
 	 * @return the list
+	 * @throws ColinearPointsException 
 	 */
-	public static List<Polygon> boundaryPolygons(CSG csg) {
+	public static List<Polygon> boundaryPolygons(CSG csg) throws ColinearPointsException {
 		List<Polygon> result = new ArrayList<>();
 
 		for (List<Polygon> polygonGroup : searchPlaneGroups(csg.getPolygons())) {
@@ -885,8 +888,9 @@ public class Edge {
 	 *
 	 * @param planeGroup the plane group
 	 * @return the list
+	 * @throws ColinearPointsException 
 	 */
-	private static List<Polygon> boundaryPolygonsOfPlaneGroup(List<Polygon> planeGroup) {
+	private static List<Polygon> boundaryPolygonsOfPlaneGroup(List<Polygon> planeGroup) throws ColinearPointsException {
 
 		List<Polygon> polygons = boundaryPathsWithHoles(boundaryPaths(boundaryEdgesOfPlaneGroup(planeGroup)));
 

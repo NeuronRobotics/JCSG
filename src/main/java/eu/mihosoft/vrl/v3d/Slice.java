@@ -164,7 +164,7 @@ public class Slice {
 			List<Polygon> rawPolygons = new ArrayList<>();
 			CSG finalPart = incoming.transformed(slicePlane.inverse()
 					).toolOffset(normalInsetDistance);
-			double sliceThick= 0.00001;
+			double sliceThick= 0.0001;
 			if(finalPart.getTotalZ()<sliceThick)
 				throw new RuntimeException("Too thin to slice! "+sliceThick+" mm minimum");
 			if(finalPart.getMaxZ()<sliceThick) {
@@ -283,8 +283,15 @@ public class Slice {
 								p.add(new Vector3d((it[0] * scaleX) + xOffset, (it[1] * scaleY) + yOffset, 0));
 							}
 
-							Polygon polyNew = Polygon.fromPoints(p);
-							polys.add(polyNew);
+							Polygon polyNew;
+							try {
+								polyNew = Polygon.fromPoints(p);
+								polys.add(polyNew);
+							} catch (ColinearPointsException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+							
 							listOfPointsForThisPoly.clear();
 							if (pixelVersionOfPoints.size() > 0) {
 								pixStart = pixelVersionOfPoints.remove(0);
@@ -304,7 +311,12 @@ public class Slice {
 				for (int[] it : listOfPointsForThisPoly) {
 					p.add(new Vector3d((it[0] * scaleX) + xOffset, (it[1] * scaleY) + yOffset, 0));
 				}
-				polys.add(Polygon.fromPoints(p));
+				try {
+					polys.add(Polygon.fromPoints(p));
+				} catch (ColinearPointsException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				// if(display)BowlerStudioController.getBowlerStudio() .addObject(polys, new
 				// File("."))
 			}

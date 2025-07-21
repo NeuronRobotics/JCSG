@@ -125,7 +125,12 @@ public class RoundedCube extends Primitive {
             Transform centerTransform = Transform.unity().translate(dimensions.x / 2.0, dimensions.y / 2.0, dimensions.z / 2.0);
 
             for (Polygon p : result) {
-                p.transform(centerTransform);
+                try {
+					p.transform(centerTransform);
+				} catch (ColinearPointsException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
             }
         }
 

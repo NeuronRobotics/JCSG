@@ -264,10 +264,14 @@ public final class Node {
 	private static void add(List<Polygon> l, List<Vertex> f, Polygon polygon, boolean test) {
 		if (f.size() < 3)
 			return;
-		Polygon fpoly = new Polygon(f, polygon.getStorage(), true, new Plane(polygon.getPlane().getNormal(), f))
-				.setColor(polygon.getColor());
-		if (!test)
-			l.add(fpoly);			
+		try {
+			Polygon fpoly = new Polygon(f, polygon.getStorage(), true, Plane.createFromPoints(f))
+					.setColor(polygon.getColor());
+			if (!test)
+				l.add(fpoly);	
+		}catch(ColinearPointsException ex) {
+			System.err.println("Pruned Colinear polygon "+f );
+		}
 	}
 
 	/**
@@ -834,9 +838,10 @@ public final class Node {
 						// the plane
 						// therefor the intersection point is halfway between i and j
 						double t = (d / dotMinus);
-						if(!Double.isFinite(t)) {
-							continue;
+						if (!Double.isFinite(t) || t < -Plane.EPSILON || t > 1.0 + Plane.EPSILON) {
+						    continue;
 						}
+
 						// Scale difference vector by tOld
 						double sx = dx * t;
 						double sy = dy * t;
