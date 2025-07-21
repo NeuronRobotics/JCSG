@@ -12,6 +12,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -36,7 +37,9 @@ import eu.mihosoft.vrl.v3d.CSG;
 import eu.mihosoft.vrl.v3d.ColinearPointsException;
 import eu.mihosoft.vrl.v3d.Edge;
 import eu.mihosoft.vrl.v3d.Extrude;
+import eu.mihosoft.vrl.v3d.Plane;
 import eu.mihosoft.vrl.v3d.Polygon;
+import eu.mihosoft.vrl.v3d.PropertyStorage;
 import eu.mihosoft.vrl.v3d.Transform;
 import eu.mihosoft.vrl.v3d.Vector3d;
 import javafx.scene.paint.Color;
@@ -230,12 +233,6 @@ public class SVGLoad {
 		tmpsvg.deleteOnExit();
 	}
 
-	public ArrayList<CSG> extrude(double thickness) throws IOException {
-
-		return extrude(thickness, 0.005);
-
-	}
-
 	public static ArrayList<CSG> extrude(File f, double thickness) throws IOException {
 		return new SVGLoad(f.toURI()).extrude(thickness);
 
@@ -254,10 +251,10 @@ public class SVGLoad {
 
 	}
 
-	public HashMap<String, List<Polygon>> toPolygons(double resolution) {
+	public HashMap<String, List<Polygon>> toPolygons() {
 		if (polygonByLayers == null)
 			try {
-				loadAllGroups(resolution, new Transform());
+				loadAllGroups( new Transform());
 			} catch (Exception e) {
 				// Auto-generated catch block
 				e.printStackTrace();
@@ -266,13 +263,9 @@ public class SVGLoad {
 		return getPolygonByLayers();
 	}
 
-	public HashMap<String, List<Polygon>> toPolygons() {
-		return toPolygons(0.001);
-	}
-
-	public static ArrayList<CSG> extrude(File f, double thickness, double resolution) throws IOException {
-		return new SVGLoad(f.toURI()).extrude(thickness, resolution);
-	}
+//	public static ArrayList<CSG> extrude(File f, double thickness) throws IOException {
+//		return new SVGLoad(f.toURI()).extrude(thickness);
+//	}
 
 	public static ArrayList<CSG> extrude(URI uri, double thickness) throws IOException {
 
@@ -280,11 +273,8 @@ public class SVGLoad {
 
 	}
 
-	public static ArrayList<CSG> extrude(URI uri, double thickness, double resolution) throws IOException {
-		return new SVGLoad(uri).extrude(thickness, resolution);
-	}
 
-	private void loadAllGroups(double resolution, Transform startingFrame) {
+	private void loadAllGroups( Transform startingFrame) {
 
 		NodeList pn = getSVGDocument().getDocumentElement().getChildNodes();// .getElementsByTagName("g");
 		try {
@@ -313,11 +303,11 @@ public class SVGLoad {
 			if (SVGOMGElement.class.isInstance(item)) {
 
 				SVGOMGElement element = (SVGOMGElement) item;
-				loadGroup(element, resolution, startingFrame, "TOP");
+				loadGroup(element, startingFrame, "TOP");
 			}
 			if (SVGOMPathElement.class.isInstance(item) || SVGOMImageElement.class.isInstance(item)) {
 				try {
-					loadPath(item, resolution, startingFrame, "TOP");
+					loadPath(item, startingFrame, "TOP");
 				} catch (Throwable t) {
 
 					t.printStackTrace();
@@ -327,7 +317,7 @@ public class SVGLoad {
 
 	}
 
-	private void loadGroup(SVGOMGElement element, double resolution, Transform startingFrame,
+	private void loadGroup(SVGOMGElement element, Transform startingFrame,
 			String encapsulatingLayer) {
 		Node transforms = element.getAttributes().getNamedItem("transform");
 		Transform newFrame = getNewframe(startingFrame, transforms);
@@ -354,11 +344,11 @@ public class SVGLoad {
 		for (int i = 0; i < children.getLength(); i++) {
 			Node n = children.item(i);
 			if (SVGOMGElement.class.isInstance(n)) {
-				loadGroup((SVGOMGElement) n, resolution, newFrame, layername);
+				loadGroup((SVGOMGElement) n, newFrame, layername);
 			} else {
 				//// com.neuronrobotics.sdk.common.Log.error("\tNot group:"+n);
 				try {
-					loadPath(n, resolution, newFrame, layername);
+					loadPath(n, newFrame, layername);
 				} catch (Throwable t) {
 
 					t.printStackTrace();
@@ -413,7 +403,7 @@ public class SVGLoad {
 	}
 
 	// SVGOMGElement
-	private void loadPath(Node pathNode, double resolution, Transform startingFrame, String encapsulatingLayer) {
+	private void loadPath(Node pathNode, Transform startingFrame, String encapsulatingLayer) {
 		Transform newFrame;
 		// NodeList pathNodes = element.getElementsByTagName("path");
 		// Node transforms = element.getAttributes().getNamedItem("transform");
@@ -482,7 +472,7 @@ public class SVGLoad {
 					String code = mpp.toCode();
 					//// com.neuronrobotics.sdk.common.Log.error("\tPath
 					//// "+pathNode.getAttributes().getNamedItem("id").getNodeValue()+" "+newFrame);
-					loadComposite(code, resolution, newFrame, encapsulatingLayer, c);
+					loadComposite(code, newFrame, encapsulatingLayer, c);
 				} else if (SVGOMPolylineElement.class.isInstance(pathNode)) {
 					Color c = null;
 					//// com.neuronrobotics.sdk.common.Log.error("Layer "+encapsulatingLayer);
@@ -541,7 +531,7 @@ public class SVGLoad {
 						sb += "L " + itemLine;
 					}
 					sb += "z\n";
-					loadComposite(sb, resolution, newFrame, encapsulatingLayer, c);
+					loadComposite(sb, newFrame, encapsulatingLayer, c);
 				} else if (SVGOMImageElement.class.isInstance(pathNode)) {
 					SVGImageElement image = (SVGOMImageElement) pathNode;
 					//// com.neuronrobotics.sdk.common.Log.error("Loading Image element..");
@@ -575,7 +565,7 @@ public class SVGLoad {
 
 	}
 
-	private void loadComposite(String code, double resolution, Transform startingFrame, String encapsulatingLayer,
+	private void loadComposite(String code, Transform startingFrame, String encapsulatingLayer,
 			Color c) {
 		// Count the occourences of M
 		int count = code.length() - code.replace("M", "").length();
@@ -584,7 +574,7 @@ public class SVGLoad {
 
 			// setHolePolarity(true);
 //			try {
-			loadSingle(code, resolution, startingFrame, encapsulatingLayer, c);
+			loadSingle(code, startingFrame, encapsulatingLayer, c);
 //			} catch (Exception ex) {
 //				//com.neuronrobotics.sdk.common.Log.error("Polygon failed to load!");
 //				ex.printStackTrace();
@@ -601,7 +591,7 @@ public class SVGLoad {
 				if (sectionedPart.length() > 1) {
 
 					// println "Seperated complex: "
-					loadSingle(sectionedPart, resolution, startingFrame, encapsulatingLayer, c);
+					loadSingle(sectionedPart, startingFrame, encapsulatingLayer, c);
 				}
 			}
 		}
@@ -622,7 +612,7 @@ public class SVGLoad {
 		return runningTotal < 0;
 	}
 
-	private void loadSingle(String code, double resolution, Transform startingFrame, String encapsulatingLayer,
+	private void loadSingle(String code, Transform startingFrame, String encapsulatingLayer,
 			Color c) {
 		if (encapsulatingLayer == null)
 			throw new RuntimeException("Layer Name can not be null");
@@ -643,6 +633,8 @@ public class SVGLoad {
 		// Polygon poly = Polygon.fromPoints(p);
 		if (p.size() > 2) {
 			boolean hole = !Extrude.isCCWv3d(p);
+			if(hole)
+				Collections.reverse(p);
 			if (getPolygonByLayers() == null)
 				setPolygonByLayers(new HashMap<String, List<Polygon>>());
 			if (getPolygonByLayers().get(encapsulatingLayer) == null)
@@ -650,6 +642,7 @@ public class SVGLoad {
 			List<Polygon> list = getPolygonByLayers().get(encapsulatingLayer);
 
 			try {
+				//Polygon poly = Polygon.fromPoints(p , new PropertyStorage(), new Plane(new Vector3d(0, 0, 1),p.get(0)) , true);
 				Polygon poly = Polygon.fromPoints(p);
 				poly.setHole(hole);
 				if (c != null) {
@@ -676,21 +669,21 @@ public class SVGLoad {
 	}
 
 	public CSG extrudeLayerToCSG(double t, String layer) {
-		CSG unionAll = CSG.unionAll(extrudeLayers(t, 0.01, layer).get(layer));
+		CSG unionAll = CSG.unionAll(extrudeLayers(t, layer).get(layer));
 		unionAll.setName(layer);
 
 		return unionAll;
 	}
 
 	public ArrayList<CSG> extrudeLayer(double t, String layer) {
-		return extrudeLayers(t, 0.01, layer).get(layer);
+		return extrudeLayers(t, layer).get(layer);
 	}
 
 	public HashMap<String, ArrayList<CSG>> extrudeLayers(double t) {
-		return extrudeLayers(t, 0.01, null);
+		return extrudeLayers(t, null);
 	}
 
-	public HashMap<String, ArrayList<CSG>> extrudeLayers(double t, double resolution, String targetLayer) {
+	public HashMap<String, ArrayList<CSG>> extrudeLayers(double t, String targetLayer) {
 		this.thickness = t;
 
 		if (thickness < 0) {
@@ -700,7 +693,7 @@ public class SVGLoad {
 			negativeThickness = false;
 		}
 
-		toPolygons(0.001);
+		toPolygons();
 
 		for (String key : getPolygonByLayers().keySet()) {
 			if (targetLayer != null)
@@ -744,9 +737,9 @@ public class SVGLoad {
 		return colors.get(p);
 	}
 
-	public ArrayList<CSG> extrude(double t, double resolution) throws IOException {
+	public ArrayList<CSG> extrude(double t) throws IOException {
 
-		HashMap<String, ArrayList<CSG>> layers = extrudeLayers(t, resolution, null);
+		HashMap<String, ArrayList<CSG>> layers = extrudeLayers(t, null);
 		ArrayList<CSG> all = new ArrayList<CSG>();
 		for (String key : layers.keySet()) {
 			all.addAll(layers.get(key));
