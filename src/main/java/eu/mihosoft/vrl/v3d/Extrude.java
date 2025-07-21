@@ -95,7 +95,8 @@ public class Extrude {
 			ArrayList<Polygon> newPolygons = new ArrayList<>();
 			CSG extrude;
 			Polygon top = polygon1.flipped();
-			newPolygons.addAll(PolygonUtil.triangulatePolygon(top));
+			ArrayList<Polygon> triangulatePolygon = PolygonUtil.triangulatePolygon(top);
+			newPolygons.addAll(triangulatePolygon);
 			Polygon polygon2 = polygon1.transformed(new Transform().move(dir));
 
 			int numvertices = polygon1.getVertices().size();
@@ -131,8 +132,9 @@ public class Extrude {
 
 			}
 
-			ArrayList<Polygon> topPolygons = PolygonUtil.triangulatePolygon(polygon2);
-			newPolygons.addAll(topPolygons);
+			//ArrayList<Polygon> topPolygons = PolygonUtil.triangulatePolygon(polygon2);
+			for(Polygon p:triangulatePolygon)
+				newPolygons.add(p.flipped().transformed(new Transform().move(dir)));
 			extrude = CSG.fromPolygons(newPolygons);
 
 			return extrude;
@@ -336,7 +338,7 @@ public class Extrude {
 			Vector3d v = vertices.get(i);
 			double abs = Math.abs(zSet - v.z);
 			if (abs > Plane.getEPSILON()) {
-				throw new RuntimeException("isCCW can only be performed on the X Y plane");
+				throw new RuntimeException("isCCW can only be performed on the X Y plane "+abs);
 			}
 			if (v.y > highestLeftVertex.y) {
 				highestLeftVertex = v;
