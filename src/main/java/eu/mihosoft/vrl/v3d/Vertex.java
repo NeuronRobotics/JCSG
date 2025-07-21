@@ -204,7 +204,7 @@ public class Vertex  implements Serializable{
             return false;
         }
         final Vertex other = (Vertex) obj;
-        if (!this.pos.test(other.pos,Plane.EPSILON_Point)) {
+        if (!this.pos.test(other.pos,Plane.getEPSILON_Point())) {
             return false;
         }
         return true;
