@@ -18,7 +18,7 @@ public class BezierPath {
 	BezierListProducer path;
 
 	private ArrayList<Vector3d> plInternal = new ArrayList<Vector3d>();
-	double resolution = 0.075;
+	double resolution = 0.2;
 
 	/** Creates a new instance of Animate */
 	public BezierPath() {
@@ -179,7 +179,7 @@ public class BezierPath {
 		int end = plInternal.size()-1;
 
 		for(Vector3d v:plInternal) {
-			if(Math.abs(v.minus(eval).magnitude())<0.001) {
+			if(Math.abs(v.minus(eval).magnitude())<0.01) {
 				return false;
 			}
 		}
