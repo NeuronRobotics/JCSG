@@ -256,9 +256,10 @@ public final class Polygon implements Serializable {
 		Collections.reverse(getVertices());
 		getPlane().flip();
 		if (!getPlane().checkNormal(vertices)) {
-			new RuntimeException("Failed! the normal provided mismatched to calculated normal").printStackTrace();
-			;
+	//		getPlane().checkNormal(vertices);
+			new RuntimeException("Failed! the normal provided mismatched to calculated normal").printStackTrace();	
 		}
+		
 		return this;
 	}
 
@@ -453,7 +454,7 @@ public final class Polygon implements Serializable {
 	 * @param plane  may be null
 	 * @return a polygon defined by the specified point list
 	 */
-	private static Polygon fromPoints(List<Vector3d> points, PropertyStorage shared, Plane plane,
+	public static Polygon fromPoints(List<Vector3d> points, PropertyStorage shared, Plane plane,
 			boolean allowDegenerate)throws ColinearPointsException  {
 		List<Vertex> vertices = new ArrayList<>();
 		for (Vector3d p : points) {
