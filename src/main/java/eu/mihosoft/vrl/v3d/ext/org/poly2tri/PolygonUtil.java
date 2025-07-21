@@ -175,16 +175,16 @@ public class PolygonUtil {
 				e.printStackTrace();
 			}
 		} else {
-			if (toRemove.size() > 3) {
-				try {
-					back.add(new Polygon(toRemove, concave1.getStorage(), false, concave1.getPlane()));
-				} catch (ColinearPointsException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			} else {
-				System.out.println("Pruned " + toRemove.size());
-			}
+//			if (toRemove.size() > 3) {
+//				try {
+//					back.add(new Polygon(toRemove, concave1.getStorage(), false, concave1.getPlane()));
+//				} catch (ColinearPointsException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+//			} else {
+//				System.out.println("Pruned " + toRemove.size());
+//			}
 		}
 
 		return back;
@@ -501,16 +501,7 @@ public class PolygonUtil {
 //
 //		return result;
 //	}
-	/**
-	 * Concave to convex.
-	 *
-	 * @param incoming the concave
-	 * @return the list
-	 * @throws ColinearPointsException 
-	 */
-	public static ArrayList<Polygon> triangulatePolygon(Polygon incoming) throws ColinearPointsException {
-		return triangulatePolygon(incoming, true);
-	}
+
 
 	/**
 	 * Calculates a quaternion-based transform that rotates `from` vector to align
@@ -554,7 +545,7 @@ public class PolygonUtil {
 	 * @return the list
 	 * @throws ColinearPointsException 
 	 */
-	public static ArrayList<Polygon> triangulatePolygon(Polygon incoming, boolean toCCW) throws ColinearPointsException {
+	public static ArrayList<Polygon> triangulatePolygon(Polygon incoming) throws ColinearPointsException {
 		ArrayList<Polygon> result = new ArrayList<>();
 
 		if (incoming == null)
@@ -575,12 +566,18 @@ public class PolygonUtil {
 			orientationInv = orientation.inverse();
 		}
 
-		boolean cw = !Extrude.isCCW(tmp);
-		Polygon concave = (cw && toCCW) ? Extrude.toCCW(tmp) : tmp;
+		boolean cw = false;
+//		if(!Extrude.isCCW(tmp)) {
+//			ArrayList<Vertex> v =new ArrayList<Vertex>(tmp.getVertices());
+//			Collections.reverse(v);
+//			tmp = new Polygon(v, tmp.getStorage(), false, null);
+//		}
+		Polygon concave =  tmp;
 		double zplane = concave.getVertices().get(0).pos.z;
 		for (Vector3d v : concave.getPoints()) {
-			if (Math.abs(zplane - v.z) > Plane.getEPSILON()) {
-				throw new RuntimeException("Failed to triangulate, points must be coplainer");
+			double abs = Math.abs(zplane - v.z);
+			if (abs > Plane.getEPSILON()) {
+				new RuntimeException("Failed to triangulate, points must be coplainer, delta: "+abs).printStackTrace();
 			}
 		}
 		try {
