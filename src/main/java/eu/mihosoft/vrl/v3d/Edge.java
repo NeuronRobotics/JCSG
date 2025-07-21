@@ -531,11 +531,11 @@ public class Edge {
 	 *         <code>false</code> otherwise
 	 */
 	public boolean colinear(Vector3d p) {
-		return colinear(p, Plane.EPSILON_Point);
+		return colinear(p, Plane.getEPSILON_Point());
 	}
 	
 	public boolean colinear(Edge p) {
-		return colinear(p.getP1().pos, Plane.EPSILON_Point) && colinear(p.getP2().pos, Plane.EPSILON_Point);
+		return colinear(p.getP1().pos, Plane.getEPSILON_Point()) && colinear(p.getP2().pos, Plane.getEPSILON_Point());
 	}
 	
 	
@@ -676,12 +676,12 @@ public class Edge {
 			return false;
 		}
 		final Edge other = (Edge) obj;
-		if (this.p1.pos.test(other.p1.pos, Plane.EPSILON_Point)
-				&& this.p2.pos.test(other.p2.pos, Plane.EPSILON_Point)) {
+		if (this.p1.pos.test(other.p1.pos, Plane.getEPSILON_Point())
+				&& this.p2.pos.test(other.p2.pos, Plane.getEPSILON_Point())) {
 			return true;
 		}
-		if (this.p1.pos.test(other.p2.pos, Plane.EPSILON_Point)
-				&& this.p2.pos.test(other.p1.pos, Plane.EPSILON_Point)) {
+		if (this.p1.pos.test(other.p2.pos, Plane.getEPSILON_Point())
+				&& this.p2.pos.test(other.p1.pos, Plane.getEPSILON_Point())) {
 			return true;
 		}
 		if (!(Objects.equals(this.p1, other.p1) || Objects.equals(this.p2, other.p1))) {
@@ -913,25 +913,26 @@ public class Edge {
 	}
 
 	public static boolean falseBoundaryEdgeSharedWithOtherEdge(Edge fbe, Edge e) {
-	    Vector3d p1 = fbe.getP1().pos;
-	    Vector3d p2 = fbe.getP2().pos;
-	    Vector3d q1 = e.getP1().pos;
-	    Vector3d q2 = e.getP2().pos;
 
-	    // 1. Skip edges sharing endpoints
-	    boolean sharedQ1 = q1.equals(p1) || q1.equals(p2);
-	    boolean sharedQ2 = q2.equals(p1) || q2.equals(p2);
-	    if (sharedQ1 && sharedQ2) return false;
+		// we don't consider edges with shared end-points since we are only
+		// interested in "false-boundary-edge"-cases
+		boolean sharedEndPointsp1 = e.getP1().pos.test(fbe.getP1().pos) || e.getP1().pos.test(fbe.getP2().pos);
+				
+		boolean sharedP2= e.getP2().pos.test(fbe.getP1().pos) || e.getP2().pos.test(fbe.getP2().pos);
 
-	    // 2. For each endpoint of e that lies “on” fbe segment, test if it's really colinear
-	    if (!sharedQ1 && fbe.contains(q1)) {
-	        if (distancePointToLine(q1, p1, p2) > Plane.EPSILON) return true;
-	    }
-	    if (!sharedQ2 && fbe.contains(q2)) {
-	        if (distancePointToLine(q2, p1, p2) > Plane.EPSILON) return true;
-	    }
+		boolean containsP2 = fbe.contains(e.getP2().pos);
+		boolean containsP1 = fbe.contains(e.getP1().pos);
 
-	    return false;
+		if(containsP2||containsP1) {
+			//System.out.println("Edge Contains point!");
+		}
+		if ((!sharedP2) && containsP2) {
+			return true;
+		}
+		if ((!sharedEndPointsp1) && containsP1) {
+			return true;
+		}
+		return false;
 	}
 
 	/** Distance from point r to the infinite line through a → b */
