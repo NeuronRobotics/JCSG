@@ -144,7 +144,7 @@ public class Slice {
 		}
 
 		/**
-		 * An interface for slicking CSG objects into lists of points that can be
+		 * An interface for slicing CSG objects into lists of points that can be
 		 * extruded back out
 		 * 
 		 * @param incoming
@@ -164,7 +164,7 @@ public class Slice {
 			List<Polygon> rawPolygons = new ArrayList<>();
 			CSG finalPart = incoming.transformed(slicePlane.inverse()
 					).toolOffset(normalInsetDistance);
-			double sliceThick= 0.0001;
+			double sliceThick= 0.001;
 			if(finalPart.getTotalZ()<sliceThick)
 				throw new RuntimeException("Too thin to slice! "+sliceThick+" mm minimum");
 			if(finalPart.getMaxZ()<sliceThick) {
@@ -183,9 +183,7 @@ public class Slice {
 			// Loop over each polygon in the slice of the incoming CSG
 			// Add the polygon to the final slice if it lies entirely in the z plane
 			// println "Preparing CSG slice"
-			CSG slicePart = finalPart
-					
-					.intersect(planeCSG);
+			CSG slicePart = finalPart.intersect(planeCSG);
 			for (Polygon p : slicePart.getPolygons()) {
 				if (Slice.isPolygonAtZero(p)) {
 					rawPolygons.add(p);
@@ -280,7 +278,9 @@ public class Slice {
 							// Thread.sleep(1000)
 							List<Vector3d> p = new ArrayList<>();
 							for (int[] it : listOfPointsForThisPoly) {
-								p.add(new Vector3d((it[0] * scaleX) + xOffset, (it[1] * scaleY) + yOffset, 0));
+								Vector3d e = new Vector3d((it[0] * scaleX) + xOffset, (it[1] * scaleY) + yOffset, 0);
+								
+								addPoint(p, e);
 							}
 
 							Polygon polyNew;
@@ -309,7 +309,8 @@ public class Slice {
 				// Thread.sleep(1000)
 				List<Vector3d> p = new ArrayList<>();
 				for (int[] it : listOfPointsForThisPoly) {
-					p.add(new Vector3d((it[0] * scaleX) + xOffset, (it[1] * scaleY) + yOffset, 0));
+					Vector3d e = new Vector3d((it[0] * scaleX) + xOffset, (it[1] * scaleY) + yOffset, 0);
+					addPoint(p, e);
 				}
 				try {
 					polys.add(Polygon.fromPoints(p));
@@ -328,6 +329,15 @@ public class Slice {
 			// BowlerStudioController.getBowlerStudio() .addObject(polys, new File("."));
 			//com.neuronrobotics.sdk.common.Log.error("Slice took: " + (((double) (System.currentTimeMillis() - startTime)) / 1000.0) + " seconds");
 			return polys;
+		}
+		private void addPoint(List<Vector3d> p, Vector3d e) {
+			if(p.size()>0) {
+				if(e.distance(p.get(0))<Plane.getEPSILON())
+					return;
+				if(e.distance(p.get(p.size()-1))<Plane.getEPSILON())
+					return;
+			}
+			p.add(e);
 		}
 
 		Object[] searchNext(int[] pixStart, WritableImage obj_img, int lastSearchIndex) {
@@ -466,7 +476,7 @@ public class Slice {
 	private static boolean isVertexAtZero(Vertex vertex) {
 		// The upper and lower bounds for checking the vertex z coordinate
 		// against
-		final double SLICE_UPPER_BOUND = 0.001, SLICE_LOWER_BOUND = -0.001;
+		final double SLICE_UPPER_BOUND = Plane.getEPSILON(), SLICE_LOWER_BOUND = -Plane.getEPSILON();
 
 		// The vertex is at zero if it is within tight bounds (to account for
 		// floating point error)
