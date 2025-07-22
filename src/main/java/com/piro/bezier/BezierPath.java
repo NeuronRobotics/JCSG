@@ -18,7 +18,7 @@ public class BezierPath {
 	BezierListProducer path;
 
 	private ArrayList<Vector3d> plInternal = new ArrayList<Vector3d>();
-	private static int resolutionPoints = 2;
+	private static int resolutionPoints = 4;
 
 	/** Creates a new instance of Animate */
 	public BezierPath() {
@@ -179,7 +179,19 @@ public class BezierPath {
 	}
 
 	private double getResolution() {
-		double points = 1.0/((double)(getResolutionPoints()+1));
+		Vector3d start = path.bezierSegs.get(path.bezierSegs.size() - 1).eval(0);
+		Vector3d end = path.bezierSegs.get(path.bezierSegs.size() - 1).eval(1);
+		double magnitude = start.minus(end).magnitude();
+		if(magnitude<Plane.getEPSILON())
+			return 1;
+		double d = magnitude;
+		double points = 1.0/d;
+		double min = 1.0/((double)getResolutionPoints());
+		if(points<min)
+			points=min;
+		if(points>0.5)
+			points=0.5;
+//		System.out.println("Path with inc "+points);
 		return points;
 	}
 
