@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import eu.mihosoft.vrl.v3d.svg.SVGLoad;
@@ -18,9 +19,14 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.CullFace;
 
 public class SVGLoadTest {
+	@Before
+	public void setup() {
+		CSG.setPreventNonManifoldTriangles(true);
+	}
 	//Alexes_Bad.svg
 	@Test
 	public void Alexes_Bad() throws IOException {
+		
 		JavaFXInitializer.go();
 		File svg = new File("Alexes_Bad.svg");
 		if (!svg.exists())
