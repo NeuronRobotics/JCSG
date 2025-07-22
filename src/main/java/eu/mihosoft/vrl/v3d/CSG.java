@@ -1609,8 +1609,6 @@ public class CSG implements IuserAPI, Serializable {
 		try {
 			sb.append("solid v3d.csg\n");
 			for (Polygon p : getPolygons()) {
-				if (p.areAllPointsCollinear())
-					continue;
 				try {
 					p.toStlString(sb);
 				} catch (Exception ex) {
@@ -2144,8 +2142,7 @@ public class CSG implements IuserAPI, Serializable {
 			toAdd.add(p);
 		} else {
 
-//			try {
-			if (!p.areAllPointsCollinear()) {
+
 				List<Polygon> triangles;
 				try {
 					triangles = PolygonUtil.triangulatePolygon(p);
@@ -2157,16 +2154,6 @@ public class CSG implements IuserAPI, Serializable {
 					e.printStackTrace();
 				}
 
-			} else {
-				System.err.println("Polygon is colinear, removing " + p);
-				return;
-			}
-//			} catch (Throwable ex) {
-////				System.err.println("Failed to triangulate "+p);
-//				ex.printStackTrace();
-//				progressMoniter.progressUpdate(1, 1, "Pruning bad polygon CSG::updatePolygons " + p, null);
-//				return;
-//			}
 
 		}
 		return;
@@ -2306,8 +2293,6 @@ public class CSG implements IuserAPI, Serializable {
 		}
 
 		ArrayList<Polygon> newpolygons = this.getPolygons().stream().map(p -> {
-			if (p.areAllPointsCollinear())
-				return null;
 			try {
 				return p.transformed(transform);
 			} catch (Exception e) {
