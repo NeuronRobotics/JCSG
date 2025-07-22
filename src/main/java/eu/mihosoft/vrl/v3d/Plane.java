@@ -56,7 +56,7 @@ public class Plane implements Serializable {
 	 * 0.00000001;
 	 */
 
-	private static double EPSILON = 1.0e-6;
+	private static double EPSILON = 1.0e-8;
 	private static double EPSILON_Point = getEPSILON();
 	// public static double EPSILON_duplicate = 1.0e-4;
 	/**
@@ -175,7 +175,7 @@ public class Plane implements Serializable {
 //		if (isValidNormal(normal, getEPSILON() / 10)) {
 //			return normal.normalized();
 //		}
-		throw new ColinearPointsException("Failed to compute the normal!");
+		throw new ColinearPointsException("Failed to compute the normal! "+vertices);
 	}
 
 	public static Vector3d computeNormalCrossProduct(List<Vertex> verts) {
