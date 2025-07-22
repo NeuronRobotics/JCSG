@@ -125,7 +125,7 @@ public class PolygonUtil {
 						if (i == j)
 							continue;
 						Edge test2 = edges.get(j);
-						boolean b = Edge.falseBoundaryEdgeSharedWithOtherEdge(test, test2);
+						Vertex v = Edge.falseBoundaryEdgeSharedWithOtherEdge(test, test2);
 						Optional<Vector3d> cross = test.getCrossingPoint(test2);
 						boolean c = cross.isPresent() && i < j;
 						if (c) {
@@ -137,11 +137,10 @@ public class PolygonUtil {
 //										.println("Edges cross! " + cross.get() +
 //												" pruned "+(x-i));
 						}
-						if (b) {
+						if (v!=null) {
 							System.out.println("\n\nFalse Boundary " + test + " \n " + test2);
 							try {
-								Vertex vBad = test.getCommonPoint(test2);
-								toRemove.add(vBad);
+								toRemove.add(v);
 							} catch (Exception e) {
 								// throw new RuntimeException(e);
 								return;
@@ -530,10 +529,11 @@ public class PolygonUtil {
 		Vector3d u3 = u.transformed(transform).normalized();
 
 		Polygon test = concave.transformed(transform);
-		if (1 - Math.abs(test.plane.getNormal().z) > Plane.getEPSILON()) {
+		double abs = Math.abs(test.plane.getNormal().z);
+		if (1 - abs > Plane.getEPSILON()) {
 			System.out.println("Error with " + test);
 			Plane p = Plane.createFromPoints(test.getVertices());
-			throw new RuntimeException("Failed to reorent the polygon for processing!");
+			throw new ColinearPointsException("Failed to reorent the polygon for processing!");
 		}
 		return transform;
 	}
