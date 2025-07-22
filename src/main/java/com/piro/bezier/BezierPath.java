@@ -184,15 +184,15 @@ public class BezierPath {
 		double magnitude = start.minus(end).magnitude();
 		if(magnitude<Plane.getEPSILON())
 			return 1;
-		double d = magnitude;
-		double points = 1.0/d;
+		double dpoints = magnitude/0.5;
+		double increment = 1.0/dpoints;
 		double min = 1.0/((double)getResolutionPoints());
-		if(points<min)
-			points=min;
-		if(points>0.5)
-			points=0.5;
+		if(increment<min)
+			increment=min;
+		if(increment>0.5)
+			increment=0.5;
 //		System.out.println("Path with inc "+points);
-		return points;
+		return increment;
 	}
 
 	private boolean addingPoint(double i) {
@@ -203,8 +203,11 @@ public class BezierPath {
 	private boolean setThePoint(Vector3d eval) {
 		int end = plInternal.size()-1;
 
-		for(Vector3d v:plInternal) {
-			if(Math.abs(v.minus(eval).magnitude())<0.01) {
+		if(end>0) {
+			if(Math.abs(plInternal.get(0).minus(eval).magnitude())<Plane.getEPSILON()) {
+				return false;
+			}
+			if(Math.abs(plInternal.get(end).minus(eval).magnitude())<Plane.getEPSILON()) {
 				return false;
 			}
 		}
@@ -229,10 +232,10 @@ public class BezierPath {
 	 */
 	public Vector3d eval(double  interp) {
 		Vector3d point = new Vector3d(0, 0);// = new Vector3d();
-		if (interp < 0.001)
-			interp = (double ) 0.001;
-		if (interp > 0.9999)
-			interp = (double ) 0.9999;
+//		if (interp < 0.001)
+//			interp = (double ) 0.001;
+//		if (interp > 0.9999)
+//			interp = (double ) 0.9999;
 
 		double curLength = path.curveLength * interp;
 		for (Iterator<Bezier> it = path.bezierSegs.iterator(); it.hasNext();) {
