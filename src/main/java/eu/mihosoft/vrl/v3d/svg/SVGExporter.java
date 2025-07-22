@@ -187,7 +187,7 @@ public class SVGExporter {
 			int i = 0;
 			long start = System.currentTimeMillis();
 			for (CSG tmp : currentCsg) {
-				////System.out.println("Slicing CSG " + tmp.getName() + " " + (i + 1) + " of " + (currentCsg.size()));
+				System.out.println("Slicing CSG " + tmp.getName() + " " + (i + 1) + " of " + (currentCsg.size()));
 				addCsg(tmp, svg);
 				i++;
 			}
@@ -200,7 +200,9 @@ public class SVGExporter {
 	}
 	private static void addCsg(CSG currentCsg, SVGExporter svg) throws IOException {
 		svg.setName(currentCsg.getName());
+		int i=0;
 		for(Transform slicePlane:currentCsg.getSlicePlanes()){
+			//System.out.println(currentCsg.getName()+" Slicing "+((i++)+1));
 			List<Polygon> polygons = Slice.slice(currentCsg.prepMfg(), slicePlane, 0);
 			for( Polygon p: polygons){
 				svg.toPolyLine(p );
