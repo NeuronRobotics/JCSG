@@ -580,13 +580,28 @@ public final class Node {
 						}
 					}
 					int polygonType = COPLANAR;
+					boolean someF =false;
+					boolean someB=false;
 					for (int i = 0; i < size(polygonIndex, polygonSize); i++) {
 						double t = planePointDistance(polygonIndex, i);
 						int type = (t < negEpsilon) ? BACK : (t > posEpsilon) ? FRONT : COPLANAR;
-						polygonType |= type;
 						types[i + polygonNumber * maxPolygonSize] = type;
+//						polygonType |= type;
+						if(type==BACK)
+							someB=true;
+						if(type==FRONT)
+							someF=true;
 					}
-
+					polygonType=COPLANAR;
+					if(someF && (!someB) ) {
+						polygonType=FRONT;
+					}
+					if((!someF) && (someB) ) {
+						polygonType=BACK;
+					}
+					if((someF) && (someB) ) {
+						polygonType=SPANNING;
+					}
 					if (polygonType == COPLANAR) {
 						isCopy[polygonIndex] = true;
 						if (planeDotPolygonNormal(polygonIndex) > 0) {
@@ -753,7 +768,6 @@ public final class Node {
 			List<Integer> types = new ArrayList<>();
 			boolean someF =false;
 			boolean someB=false;
-			boolean someC=false;
 			for (int i = 0; i < size; i++) {
 				double t = plane.getNormal().dot(polygon.getVertices().get(i).pos) - plane.getDist();
 				int type = (t < negEpsilon) ? BACK : (t > posEpsilon) ? FRONT : COPLANAR;
