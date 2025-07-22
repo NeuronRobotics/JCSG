@@ -195,13 +195,8 @@ public final class Polygon implements Serializable {
 			throw new RuntimeException("Invalid polygon: at least 3 vertices expected, got: " + getVertices().size());
 		}
 
-		Edge e = new Edge(getVertices().get(0), getVertices().get(1));
-		for (int i = 2; i < getVertices().size(); i++) {
-			if (!e.colinear(getVertices().get(i).pos)) {
-				setDegenerate(false);
-				return;
-			}
-		}
+		if( !areAllPointsCollinear())
+			return;
 		if (!allowDegenerate) {
 			// throw runtimeException;
 			new RuntimeException("This polygon is colinear").printStackTrace();
@@ -802,7 +797,7 @@ public final class Polygon implements Serializable {
 		return this;
 	}
 
-	public boolean areAllPointsCollinear() {
+	private boolean areAllPointsCollinear() {
 		// If we have 2 or fewer points, they're always collinear
 		if (vertices.size() <= 2) {
 			return true;
