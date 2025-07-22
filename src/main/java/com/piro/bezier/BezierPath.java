@@ -7,6 +7,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import eu.mihosoft.vrl.v3d.Edge;
+import eu.mihosoft.vrl.v3d.Extrude;
 import eu.mihosoft.vrl.v3d.Plane;
 import eu.mihosoft.vrl.v3d.Vector3d;
 import eu.mihosoft.vrl.v3d.Vertex;
@@ -108,28 +109,28 @@ public class BezierPath {
 				break;
 			case 'Q':
 				path.curvetoQuadraticAbs(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens), nextFloat(tokens));
-				for (double i = getResolution(); i < 1; i += getResolution()) {
+				for (double i = 0; i < 1; i += getResolution()) {
 					addingPoint(i);
 				}
 				addingPoint(1);
 				break;
 			case 'q':
 				path.curvetoQuadraticAbs(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens), nextFloat(tokens));
-				for (double i = getResolution(); i < 1; i += getResolution()) {
+				for (double i = 0; i < 1; i += getResolution()) {
 					addingPoint(i);
 				}
 				addingPoint(1);
 				break;
 			case 'T':
 				path.curvetoQuadraticSmoothAbs(nextFloat(tokens), nextFloat(tokens));
-				for (double i = getResolution(); i < 1; i += getResolution()) {
+				for (double i = 0; i < 1; i += getResolution()) {
 					addingPoint(i);
 				}
 				addingPoint(1);
 				break;
 			case 't':
 				path.curvetoQuadraticSmoothRel(nextFloat(tokens), nextFloat(tokens));
-				for (double i = getResolution(); i < 1; i += getResolution()) {
+				for (double i = 0; i < 1; i += getResolution()) {
 					addingPoint(i);
 				}
 				addingPoint(1);
@@ -137,7 +138,7 @@ public class BezierPath {
 			case 'C':
 				path.curvetoCubicAbs(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens), nextFloat(tokens),
 						nextFloat(tokens), nextFloat(tokens));
-				for (double i = getResolution(); i < 1; i += getResolution()) {
+				for (double i = 0; i < 1; i += getResolution()) {
 					addingPoint(i);
 				}
 				addingPoint(1);
@@ -145,21 +146,21 @@ public class BezierPath {
 			case 'c':
 				path.curvetoCubicRel(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens), nextFloat(tokens),
 						nextFloat(tokens), nextFloat(tokens));
-				for (double i = getResolution(); i < 1; i += getResolution()) {
+				for (double i = 0; i < 1; i += getResolution()) {
 					addingPoint(i);
 				}
 				addingPoint(1);
 				break;
 			case 'S':
 				path.curvetoCubicSmoothAbs(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens), nextFloat(tokens));
-				for (double i = getResolution(); i < 1; i += getResolution()) {
+				for (double i =0; i < 1; i += getResolution()) {
 					addingPoint(i);
 				}
 				addingPoint(1);
 				break;
 			case 's':
 				path.curvetoCubicSmoothRel(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens), nextFloat(tokens));
-				for (double i = getResolution(); i < 1; i += getResolution()) {
+				for (double i = 0; i < 1; i += getResolution()) {
 					addingPoint(i);
 				}
 				addingPoint(1);
@@ -204,10 +205,10 @@ public class BezierPath {
 		int end = plInternal.size()-1;
 
 		if(end>0) {
-			if(Math.abs(plInternal.get(0).minus(eval).magnitude())<Plane.getEPSILON()) {
+			if(Math.abs(plInternal.get(0).minus(eval).magnitude())<Extrude.getMinimumDIstance()) {
 				return false;
 			}
-			if(Math.abs(plInternal.get(end).minus(eval).magnitude())<Plane.getEPSILON()) {
+			if(Math.abs(plInternal.get(end).minus(eval).magnitude())<Extrude.getMinimumDIstance()) {
 				return false;
 			}
 		}
