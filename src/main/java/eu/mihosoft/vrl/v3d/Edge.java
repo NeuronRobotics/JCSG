@@ -873,7 +873,7 @@ public class Edge {
 		}
 
 		List<Edge> realBndEdges = bndEdgeStream
-				.filter(be -> edges.stream().filter(e -> falseBoundaryEdgeSharedWithOtherEdge(be, e)).count() == 0)
+				.filter(be -> edges.stream().filter(e -> falseBoundaryEdgeSharedWithOtherEdge(be, e)!=null).count() == 0)
 				.collect(Collectors.toList());
 
 		//
@@ -912,13 +912,17 @@ public class Edge {
 		return result;
 	}
 
-	public static boolean falseBoundaryEdgeSharedWithOtherEdge(Edge fbe, Edge e) {
+	public static Vertex falseBoundaryEdgeSharedWithOtherEdge(Edge fbe, Edge e) {
 
 		// we don't consider edges with shared end-points since we are only
 		// interested in "false-boundary-edge"-cases
-		boolean sharedEndPointsp1 = e.getP1().pos.test(fbe.getP1().pos) || e.getP1().pos.test(fbe.getP2().pos);
+		boolean test1 = e.getP1().pos.test(fbe.getP1().pos);
+		boolean test3 = e.getP1().pos.test(fbe.getP2().pos);
+		boolean sharedEndPointsp1 = test1 || test3;
 				
-		boolean sharedP2= e.getP2().pos.test(fbe.getP1().pos) || e.getP2().pos.test(fbe.getP2().pos);
+		boolean test = e.getP2().pos.test(fbe.getP1().pos);
+		boolean test2 = e.getP2().pos.test(fbe.getP2().pos);
+		boolean sharedP2= test || test2;
 
 		boolean containsP2 = fbe.contains(e.getP2().pos);
 		boolean containsP1 = fbe.contains(e.getP1().pos);
@@ -927,12 +931,12 @@ public class Edge {
 			//System.out.println("Edge Contains point!");
 		}
 		if ((!sharedP2) && containsP2) {
-			return true;
+			return e.getP2();
 		}
 		if ((!sharedEndPointsp1) && containsP1) {
-			return true;
+			return e.getP1();
 		}
-		return false;
+		return null;
 	}
 
 	/** Distance from point r to the infinite line through a → b */
