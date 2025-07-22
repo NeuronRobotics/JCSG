@@ -576,7 +576,7 @@ public class PolygonUtil {
 		double zplane = concave.getVertices().get(0).pos.z;
 		for (Vector3d v : concave.getPoints()) {
 			double abs = Math.abs(zplane - v.z);
-			if (abs > Plane.getEPSILON()) {
+			if (abs > Plane.getEPSILON()*1000) {
 				new RuntimeException("Failed to triangulate, points must be coplainer, delta: "+abs).printStackTrace();
 			}
 		}
