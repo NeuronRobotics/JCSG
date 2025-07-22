@@ -26,6 +26,8 @@ import org.apache.batik.bridge.UserAgentAdapter;
 import org.apache.batik.dom.svg.SVGItem;
 import org.apache.batik.util.XMLResourceDescriptor;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.svg.SVGImageElement;
@@ -90,7 +92,12 @@ public class SVGLoad {
 				return Double.parseDouble(split[0]) / units.get(key);
 			}
 		}
-		return Double.parseDouble(value);
+		try {
+			return Double.parseDouble(value);
+		}catch(NumberFormatException ex) {
+			// if the size is not defined, then the scale can not be computed, using internal data
+			throw ex;
+		}
 	}
 
 	private void setScale(double value) {
@@ -276,12 +283,20 @@ public class SVGLoad {
 
 	private void loadAllGroups( Transform startingFrame) {
 
-		NodeList pn = getSVGDocument().getDocumentElement().getChildNodes();// .getElementsByTagName("g");
+		Element documentElement = getSVGDocument().getDocumentElement();
+		NodeList pn = documentElement.getChildNodes();// .getElementsByTagName("g");
+		String viewbox = documentElement.getAttribute("viewBox");
 		try {
-			String hval = getSVGDocument().getDocumentElement().getAttribute("height");
-			String wval = getSVGDocument().getDocumentElement().getAttribute("width");
-			String viewbox = getSVGDocument().getDocumentElement().getAttribute("viewBox");
-			double viewW = Double.parseDouble(viewbox.split(" ")[2]);
+		double viewW = Double.parseDouble(viewbox.split(" ")[2]);
+		double viewH = Double.parseDouble(viewbox.split(" ")[3]);
+		try {
+			NamedNodeMap all = documentElement.getAttributes();
+			for(int i=0;i<all.getLength();i++) {
+				System.err.println("Attribute found "+all.item(i).getNodeName());
+			}
+			String hval = documentElement.getAttribute("height");
+			String wval = documentElement.getAttribute("width");
+			
 			setScale(1);// use to compute bounds
 			height = toMM(hval);
 			width = toMM(wval);
@@ -290,8 +305,14 @@ public class SVGLoad {
 			//// width ="+width+" with scale "+(int)(value*25.4)+" DPI ");
 			setScale(value);
 		} catch (Throwable t) {
-			t.printStackTrace();
-			height = 0;
+			//t.printStackTrace();
+			height =0;// toMM(viewH+"px");
+			width = 0;//toMM(viewW+"px");
+			setScale(3.543307); // Assume 90 DPI and mm
+		}
+		}catch(NumberFormatException ex) {
+
+			height =0;
 			width = 0;
 			setScale(3.543307); // Assume 90 DPI and mm
 		}
@@ -704,13 +725,12 @@ public class SVGLoad {
 			}
 			ArrayList<CSG> parts = csgByLayers.get(key);
 			parts.clear();
-			boolean b = CSG.isPreventNonManifoldTriangles();
-			CSG.setPreventNonManifoldTriangles(false);
+
 			for (Polygon p : getPolygonByLayers().get(key)) {
 				boolean isHole = p.isHole();
 				CSG newbit;
 				try {
-					newbit = Extrude.getExtrusionEngine().extrude(new Vector3d(0, 0, thickness), p);
+					newbit = Extrude.getExtrusionEngine().extrude(new Vector3d(0, 0, thickness+(isHole?1:0)), p);
 					if (negativeThickness) {
 						newbit = newbit.toZMax();
 					}
@@ -721,13 +741,11 @@ public class SVGLoad {
 						// newbit=newbit.movez(negativeThickness?0.5:-0.5);
 						newbit.setIsHole(true);
 					}
-					newbit.triangulate();
 					parts.add(newbit);
 				} catch (Exception ex) {
 					ex.printStackTrace();
 				}
 			}
-			CSG.setPreventNonManifoldTriangles(b);
 		}
 
 		return csgByLayers;
