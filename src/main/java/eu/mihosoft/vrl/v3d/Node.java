@@ -77,6 +77,8 @@ public final class Node {
 
 	private long maxDepth = -1;
 
+	private int count = 1;
+
 	/**
 	 * Constructor.
 	 *
@@ -578,24 +580,13 @@ public final class Node {
 						}
 					}
 					int polygonType = COPLANAR;
-					boolean somePointsInfront = false;
-					boolean somePointsInBack = false;
 					for (int i = 0; i < size(polygonIndex, polygonSize); i++) {
 						double t = planePointDistance(polygonIndex, i);
 						int type = (t < negEpsilon) ? BACK : (t > posEpsilon) ? FRONT : COPLANAR;
-						if (type == BACK)
-							somePointsInBack = true;
-						if (type == FRONT)
-							somePointsInfront = true;
+						polygonType |= type;
 						types[i + polygonNumber * maxPolygonSize] = type;
 					}
-					if (somePointsInBack && somePointsInfront)
-						polygonType = SPANNING;
-					else if (somePointsInBack) {
-						polygonType = BACK;
-					} else if (somePointsInfront) {
-						polygonType = FRONT;
-					}
+
 					if (polygonType == COPLANAR) {
 						isCopy[polygonIndex] = true;
 						if (planeDotPolygonNormal(polygonIndex) > 0) {
@@ -750,23 +741,39 @@ public final class Node {
 				if (t > posEpsilon) {
 					// com.neuronrobotics.sdk.common.Log.error("Non flat polygon, increasing
 					// positive epsilon "+t);
-					posEpsilon = t + Plane.getEPSILON();
+					posEpsilon = t;
 				}
 				if (t < negEpsilon) {
 					// com.neuronrobotics.sdk.common.Log.error("Non flat polygon, decreasing
 					// negative epsilon "+t);
-					negEpsilon = t - Plane.getEPSILON();
+					negEpsilon = t;
 				}
 			}
 			int polygonType = 0;
 			List<Integer> types = new ArrayList<>();
-
+			boolean someF =false;
+			boolean someB=false;
+			boolean someC=false;
 			for (int i = 0; i < size; i++) {
 				double t = plane.getNormal().dot(polygon.getVertices().get(i).pos) - plane.getDist();
 				int type = (t < negEpsilon) ? BACK : (t > posEpsilon) ? FRONT : COPLANAR;
-				// this bitwise or means that if some points are coplainar and some front, its front
-				polygonType |= type;
 				types.add(type);
+				//polygonType = polygonType|type;
+
+				if(type==BACK)
+					someB=true;
+				if(type==FRONT)
+					someF=true;
+			}
+			polygonType=COPLANAR;
+			if(someF && (!someB) ) {
+				polygonType=FRONT;
+			}
+			if((!someF) && (someB) ) {
+				polygonType=BACK;
+			}
+			if((someF) && (someB) ) {
+				polygonType=SPANNING;
 			}
 			// Put the polygon in the correct list, splitting it when necessary.
 			switch (polygonType) {
@@ -914,7 +921,8 @@ public final class Node {
 	 * @throws Exception
 	 */
 	public final void build(ArrayList<Polygon> polygons) throws Exception {
-		build(polygons, 0, polygons.size());
+		int size = count;
+		build(polygons, 0, polygons.size()*size);
 	}
 
 	/**
@@ -926,20 +934,15 @@ public final class Node {
 	 * @param polygons polygons used to build the BSP
 	 * @throws Exception
 	 */
-	public final void build(ArrayList<Polygon> polygons, long depth, long maxDepth) throws Exception {
-//		if (depth > maxDepth) {
-//			throw new RuntimeException("Impossible Node depth " + depth + " with " + polygons.size() + " remaining max = "+maxDepth );
-//		}
-//		if (depth > 200) {
-//			com.neuronrobotics.sdk.common.Log.error("Node depth " + depth + " with " + polygons.size() + " remaining ");
-//			Plane.setUseDebugger(true);
-//		} else {
-//			Plane.setUseDebugger(false);
-//		}
+	public final int build(ArrayList<Polygon> polygons, long depth, long maxDepth) throws Exception {
+		if (depth > maxDepth) {
+			new RuntimeException("Impossible Node depth " + depth + " with " + polygons.size() + " remaining max = "+maxDepth ).printStackTrace();
+		}
 
+		
 		if (polygons.isEmpty()) {
 
-			return;
+			return 0;
 		}
 
 		if (this.getPlane() == null) {
@@ -951,21 +954,26 @@ public final class Node {
 		ArrayList<Polygon> backP = new ArrayList<>();
 
 		// parellel version does not work here
-
-		splitPolygon(polygons, this.polygons, this.polygons, frontP, backP);
+		 List<Polygon> coplanarFront=this.polygons;
+		 List<Polygon> coplanarBack=this.polygons;
+		splitPolygon(polygons, coplanarFront, coplanarBack, frontP, backP);
+//		if(this.polygons.size()==0) {
+//			throw new RuntimeException("Binary Spacial Partitioning Tree step failed!");
+//		}
 
 		if (frontP.size() > 0) {
 			if (this.front == null) {
 				this.front = new Node();
 			}
-			this.front.build(frontP, depth + 1, maxDepth);
+			count+=this.front.build(frontP, depth + 1, maxDepth);
 		}
 		if (backP.size() > 0) {
 			if (this.back == null) {
 				this.back = new Node();
 			}
-			this.back.build(backP, depth + 1, maxDepth);
+			count+=this.back.build(backP, depth + 1, maxDepth);
 		}
+		return count;
 	}
 
 	public Plane getPlane() {
