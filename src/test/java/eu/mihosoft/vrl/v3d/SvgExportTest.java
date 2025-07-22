@@ -153,18 +153,22 @@ public class SvgExportTest {
 		carrot.addSlicePlane(new Transform());
 		carrot.addSlicePlane(slicePlane);
 		
-		CSG sphere = new Sphere(10,80,80)
+		CSG sphere = new Sphere(10,40,40)
 						.setCenter(new Vector3d(30, 30))
 						.toCSG();
 		for(int i=0;i<10;i++){
 			Transform sp = new Transform();
-			sp.translateZ(0.9*i);
+			sp.translateZ(0.4*i);
 			sphere.addSlicePlane(sp);
 		}
+		System.out.println("Done slicing");
 		carrot.setName("Square Sections");
 		sphere.setName("Circle Sections");
 		File f = new File("SVGExportTest5.svg");
+		System.out.println("Exporting the polygons...");
 		SVGExporter.export(Arrays.asList(carrot,sphere),f);
+		System.out.println("Loading generated polygons");
 		SVGLoad. toPolygons( f);
+		System.out.println("testManyCSGSlices complete");
 	}
 }
