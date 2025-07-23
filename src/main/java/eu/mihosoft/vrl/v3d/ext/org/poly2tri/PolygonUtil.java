@@ -80,12 +80,14 @@ public class PolygonUtil {
 		for (int i = 0; i < v1.size(); i++) {
 			boolean match = false;
 			for (int j = 0; j < modifiable.size(); j++) {
-				if (v1.get(i).pos.test(modifiable.get(j).pos, 1E-3)) {
+				if (v1.get(i).pos.test(modifiable.get(j).pos, Plane.getEPSILON())) {
 					match = true;
 				}
 			}
 			if (!match)
 				modifiable.add(v1.get(i));
+			else
+				System.err.println("Duplicate Point! "+v1.get(i));
 		}
 		for (int i = 0; i < modifiable.size(); i++) {
 			Edge e = new Edge(modifiable.get(i), modifiable.get((i + 1) % modifiable.size()));
@@ -138,9 +140,9 @@ public class PolygonUtil {
 //												" pruned "+(x-i));
 						}
 						if (v!=null) {
-							System.out.println("\n\nFalse Boundary " + test + " \n " + test2);
+							//System.out.println("\n\nFalse Boundary " + test + " \n " + test2);
 							try {
-								toRemove.add(v);
+							//	toRemove.add(v);
 							} catch (Exception e) {
 								// throw new RuntimeException(e);
 								return;
@@ -530,9 +532,9 @@ public class PolygonUtil {
 
 		Polygon test = concave.transformed(transform);
 		double abs = Math.abs(test.plane.getNormal().z);
-		if (1 - abs > Plane.getEPSILON()) {
+		if (1 - abs > 0.1) {
 			System.out.println("Error with " + test);
-			Plane p = Plane.createFromPoints(test.getVertices());
+			//Plane p = Plane.createFromPoints(test.getVertices());
 			throw new ColinearPointsException("Failed to reorent the polygon for processing!");
 		}
 		return transform;
@@ -576,7 +578,7 @@ public class PolygonUtil {
 		double zplane = concave.getVertices().get(0).pos.z;
 		for (Vector3d v : concave.getPoints()) {
 			double abs = Math.abs(zplane - v.z);
-			if (abs > Plane.getEPSILON()*1000) {
+			if (abs > 0.1) {
 				new RuntimeException("Failed to triangulate, points must be coplainer, delta: "+abs).printStackTrace();
 			}
 		}
@@ -586,12 +588,6 @@ public class PolygonUtil {
 
 			ArrayList<Polygon> repairedList = repairOverlappingEdges(concave);
 			for (Polygon repaired : repairedList) {
-				double z = repaired.getVertices().get(0).pos.z;
-				for (Vector3d v : repaired.getPoints()) {
-					if (Math.abs(z - v.z) > Plane.getEPSILON()) {
-						throw new RuntimeException("Failed to triangulate, points must be coplainer");
-					}
-				}
 				int end = repaired.getVertices().size();
 				if (end == 3) {
 					result.add(repaired);
@@ -677,8 +673,8 @@ public class PolygonUtil {
 		ArrayList<Vector3d> points = new ArrayList<>(concave.getPoints());
 		double z = concave.getVertices().get(0).pos.z;
 		for (Vector3d v : points) {
-			if (Math.abs(z - v.z) > Plane.getEPSILON()) {
-				throw new RuntimeException("Failed to triangulate, points must be coplainer");
+			if (Math.abs(z - v.z) > 0.1) {
+				throw new ColinearPointsException("Failed to triangulate, points must be coplainer");
 			}
 		}
 		while (points.size() > 0) {
@@ -687,11 +683,11 @@ public class PolygonUtil {
 				// Get first two points to establish a direction vector
 				Vector3d p1 = points.get(i);
 				Vector3d p2 = points.get((i + 1) % size);
-				if (Math.abs(z - p1.z) > Plane.getEPSILON()) {
-					throw new RuntimeException("Failed to triangulate, points must be coplainer");
+				if (Math.abs(z - p1.z) >0.1) {
+					throw new ColinearPointsException("Failed to triangulate, points must be coplainer");
 				}
-				if (Math.abs(z - p2.z) > Plane.getEPSILON()) {
-					throw new RuntimeException("Failed to triangulate, points must be coplainer");
+				if (Math.abs(z - p2.z) >0.1) {
+					throw new ColinearPointsException("Failed to triangulate, points must be coplainer");
 				}
 				// Calculate the direction vector between first two points
 				Vector3d direction = p1.minus(p2);
@@ -777,14 +773,15 @@ public class PolygonUtil {
 				triPoints.add(new Vertex(pos));
 
 				if (counter == 2) {
-					if (Extrude.isCCW(triPoints) == cw) {
-						Collections.reverse(triPoints);
-					}
-					Polygon poly;
+
 					try {
+						if (Extrude.isCCW(triPoints) == cw) {
+							Collections.reverse(triPoints);
+						}
+						Polygon poly;
 						poly = new Polygon(triPoints, concave.getStorage(), true, p1);
 						// poly = Extrude.toCCW(poly);
-						poly.getPlane().setNormal(concave.getPlane().getNormal());
+						//poly.getPlane().setNormal(concave.getPlane().getNormal());
 
 						if (debug) {
 							// Debug3dProvider.clearScreen();
