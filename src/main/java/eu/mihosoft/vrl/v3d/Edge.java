@@ -927,25 +927,25 @@ public class Edge {
 		boolean containsP2 = fbe.contains(e.getP2().pos);
 		boolean containsP1 = fbe.contains(e.getP1().pos);
 
-		if(containsP2||containsP1) {
+		if(sharedEndPointsp1 && sharedP2) {
 			//System.out.println("Edge Contains point!");
 		}
-		if ((!sharedP2) && containsP2) {
+		if ((sharedP2) && containsP1) {
 			return e.getP2();
 		}
-		if ((!sharedEndPointsp1) && containsP1) {
+		if ((sharedEndPointsp1) && containsP2) {
 			return e.getP1();
 		}
 		return null;
 	}
-
-	/** Distance from point r to the infinite line through a → b */
-	private static double distancePointToLine(Vector3d r, Vector3d a, Vector3d b) {
-		Vector3d ab = b.minus(a);
-		Vector3d ar = r.minus(a);
-		Vector3d cross = ab.cross(ar);
-	    return cross.length() / ab.length();
-	}
+//
+//	/** Distance from point r to the infinite line through a → b */
+//	private static double distancePointToLine(Vector3d r, Vector3d a, Vector3d b) {
+//		Vector3d ab = b.minus(a);
+//		Vector3d ar = r.minus(a);
+//		Vector3d cross = ab.cross(ar);
+//	    return cross.length() / ab.length();
+//	}
 
 
 	/**
