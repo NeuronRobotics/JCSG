@@ -653,16 +653,15 @@ public class SVGLoad {
 		// //com.neuronrobotics.sdk.common.Log.error(" Path " + code);
 		// Polygon poly = Polygon.fromPoints(p);
 		if (p.size() > 2) {
-			boolean hole = !Extrude.isCCWv3d(p);
-			if(hole)
-				Collections.reverse(p);
 			if (getPolygonByLayers() == null)
 				setPolygonByLayers(new HashMap<String, List<Polygon>>());
 			if (getPolygonByLayers().get(encapsulatingLayer) == null)
 				getPolygonByLayers().put(encapsulatingLayer, new ArrayList<Polygon>());
-			List<Polygon> list = getPolygonByLayers().get(encapsulatingLayer);
-
 			try {
+				boolean hole = !Extrude.isCCWv3d(p);
+				if(hole)
+					Collections.reverse(p);
+				List<Polygon> list = getPolygonByLayers().get(encapsulatingLayer);
 				//Polygon poly = Polygon.fromPoints(p , new PropertyStorage(), new Plane(new Vector3d(0, 0, 1),p.get(0)) , true);
 				Polygon poly = Polygon.fromPoints(p);
 				poly.setHole(hole);
