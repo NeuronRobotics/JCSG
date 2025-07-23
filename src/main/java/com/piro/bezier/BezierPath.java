@@ -166,7 +166,7 @@ public class BezierPath {
 		double magnitude = start.minus(end).magnitude();
 		if(magnitude<Plane.getEPSILON())
 			return 1;
-		double dpoints = magnitude/0.5;
+		double dpoints = magnitude/0.75;
 		if(dpoints<1)
 			dpoints= 1;
 		double increment = 1.0/dpoints;
