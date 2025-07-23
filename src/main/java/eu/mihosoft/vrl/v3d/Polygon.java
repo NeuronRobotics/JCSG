@@ -170,37 +170,34 @@ public final class Polygon implements Serializable {
 			this.setPlane(p);
 		}
 
-		if (!getPlane().checkNormal(vertices)) {
+		Vector3d minus = getPlane().getNormal().minus(p.getNormal());
+		double magnitude = minus.magnitude();
+		if (Math.abs( magnitude)>2-(Plane.getEPSILON()*2) ) {
 			ArrayList<Vertex> rev = new ArrayList<Vertex>(vertices);
 			Collections.reverse(rev);
-			if (!getPlane().checkNormal(rev)) {
-				this.setPlane(p);
-				new RuntimeException("Failed! the normal provided mismatched to calculated normal").printStackTrace();
-			}else
-				vertices=rev;
+			vertices=rev;
 		}else {
 			if(p!=null) {
 				//setPlane(p);
 			}
 		}
-
-		setDegenerate(true);
+		if (!getPlane().checkNormal(vertices)) {
+			new ColinearPointsException("Failed! the normal provided mismatched to calculated normal");
+		}
 		if (Vector3d.ZERO.equals(getPlane().getNormal())) {
 			valid = false;
-			throw new RuntimeException(
+			throw new ColinearPointsException(
 					"Normal is zero! Probably, duplicate points have been specified!\n\n" + toStlString());
 		}
 
 		if (getVertices().size() < 3) {
-			throw new RuntimeException("Invalid polygon: at least 3 vertices expected, got: " + getVertices().size());
+			throw new ColinearPointsException("Invalid polygon: at least 3 vertices expected, got: " + getVertices().size());
 		}
 
 		if( !areAllPointsCollinear())
 			return;
-		if (!allowDegenerate) {
-			// throw runtimeException;
-			new RuntimeException("This polygon is colinear").printStackTrace();
-		}
+		new ColinearPointsException("This polygon is colinear");
+		
 	}
 
 	public void rotatePoints() {
