@@ -148,13 +148,19 @@ public class TextExtrude {
 //		boolean b = CSG.isPreventNonManifoldTriangles();
 //		CSG.setPreventNonManifoldTriangles(false);
 		for (List<Vector3d> points : outlines) {
-			boolean hole = Extrude.isCCWv3d(points);
-			CSG newLetter = Extrude.points(new Vector3d(0, 0, dir), points).movez(zOff);
-			//newLetter.triangulate();
-			if (!hole)
-				sections.add(newLetter);
-			else
-				holes.add(newLetter);
+			try {
+				boolean hole = Extrude.isCCWv3d(points);
+				CSG newLetter = Extrude.points(new Vector3d(0, 0, dir), points).movez(zOff);
+				//newLetter.triangulate();
+				if (!hole)
+					sections.add(newLetter);
+				else {
+					newLetter.setIsHole(true);
+					holes.add(newLetter);
+				}
+			}catch(ColinearPointsException e) {
+				e.printStackTrace();
+			}
 		}
 //		CSG.setPreventNonManifoldTriangles(b);
 //		// Convert Path elements into lists of points defining the perimeter
