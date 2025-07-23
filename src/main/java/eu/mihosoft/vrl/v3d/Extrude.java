@@ -155,8 +155,9 @@ public class Extrude {
 	 *
 	 * @param points the points
 	 * @return the list
+	 * @throws ColinearPointsException 
 	 */
-	public static List<Vector3d> toCCW(List<Vector3d> points) {
+	public static List<Vector3d> toCCW(List<Vector3d> points) throws ColinearPointsException {
 
 		List<Vector3d> result = new ArrayList<>(points);
 
@@ -172,8 +173,9 @@ public class Extrude {
 	 *
 	 * @param points the points
 	 * @return the list
+	 * @throws ColinearPointsException 
 	 */
-	static List<Vector3d> toCW(List<Vector3d> points) {
+	static List<Vector3d> toCW(List<Vector3d> points) throws ColinearPointsException {
 
 		List<Vector3d> result = new ArrayList<>(points);
 
@@ -189,8 +191,9 @@ public class Extrude {
 	 *
 	 * @param polygon the polygon
 	 * @return true, if is ccw
+	 * @throws ColinearPointsException 
 	 */
-	public static boolean isCCW(Polygon polygon) {
+	public static boolean isCCW(Polygon polygon) throws ColinearPointsException {
 		return isCCWv3d(polygon.getPoints());
 	}
 
@@ -199,8 +202,9 @@ public class Extrude {
 	 *
 	 * @param polygon the polygon
 	 * @return true, if is ccw
+	 * @throws ColinearPointsException 
 	 */
-	public static boolean isCCW(List<Vertex> vertices) {
+	public static boolean isCCW(List<Vertex> vertices) throws ColinearPointsException {
 		List<Vector3d> points = new ArrayList<Vector3d>();
 		for (Vertex v : vertices)
 			points.add(v.pos);
@@ -213,17 +217,14 @@ public class Extrude {
 	 * @param polygon the polygon
 	 * @return true, if is ccw
 	 */
-	public static boolean isCCWv3d(List<Vector3d> vertices) {
+	public static boolean isCCWv3d(List<Vector3d> vertices) throws ColinearPointsException {
 		ArrayList<Vertex> v = new ArrayList<Vertex>();
 		for(Vector3d vc:vertices)
 			v.add(new Vertex(vc));
-		try {
-			Plane p = Plane.createFromPoints(v);
-			return p.getNormal().z>(1-Plane.getEPSILON());
-		} catch (ColinearPointsException e) {
-			e.printStackTrace();
-		}
-		return false;
+		
+		Plane p = Plane.createFromPoints(v);
+		return p.getNormal().z>(1-Plane.getEPSILON());
+
 //		// thanks to Sepp Reiter for explaining me the algorithm!
 //		if (vertices.size() < 3) {
 //			throw new IllegalArgumentException("Only polygons with at least 3 vertices are supported!");
