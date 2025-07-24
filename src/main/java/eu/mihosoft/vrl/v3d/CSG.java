@@ -2150,8 +2150,7 @@ public class CSG implements IuserAPI, Serializable {
 						toAdd.add(poly);
 					}
 				} catch (ColinearPointsException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					System.out.println("Polygon pruned "+p);
 				}
 
 
