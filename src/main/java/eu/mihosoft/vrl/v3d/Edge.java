@@ -635,7 +635,7 @@ public class Edge {
 	    double t = dotProduct / edgeLengthSq;
 	    
 	    // If 0 ≤ t ≤ 1, the point is within the bounds of the edge
-	    return t >= 0 && t <= 1;
+	    return t > 0 && t < 1;
 	}
 
 	/**
@@ -779,7 +779,7 @@ public class Edge {
 
 		Vector3d closestP = closestPOpt.get();
 
-		if (e.contains(closestP)) {
+		if (e.contains(closestP, Plane.getEPSILON())) {
 			return closestPOpt;
 		} else {
 			// intersection point outside of segment
