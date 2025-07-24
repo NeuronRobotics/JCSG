@@ -168,7 +168,7 @@ public class ThumbnailImage {
 		return writeImage(bits, toPNG);
 	}
 
-	public static Thread writeImage(ArrayList<CSG> incoming, File toPNG) {
+	public static Thread writeImage(List<CSG> incoming, File toPNG) {
 		Thread t = new Thread(new Runnable() {
 			WritableImage img = null;
 
