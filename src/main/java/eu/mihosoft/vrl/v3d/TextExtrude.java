@@ -245,7 +245,7 @@ public class TextExtrude {
 		    if (element instanceof MoveTo) {
 		        // If we have a current path, process it with BezierPath
 		        if (pathBuilder.length() > 0) {
-		            BezierPath bezierPath = new BezierPath();
+		            BezierPath bezierPath = new BezierPath(5);
 		            bezierPath.parsePathString(pathBuilder.toString());
 		            List<Vector3d> pathPoints = bezierPath.evaluate();
 		            if (!pathPoints.isEmpty()) {
@@ -278,7 +278,7 @@ public class TextExtrude {
 
 		// Process the final path if it exists
 		if (pathBuilder.length() > 0) {
-		    BezierPath bezierPath = new BezierPath();
+		    BezierPath bezierPath = new BezierPath(5);
 		    bezierPath.parsePathString(pathBuilder.toString());
 		    List<Vector3d> pathPoints = bezierPath.evaluate();
 		    if (!pathPoints.isEmpty()) {
