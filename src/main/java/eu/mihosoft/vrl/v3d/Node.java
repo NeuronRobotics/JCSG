@@ -792,7 +792,8 @@ public final class Node {
 			// Put the polygon in the correct list, splitting it when necessary.
 			switch (polygonType) {
 			case COPLANAR:
-				(plane.getNormal().dot(normal) > 0 ? coplanarFront : coplanarBack).add(polygon);
+				double fb = plane.getNormal().dot(normal);
+				(fb > negEpsilon ? coplanarFront : coplanarBack).add(polygon);
 				break;
 			case FRONT:
 				front.add(polygon);
@@ -864,8 +865,15 @@ public final class Node {
 						double intrpY = yi + sy;
 						double intrpZ = zi + sz;
 						Vector3d intrp = new Vector3d(intrpX, intrpY, intrpZ);
-						addPoint(f, new Vertex(intrp));
-						addPoint(b, new Vertex(intrp));
+						double distPoly = polygon.getPlane().getDist();
+						double dotNP = normal.dot(intrp);
+						double tnp = dotNP- distPoly;
+						if(Math.abs(tnp)>Plane.getEPSILON()) {
+							throw new RuntimeException("New point doesnt lie on the plane of the split polygon!");
+						}else {
+							addPoint(f, new Vertex(intrp));
+							addPoint(b, new Vertex(intrp.clone()));
+						}
 					}
 				}
 				add(front, f, polygon);
@@ -891,7 +899,7 @@ public final class Node {
 	 * Removes all polygons in this BSP tree that are inside the specified BSP tree
 	 * ({@code bsp}).
 	 *
-	 * Note: polygons are splitted if necessary.
+	 * Note: polygons are split if necessary.
 	 *
 	 * @param bsp bsp that shall be used for clipping
 	 * @throws Exception
