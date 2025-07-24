@@ -13,6 +13,7 @@ import eu.mihosoft.vrl.v3d.Polygon;
 import eu.mihosoft.vrl.v3d.PropertyStorage;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -80,23 +81,53 @@ public class HullUtil {
 		int[][] faces = hull.getFaces();
 
 		ArrayList<Polygon> polygons = new ArrayList<>();
-
-		List<Vector3d> vertices = new ArrayList<>();
+//		HashSet<Vector3d> vall = new HashSet<>();;
+//		Vector3d hullCenter = new Vector3d(0,0,0);
+//		for (int[] verts : faces) {
+//			for (int i : verts) {
+//				Vector3d e = points.get(hull.getVertexPointIndices()[i]);
+//				boolean in = false;
+//				for(Vector3d vec:vall)
+//					if(vec.test(e)) {
+//						in=true;
+//						break;
+//					}
+//				if(!in && !vall.contains(e)) {
+//					vall.add(e);
+//					hullCenter=hullCenter.plus(e);
+//				}
+//			}
+//		}
+//		hullCenter=hullCenter.times(1.0 / vall.size());
 
 		for (int[] verts : faces) {
-
+			ArrayList<Vector3d> vertices = new ArrayList<>();
 			for (int i : verts) {
 				vertices.add(points.get(hull.getVertexPointIndices()[i]));
 			}
 
 			try {
-				polygons.add(Polygon.fromPoints(vertices, storage));
+				Polygon fromPoints = Polygon.fromPoints(vertices, storage);
+//				Vector3d normal = fromPoints.plane.getNormal();
+//		        // face centroid
+//		        Vector3d faceCentroid = new Vector3d(0,0,0);
+//		        for (Vector3d v : vertices) 
+//		        	faceCentroid.add(v);
+//		        faceCentroid.scale(1.0 / vertices.size());
+//
+//		        // direction from hull center to face
+//		        Vector3d toFace = faceCentroid.minus( hullCenter);
+//
+//		        // ensure correct normal orientation
+//		        if (toFace.dot(normal) < 0) {
+//		        	fromPoints.flip();
+//		        }
+
+				polygons.add(fromPoints);
 			} catch (ColinearPointsException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}
-
-			vertices.clear();
+			}			
 		}
 
 		return CSG.fromPolygons(polygons);
