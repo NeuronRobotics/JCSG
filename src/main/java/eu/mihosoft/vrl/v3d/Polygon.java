@@ -154,7 +154,14 @@ public final class Polygon implements Serializable {
 		ArrayList<Vertex> newPoints = new ArrayList<Vertex>();
 		for (int i = 0; i < incoming.size(); i++) {
 			Vertex v = incoming.get(i);
-			newPoints.add(v.clone());
+			for(Vertex vt:newPoints) {
+				if(vt.pos.test(v.pos)) {
+					v=null;
+					break;
+				}
+			}
+			if(v!=null)
+				newPoints.add(v.clone());
 		}
 		try {
 			return newPoints;
@@ -167,22 +174,17 @@ public final class Polygon implements Serializable {
 		vertices = pruneDuplicatePoints(vertices);
 		Plane p = Plane.createFromPoints(vertices);
 		if (getPlane() == null) {
-			this.setPlane(p);
+			setPlane(p);
 		}
 
 		Vector3d minus = getPlane().getNormal().minus(p.getNormal());
 		double magnitude = minus.magnitude();
 		if (Math.abs( magnitude)>2-(Plane.getEPSILON()*2) ) {
-			ArrayList<Vertex> rev = new ArrayList<Vertex>(vertices);
-			Collections.reverse(rev);
-			vertices=rev;
-		}else {
-			if(p!=null) {
-				//setPlane(p);
-			}
+			Collections.reverse(vertices);
 		}
 		if (!getPlane().checkNormal(vertices)) {
-			new ColinearPointsException("Failed! the normal provided mismatched to calculated normal");
+			//setPlane(p);
+			throw new ColinearPointsException("Failed! the normal provided mismatched to calculated normal");
 		}
 		if (Vector3d.ZERO.equals(getPlane().getNormal())) {
 			valid = false;
@@ -246,9 +248,14 @@ public final class Polygon implements Serializable {
 	public Polygon flip() {
 
 		Collections.reverse(getVertices());
-		getPlane().flip();
+		try {
+			plane=Plane.createFromPoints(vertices);
+		} catch (ColinearPointsException e) {
+			plane.flip();
+		}
 		if (!getPlane().checkNormal(vertices)) {
 	//		getPlane().checkNormal(vertices);
+			
 			new RuntimeException("Failed! the normal provided mismatched to calculated normal").printStackTrace();	
 		}
 		
