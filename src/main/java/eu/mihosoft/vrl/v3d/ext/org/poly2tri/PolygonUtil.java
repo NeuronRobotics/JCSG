@@ -50,6 +50,7 @@ import javafx.scene.paint.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -74,7 +75,8 @@ public class PolygonUtil {
 
 		ArrayList<Edge> edges = new ArrayList<Edge>();
 		ArrayList<Vertex> toRemove = new ArrayList<Vertex>();
-		List<Vertex> v1 = concave1.getVertices();
+		HashMap<Vertex,Vertex> replace=new HashMap<>();
+ 		List<Vertex> v1 = concave1.getVertices();
 		ArrayList<Vertex> modifiable = new ArrayList<Vertex>();
 
 		for (int i = 0; i < v1.size(); i++) {
@@ -131,8 +133,9 @@ public class PolygonUtil {
 						Optional<Vector3d> cross = test.getCrossingPoint(test2);
 						boolean c = cross.isPresent() && i < j;
 						if (c) {
-							int x;
-							for (x = i + 1; x < j; x++) {
+							int x = i + 1;
+							replace.put(modifiable.get(x),new Vertex(cross.get()));
+							for (; x < j; x++) {
 								toRemove.add(modifiable.get(x));
 							}
 //								System.out
@@ -163,7 +166,16 @@ public class PolygonUtil {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			System.out.println("Reapir thread finished "+i+" "+threads.size());
+			System.out.println("Reapir thread finished "+(i+1)+" of "+threads.size());
+		}
+		for(int j=0;j< modifiable.size(); j++) {
+			Vertex key = modifiable.get(j);
+
+			Vertex vertex = replace.get(key);
+			if(vertex!=null) {
+				toRemove.remove(key);
+				modifiable.set(j,vertex);
+			}
 		}
 		for (Vertex vr : toRemove)
 			modifiable.remove(vr);
@@ -172,8 +184,8 @@ public class PolygonUtil {
 			try {
 				back.add(new Polygon(modifiable, concave1.getStorage(), false, concave1.getPlane()));
 			} catch (ColinearPointsException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				System.out.println(" Pruning polygon in repair "+concave1+" to "+modifiable);
+				
 			}
 		} else {
 //			if (toRemove.size() > 3) {
@@ -583,7 +595,10 @@ public class PolygonUtil {
 			}
 		}
 		try {
-			makeTriangles(concave, cw, result, zplane, normal, debug, orientationInv, reorient, incoming.getColor());
+			if (concave.size() == 3) {
+				result.add(concave);
+			}else
+				makeTriangles(concave, cw, result, zplane, normal, debug, orientationInv, reorient, incoming.getColor());
 		} catch (java.lang.IllegalStateException ex) {
 
 			ArrayList<Polygon> repairedList = repairOverlappingEdges(concave);
@@ -591,9 +606,6 @@ public class PolygonUtil {
 				int end = repaired.getVertices().size();
 				if (end == 3) {
 					result.add(repaired);
-				} else if (end == 4) {
-					fourPointSpecialCase(repaired, cw, result, zplane, normal, debug, orientationInv, reorient,
-							incoming.getColor());
 				} else
 					try {
 						makeTriangles(repaired, cw, result, zplane, normal, debug, orientationInv, reorient,
@@ -616,57 +628,69 @@ public class PolygonUtil {
 		return getRepair().repairOverlappingEdges(concave);
 	}
 
-	private static void fourPointSpecialCase(Polygon concave, boolean cw, List<Polygon> result, double zplane,
-			Vector3d normal, boolean debug, Transform orentationInv, boolean reorent, Color color) throws ColinearPointsException {
-		List<Vector3d> points = concave.getPoints();
-		int size = points.size();
-		for (int i = 0; i < size; i++) {
-			// Get first two points to establish a direction vector
-			Vector3d p1 = points.get(i);
-			Vector3d p2 = points.get((i + 1) % size);
-
-			// Calculate the direction vector between first two points
-			Vector3d direction = p1.minus(p2);
-			// Normalize the direction vector
-			double length = direction.length();
-			double ep = Plane.getEPSILON();
-			if (length < ep) { // If points are effectively identical
-				continue;
-			}
-			direction.normalize();
-			Vector3d p3 = points.get((i + 2) % size);
-
-			// Calculate cross product
-			Vector3d cross = direction.cross(p1.minus(p3));
-			// Calculate magnitude of cross product
-			double magnitude = Math.abs(cross.length());
-
-			// If magnitude is not close to zero, points are not collinear
-			if (magnitude > ep) {
-
-				Plane normal2 = concave.plane;
-				Polygon one = new Polygon(
-						new ArrayList<Vertex>(Arrays.asList(new Vertex(p1), new Vertex(p2), new Vertex(p3))),
-						concave.getStorage(), true, normal2);
-				Polygon two = new Polygon(
-						new ArrayList<Vertex>(Arrays.asList(new Vertex(points.get((i + 3) % size)),
-								new Vertex(points.get((i + 4) % size)), new Vertex(points.get((i + 5) % size)))),
-						concave.getStorage(), true, normal2);
-				if (reorent) {
-					one = one.transform(orentationInv);
-				}
-				one.setColor(color);
-				result.add(one);
-				if (reorent) {
-					two = two.transform(orentationInv);
-				}
-				two.setColor(color);
-				result.add(two);
-				return;
-			}
-		}
-
-	}
+//	private static void fourPointSpecialCase(Polygon concave, boolean cw, List<Polygon> result, double zplane,
+//			Vector3d normal, boolean debug, Transform orentationInv, boolean reorent, Color color)  {
+//		List<Vector3d> points = concave.getPoints();
+//		int size = points.size();
+//		for (int i = 0; i < size; i++) {
+//			// Get first two points to establish a direction vector
+//			Vector3d p1 = points.get(i);
+//			Vector3d p2 = points.get((i + 1) % size);
+//
+//			// Calculate the direction vector between first two points
+//			Vector3d direction = p1.minus(p2);
+//			// Normalize the direction vector
+//			double length = direction.length();
+//			double ep = Plane.getEPSILON();
+//			if (length < ep) { // If points are effectively identical
+//				continue;
+//			}
+//			direction.normalize();
+//			Vector3d p3 = points.get((i + 2) % size);
+//
+//			// Calculate cross product
+//			Vector3d cross = direction.cross(p1.minus(p3));
+//			// Calculate magnitude of cross product
+//			double magnitude = Math.abs(cross.length());
+//
+//			// If magnitude is not close to zero, points are not collinear
+//			if (magnitude > ep) {
+//
+//				Plane normal2 = concave.plane;
+//				try {
+//					Polygon one = new Polygon(
+//							new ArrayList<Vertex>(Arrays.asList(new Vertex(p1), new Vertex(p2), new Vertex(p3))),
+//							concave.getStorage(), true, normal2);
+//					if (reorent) {
+//						one = one.transform(orentationInv);
+//					}
+//					one.setColor(color);
+//					result.add(one);
+//				} catch (ColinearPointsException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+//				try {
+//					Polygon two = new Polygon(
+//							new ArrayList<Vertex>(Arrays.asList(new Vertex(points.get((i + 3) % size)),
+//									new Vertex(points.get((i + 4) % size)), new Vertex(points.get((i + 5) % size)))),
+//							concave.getStorage(), true, normal2);
+//					if (reorent) {
+//						two = two.transform(orentationInv);
+//					}
+//					two.setColor(color);
+//					result.add(two);
+//				} catch (ColinearPointsException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+//	
+//
+//				return;
+//			}
+//		}
+//
+//	}
 
 	private static void makeTrianglesInternal(Polygon concave, boolean cw, List<Polygon> result, double zplane,
 			Vector3d normal, boolean debug, Transform orentationInv, boolean reorent, Color color) throws ColinearPointsException {
@@ -699,7 +723,8 @@ public class PolygonUtil {
 				}
 				direction.normalize();
 				Vector3d p3 = points.get((i + 2) % size);
-				if (Math.abs(z - p3.z) > Plane.getEPSILON()) {
+				double abs = Math.abs(z - p3.z);
+				if (abs > 0.1) {
 					throw new RuntimeException("Failed to triangulate, points must be coplainer");
 				}
 
@@ -710,18 +735,22 @@ public class PolygonUtil {
 
 				// If magnitude is not close to zero, points are not collinear
 				if (magnitude > ep) {
-
-					Plane normal2 = concave.plane;
-					ArrayList<Vertex> vertices = new ArrayList<Vertex>(
-							Arrays.asList(new Vertex(p1.clone()), new Vertex(p2.clone()), new Vertex(p3.clone())));
-					Polygon one = new Polygon(vertices, concave.getStorage(), true, normal2.clone());
-					points.remove(p2);
-
-					if (reorent) {
-						one = one.transform(orentationInv);
+					try {
+						Plane normal2 = concave.plane;
+						points.remove(p2);
+						ArrayList<Vertex> vertices = new ArrayList<Vertex>(
+								Arrays.asList(	new Vertex(p1.clone()), 
+												new Vertex(p2.clone()), 
+												new Vertex(p3.clone())));
+						Polygon one = new Polygon(vertices, concave.getStorage(), true, normal2.clone());
+						if (reorent) {
+							one = one.transform(orentationInv);
+						}
+						one.setColor(color);
+						result.add(one);
+					}catch(ColinearPointsException ex) {
+						System.out.println("Triangulation Pruned point "+p2);
 					}
-					one.setColor(color);
-					result.add(one);
 					if (points.size() == 2) {
 						points.clear();
 						return;
@@ -734,7 +763,7 @@ public class PolygonUtil {
 			}
 			if (size == points.size()) {
 				if (result.size() == 0)
-					throw new RuntimeException("Error! All remaining points are colinear!");
+					throw new ColinearPointsException("Error! All remaining points are colinear!");
 				return;
 			}
 		}
@@ -770,7 +799,17 @@ public class PolygonUtil {
 			for (int j = 0; j < 3; j++) {
 				Coordinate tp = coords[j];
 				Vector3d pos = new Vector3d(tp.getX() / triangleScale, tp.getY() / triangleScale, zplane);
-				triPoints.add(new Vertex(pos));
+				Vertex e =null;// new Vertex(pos);
+				for (int x = 0; x < toTri.getVertices().size(); x++) {
+					Vector3d test = toTri.getVertices().get(x).pos;
+					if(test.test(pos, 1.0/triangleScale)) {
+						e=toTri.getVertices().get(x).clone();
+					}
+				}
+				if(e==null) {
+					throw new RuntimeException("Failed to find point! "+pos+" missing from "+toTri);
+				}
+				triPoints.add(e);
 
 				if (counter == 2) {
 
@@ -797,9 +836,8 @@ public class PolygonUtil {
 						// poly.plane.setNormal(normalOfPlane);
 						poly.setColor(color);
 						result.add(poly);
-					} catch (ColinearPointsException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+					} catch (ColinearPointsException ex) {
+						System.out.println("Pruned new triangle as colinear "+triPoints);
 					}
 
 					counter = 0;
