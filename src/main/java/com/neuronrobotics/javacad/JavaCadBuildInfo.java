@@ -63,8 +63,12 @@ public class JavaCadBuildInfo {
 		String s = getVersion();
 		String[] splits = s.split("[.]+");
 		int[] rev = new int[3];
-		for (int i = 0; i < 3; i++) {
-			rev[i] = new Integer(splits[i]);
+		try {
+			for (int i = 0; i < 3; i++) {
+				rev[i] = new Integer(splits[i]);
+			}
+		}catch(Exception ex) {
+			rev=new int[] {0,0,0};
 		}
 		return rev;
 	}
