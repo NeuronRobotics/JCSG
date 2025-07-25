@@ -1613,7 +1613,7 @@ public class CSG implements IuserAPI, Serializable {
 					p.toStlString(sb);
 				} catch (Exception ex) {
 					ex.printStackTrace();
-					System.out.println("Prune Polygon on export " + p);
+					System.out.println(ex.getMessage()+" Prune Polygon on export " + p);
 				}
 			}
 			sb.append("endsolid v3d.csg\n");
@@ -1745,7 +1745,7 @@ public class CSG implements IuserAPI, Serializable {
 		}
 
 		// System.out.println("Data loaded!");
-		float eps = 0.00001f;
+		float eps = (float)(Plane.getEPSILON()*2);
 		float epsSq = (float) (eps * eps);
 		int[] added = new int[numberOfPolygons];
 		int testPointChunk = 20;
@@ -2040,7 +2040,7 @@ public class CSG implements IuserAPI, Serializable {
 				points.add(new Vertex(thispoint));
 			}
 			if (points.size() < 3) {
-				System.out.println("ERR polygon " + i + " pruned because of too few points");
+				System.out.println(" ERR polygon " + i + " pruned because of too few points");
 				continue;
 			}
 			try {
@@ -2150,7 +2150,7 @@ public class CSG implements IuserAPI, Serializable {
 						toAdd.add(poly);
 					}
 				} catch (ColinearPointsException e) {
-					System.out.println("Polygon pruned "+p);
+					System.out.println(e.getMessage()+" Polygon pruned "+p);
 				}
 
 
