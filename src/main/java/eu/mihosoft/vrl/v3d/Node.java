@@ -139,42 +139,86 @@ public final class Node {
 	/**
 	 * Converts solid space to empty space and vice verca.
 	 */
+//	public void invert() {
+//
+//		Stream<Polygon> polygonStream;
+//
+//		if (polygons.size() > 200) {
+//			polygonStream = polygons.parallelStream();
+//		} else
+//			polygonStream = polygons.stream();
+//
+//		polygonStream.forEach((polygon) -> {
+//			polygon.flip();
+//		});
+//
+//		if (this.getPlane() == null && !polygons.isEmpty()) {
+//			this.setPlane(polygons.get(0).getPlane().clone());
+//		} else if (this.getPlane() == null && polygons.isEmpty()) {
+//
+//			// com.neuronrobotics.sdk.common.Log.error("Please fix me! I don't know what to
+//			// do?");
+//			throw new RuntimeException("Please fix me! Plane = " + plane + " and polygons are empty");
+//			// return;
+//		}
+//
+//		this.getPlane().flip();
+//
+//		if (this.front != null) {
+//			this.front.invert();
+//		}
+//		if (this.back != null) {
+//			this.back.invert();
+//		}
+//		Node temp = this.front;
+//		this.front = this.back;
+//		this.back = temp;
+//	}
 	public void invert() {
-
-		Stream<Polygon> polygonStream;
-
-		if (polygons.size() > 200) {
-			polygonStream = polygons.parallelStream();
-		} else
-			polygonStream = polygons.stream();
-
-		polygonStream.forEach((polygon) -> {
-			polygon.flip();
-		});
-
-		if (this.getPlane() == null && !polygons.isEmpty()) {
-			this.setPlane(polygons.get(0).getPlane().clone());
-		} else if (this.getPlane() == null && polygons.isEmpty()) {
-
-			// com.neuronrobotics.sdk.common.Log.error("Please fix me! I don't know what to
-			// do?");
-			throw new RuntimeException("Please fix me! Plane = " + plane + " and polygons are empty");
-			// return;
-		}
-
-		this.getPlane().flip();
-
-		if (this.front != null) {
-			this.front.invert();
-		}
-		if (this.back != null) {
-			this.back.invert();
-		}
-		Node temp = this.front;
-		this.front = this.back;
-		this.back = temp;
+	    // Use ArrayList as a stack to track nodes to process
+	    ArrayList<Node> stack = new ArrayList<>();
+	    stack.add(this);
+	    
+	    while (!stack.isEmpty()) {
+	        // Pop the last node from our stack
+	        Node current = stack.remove(stack.size() - 1);
+	        
+	        // Process polygons for current node
+	        Stream<Polygon> polygonStream;
+	        if (current.polygons.size() > 200) {
+	            polygonStream = current.polygons.parallelStream();
+	        } else {
+	            polygonStream = current.polygons.stream();
+	        }
+	        
+	        polygonStream.forEach((polygon) -> {
+	            polygon.flip();
+	        });
+	        
+	        // Handle plane logic
+	        if (current.getPlane() == null && !current.polygons.isEmpty()) {
+	            current.setPlane(current.polygons.get(0).getPlane().clone());
+	        } else if (current.getPlane() == null && current.polygons.isEmpty()) {
+	            throw new RuntimeException("Please fix me! Plane = " + current.plane + " and polygons are empty");
+	        }
+	        
+	        current.getPlane().flip();
+	        
+	        // Add child nodes to stack for processing (if they exist)
+	        // Note: We add them in reverse order so they're processed in the same order as the recursive version
+	        if (current.back != null) {
+	            stack.add(current.back);
+	        }
+	        if (current.front != null) {
+	            stack.add(current.front);
+	        }
+	        
+	        // Swap front and back
+	        Node temp = current.front;
+	        current.front = current.back;
+	        current.back = temp;
+	    }
 	}
-
 	/**
 	 * Recursively removes all polygons in the {@link polygons} list that are
 	 * contained within this BSP tree.
@@ -250,12 +294,12 @@ public final class Node {
 
 	private static boolean addPoint(List<Vertex> f, Vertex v) {
 		if (f.size() > 0) {
-			if (Math.abs(v.pos.distance(f.get(0).pos)) < Plane.getEPSILON()) {
-				return false;
-			}
-			if (Math.abs(v.pos.distance(f.get(f.size() - 1).pos)) < Plane.getEPSILON()) {
-				return false;
-			}
+//			if (Math.abs(v.pos.distance(f.get(0).pos)) < Plane.getEPSILON()) {
+//				return false;
+//			}
+//			if (Math.abs(v.pos.distance(f.get(f.size() - 1).pos)) < Plane.getEPSILON()) {
+//				return false;
+//			}
 		}
 		return f.add(v);
 	}
@@ -273,7 +317,7 @@ public final class Node {
 			if (!test)
 				l.add(fpoly);	
 		}catch(ColinearPointsException ex) {
-			System.err.println("Pruned Colinear polygon "+f );
+			System.err.println(ex.getMessage()+" Pruned Colinear polygon "+f );
 		}
 	}
 
@@ -792,8 +836,7 @@ public final class Node {
 			// Put the polygon in the correct list, splitting it when necessary.
 			switch (polygonType) {
 			case COPLANAR:
-				double fb = plane.getNormal().dot(normal);
-				(fb > negEpsilon ? coplanarFront : coplanarBack).add(polygon);
+				(plane.getNormal().dot(normal) > 0 ? coplanarFront : coplanarBack).add(polygon);
 				break;
 			case FRONT:
 				front.add(polygon);
