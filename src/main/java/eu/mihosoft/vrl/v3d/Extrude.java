@@ -600,8 +600,8 @@ public class Extrude {
 				List<Vector3d> asList = Arrays.asList(bottomV2.clone(), topV1.clone(), bottomV1.clone());
 				try {
 					newPolygons.add(Polygon.fromPoints(asList, polygon1.getStorage()));
-				} catch (Exception ex) {
-					ex.printStackTrace();
+				} catch (ColinearPointsException ex) {
+					System.out.println(ex.getMessage()+" Pruning from extrude");
 				}
 			}
 			double distance2 = topV2.minus(topV1).magnitude();
@@ -610,8 +610,8 @@ public class Extrude {
 				List<Vector3d> asList2 = Arrays.asList(bottomV2.clone(), topV2.clone(), topV1.clone());
 				try {
 					newPolygons.add(Polygon.fromPoints(asList2, polygon1.getStorage()));
-				} catch (Exception ex) {
-					ex.printStackTrace();
+				} catch (ColinearPointsException ex) {
+					System.out.println(ex.getMessage()+" Pruning from extrude");
 				}
 			}
 		}
