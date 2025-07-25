@@ -749,7 +749,7 @@ public class PolygonUtil {
 						one.setColor(color);
 						result.add(one);
 					}catch(ColinearPointsException ex) {
-						System.out.println("Triangulation Pruned point "+p2);
+						System.out.println(ex.getMessage()+" Triangulation Pruned point "+p2);
 					}
 					if (points.size() == 2) {
 						points.clear();
@@ -837,7 +837,7 @@ public class PolygonUtil {
 						poly.setColor(color);
 						result.add(poly);
 					} catch (ColinearPointsException ex) {
-						System.out.println("Pruned new triangle as colinear "+triPoints);
+						System.out.println(ex.getMessage()+" Pruned new triangle as colinear "+triPoints);
 					}
 
 					counter = 0;
