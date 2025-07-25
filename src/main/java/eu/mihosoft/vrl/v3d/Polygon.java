@@ -161,7 +161,7 @@ public final class Polygon implements Serializable {
 				}
 			}
 			if(v!=null)
-				newPoints.add(v.clone());
+				newPoints.add(v);
 		}
 		try {
 			return newPoints;
@@ -179,9 +179,9 @@ public final class Polygon implements Serializable {
 
 		Vector3d minus = getPlane().getNormal().minus(p.getNormal());
 		double magnitude = minus.magnitude();
-		if (Math.abs( magnitude)>2-(Plane.getEPSILON()*2) ) {
-			Collections.reverse(vertices);
-		}
+//		if (Math.abs( magnitude)>2-(Plane.getEPSILON()*2) ) {
+//			Collections.reverse(vertices);
+//		}
 		if (!getPlane().checkNormal(vertices)) {
 			//setPlane(p);
 			throw new ColinearPointsException("Failed! the normal provided mismatched to calculated normal");
