@@ -117,7 +117,7 @@ public class STLLoader {
 					if(vertices.size()==3) {
 						Plane pl = new Plane(normal, vertices);
 						try {
-							polygons.add(new Polygon(vertices, null, false, pl));
+							polygons.add(new Polygon(vertices, null, true, pl));
 						} catch (ColinearPointsException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -171,7 +171,7 @@ public class STLLoader {
 					if(vertices.size()==3) {
 						Plane pl = new Plane(normal, vertices);
 						try {
-							polygons.add(new Polygon(vertices, null, false, pl));
+							polygons.add(new Polygon(vertices, null, true, pl));
 						} catch (ColinearPointsException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
