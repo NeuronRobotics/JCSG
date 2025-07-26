@@ -128,6 +128,7 @@ import javafx.scene.transform.Affine;
 
 @SuppressWarnings("restriction")
 public class CSG implements IuserAPI, Serializable {
+	private static final double POINTS_CONTACT_DISTANCE = 0.00001;
 	private static int MinPolygonsForOffloading = 200;
 	private static final long serialVersionUID = 4071874097772427063L;
 	private static IDebug3dProvider providerOf3d = null;
@@ -1745,7 +1746,7 @@ public class CSG implements IuserAPI, Serializable {
 		}
 
 		// System.out.println("Data loaded!");
-		float eps = (float)(0.0001);
+		float eps = (float)POINTS_CONTACT_DISTANCE;
 		float epsSq = (float) (eps * eps);
 		int[] added = new int[numberOfPolygons];
 		int testPointChunk = 20;
