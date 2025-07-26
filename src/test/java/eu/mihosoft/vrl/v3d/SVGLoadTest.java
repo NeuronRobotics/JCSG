@@ -25,6 +25,39 @@ public class SVGLoadTest {
 	}
 	//Alexes_Bad.svg
 	@Test
+	public void flame() throws IOException {
+		
+		JavaFXInitializer.go();
+		File svg = new File("flame.svg");
+		if (!svg.exists())
+			throw new RuntimeException("Test file missing!" + svg.getAbsolutePath());
+		SVGLoad s = new SVGLoad(svg.toURI());
+		CSG nub = new Cylinder(10, 15).toCSG();
+
+		CSG flame =CSG.unionAll(run(s)).moveToCenter().moveToCenterY().toZMin().union(nub.movez(-2));
+		ArrayList<CSG> parts = new ArrayList<CSG>();
+		parts.add(flame);
+		CSG cut = flame.difference(nub).movey(flame.getTotalY());
+		parts.add(cut);
+		parts.add(flame.roty(180).movex(flame.getTotalX()));
+		parts.add(cut.roty(180).movex(flame.getTotalX()));
+
+		System.out.println("Difference complete");
+		if(parts.size()==0)
+			throw new RuntimeException("Failed to load");
+		try {
+			ThumbnailImage.setCullFaceValue(CullFace.NONE);
+			ThumbnailImage.writeImage(parts,new File(svg.getAbsolutePath()+".png")).join();
+		} catch (InterruptedException e) {
+			// Auto-generated catch block
+			e.printStackTrace();
+		}
+		for(int i=0;i<parts.size();i++)
+			FileUtil.write(Paths.get(i+"-flame.stl"),
+					parts.get(i).toStlString());
+	}
+	//Alexes_Bad.svg
+	@Test
 	public void Alexes_Bad() throws IOException {
 		
 		JavaFXInitializer.go();
