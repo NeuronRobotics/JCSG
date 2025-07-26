@@ -44,6 +44,7 @@ import eu.mihosoft.vrl.v3d.Polygon;
 import eu.mihosoft.vrl.v3d.PropertyStorage;
 import eu.mihosoft.vrl.v3d.Transform;
 import eu.mihosoft.vrl.v3d.Vector3d;
+import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
 import javafx.scene.paint.Color;
 
 // CSG.setDefaultOptType(CSG.OptType.CSG_BOUND);
@@ -94,8 +95,9 @@ public class SVGLoad {
 		}
 		try {
 			return Double.parseDouble(value);
-		}catch(NumberFormatException ex) {
-			// if the size is not defined, then the scale can not be computed, using internal data
+		} catch (NumberFormatException ex) {
+			// if the size is not defined, then the scale can not be computed, using
+			// internal data
 			throw ex;
 		}
 	}
@@ -261,7 +263,7 @@ public class SVGLoad {
 	public HashMap<String, List<Polygon>> toPolygons() {
 		if (polygonByLayers == null)
 			try {
-				loadAllGroups( new Transform());
+				loadAllGroups(new Transform());
 			} catch (Exception e) {
 				// Auto-generated catch block
 				e.printStackTrace();
@@ -280,39 +282,38 @@ public class SVGLoad {
 
 	}
 
-
-	private void loadAllGroups( Transform startingFrame) {
+	private void loadAllGroups(Transform startingFrame) {
 
 		Element documentElement = getSVGDocument().getDocumentElement();
 		NodeList pn = documentElement.getChildNodes();// .getElementsByTagName("g");
 		String viewbox = documentElement.getAttribute("viewBox");
 		try {
-		double viewW = Double.parseDouble(viewbox.split(" ")[2]);
-		double viewH = Double.parseDouble(viewbox.split(" ")[3]);
-		try {
-			NamedNodeMap all = documentElement.getAttributes();
-			for(int i=0;i<all.getLength();i++) {
-				System.err.println("Attribute found "+all.item(i).getNodeName());
-			}
-			String hval = documentElement.getAttribute("height");
-			String wval = documentElement.getAttribute("width");
-			
-			setScale(1);// use to compute bounds
-			height = toMM(hval);
-			width = toMM(wval);
-			double value = viewW / width;
-			//// com.neuronrobotics.sdk.common.Log.error("Page size height = "+height+"
-			//// width ="+width+" with scale "+(int)(value*25.4)+" DPI ");
-			setScale(value);
-		} catch (Throwable t) {
-			//t.printStackTrace();
-			height =0;// toMM(viewH+"px");
-			width = 0;//toMM(viewW+"px");
-			setScale(3.543307); // Assume 90 DPI and mm
-		}
-		}catch(NumberFormatException ex) {
+			double viewW = Double.parseDouble(viewbox.split(" ")[2]);
+			double viewH = Double.parseDouble(viewbox.split(" ")[3]);
+			try {
+				NamedNodeMap all = documentElement.getAttributes();
+//			for(int i=0;i<all.getLength();i++) {
+//				System.err.println("Attribute found "+all.item(i).getNodeName());
+//			}
+				String hval = documentElement.getAttribute("height");
+				String wval = documentElement.getAttribute("width");
 
-			height =0;
+				setScale(1);// use to compute bounds
+				height = toMM(hval);
+				width = toMM(wval);
+				double value = viewW / width;
+				//// com.neuronrobotics.sdk.common.Log.error("Page size height = "+height+"
+				//// width ="+width+" with scale "+(int)(value*25.4)+" DPI ");
+				setScale(value);
+			} catch (Throwable t) {
+				// t.printStackTrace();
+				height = 0;// toMM(viewH+"px");
+				width = 0;// toMM(viewW+"px");
+				setScale(3.543307); // Assume 90 DPI and mm
+			}
+		} catch (NumberFormatException ex) {
+
+			height = 0;
 			width = 0;
 			setScale(3.543307); // Assume 90 DPI and mm
 		}
@@ -338,8 +339,7 @@ public class SVGLoad {
 
 	}
 
-	private void loadGroup(SVGOMGElement element, Transform startingFrame,
-			String encapsulatingLayer) {
+	private void loadGroup(SVGOMGElement element, Transform startingFrame, String encapsulatingLayer) {
 		Node transforms = element.getAttributes().getNamedItem("transform");
 		Transform newFrame = getNewframe(startingFrame, transforms);
 		String layername;
@@ -586,8 +586,7 @@ public class SVGLoad {
 
 	}
 
-	private void loadComposite(String code, Transform startingFrame, String encapsulatingLayer,
-			Color c) {
+	private void loadComposite(String code, Transform startingFrame, String encapsulatingLayer, Color c) {
 		// Count the occourences of M
 		int count = code.length() - code.replace("M", "").length();
 		if (count < 2) {
@@ -633,12 +632,11 @@ public class SVGLoad {
 		return runningTotal < 0;
 	}
 
-	private void loadSingle(String code, Transform startingFrame, String encapsulatingLayer,
-			Color c) {
+	private void loadSingle(String code, Transform startingFrame, String encapsulatingLayer, Color c) {
 		if (encapsulatingLayer == null)
 			throw new RuntimeException("Layer Name can not be null");
 		// println code
-		BezierPath path = new BezierPath(3);
+		BezierPath path = new BezierPath(5);
 		path.parsePathString(code);
 
 		ArrayList<Vector3d> p = path.evaluate();
@@ -659,11 +657,13 @@ public class SVGLoad {
 				getPolygonByLayers().put(encapsulatingLayer, new ArrayList<Polygon>());
 			try {
 				boolean hole = !Extrude.isCCWv3d(p);
-				if(hole)
+				if (hole)
 					Collections.reverse(p);
 				List<Polygon> list = getPolygonByLayers().get(encapsulatingLayer);
-				//Polygon poly = Polygon.fromPoints(p , new PropertyStorage(), new Plane(new Vector3d(0, 0, 1),p.get(0)) , true);
+				// Polygon poly = Polygon.fromPoints(p , new PropertyStorage(), new Plane(new
+				// Vector3d(0, 0, 1),p.get(0)) , true);
 				Polygon poly = Polygon.fromPoints(p);
+				PolygonUtil.triangulatePolygon(poly);
 				poly.setHole(hole);
 				if (c != null) {
 					colors.put(poly, c);
@@ -726,24 +726,32 @@ public class SVGLoad {
 			parts.clear();
 
 			for (Polygon p : getPolygonByLayers().get(key)) {
-				boolean isHole = p.isHole();
-				CSG newbit;
 				try {
-					newbit = Extrude.getExtrusionEngine().extrude(new Vector3d(0, 0, thickness+(isHole?1:0)), p);
-					if (negativeThickness) {
-						newbit = newbit.toZMax();
+					PolygonUtil.triangulatePolygon(p);
+					boolean isHole = p.isHole();
+					CSG newbit;
+					try {
+						newbit = Extrude.getExtrusionEngine().extrude(new Vector3d(0, 0, thickness + (isHole ? 1 : 0)),
+								p);
+						if (negativeThickness) {
+							newbit = newbit.toZMax();
+						}
+						if (colors.get(p) != null) {
+							newbit.setColor(colors.get(p));
+						}
+						if (isHole) {
+							// newbit=newbit.movez(negativeThickness?0.5:-0.5);
+							newbit.setIsHole(true);
+						}
+						parts.add(newbit);
+					} catch (Exception ex) {
+						ex.printStackTrace();
 					}
-					if (colors.get(p) != null) {
-						newbit.setColor(colors.get(p));
-					}
-					if (isHole) {
-						// newbit=newbit.movez(negativeThickness?0.5:-0.5);
-						newbit.setIsHole(true);
-					}
-					parts.add(newbit);
-				} catch (Exception ex) {
-					ex.printStackTrace();
+				} catch (ColinearPointsException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
+
 			}
 		}
 
