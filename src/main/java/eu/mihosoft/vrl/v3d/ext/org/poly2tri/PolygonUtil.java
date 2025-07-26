@@ -535,7 +535,7 @@ public class PolygonUtil {
 		if (1 - abs > 0.1) {
 			System.out.println("Error with " + test);
 			// Plane p = Plane.createFromPoints(test.getVertices());
-			throw new ColinearPointsException("Failed to reorent the polygon for processing!");
+			 new ColinearPointsException("Failed to reorent the polygon for processing! z off by "+abs+" "+test.plane.getNormal()).printStackTrace();
 		}
 		return transform;
 	}
@@ -576,13 +576,13 @@ public class PolygonUtil {
 //		}
 		Polygon concave = tmp;
 		double zplane = concave.getVertices().get(0).pos.z;
-		for (Vector3d v : concave.getPoints()) {
-			double abs = Math.abs(zplane - v.z);
-			if (abs > 0.1) {
-				new RuntimeException("Failed to triangulate, points must be coplainer, delta: " + abs)
-						.printStackTrace();
-			}
-		}
+//		for (Vector3d v : concave.getPoints()) {
+//			double abs = Math.abs(zplane - v.z);
+//			if (abs > 0.1) {
+//				new RuntimeException("Failed to triangulate, points must be coplainer, delta: " + abs)
+//						.printStackTrace();
+//			}
+//		}
 		try {
 			if (concave.size() == 3) {
 				result.add(concave);
@@ -689,23 +689,23 @@ public class PolygonUtil {
 			throws ColinearPointsException {
 		ArrayList<Vector3d> points = new ArrayList<>(concave.getPoints());
 		double z = concave.getVertices().get(0).pos.z;
-		for (Vector3d v : points) {
-			if (Math.abs(z - v.z) > 0.1) {
-				throw new ColinearPointsException("Failed to triangulate, points must be coplainer");
-			}
-		}
+//		for (Vector3d v : points) {
+//			if (Math.abs(z - v.z) > 0.1) {
+//				throw new ColinearPointsException("Failed to triangulate, points must be coplainer");
+//			}
+//		}
 		while (points.size() > 0) {
 			int size = points.size();
 			for (int i = 0; i < size; i++) {
 				// Get first two points to establish a direction vector
 				Vector3d p1 = points.get(i);
 				Vector3d p2 = points.get((i + 1) % size);
-				if (Math.abs(z - p1.z) > 0.1) {
-					throw new ColinearPointsException("Failed to triangulate, points must be coplainer");
-				}
-				if (Math.abs(z - p2.z) > 0.1) {
-					throw new ColinearPointsException("Failed to triangulate, points must be coplainer");
-				}
+//				if (Math.abs(z - p1.z) > 0.1) {
+//					throw new ColinearPointsException("Failed to triangulate, points must be coplainer");
+//				}
+//				if (Math.abs(z - p2.z) > 0.1) {
+//					throw new ColinearPointsException("Failed to triangulate, points must be coplainer");
+//				}
 				// Calculate the direction vector between first two points
 				Vector3d direction = p1.minus(p2);
 				// Normalize the direction vector
@@ -718,7 +718,7 @@ public class PolygonUtil {
 				Vector3d p3 = points.get((i + 2) % size);
 				double abs = Math.abs(z - p3.z);
 				if (abs > 0.1) {
-					throw new RuntimeException("Failed to triangulate, points must be coplainer");
+					 new RuntimeException("Failed to triangulate, points must be coplainer").printStackTrace();
 				}
 
 				// Calculate cross product
@@ -791,7 +791,9 @@ public class PolygonUtil {
 				Vertex e = null;// new Vertex(pos);
 				for (int x = 0; x < toTri.getVertices().size(); x++) {
 					Vector3d test = toTri.getVertices().get(x).pos;
-					if (test.test(pos, Plane.getEPSILON())) {
+					double diffX = Math.abs( test.x-pos.x);
+					double diffY = Math.abs(test.y-pos.y);
+					if (diffY<Plane.getEPSILON() && diffX<Plane.getEPSILON()) {
 						e = toTri.getVertices().get(x).clone();
 						break;
 					}
