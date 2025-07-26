@@ -70,8 +70,9 @@ public class Extrude {
 		public CSG points(Vector3d dir, List<Vector3d> points) throws ColinearPointsException {
 
 			List<Vector3d> newList = new ArrayList<>(points);
-
-			return extrude(dir, Polygon.fromPoints(toCCW(newList)));
+			Polygon fromPoints = Polygon.fromPoints(toCCW(newList));
+			PolygonUtil.triangulatePolygon(fromPoints);
+			return extrude(dir, fromPoints);
 		}
 
 		/**
