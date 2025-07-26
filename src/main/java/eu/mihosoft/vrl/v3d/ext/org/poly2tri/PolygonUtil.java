@@ -70,7 +70,7 @@ import org.locationtech.jts.triangulate.polygon.ConstrainedDelaunayTriangulator;
  * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
  */
 public class PolygonUtil {
-	public static final double triangleScale = 10000;
+	public static final double triangleScale = 1;
 	private static IPolygonRepairTool repair = concave1 -> {
 
 		ArrayList<Edge> edges = new ArrayList<Edge>();
@@ -754,7 +754,7 @@ public class PolygonUtil {
 			}
 			if (size == points.size()) {
 				if (result.size() == 0)
-					throw new ColinearPointsException("Error! All remaining points are colinear!");
+					throw new ColinearPointsException("Triangulation Internal Error! All remaining points are colinear!");
 				return;
 			}
 		}
@@ -765,9 +765,7 @@ public class PolygonUtil {
 			boolean debug, Transform orentationInv, boolean reorent, Color color) {
 
 		Polygon toTri = concave;
-//	if(cw) {
-//		toTri=Extrude.toCCW(concave);
-//	}
+
 		Coordinate[] coordinates = new Coordinate[toTri.getVertices().size() + 1];
 		for (int i = 0; i < toTri.getVertices().size(); i++) {
 			Vector3d v = toTri.getVertices().get(i).pos;
@@ -793,14 +791,16 @@ public class PolygonUtil {
 				Vertex e = null;// new Vertex(pos);
 				for (int x = 0; x < toTri.getVertices().size(); x++) {
 					Vector3d test = toTri.getVertices().get(x).pos;
-					if (test.test(pos, 1.0 / triangleScale)) {
+					if (test.test(pos, Plane.getEPSILON())) {
 						e = toTri.getVertices().get(x).clone();
+						break;
 					}
 				}
 				if (e == null) {
 					throw new RuntimeException("Failed to find point! " + pos + " missing from " + toTri);
 				}
-				triPoints.add(e);
+				if(!triPoints.contains(e))
+					triPoints.add(e);
 
 				if (counter == 2) {
 
