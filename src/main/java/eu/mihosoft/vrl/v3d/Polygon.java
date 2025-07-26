@@ -116,7 +116,7 @@ public final class Polygon implements Serializable {
 	 * @param shared   shared property
 	 */
 	public Polygon(List<Vertex> vertices, PropertyStorage shared, boolean allowDegenerate, Plane p) throws ColinearPointsException {
-		this.vertices = pruneDuplicatePoints(vertices);
+		this.setVertices(pruneDuplicatePoints(vertices));
 		this.shared = shared;
 		if (p != null)
 			setPlane(p.clone());
@@ -170,18 +170,21 @@ public final class Polygon implements Serializable {
 		}
 	}
 
-	private void validateAndInit(boolean allowDegenerate) throws ColinearPointsException {
-		vertices = pruneDuplicatePoints(vertices);
-		Plane p = Plane.createFromPoints(vertices);
+	private void validateAndInit(boolean fixInversions) throws ColinearPointsException {
+		setVertices(pruneDuplicatePoints(getVertices()));
+		Plane p = Plane.createFromPoints(getVertices());
 		if (getPlane() == null) {
 			setPlane(p);
 		}
 
-		Vector3d minus = getPlane().getNormal().minus(p.getNormal());
-		double magnitude = minus.magnitude();
-//		if (Math.abs( magnitude)>2-(Plane.getEPSILON()*2) ) {
-//			Collections.reverse(vertices);
-//		}
+		
+		if(fixInversions) {
+			Vector3d minus = getPlane().getNormal().minus(p.getNormal());
+			double magnitude = minus.magnitude();
+			if (Math.abs( magnitude)>2-(Plane.getEPSILON()*2) ) {
+				Collections.reverse(getVertices());
+			}
+		}
 		if (!getPlane().checkNormal(vertices)) {
 			//setPlane(p);
 			throw new ColinearPointsException("Failed! the normal provided mismatched to calculated normal");
@@ -203,8 +206,8 @@ public final class Polygon implements Serializable {
 	}
 
 	public void rotatePoints() {
-		Vertex b = vertices.remove(0);
-		vertices.add(b);
+		Vertex b = getVertices().remove(0);
+		getVertices().add(b);
 	}
 
 	/**
@@ -233,11 +236,11 @@ public final class Polygon implements Serializable {
 		});
 		// TODO figure out why this isnt working
 		try {
-			return new Polygon(newVertices, getStorage(), true, plane.clone()).setColor(getColor());
+			//return new Polygon(newVertices, getStorage(), true, plane.clone()).setColor(getColor());
+			return new Polygon(newVertices, getStorage(),false,null).setColor(getColor());
 		}catch(Exception ex) {
 			throw new RuntimeException(ex);
 		}
-//		return new Polygon(newVertices, getStorage(),true,null).setColor(getColor());
 	}
 
 	/**
@@ -248,14 +251,14 @@ public final class Polygon implements Serializable {
 	public Polygon flip() {
 
 		Collections.reverse(getVertices());
-		try {
-			plane=Plane.createFromPoints(vertices);
-		} catch (ColinearPointsException e) {
-			plane.flip();
-		}
+		plane.flip();
+//		try {
+//			plane=Plane.createFromPoints(vertices);
+//		} catch (ColinearPointsException e) {
+//			plane.flip();
+//		}
 		if (!getPlane().checkNormal(vertices)) {
 	//		getPlane().checkNormal(vertices);
-			
 			new RuntimeException("Failed! the normal provided mismatched to calculated normal").printStackTrace();	
 		}
 		
@@ -366,7 +369,7 @@ public final class Polygon implements Serializable {
 		
 		// Given how the relative locations of the points can change in a scale operations
 		// it is nessissary to reacalculated the normal on operation
-		this.plane=Plane.createFromPoints(vertices);
+		this.plane=Plane.createFromPoints(getVertices());
 //        
 		if (transform.isMirror()) {
 			// the transformation includes mirroring. flip polygon
@@ -788,7 +791,7 @@ public final class Polygon implements Serializable {
 	/**
 	 * @return the vertices
 	 */
-	public List<Vertex> getVertices() {
+	public ArrayList<Vertex> getVertices() {
 		return vertices;
 	}
 
@@ -796,20 +799,20 @@ public final class Polygon implements Serializable {
 //		for(Vertex vr:vertices)
 //			if(vr.pos.test(v.pos, Plane.getEPSILON()))
 //				return this;
-		vertices.add(index, v);
+		getVertices().add(index, v);
 
 		return this;
 	}
 
 	private boolean areAllPointsCollinear() {
 		// If we have 2 or fewer points, they're always collinear
-		if (vertices.size() <= 2) {
+		if (getVertices().size() <= 2) {
 			return true;
 		}
 
 		// Get first two points to establish a direction vector
-		Vertex p1 = vertices.get(0);
-		Vertex p2 = vertices.get(1);
+		Vertex p1 = getVertices().get(0);
+		Vertex p2 = getVertices().get(1);
 
 		// Calculate the direction vector between first two points
 		Vector3d direction = p1.pos.minus(p2.pos);
@@ -822,8 +825,8 @@ public final class Polygon implements Serializable {
 		direction.normalize();
 
 		// Check each subsequent point
-		for (int i = 2; i < vertices.size(); i++) {
-			Vertex p = vertices.get(i);
+		for (int i = 2; i < getVertices().size(); i++) {
+			Vertex p = getVertices().get(i);
 
 			// Calculate cross product
 			Vector3d cross = direction.cross(p1.pos.minus(p.pos));
@@ -852,5 +855,10 @@ public final class Polygon implements Serializable {
 	public int size() {
 
 		return getVertices().size();
+	}
+
+	public void setVertices(ArrayList<Vertex> vertices) throws ColinearPointsException {
+		plane = Plane.createFromPoints(vertices);
+		this.vertices = vertices;
 	}
 }
