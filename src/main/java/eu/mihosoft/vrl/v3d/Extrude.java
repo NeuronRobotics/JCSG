@@ -197,7 +197,6 @@ public class Extrude {
 	public static boolean isCCW(Polygon polygon) throws ColinearPointsException {
 		return isCCWv3d(polygon.getPoints());
 	}
-
 	/**
 	 * Checks if is ccw.
 	 *
@@ -206,10 +205,20 @@ public class Extrude {
 	 * @throws ColinearPointsException 
 	 */
 	public static boolean isCCW(List<Vertex> vertices) throws ColinearPointsException {
-		List<Vector3d> points = new ArrayList<Vector3d>();
-		for (Vertex v : vertices)
-			points.add(v.pos);
-		return isCCWv3d(points);
+		return isCCW(vertices, new Vector3d(0, 0,1));
+	}
+	/**
+	 * Checks if is ccw.
+	 *
+	 * @param polygon the polygon
+	 * @param normal the normal to check the CCW against. 
+	 * @return true, if is ccw
+	 * @throws ColinearPointsException 
+	 */
+	public static boolean isCCW(List<Vertex> vertices, Vector3d normal) throws ColinearPointsException {
+		Plane p = Plane.createFromPoints(vertices);
+		
+		return Math.abs( normal.dot(p.getNormal())) < Plane.getEPSILON();
 	}
 
 	/**
@@ -222,9 +231,7 @@ public class Extrude {
 		ArrayList<Vertex> v = new ArrayList<Vertex>();
 		for(Vector3d vc:vertices)
 			v.add(new Vertex(vc));
-		
-		Plane p = Plane.createFromPoints(v);
-		return p.getNormal().z>(1-Plane.getEPSILON());
+		return isCCW(v);
 
 //		// thanks to Sepp Reiter for explaining me the algorithm!
 //		if (vertices.size() < 3) {
