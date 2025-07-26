@@ -171,7 +171,7 @@ public final class Polygon implements Serializable {
 	}
 
 	private void validateAndInit(boolean fixInversions) throws ColinearPointsException {
-		setVertices(pruneDuplicatePoints(getVertices()));
+		vertices = pruneDuplicatePoints(vertices);
 		Plane p = Plane.createFromPoints(getVertices());
 		if (getPlane() == null) {
 			setPlane(p);
