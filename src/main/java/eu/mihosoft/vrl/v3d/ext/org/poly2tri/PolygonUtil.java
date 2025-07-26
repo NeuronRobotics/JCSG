@@ -75,8 +75,8 @@ public class PolygonUtil {
 
 		ArrayList<Edge> edges = new ArrayList<Edge>();
 		ArrayList<Vertex> toRemove = new ArrayList<Vertex>();
-		HashMap<Vertex,Vertex> replace=new HashMap<>();
- 		List<Vertex> v1 = concave1.getVertices();
+		HashMap<Vertex, Vertex> replace = new HashMap<>();
+		List<Vertex> v1 = concave1.getVertices();
 		ArrayList<Vertex> modifiable = new ArrayList<Vertex>();
 
 		for (int i = 0; i < v1.size(); i++) {
@@ -89,7 +89,7 @@ public class PolygonUtil {
 			if (!match)
 				modifiable.add(v1.get(i));
 			else
-				System.err.println("Duplicate Point! "+v1.get(i));
+				System.err.println("Duplicate Point! " + v1.get(i));
 		}
 		for (int i = 0; i < modifiable.size(); i++) {
 			Edge e = new Edge(modifiable.get(i), modifiable.get((i + 1) % modifiable.size()));
@@ -134,7 +134,7 @@ public class PolygonUtil {
 						boolean c = cross.isPresent() && i < j;
 						if (c) {
 							int x = i + 1;
-							replace.put(modifiable.get(x),new Vertex(cross.get()));
+							replace.put(modifiable.get(x), new Vertex(cross.get()));
 							for (; x < j; x++) {
 								toRemove.add(modifiable.get(x));
 							}
@@ -142,10 +142,10 @@ public class PolygonUtil {
 //										.println("Edges cross! " + cross.get() +
 //												" pruned "+(x-i));
 						}
-						if (v!=null) {
-							//System.out.println("\n\nFalse Boundary " + test + " \n " + test2);
+						if (v != null) {
+							// System.out.println("\n\nFalse Boundary " + test + " \n " + test2);
 							try {
-							//	toRemove.add(v);
+								// toRemove.add(v);
 							} catch (Exception e) {
 								// throw new RuntimeException(e);
 								return;
@@ -166,41 +166,29 @@ public class PolygonUtil {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			System.out.println("Reapir thread finished "+(i+1)+" of "+threads.size());
+			System.out.println("Reapir thread finished " + (i + 1) + " of " + threads.size());
 		}
-		for(int j=0;j< modifiable.size(); j++) {
+		for (int j = 0; j < modifiable.size(); j++) {
 			Vertex key = modifiable.get(j);
 
 			Vertex vertex = replace.get(key);
-			if(vertex!=null) {
+			if (vertex != null) {
 				toRemove.remove(key);
-				modifiable.set(j,vertex);
+				modifiable.set(j, vertex);
 			}
 		}
 		for (Vertex vr : toRemove)
 			modifiable.remove(vr);
-		ArrayList<Polygon> back = new ArrayList<>();
 		if (modifiable.size() > 2) {
 			try {
-				back.add(new Polygon(modifiable, concave1.getStorage(), false, concave1.getPlane()));
+				Polygon polygon = new Polygon(modifiable, concave1.getStorage(), false, concave1.getPlane());
+				return polygon;
 			} catch (ColinearPointsException e) {
-				System.out.println(" Pruning polygon in repair "+concave1+" to "+modifiable);
-				
-			}
-		} else {
-//			if (toRemove.size() > 3) {
-//				try {
-//					back.add(new Polygon(toRemove, concave1.getStorage(), false, concave1.getPlane()));
-//				} catch (ColinearPointsException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
-//			} else {
-//				System.out.println("Pruned " + toRemove.size());
-//			}
-		}
+				System.out.println(" Pruning polygon in repair " + concave1 + " to " + modifiable);
 
-		return back;
+			}
+		}
+		throw new ColinearPointsException("Fix failed!");
 
 	};
 
@@ -515,11 +503,11 @@ public class PolygonUtil {
 //		return result;
 //	}
 
-
 	/**
 	 * Calculates a quaternion-based transform that rotates `from` vector to align
 	 * with (0,0,1).
-	 * @throws ColinearPointsException 
+	 * 
+	 * @throws ColinearPointsException
 	 */
 	private static Transform calculateQuaternionTransform(Polygon concave) throws ColinearPointsException {
 		// Normalize inputs
@@ -546,7 +534,7 @@ public class PolygonUtil {
 		double abs = Math.abs(test.plane.getNormal().z);
 		if (1 - abs > 0.1) {
 			System.out.println("Error with " + test);
-			//Plane p = Plane.createFromPoints(test.getVertices());
+			// Plane p = Plane.createFromPoints(test.getVertices());
 			throw new ColinearPointsException("Failed to reorent the polygon for processing!");
 		}
 		return transform;
@@ -557,7 +545,7 @@ public class PolygonUtil {
 	 *
 	 * @param incoming the concave
 	 * @return the list
-	 * @throws ColinearPointsException 
+	 * @throws ColinearPointsException
 	 */
 	public static ArrayList<Polygon> triangulatePolygon(Polygon incoming) throws ColinearPointsException {
 		ArrayList<Polygon> result = new ArrayList<>();
@@ -586,44 +574,48 @@ public class PolygonUtil {
 //			Collections.reverse(v);
 //			tmp = new Polygon(v, tmp.getStorage(), false, null);
 //		}
-		Polygon concave =  tmp;
+		Polygon concave = tmp;
 		double zplane = concave.getVertices().get(0).pos.z;
 		for (Vector3d v : concave.getPoints()) {
 			double abs = Math.abs(zplane - v.z);
 			if (abs > 0.1) {
-				new RuntimeException("Failed to triangulate, points must be coplainer, delta: "+abs).printStackTrace();
+				new RuntimeException("Failed to triangulate, points must be coplainer, delta: " + abs)
+						.printStackTrace();
 			}
 		}
 		try {
 			if (concave.size() == 3) {
 				result.add(concave);
-			}else
-				makeTriangles(concave, cw, result, zplane, normal, debug, orientationInv, reorient, incoming.getColor());
+			} else
+				makeTriangles(concave, cw, result, zplane, normal, debug, orientationInv, reorient,
+						incoming.getColor());
 		} catch (java.lang.IllegalStateException ex) {
 
-			ArrayList<Polygon> repairedList = repairOverlappingEdges(concave);
-			for (Polygon repaired : repairedList) {
-				int end = repaired.getVertices().size();
-				if (end == 3) {
-					result.add(repaired);
-				} else
-					try {
-						makeTriangles(repaired, cw, result, zplane, normal, debug, orientationInv, reorient,
-								incoming.getColor());
-					} catch (Exception e) {
-						makeTrianglesInternal(repaired, cw, result, zplane, normal, debug, orientationInv, reorient,
-								incoming.getColor());
-					}
-
-				// System.out.println("Rapaired polygon: "+repaired);
-				// System.out.println("Repaired the polygon! pruned " + (start - end));
+			Polygon repaired = repairOverlappingEdges(concave);
+			int end = repaired.getVertices().size();
+			if (end == 3) {
+				result.add(repaired);
+			} else {
+				try {
+					makeTriangles(repaired, cw, result, zplane, normal, debug, orientationInv, reorient,
+							incoming.getColor());
+				} catch (Exception e) {
+					makeTrianglesInternal(repaired, cw, result, zplane, normal, debug, orientationInv, reorient,
+							incoming.getColor());
+				}
 			}
+			
+			if (reorient) {
+				repaired = repaired.transform(orientationInv);
+			}
+			incoming.setVertices(repaired.getVertices());
+
 		}
 
 		return result;
 	}
 
-	private static ArrayList<Polygon> repairOverlappingEdges(Polygon concave) {
+	private static Polygon repairOverlappingEdges(Polygon concave) throws ColinearPointsException {
 
 		return getRepair().repairOverlappingEdges(concave);
 	}
@@ -693,7 +685,8 @@ public class PolygonUtil {
 //	}
 
 	private static void makeTrianglesInternal(Polygon concave, boolean cw, List<Polygon> result, double zplane,
-			Vector3d normal, boolean debug, Transform orentationInv, boolean reorent, Color color) throws ColinearPointsException {
+			Vector3d normal, boolean debug, Transform orentationInv, boolean reorent, Color color)
+			throws ColinearPointsException {
 		ArrayList<Vector3d> points = new ArrayList<>(concave.getPoints());
 		double z = concave.getVertices().get(0).pos.z;
 		for (Vector3d v : points) {
@@ -707,10 +700,10 @@ public class PolygonUtil {
 				// Get first two points to establish a direction vector
 				Vector3d p1 = points.get(i);
 				Vector3d p2 = points.get((i + 1) % size);
-				if (Math.abs(z - p1.z) >0.1) {
+				if (Math.abs(z - p1.z) > 0.1) {
 					throw new ColinearPointsException("Failed to triangulate, points must be coplainer");
 				}
-				if (Math.abs(z - p2.z) >0.1) {
+				if (Math.abs(z - p2.z) > 0.1) {
 					throw new ColinearPointsException("Failed to triangulate, points must be coplainer");
 				}
 				// Calculate the direction vector between first two points
@@ -739,17 +732,15 @@ public class PolygonUtil {
 						Plane normal2 = concave.plane;
 						points.remove(p2);
 						ArrayList<Vertex> vertices = new ArrayList<Vertex>(
-								Arrays.asList(	new Vertex(p1.clone()), 
-												new Vertex(p2.clone()), 
-												new Vertex(p3.clone())));
+								Arrays.asList(new Vertex(p1.clone()), new Vertex(p2.clone()), new Vertex(p3.clone())));
 						Polygon one = new Polygon(vertices, concave.getStorage(), true, normal2.clone());
 						if (reorent) {
 							one = one.transform(orentationInv);
 						}
 						one.setColor(color);
 						result.add(one);
-					}catch(ColinearPointsException ex) {
-						System.out.println(ex.getMessage()+" Triangulation Pruned point "+p2);
+					} catch (ColinearPointsException ex) {
+						System.out.println(ex.getMessage() + " Triangulation Pruned point " + p2);
 					}
 					if (points.size() == 2) {
 						points.clear();
@@ -799,15 +790,15 @@ public class PolygonUtil {
 			for (int j = 0; j < 3; j++) {
 				Coordinate tp = coords[j];
 				Vector3d pos = new Vector3d(tp.getX() / triangleScale, tp.getY() / triangleScale, zplane);
-				Vertex e =null;// new Vertex(pos);
+				Vertex e = null;// new Vertex(pos);
 				for (int x = 0; x < toTri.getVertices().size(); x++) {
 					Vector3d test = toTri.getVertices().get(x).pos;
-					if(test.test(pos, 1.0/triangleScale)) {
-						e=toTri.getVertices().get(x).clone();
+					if (test.test(pos, 1.0 / triangleScale)) {
+						e = toTri.getVertices().get(x).clone();
 					}
 				}
-				if(e==null) {
-					throw new RuntimeException("Failed to find point! "+pos+" missing from "+toTri);
+				if (e == null) {
+					throw new RuntimeException("Failed to find point! " + pos + " missing from " + toTri);
 				}
 				triPoints.add(e);
 
@@ -820,7 +811,7 @@ public class PolygonUtil {
 						Polygon poly;
 						poly = new Polygon(triPoints, concave.getStorage(), true, p1);
 						// poly = Extrude.toCCW(poly);
-						//poly.getPlane().setNormal(concave.getPlane().getNormal());
+						// poly.getPlane().setNormal(concave.getPlane().getNormal());
 
 						if (debug) {
 							// Debug3dProvider.clearScreen();
@@ -837,7 +828,7 @@ public class PolygonUtil {
 						poly.setColor(color);
 						result.add(poly);
 					} catch (ColinearPointsException ex) {
-						System.out.println(ex.getMessage()+" Pruned new triangle as colinear "+triPoints);
+						System.out.println(ex.getMessage() + " Pruned new triangle as colinear " + triPoints);
 					}
 
 					counter = 0;
