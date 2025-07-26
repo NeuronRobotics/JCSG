@@ -218,7 +218,8 @@ public class Extrude {
 	public static boolean isCCW(List<Vertex> vertices, Vector3d normal) throws ColinearPointsException {
 		Plane p = Plane.createFromPoints(vertices);
 		
-		return Math.abs( normal.dot(p.getNormal())) < Plane.getEPSILON();
+		double dot = normal.dot(p.getNormal());
+		return dot > (1.0 - Plane.getEPSILON());
 	}
 
 	/**
