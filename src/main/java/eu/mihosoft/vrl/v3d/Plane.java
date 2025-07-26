@@ -56,7 +56,7 @@ public class Plane implements Serializable {
 	 * 0.00000001;
 	 */
 
-	private static double EPSILON = 1.0e-7;
+	private static double EPSILON = 1.0e-5;
 	private static double EPSILON_Point = getEPSILON();
 	// public static double EPSILON_duplicate = 1.0e-4;
 	/**
@@ -80,6 +80,7 @@ public class Plane implements Serializable {
 	 * Distance to origin.
 	 */
 	private double dist;
+	private double lengthSquared;
 
 	/**
 	 * Constructor. Creates a new plane defined by its normal vector and the
@@ -91,6 +92,20 @@ public class Plane implements Serializable {
 	public Plane(Vector3d normal, double dist) {
 		this.setNormal(normal.normalized());
 		this.setDist(dist);
+	}
+	/**
+	 * Constructor. Creates a new plane defined by its normal vector and the
+	 * distance to the origin.
+	 *
+	 * @param normal plane normal
+	 * @param dist   distance from origin
+	 * @throws ColinearPointsException 
+	 */
+	public Plane(List<Vertex> vertices, Vector3d testNorm) throws ColinearPointsException {
+		Vector3d a = vertices.get(0).pos;
+		Vector3d n = computeNormal(vertices, testNorm);
+		this.setNormal(n);
+		this.setDist(n.dot(a));
 	}
 
 	/**
@@ -140,16 +155,14 @@ public class Plane implements Serializable {
 	 * @return a plane
 	 */
 	public static Plane createFromPoints(List<Vertex> vertices, Vector3d testNorm) throws ColinearPointsException {
-		Vector3d a = vertices.get(0).pos;
-		Vector3d n = computeNormal(vertices, testNorm);
-		return new Plane(n, n.dot(a));
+		return new Plane(vertices,  testNorm);
 	}
 
-	public static Vector3d computeNormal(List<Vertex> vertices) throws ColinearPointsException{
+	public Vector3d computeNormal(List<Vertex> vertices) throws ColinearPointsException{
 		return computeNormal(vertices, null);
 	}
 
-	public static Vector3d computeNormal(List<Vertex> vertices, Vector3d testNorm) throws ColinearPointsException {
+	public Vector3d computeNormal(List<Vertex> vertices, Vector3d testNorm) throws ColinearPointsException {
 
 		if (vertices == null || vertices.size() < 3) {
 			throw new ColinearPointsException("Can not find normal without at least 3 points "+vertices);
@@ -173,10 +186,10 @@ public class Plane implements Serializable {
 		}
 		throw new ColinearPointsException("Failed to compute the normal! "+vertices);
 	}
-	private static boolean isValidNormal(Vector3d normal) {
+	private boolean isValidNormal(Vector3d normal) {
 	    if (Double.isFinite(normal.x) && Double.isFinite(normal.y) && Double.isFinite(normal.z)) {
-	        double lengthSquared = normal.x*normal.x + normal.y*normal.y + normal.z*normal.z;
-	        return lengthSquared > 0;  // Compare squared values
+	        setLengthSquared(normal.x*normal.x + normal.y*normal.y + normal.z*normal.z);
+	        return getLengthSquared() > 0;  // Compare squared values
 	    }
 	    return false;
 	}
@@ -431,6 +444,14 @@ public class Plane implements Serializable {
 
 	public static void setEPSILON_Point(double ePSILON_Point) {
 		EPSILON_Point = ePSILON_Point;
+	}
+
+	public  double getLengthSquared() {
+		return lengthSquared;
+	}
+
+	public  void setLengthSquared(double lengthSquared) {
+		this.lengthSquared = lengthSquared;
 	}
 
 }
