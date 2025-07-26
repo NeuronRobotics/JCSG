@@ -1745,7 +1745,7 @@ public class CSG implements IuserAPI, Serializable {
 		}
 
 		// System.out.println("Data loaded!");
-		float eps = (float)(Plane.getEPSILON()*2);
+		float eps = (float)(0.0001);
 		float epsSq = (float) (eps * eps);
 		int[] added = new int[numberOfPolygons];
 		int testPointChunk = 20;
@@ -2037,7 +2037,7 @@ public class CSG implements IuserAPI, Serializable {
 				}
 				pointIndexSet.add(pointIndex);
 				Vector3d thispoint = orderedPoints[pointIndex];
-				points.add(new Vertex(thispoint));
+				points.add(new Vertex(thispoint.clone()));
 			}
 			if (points.size() < 3) {
 				System.out.println(" ERR polygon " + i + " pruned because of too few points");
@@ -2047,7 +2047,7 @@ public class CSG implements IuserAPI, Serializable {
 				pl = Plane.createFromPoints(points);
 				Polygon p = new Polygon(points, polygon.getStorage(), true, pl);
 				newPoly.add(p);
-				polygon.getPoints().clear();
+				polygon.getVertices().clear();
 			} catch (Exception e) {
 				// if the normal can not be calculated, use the incoming one
 				e.printStackTrace();
