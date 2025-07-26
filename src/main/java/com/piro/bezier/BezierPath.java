@@ -14,7 +14,6 @@ import eu.mihosoft.vrl.v3d.Vertex;
 
 public class BezierPath {
 
-
 	private static final double MaximumInterpolationStep = 0.5;
 
 	static final Matcher matchPoint = Pattern.compile("\\s*(\\d+)[^\\d]+(\\d+)\\s*").matcher("");
@@ -57,7 +56,7 @@ public class BezierPath {
 			} else {
 				tokens.addFirst(curToken);
 			}
-			double  x, y;
+			double x, y;
 			switch (curCmd) {
 			case 'M':
 				x = nextFloat(tokens);
@@ -166,17 +165,17 @@ public class BezierPath {
 		Vector3d start = path.bezierSegs.get(path.bezierSegs.size() - 1).eval(0);
 		Vector3d end = path.bezierSegs.get(path.bezierSegs.size() - 1).eval(1);
 		double magnitude = start.minus(end).magnitude();
-		if(magnitude<Plane.getEPSILON())
+		if (magnitude < Plane.getEPSILON())
 			return 1;
-		double dpoints = magnitude/0.75;
-		if(dpoints<1)
-			dpoints= 1;
-		double increment = 1.0/dpoints;
-		double min = 1.0/((double)resolutionPoints);
-		if(increment<min)
-			increment=min;
-		if(increment>MaximumInterpolationStep)
-			increment=MaximumInterpolationStep;
+		double dpoints = magnitude /0.75;
+		if (dpoints < 1)
+			dpoints = 1;
+		double increment = 1.0 / dpoints;
+		double min = 1.0 / ((double) resolutionPoints);
+		if (increment < min)
+			increment = min;
+		if (increment > MaximumInterpolationStep)
+			increment = MaximumInterpolationStep;
 //		System.out.println("Path with inc "+points);
 		return increment;
 	}
@@ -187,19 +186,16 @@ public class BezierPath {
 	}
 
 	private boolean setThePoint(Vector3d eval) {
-		int end = plInternal.size()-1;
-
-		if(end>0) {
-			if(Math.abs(plInternal.get(0).minus(eval).magnitude())<Extrude.getMinimumDIstance()) {
-				return false;
+		int end = plInternal.size() - 1;
+		for (int i = 0; i < plInternal.size(); i++)
+			if (end > 0) {
+				if (Math.abs(plInternal.get(i).minus(eval).magnitude()) < Extrude.getMinimumDIstance()) {
+					return false;
+				}
 			}
-			if(Math.abs(plInternal.get(end).minus(eval).magnitude())<Extrude.getMinimumDIstance()) {
-				return false;
-			}
-		}
-		if(plInternal.size()>1) {
-			Edge e = new Edge(new Vertex(plInternal.get(end-1)), new Vertex(plInternal.get(end)));
-			if(e.colinear(eval)) {
+		if (plInternal.size() > 1) {
+			Edge e = new Edge(new Vertex(plInternal.get(end - 1)), new Vertex(plInternal.get(end)));
+			if (e.colinear(eval)) {
 				plInternal.set(end, eval);
 				return true;
 			}
@@ -207,7 +203,7 @@ public class BezierPath {
 		return plInternal.add(eval);
 	}
 
-	static protected double  nextFloat(LinkedList<String> l) {
+	static protected double nextFloat(LinkedList<String> l) {
 		String s = l.removeFirst();
 		return Float.parseFloat(s);
 	}
@@ -216,7 +212,7 @@ public class BezierPath {
 	 * Evaluates this animation element for the passed interpolation time. Interp
 	 * must be on [0..1].
 	 */
-	public Vector3d eval(double  interp) {
+	public Vector3d eval(double interp) {
 		Vector3d point = new Vector3d(0, 0);// = new Vector3d();
 //		if (interp < 0.001)
 //			interp = (double ) 0.001;
