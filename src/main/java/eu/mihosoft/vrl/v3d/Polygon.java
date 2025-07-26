@@ -189,7 +189,8 @@ public final class Polygon implements Serializable {
 			if(p.getLengthSquared()>Plane.getEPSILON())
 				setPlane(p);
 			else
-				throw new ColinearPointsException("Failed! the normal provided mismatched to calculated normal");
+				if (getPlane() == null) 
+					throw new ColinearPointsException("Failed! the normal provided mismatched to calculated normal");
 		}
 		this.vertices=vertices;
 		if (Vector3d.ZERO.equals(getPlane().getNormal())) {
@@ -778,7 +779,7 @@ public final class Polygon implements Serializable {
 	public String toString() {
 		String ret = "# points=" + getVertices().size() + " normal=" + getPlane().getNormal().toStlString() + " [ ";
 		for (Vertex v : getVertices()) {
-			ret += " " + v.pos.toStlString() + " , ";
+			ret += "\n\t" + v.pos.toStlString() + " , ";
 		}
 		return ret + " ] ";
 	}
