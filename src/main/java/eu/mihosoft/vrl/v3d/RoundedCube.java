@@ -116,9 +116,9 @@ public class RoundedCube extends Primitive {
         CSG sphere7 = spherePrototype.transformed(unity().translate(x, y, z));
         CSG sphere8 = spherePrototype.transformed(unity().translate(-x, y, z));
 
-        List<Polygon> result = sphere1.union(
+        List<Polygon> result = CSG.hullAll(sphere1,
                 sphere2, sphere3, sphere4,
-                sphere5, sphere6, sphere7, sphere8).hull().getPolygons();
+                sphere5, sphere6, sphere7, sphere8).getPolygons();
 
         if (!centered) {
 
