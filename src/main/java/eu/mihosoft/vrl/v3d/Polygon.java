@@ -171,8 +171,8 @@ public final class Polygon implements Serializable {
 	}
 
 	private void validateAndInit(boolean fixInversions) throws ColinearPointsException {
-		vertices = pruneDuplicatePoints(vertices);
-		Plane p = Plane.createFromPoints(getVertices());
+		ArrayList<Vertex>  vertices = pruneDuplicatePoints(this.vertices);
+		Plane p = Plane.createFromPoints(vertices);
 		if (getPlane() == null) {
 			setPlane(p);
 		}
@@ -182,13 +182,16 @@ public final class Polygon implements Serializable {
 			Vector3d minus = getPlane().getNormal().minus(p.getNormal());
 			double magnitude = minus.magnitude();
 			if (Math.abs( magnitude)>2-(Plane.getEPSILON()*2) ) {
-				Collections.reverse(getVertices());
+				Collections.reverse(vertices);
 			}
 		}
 		if (!getPlane().checkNormal(vertices)) {
-			//setPlane(p);
-			throw new ColinearPointsException("Failed! the normal provided mismatched to calculated normal");
+			if(p.getLengthSquared()>Plane.getEPSILON())
+				setPlane(p);
+			else
+				throw new ColinearPointsException("Failed! the normal provided mismatched to calculated normal");
 		}
+		this.vertices=vertices;
 		if (Vector3d.ZERO.equals(getPlane().getNormal())) {
 			valid = false;
 			throw new ColinearPointsException(
