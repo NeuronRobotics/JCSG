@@ -26,6 +26,37 @@ import static org.junit.Assert.*;
  */
 public class HoleDetectionTest {
 	@Test
+	public void boltTest() throws IOException {
+		CSG.setPreventNonManifoldTriangles(true);
+		JavaFXInitializer.go();
+		double outerDiameter = 5;
+		double width = 3;
+		double innerDiameter = 3;
+		CSG lug = new RoundedCylinder(10, 10, width, (int) 30).cornerRadius(1).toCSG();
+		CSG block = lug.clone()
+				.union(lug.clone().movex(100).scalez(1.5).rotx(0).toZMin())
+				.union(lug.clone().movex(100).movey(20).scalez(2))
+				.hull();
+		CSG part = new Cylinder(outerDiameter / 2, outerDiameter / 2, width, (int) 30).toCSG().toZMin()
+				.union(new Cylinder(innerDiameter / 2, innerDiameter / 2, width, (int) 30).toCSG().toZMax());
+		Transform movex = new Transform().movez(50).rotX(20).movex(30);
+		part=part.transformed(movex).clone().transformed(movex.inverse());
+		part= block.difference(part.movez(width/2)
+				,part.movez(width/2).movey(6)
+				,part.movez(width/2).movey(-6)
+				,part.movez(width/2).movex(-6));
+		List<CSG> parts = Arrays.asList(part);
+		File stl = new File("Bolt.stl");
+		try {
+			ThumbnailImage.setCullFaceValue(CullFace.NONE);
+			ThumbnailImage.writeImage(parts, new File(stl.getAbsolutePath() + ".png")).join();
+		} catch (InterruptedException e) {
+			// Auto-generated catch block
+			e.printStackTrace();
+		}
+		FileUtil.write(Paths.get(stl.getAbsolutePath()), parts.get(0).toStlString());
+	}
+	@Test
 	public void csgHoleTest() throws IOException {
 		CSG.setPreventNonManifoldTriangles(true);
 		JavaFXInitializer.go();
