@@ -779,22 +779,16 @@ public class Extrude {
 
 	}
 
-	public static Polygon toCCW(Polygon concave) throws ColinearPointsException {
-		if (!isCCW(concave)) {
-//			List<Vector3d> points = concave.getPoints();
-//			List<Vector3d> result = new ArrayList<>(points);
-//			Collections.reverse(result);
-//			return Polygon.fromPoints(result);
-			List<Vertex> points = concave.getVertices();
-			List<Vertex> result = new ArrayList<>(points);
-			Collections.reverse(result);
-			Plane p = concave.getPlane().clone();
-//			p.flip();
-			Polygon polygon = new Polygon(result, concave.getStorage(), true, p);
-			return polygon;
-		}
-		return concave;
-	}
+//	public static Polygon toCCW(Polygon concave) throws ColinearPointsException {
+//		if (!isCCW(concave)) {
+////			List<Vector3d> points = concave.getPoints();
+////			List<Vector3d> result = new ArrayList<>(points);
+////			Collections.reverse(result);
+////			return Polygon.fromPoints(result);
+//			return concave.flipped();
+//		}
+//		return concave;
+//	}
 
 	public static double getMinimumDIstance() {
 		return MINIMUM_DISTANCE;
