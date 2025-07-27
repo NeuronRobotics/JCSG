@@ -57,6 +57,10 @@ import javafx.scene.paint.Color;
  */
 public final class Node {
 	private static final int LIMIT_FOR_GPU = 1000;
+	public static final int COPLANAR = 0;
+	public static final int FRONT = 1;
+	public static final int BACK = 2;
+	public static final int SPANNING = 3; // == some in the FRONT + some in the BACK
 
 	/**
 	 * Polygons.
@@ -130,7 +134,7 @@ public final class Node {
 
 			return node;
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			//  Auto-generated catch block
 			e.printStackTrace();
 		}
 		throw new RuntimeException("Failed to clone");
@@ -357,6 +361,7 @@ public final class Node {
 	 * @param back
 	 * @throws Exception
 	 */
+	@SuppressWarnings("deprecation")
 	public void splitPolygonGPU(ArrayList<Polygon> polygons, List<Polygon> coplanarFront, List<Polygon> coplanarBack,
 			List<Polygon> front, List<Polygon> back) throws Exception {
 
@@ -728,7 +733,7 @@ public final class Node {
 				throw new RuntimeException("Memory error here!");
 
 		// Collect the polygon data into the return structures
-		int copies = 0;
+		//int copies = 0;
 		for (int k = 0; k < polygonNumber; k++) {
 			copyDataIntoPolygon(polygons, coplanarFront, coplanarBack, front, back, orderedPoints,
 					coplanarFrontStartIndex, coplanarFrontSize, coplanarBackStartIndex, coplanarBackSize,
@@ -777,10 +782,7 @@ public final class Node {
 	 */
 	public void splitPolygonOriginal(List<Polygon> polygons, List<Polygon> coplanarFront, List<Polygon> coplanarBack,
 			List<Polygon> front, List<Polygon> back) {
-		final int COPLANAR = 0;
-		final int FRONT = 1;
-		final int BACK = 2;
-		final int SPANNING = 3; // == some in the FRONT + some in the BACK
+
 		for (int k = 0; k < polygons.size(); k++) {
 			Polygon polygon = polygons.get(k);
 			// search for the epsilon values of the incoming plane
@@ -788,55 +790,60 @@ public final class Node {
 			double posEpsilon = Plane.getEPSILON();
 			int size = polygon.getVertices().size();
 			Vector3d normal = polygon.getPlane().getNormal();
-			for (int i = 0; i < size; i++) {
-				double dist = polygon.getPlane().getDist();
-				Vector3d pos = polygon.getVertices().get(i).pos;
-				double dot = normal.dot(pos);
-				double t = dot
-						- dist;
-				if(Math.abs(t)>0.01) {
-					throw new RuntimeException("A plane epsilon of "+t+" is impossible");
-				}
-				if (t > posEpsilon) {
-					// com.neuronrobotics.sdk.common.Log.error("Non flat polygon, increasing
-					// positive epsilon "+t);
-					posEpsilon = t;
-				}
-				if (t < negEpsilon) {
-					// com.neuronrobotics.sdk.common.Log.error("Non flat polygon, decreasing
-					// negative epsilon "+t);
-					negEpsilon = t;
-				}
-			}
+//			for (int i = 0; i < size; i++) {
+//				Vector3d pos = polygon.getVertices().get(i).pos;
+//				double dot = normal.dot(pos);
+//				double t = dot
+//						- dist;
+//				if(Math.abs(t)>0.01) {
+//					throw new RuntimeException("A plane epsilon of "+t+" is impossible");
+//				}
+//				if (t > posEpsilon) {
+//					// com.neuronrobotics.sdk.common.Log.error("Non flat polygon, increasing
+//					// positive epsilon "+t);
+//					posEpsilon = t;
+//				}
+//				if (t < negEpsilon) {
+//					// com.neuronrobotics.sdk.common.Log.error("Non flat polygon, decreasing
+//					// negative epsilon "+t);
+//					negEpsilon = t;
+//				}
+//			}
 			int polygonType = 0;
 			List<Integer> types = new ArrayList<>();
-			boolean someF =false;
-			boolean someB=false;
+//			boolean someF =false;
+//			boolean someB=false;
+
+			double distP = polygon.getPlane().getDist();
 			for (int i = 0; i < size; i++) {
-				double t = plane.getNormal().dot(polygon.getVertices().get(i).pos) - plane.getDist();
+				Vector3d pos = polygon.getVertices().get(i).pos;
+//				double dot = normal.dot(pos);
+//				double ep = Math.abs( dot-distP);// this is this points distance from its plane
+				double t = plane.getNormal().dot(pos) - plane.getDist();
 				int type = (t < negEpsilon) ? BACK : (t > posEpsilon) ? FRONT : COPLANAR;
 				types.add(type);
-				//polygonType = polygonType|type;
+				polygonType = polygonType|type;
 
-				if(type==BACK)
-					someB=true;
-				if(type==FRONT)
-					someF=true;
+//				if(type==BACK)
+//					someB=true;
+//				if(type==FRONT)
+//					someF=true;
 			}
-			polygonType=COPLANAR;
-			if(someF && (!someB) ) {
-				polygonType=FRONT;
-			}
-			if((!someF) && (someB) ) {
-				polygonType=BACK;
-			}
-			if((someF) && (someB) ) {
-				polygonType=SPANNING;
-			}
+//			polygonType=COPLANAR;
+//			if(someF && (!someB) ) {
+//				polygonType=FRONT;
+//			}
+//			if((!someF) && (someB) ) {
+//				polygonType=BACK;
+//			}
+//			if((someF) && (someB) ) {
+//				polygonType=SPANNING;
+//			}
 			// Put the polygon in the correct list, splitting it when necessary.
 			switch (polygonType) {
 			case COPLANAR:
-				(plane.getNormal().dot(normal) > 0 ? coplanarFront : coplanarBack).add(polygon);
+				double cp = plane.getNormal().dot(normal);
+				(cp > 0 ? coplanarFront : coplanarBack).add(polygon);
 				break;
 			case FRONT:
 				front.add(polygon);
@@ -860,7 +867,7 @@ public final class Node {
 					if (ti != FRONT) {
 						addPoint(b, (ti != BACK ? vi.clone() : vi));
 					}
-					if ((ti == FRONT && tj == BACK) || (ti == BACK && tj == FRONT)) {
+					if ((ti|tj) == SPANNING) {
 						double dot = this.plane.getNormal().dot(vi.pos);
 						double dist = this.plane.getDist();
 
