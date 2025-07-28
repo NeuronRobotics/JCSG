@@ -43,6 +43,7 @@ import eu.mihosoft.vrl.v3d.parametrics.Parameter;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,6 +53,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinWorkerThread;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BooleanSupplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -61,6 +65,7 @@ import com.aparapi.Kernel.EXECUTION_MODE;
 import com.aparapi.Range;
 import com.aparapi.device.Device;
 import com.aparapi.internal.kernel.KernelManager;
+import com.aparapi.internal.kernel.KernelRunner;
 import com.neuronrobotics.interaction.CadInteractionEvent;
 
 import javafx.scene.paint.Color;
@@ -188,6 +193,7 @@ public class CSG implements IuserAPI, Serializable {
 			System.err.println(type + "  cur:" + currentIndex + " of " + finalIndex);
 		}
 	};
+	private static ForkJoinPool poolGlobal=null;
 
 	/**
 	 * Instantiates a new csg.
@@ -1749,7 +1755,7 @@ public class CSG implements IuserAPI, Serializable {
 		float eps = (float)POINTS_CONTACT_DISTANCE;
 		float epsSq = (float) (eps * eps);
 		int[] added = new int[numberOfPolygons];
-		int testPointChunk = 20;
+		int testPointChunk = 10;
 		int snapChunk = 500;
 		int[] tp = new int[] { 0, snapChunk };
 
@@ -2059,16 +2065,41 @@ public class CSG implements IuserAPI, Serializable {
 		polygons = newPoly;
 		return pointsAdded;
 	}
+	public static List<ForkJoinWorkerThread> getForkJoinWorkers(ForkJoinPool pool) {
+	    return Thread.getAllStackTraces().keySet().stream()
+	        .filter(thread -> thread instanceof ForkJoinWorkerThread)
+	        .map(thread -> (ForkJoinWorkerThread) thread)
+	        .collect(Collectors.toList());
+	}
+    public static void setPrivateThreadPool(KernelRunner kernelRunner, ForkJoinPool newThreadPool) throws Exception {
+        // Get the class of the object
+        Class<?> clazz = kernelRunner.getClass();
 
+        // Get the private field
+        Field threadPoolField = clazz.getDeclaredField("threadPool");
+
+        // Make it accessible
+        threadPoolField.setAccessible(true);
+
+        // Set the new value
+        threadPoolField.set(kernelRunner, newThreadPool);
+    }
+
+    public static ForkJoinPool getPrivateThreadPool(KernelRunner kernelRunner) throws Exception {
+        Class<?> clazz = kernelRunner.getClass();
+        Field threadPoolField = clazz.getDeclaredField("threadPool");
+        threadPoolField.setAccessible(true);
+        return (ForkJoinPool) threadPoolField.get(kernelRunner);
+    }
 	public static void gpuRun(int numberOfPoints, Kernel kernel, float[] done, String type, BooleanSupplier test,
 			int itr, int expectedIterations) {
 
 		// progressMoniter.progressUpdate(0, 100, "Start " + typOfCPU(kernel) + type,
 		// null);
+		String valueOf = String.valueOf(Runtime.getRuntime().availableProcessors() );
+		System.setProperty("com.aparapi.threadPoolSize", valueOf);
 		if (!useGPU) {
-			String valueOf = String.valueOf(Runtime.getRuntime().availableProcessors() * 4);
 			progressMoniter.progressUpdate(0, 100, "CPU mode " + valueOf, null);
-			System.setProperty("com.aparapi.threadPoolSize", valueOf);
 			kernel.setExecutionMode(Kernel.EXECUTION_MODE.JTP); // Java Thread Pool
 		}
 		int[] iteration = new int[] { 0 };
@@ -2077,11 +2108,48 @@ public class CSG implements IuserAPI, Serializable {
 		boolean print = false;
 		long timeSinceLastPrint = 0;
 		long printLimit = 800;
+		String typOfCPU = typOfCPU(kernel);
+//		ForkJoinPool commonPool = ForkJoinPool.commonPool();
+//        System.out.println("Common ForkJoinPool Status:");
+//        System.out.println("  Pool Size: " + commonPool.getPoolSize());
+//        System.out.println("  Active Thread Count: " + commonPool.getActiveThreadCount());
+//        System.out.println("  Running Thread Count: " + commonPool.getRunningThreadCount());
+//        System.out.println("  Queued Task Count: " + commonPool.getQueuedTaskCount());
+//        System.out.println("  Queued Submission Count: " + commonPool.getQueuedSubmissionCount());
+//        System.out.println("  Steal Count: " + commonPool.getStealCount());
+//        System.out.println("  Parallelism: " + commonPool.getParallelism());
+//        System.out.println("  Is Shutdown: " + commonPool.isShutdown());
+//        System.out.println("  Is Terminated: " + commonPool.isTerminated());
+//        List<ForkJoinWorkerThread> workersInitial=null;
+//        try {
+//
+//	        workersInitial = getForkJoinWorkers(commonPool);
+//	        
+//	        if (workersInitial != null) {
+//	            System.out.println("Worker threads in pool:");
+//	            for (int i = 0; i < workersInitial.size(); i++) {
+//	                ForkJoinWorkerThread worker = workersInitial.get(i);
+//	                if (worker != null) {
+//	                    System.out.println("  Worker[" + i + "]: " + worker.getName() + 
+//	                                     " | State: " + worker.getState() + 
+//	                                     " | Pool Index: " + worker.getPoolIndex() +
+//	                                     " | ID: " + worker.getId());
+//	                }
+//	            }
+//	        }
+//        }catch(Exception ex) {
+//        	ex.printStackTrace();
+//        }
 		try {
 			do {
-				kernel.execute(numberOfPoints);
-				while (kernel.isExecuting())
-					;
+				KernelRunner kernelRunner = new KernelRunner(kernel);
+				if(poolGlobal==null)
+					poolGlobal=getPrivateThreadPool(kernelRunner);
+				else
+					setPrivateThreadPool(kernelRunner, poolGlobal);
+				
+				kernelRunner.execute("run", Range.create(null,numberOfPoints), 1);
+				typOfCPU = typOfCPU(kernel);
 				iteration[0] += 1;
 				long now = System.currentTimeMillis();
 				long sinceStart = now - begin;
@@ -2101,7 +2169,7 @@ public class CSG implements IuserAPI, Serializable {
 						String dur = makeTimestamp(expected);
 						String rem = makeTimestamp(remaining);
 						progressMoniter.progressUpdate(iteration[0], expectedIterations, "Rem->" + rem + " " + type
-								+ typOfCPU(kernel) + "(" + iteration[0] + ") Estimated Total: " + dur, null);
+								+ typOfCPU + "(" + iteration[0] + ") Estimated Total: " + dur, null);
 					}
 				}
 
@@ -2109,10 +2177,50 @@ public class CSG implements IuserAPI, Serializable {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
+//		commonPool.awaitQuiescence(10, TimeUnit.MILLISECONDS);
+//		List<ForkJoinWorkerThread> workers=null;
+//		List<ForkJoinWorkerThread> workersInit=workersInitial;
+//        try {
+//	        workers = getForkJoinWorkers(commonPool).stream()
+//				    .filter(afterThread -> workersInit.stream()
+//					        .noneMatch(beforeThread -> beforeThread.getId() == afterThread.getId()))
+//					    .collect(Collectors.toList());;
+//	        
+//	        if (workers != null) {
+//	            System.out.println("After Worker threads in pool:");
+//	            for (int i = 0; i < workers.size(); i++) {
+//	                ForkJoinWorkerThread worker = workers.get(i);
+//	                if (worker != null) {
+//	                    System.out.println("  Worker[" + i + "]: " + worker.getName() + 
+//	                                     " | State: " + worker.getState() + 
+//	                                     " | Pool Index: " + worker.getPoolIndex() +
+//	                                     " | ID: " + worker.getId());
+//	                    worker.interrupt();
+//	                }
+//	            }
+//	        }
+//        }catch(Exception ex) {
+//        	ex.printStackTrace();
+//        }
+//        System.out.println("\n2 Common ForkJoinPool Status:");
+//        System.out.println("  2 Pool Size: " + commonPool.getPoolSize());
+//        System.out.println("  2 Active Thread Count: " + commonPool.getActiveThreadCount());
+//        System.out.println("  2 Running Thread Count: " + commonPool.getRunningThreadCount());
+//        System.out.println("  2 Queued Task Count: " + commonPool.getQueuedTaskCount());
+//        System.out.println("  2 Queued Submission Count: " + commonPool.getQueuedSubmissionCount());
+//        System.out.println("  2 Steal Count: " + commonPool.getStealCount());
+//        System.out.println("  2 Parallelism: " + commonPool.getParallelism());
+//        System.out.println("  2 Is Shutdown: " + commonPool.isShutdown());
+//        System.out.println("  2 Is Terminated: " + commonPool.isTerminated());
+		boolean executing ;
+		do {
+			executing=kernel.isExecuting();
+		}while(executing );
 		long sinceStart = System.currentTimeMillis() - begin;
 		if (print)
 			progressMoniter.progressUpdate(100, 100,
-					"Took " + makeTimestamp(sinceStart) + " Finished " + type + " on " + typOfCPU(kernel), null);
+					"Took " + makeTimestamp(sinceStart) + " Finished " + type + " on " + typOfCPU, null);
+		
 	}
 
 	private static String typOfCPU(Kernel kernel) {
