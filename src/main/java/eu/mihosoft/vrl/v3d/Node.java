@@ -56,7 +56,7 @@ import javafx.scene.paint.Color;
  * no distinction between internal and leaf nodes.
  */
 public final class Node {
-	private static final int LIMIT_FOR_GPU = 1000;
+	private static final int LIMIT_FOR_GPU = 5000;
 	public static final int COPLANAR = 0;
 	public static final int FRONT = 1;
 	public static final int BACK = 2;
@@ -82,6 +82,7 @@ public final class Node {
 	private long maxDepth = -1;
 
 	private int count = 1;
+	private static boolean GPUTest = false;;
 
 	/**
 	 * Constructor.
@@ -340,13 +341,63 @@ public final class Node {
 	 * @param back          back polgons
 	 * @throws Exception
 	 */
-	public void splitPolygon(ArrayList<Polygon> polygons, List<Polygon> coplanarFront, List<Polygon> coplanarBack,
-			List<Polygon> front, List<Polygon> back) throws Exception {
-//		if (polygons.size() > LIMIT_FOR_GPU)
-//			splitPolygonGPU(polygons, coplanarFront, coplanarBack, front, back);
-//		else
-			splitPolygonOriginal(polygons, coplanarFront, coplanarBack, front, back);
-
+	public void splitPolygon(ArrayList<Polygon> polygons, List<Polygon> cf, List<Polygon> cb,
+			List<Polygon> f, List<Polygon> b) throws Exception {
+		if (polygons.size() < LIMIT_FOR_GPU) {
+			splitPolygonOriginal(polygons, cf, cb, f, b);
+			return;
+		}
+		splitPolygonGPU(polygons, cf, cb, f, b);
+		
+//		List<Polygon> cf1 = new ArrayList<Polygon>();
+//		List<Polygon> cb1= new ArrayList<Polygon>();
+//		List<Polygon> f1= new ArrayList<Polygon>();
+//		List<Polygon> b1= new ArrayList<Polygon>();
+//		List<Polygon> cf2= new ArrayList<Polygon>();
+//		List<Polygon> cb2= new ArrayList<Polygon>();
+//		List<Polygon> f2= new ArrayList<Polygon>(); 
+//		List<Polygon> b2= new ArrayList<Polygon>();
+//		splitPolygonOriginal(polygons, cf2, cb2, f2, b2);
+//		splitPolygonGPU(polygons, cf1, cb1, f1, b1);
+//
+//		if(cf1.size()!=cf2.size()
+//				||cb1.size()!=cb2.size()
+//				|| f1.size()!=f2.size()
+//				||b1.size()!=b2.size()) {
+//			throw new RuntimeException("Node split mismathch");
+//		}
+//		for (int i = 0; i < cf1.size(); i++) {
+//			Polygon p1 = cf1.get(i);
+//			Polygon p2 = cf2.get(i);
+//			if(p1.size()!=p2.size())
+//				throw new RuntimeException("Node slit mismathch, polygon size mismatch");
+//
+//		}
+//		for (int i = 0; i < cb1.size(); i++) {
+//			Polygon p1 = cb1.get(i);
+//			Polygon p2 = cb2.get(i);
+//			if(p1.size()!=p2.size())
+//				throw new RuntimeException("Node slit mismathch, polygon size mismatch");
+//
+//		}
+//		for (int i = 0; i < f1.size(); i++) {
+//			Polygon p1 = f1.get(i);
+//			Polygon p2 = f2.get(i);
+//			if(p1.size()!=p2.size())
+//				throw new RuntimeException("Node slit mismathch, polygon size mismatch");
+//
+//		}		
+//		for (int i = 0; i < b1.size(); i++) {
+//			Polygon p1 = b1.get(i);
+//			Polygon p2 = b2.get(i);
+//			if(p1.size()!=p2.size())
+//				throw new RuntimeException("Node slit mismathch, polygon size mismatch");
+//
+//		}
+//		f.addAll(f1);
+//		b.addAll(b1);
+//		cb.addAll(cb1);
+//		cf.addAll(cf1);
 	}
 
 	/**
@@ -454,18 +505,13 @@ public final class Node {
 
 		double epsilon = Plane.getEPSILON();
 
-		final int COPLANAR = 0;
-		final int FRONT = 1;
-		final int BACK = 2;
-		final int SPANNING = 3;
-
-		int chunkSize =1000;
+		int chunkSize =500;
 		int loops = polygonNumber / chunkSize;
 		if (loops < 0)
 			loops = 1;
 		
 		//System.out.println("\n\nStarting Kernel "+polygonNumber+" polygons in "+loops+" loops ");
-		Kernel splitPolygons = new Kernel() {
+		Kernel splitPolygonsKernel = new Kernel() {
 
 			int size(int polygonIndex, int[] mypolygonSize) {
 				return mypolygonSize[polygonIndex];
@@ -526,7 +572,7 @@ public final class Node {
 				double planeDot = dotProductFixed(planeNormalX, planeNormalY, planeNormalZ, polygonPointX[globalVi],
 						polygonPointY[globalVi], polygonPointZ[globalVi]);
 
-				double g = (planeNormalDistance - planeDot);
+				double d = (planeNormalDistance - planeDot);
 				// Get fixed point coordinates
 				double xvi = polygonPointX[globalVi];
 				double yvi = polygonPointY[globalVi];
@@ -542,14 +588,20 @@ public final class Node {
 				// therefor the intersection point is halfway between i and j
 				double t = 0.5;
 				if (dotMinus != 0)
-					t = (g / dotMinus);
+					t = (d / dotMinus);
 				else
+					return -1;
+				if(t<0||t>1)
 					return -1;
 
 				// Fixed point interpolation: lerp = vi + (vj - vi) * t
-				double lerp_x = (xvi + (diff_x * t));
-				double lerp_y = (yvi + (diff_y * t));
-				double lerp_z = (zvi + (diff_z * t));
+				double sx = diff_x * t;
+				double sy = diff_y * t;
+				double sz = diff_z * t;
+				
+				double lerp_x = (xvi + sx);
+				double lerp_y = (yvi + sy);
+				double lerp_z = (zvi + sz);
 
 //				new Vertex(new Vector3d(lerp_x , lerp_y , lerp_z ), polygons.get(polygonIndex).plane.getNormal());
 
@@ -562,7 +614,7 @@ public final class Node {
 			}
 
 			double dotProductFixed(double ax, double ay, double az, double bx, double by, double bz) {
-				return az * bz + ay * by + ax * bx;
+				return (az * bz) + (ay * by) + (ax * bx);
 			}
 
 			int writePoint(int polygonIndex, int pointInPolygon, double x, double y, double z,
@@ -605,7 +657,164 @@ public final class Node {
 						normalPolygonY[polygonIndex], normalPolygonZ[polygonIndex]);
 				return (result);
 			}
+			void runOnePolygon(int polygonIndex) {
+				// search for the epsilon values of the incoming plane
+				double negEpsilon = -epsilon;
+				double posEpsilon = epsilon;
+//				for (int i = 0; i < size(polygonIndex, polygonSize); i++) {
+//					double t = polygonPointDistance(polygonIndex, i);
+//					if (t > posEpsilon) {
+//						posEpsilon = (float) (t + epsilon);
+//					}
+//					if (t < negEpsilon) {
+//						negEpsilon = (float) (t - epsilon);
+//					}
+//				}
+				int polygonType = COPLANAR;;
+//				boolean someF =false;
+//				boolean someB=false;
+				for (int i = 0; i < size(polygonIndex, polygonSize); i++) {
+					double t = planePointDistance(polygonIndex, i);
+					int type = (t < negEpsilon) ? BACK : (t > posEpsilon) ? FRONT : COPLANAR;
+					types[i + polygonIndex * maxPolygonSize] = type;
+					polygonType |= type;
+//					if(type==BACK)
+//						someB=true;
+//					if(type==FRONT)
+//						someF=true;
+				}
+//				polygonType=COPLANAR;
+//				if(someF && (!someB) ) {
+//					polygonType=FRONT;
+//				}
+//				if((!someF) && (someB) ) {
+//					polygonType=BACK;
+//				}
+//				if((someF) && (someB) ) {
+//					polygonType=SPANNING;
+//				}
 
+//				List<Polygon> cf2= new ArrayList<Polygon>();
+//				List<Polygon> cb2= new ArrayList<Polygon>();
+//				List<Polygon> f2= new ArrayList<Polygon>(); 
+//				List<Polygon> b2= new ArrayList<Polygon>();
+//				splitSinglePolygon(polygons.get(polygonIndex), cf2, cb2, f2, b2);
+				if (polygonType == COPLANAR) {
+					isCopy[polygonIndex] = true;
+					if (planeDotPolygonNormal(polygonIndex) > 0) {
+//						if(cf2.size()!=1) {
+//							memoryError[polygonIndex] = true;
+//							return;
+//						}
+						copy(polygonIndex, coplanarFrontStartIndex, coplanarFrontSize);
+					} else {
+//						if(cb2.size()!=1) {
+//							memoryError[polygonIndex] = true;
+//							return;
+//						}
+						copy(polygonIndex, coplanarBackStartIndex, coplanarBackSize);
+					}
+				} else if (polygonType == FRONT) {
+//					if(f2.size()!=1) {
+//						memoryError[polygonIndex] = true;
+//						return;
+//					}
+					isCopy[polygonIndex] = true;
+					copy(polygonIndex, frontStartIndex, frontSize);
+				} else if (polygonType == BACK) {
+//					if(b2.size()!=1) {
+//						memoryError[polygonIndex] = true;
+//						return;
+//					}
+					isCopy[polygonIndex] = true;
+					copy(polygonIndex, backStartIndex, backSize);
+				} else if (polygonType == SPANNING) {
+//					if(b2.size()!=1 && f2.size()!=1) {
+//						memoryError[polygonIndex] = true;
+//						return;
+//					}
+					isCopy[polygonIndex] = false;
+
+					int size = size(polygonIndex, polygonSize);
+					int polygonMax = size * 2;
+					int retF = addPolygon(polygonIndex, polygonMax, frontStartIndex, frontSize, frontspace);
+					if (retF < 0) {
+						memoryError[polygonIndex] = true;
+						return;
+					}
+					int retB = addPolygon(polygonIndex, polygonMax, backStartIndex, backSize, backspace);
+					if (retB < 0) {
+						memoryError[polygonIndex] = true;
+						return;
+					}
+					clear(polygonIndex, frontSize);
+					clear(polygonIndex, backSize);
+
+					for (int i = 0; i < size; i++) {
+						int j = (i + 1) % size;
+						int ti = types[i + polygonIndex * maxPolygonSize];
+						int tj = types[j + polygonIndex * maxPolygonSize];
+						int sourctPointIndex = polygonStartIndex[polygonIndex] + i;
+						if (ti != BACK) {
+							writeIncrementPoint(polygonIndex, sourctPointIndex, frontStartIndex, frontSize);
+						}
+						if (ti != FRONT) {
+							writeIncrementPoint(polygonIndex, sourctPointIndex, backStartIndex, backSize);
+						}
+						if ((ti|tj)==SPANNING) {
+							int newPointIndex = interpolate(polygonIndex, i, j, frontStartIndex, frontSize);
+							if (newPointIndex > 0) {
+								writeIncrementPoint(polygonIndex, newPointIndex, backStartIndex, backSize);
+							}
+						}
+						if (memoryError[polygonIndex])
+							return;
+						int fsize = frontSize[polygonIndex];
+						int bsize =  backSize[polygonIndex];
+						if (fsize > (polygonMax) || bsize > (polygonMax)) {
+							memoryError[polygonIndex] = true;
+							return;
+						}
+					}
+//					ArrayList<Polygon> testF=new ArrayList<Polygon>();
+//					ArrayList<Polygon> testB=new ArrayList<Polygon>();
+//
+//					int size23 = frontSize[polygonIndex];
+//					int polygonBase = frontStartIndex[polygonIndex];
+//					testAddPolygon(testF, orderedPoints, polygonPointX, polygonPointY, polygonPointZ, polygons.get(polygonIndex), polygonBase, size23,
+//							false);
+//					int size22 = backSize[polygonIndex];
+//					int polygonBase2 = backStartIndex[polygonIndex];
+//					
+//					testAddPolygon(testB, orderedPoints, polygonPointX, polygonPointY, polygonPointZ, polygons.get(polygonIndex), polygonBase2, size22,
+//							false);
+//					if(testF.size()!=f2.size()||testB.size()!=b2.size()) {
+//						memoryError[polygonIndex] = true;
+//						return;
+//					}
+//					if(testB.size()>0)
+//					if(testB.get(0).size()!=b2.get(0).size()) {
+//						memoryError[polygonIndex] = true;
+//						return;
+//					}
+//					if(testF.size()>0)
+//					if(testF.get(0).size()!=f2.get(0).size()) {
+//						memoryError[polygonIndex] = true;
+//						return;
+//					}
+				} else {
+					memoryError[polygonIndex] = true;
+					return;
+				}
+				int polygonBase = frontStartIndex[polygonIndex];
+				int polygonBase22 = backStartIndex[polygonIndex];
+				if (coplanarBackStartIndex[polygonIndex] < 0 && coplanarFrontStartIndex[polygonIndex] < 0
+						&& polygonBase < 0 && polygonBase22 < 0) {
+					memoryError[polygonIndex] = true;
+					return;
+				}
+				
+			}
 			@Override
 			public void run() {
 				int pi = getGlobalId() * chunkSize;
@@ -616,118 +825,25 @@ public final class Node {
 				for (int polygonIndex = pi; (polygonIndex < end); polygonIndex++) {
 					if (memoryError[polygonIndex])
 						return;
-					// search for the epsilon values of the incoming plane
-					double negEpsilon = -epsilon;
-					double posEpsilon = epsilon;
-					for (int i = 0; i < size(polygonIndex, polygonSize); i++) {
-						double t = polygonPointDistance(polygonIndex, i);
-						if (t > posEpsilon) {
-							posEpsilon = (float) (t + epsilon);
-						}
-						if (t < negEpsilon) {
-							negEpsilon = (float) (t - epsilon);
-						}
-					}
-					int polygonType = COPLANAR;
-					boolean someF =false;
-					boolean someB=false;
-					for (int i = 0; i < size(polygonIndex, polygonSize); i++) {
-						double t = planePointDistance(polygonIndex, i);
-						int type = (t < negEpsilon) ? BACK : (t > posEpsilon) ? FRONT : COPLANAR;
-						types[i + polygonNumber * maxPolygonSize] = type;
-//						polygonType |= type;
-						if(type==BACK)
-							someB=true;
-						if(type==FRONT)
-							someF=true;
-					}
-					polygonType=COPLANAR;
-					if(someF && (!someB) ) {
-						polygonType=FRONT;
-					}
-					if((!someF) && (someB) ) {
-						polygonType=BACK;
-					}
-					if((someF) && (someB) ) {
-						polygonType=SPANNING;
-					}
-					if (polygonType == COPLANAR) {
-						isCopy[polygonIndex] = true;
-						if (planeDotPolygonNormal(polygonIndex) > 0) {
-							copy(polygonIndex, coplanarFrontStartIndex, coplanarFrontSize);
-						} else {
-							copy(polygonIndex, coplanarBackStartIndex, coplanarBackSize);
-						}
-					} else if (polygonType == FRONT) {
-						isCopy[polygonIndex] = true;
-						copy(polygonIndex, frontStartIndex, frontSize);
-					} else if (polygonType == BACK) {
-						isCopy[polygonIndex] = true;
-						copy(polygonIndex, backStartIndex, backSize);
-					} else if (polygonType == SPANNING) {
-						isCopy[polygonIndex] = false;
-
-						int size = size(polygonIndex, polygonSize);
-						int polygonMax = size * 2;
-						int retF = addPolygon(polygonIndex, polygonMax, frontStartIndex, frontSize, frontspace);
-						if (retF < 0) {
-							memoryError[polygonIndex] = true;
-							return;
-						}
-						int retB = addPolygon(polygonIndex, polygonMax, backStartIndex, backSize, backspace);
-						if (retB < 0) {
-							memoryError[polygonIndex] = true;
-							return;
-						}
-						clear(polygonIndex, frontSize);
-						clear(polygonIndex, backSize);
-
-						for (int i = 0; i < size; i++) {
-							int j = (i + 1) % size;
-							int ti = types[i + polygonNumber * maxPolygonSize];
-							int tj = types[j + polygonNumber * maxPolygonSize];
-							int sourctPointIndex = polygonStartIndex[polygonIndex] + i;
-							if (ti != BACK) {
-								writeIncrementPoint(polygonIndex, sourctPointIndex, frontStartIndex, frontSize);
-							}
-							if (ti != FRONT) {
-								writeIncrementPoint(polygonIndex, sourctPointIndex, backStartIndex, backSize);
-							}
-							if ((ti == FRONT && tj == BACK) || (ti == BACK && tj == FRONT)) {
-								int newPointIndex = interpolate(polygonIndex, i, j, frontStartIndex, frontSize);
-								if (newPointIndex > 0) {
-									writeIncrementPoint(polygonIndex, newPointIndex, backStartIndex, backSize);
-								}
-							}
-							if (memoryError[polygonIndex])
-								return;
-							int fsize = frontSize[polygonIndex];
-							int bsize = backSize[polygonIndex];
-							if (fsize > (polygonMax) || bsize > (polygonMax)) {
-								memoryError[polygonIndex] = true;
-								return;
-							}
-						}
-						testAddPolygon(front, orderedPoints, polygonPointX, polygonPointY, polygonPointZ, polygons.get(polygonIndex), frontStartIndex[polygonIndex], frontSize[polygonIndex],
-								true);
-						testAddPolygon(back, orderedPoints, polygonPointX, polygonPointY, polygonPointZ, polygons.get(polygonIndex), backStartIndex[polygonIndex], backSize[polygonIndex],
-								true);
-					} else {
-						memoryError[polygonIndex] = true;
-						return;
-					}
-					if (coplanarBackStartIndex[polygonIndex] < 0 && coplanarFrontStartIndex[polygonIndex] < 0
-							&& frontStartIndex[polygonIndex] < 0 && backStartIndex[polygonIndex] < 0) {
-						memoryError[polygonIndex] = true;
-						return;
-					}
+					runOnePolygon(polygonIndex);
 				} // outer for loop of all polygons
 			}// run
 		};
-		splitPolygons.setExecutionMode(Kernel.EXECUTION_MODE.JTP); // Java Thread Pool
-		CSG.gpuRun(loops+3, splitPolygons, null, "split ", () -> {
+		if(!GPUTest) {
+			try {
+				splitPolygonsKernel.compile(splitPolygonsKernel.getTargetDevice());
+			}catch(Exception ex) {
+				ex.printStackTrace();
+				GPUTest=true;
+			}
+		}
+		if(GPUTest)
+			splitPolygonsKernel.setExecutionMode(Kernel.EXECUTION_MODE.JTP); // Java Thread Pool
+
+		CSG.gpuRun(loops+3, splitPolygonsKernel, null, "split ", () -> {
 			return false;
 		}, 1, 1);
+		
 		for (int k = 0; k < polygonNumber; k++)
 			if (memoryError[k])
 				throw new RuntimeException("Memory error here!");
@@ -785,11 +901,27 @@ public final class Node {
 
 		for (int k = 0; k < polygons.size(); k++) {
 			Polygon polygon = polygons.get(k);
-			// search for the epsilon values of the incoming plane
-			double negEpsilon = -Plane.getEPSILON();
-			double posEpsilon = Plane.getEPSILON();
-			int size = polygon.getVertices().size();
-			Vector3d normal = polygon.getPlane().getNormal();
+			splitSinglePolygon(polygon,coplanarFront, coplanarBack, front, back);
+		}
+		if(Debug3dProvider.isProviderAvailible()) {
+//			Debug3dProvider.clearScreen();
+//			Debug3dProvider.addObject(polygons.get(0).getVertices().get(0));
+//			Debug3dProvider.addObject(front.stream().map(polygon -> polygon.setColor(Color.RED)).collect(Collectors.toList()));
+//			List<Polygon> collect = back.stream().map(polygon -> polygon.setColor(Color.WHITE)).collect(Collectors.toList());
+//			Debug3dProvider.addObject(collect);
+//			Debug3dProvider.addObject(coplanarBack.stream().map(polygon -> polygon.setColor(Color.YELLOW)).collect(Collectors.toList()));
+//			Debug3dProvider.addObject(coplanarFront.stream().map(polygon -> polygon.setColor(Color.GREEN)).collect(Collectors.toList()));
+//			Debug3dProvider.clearScreen();
+		}
+	}
+
+	private void splitSinglePolygon(Polygon polygon,List<Polygon> coplanarFront, List<Polygon> coplanarBack, List<Polygon> front,
+			List<Polygon> back) {
+		// search for the epsilon values of the incoming plane
+		double negEpsilon = -Plane.getEPSILON();
+		double posEpsilon = Plane.getEPSILON();
+		int size = polygon.getVertices().size();
+		Vector3d normal = polygon.getPlane().getNormal();
 //			for (int i = 0; i < size; i++) {
 //				Vector3d pos = polygon.getVertices().get(i).pos;
 //				double dot = normal.dot(pos);
@@ -809,26 +941,26 @@ public final class Node {
 //					negEpsilon = t;
 //				}
 //			}
-			int polygonType = 0;
-			List<Integer> types = new ArrayList<>();
+		int polygonType = 0;
+		List<Integer> types = new ArrayList<>();
 //			boolean someF =false;
 //			boolean someB=false;
 
-			double distP = polygon.getPlane().getDist();
-			for (int i = 0; i < size; i++) {
-				Vector3d pos = polygon.getVertices().get(i).pos;
+		double distP = polygon.getPlane().getDist();
+		for (int i = 0; i < size; i++) {
+			Vector3d pos = polygon.getVertices().get(i).pos;
 //				double dot = normal.dot(pos);
 //				double ep = Math.abs( dot-distP);// this is this points distance from its plane
-				double t = plane.getNormal().dot(pos) - plane.getDist();
-				int type = (t < negEpsilon) ? BACK : (t > posEpsilon) ? FRONT : COPLANAR;
-				types.add(type);
-				polygonType = polygonType|type;
+			double t = plane.getNormal().dot(pos) - plane.getDist();
+			int type = (t < negEpsilon) ? BACK : (t > posEpsilon) ? FRONT : COPLANAR;
+			types.add(type);
+			polygonType = polygonType|type;
 
 //				if(type==BACK)
 //					someB=true;
 //				if(type==FRONT)
 //					someF=true;
-			}
+		}
 //			polygonType=COPLANAR;
 //			if(someF && (!someB) ) {
 //				polygonType=FRONT;
@@ -839,107 +971,96 @@ public final class Node {
 //			if((someF) && (someB) ) {
 //				polygonType=SPANNING;
 //			}
-			// Put the polygon in the correct list, splitting it when necessary.
-			switch (polygonType) {
-			case COPLANAR:
-				double cp = plane.getNormal().dot(normal);
-				(cp > 0 ? coplanarFront : coplanarBack).add(polygon);
-				break;
-			case FRONT:
-				front.add(polygon);
-				break;
-			case BACK:
-				back.add(polygon);
-				break;
-			case SPANNING:
-				List<Vertex> f = new ArrayList<>(size);
-				List<Vertex> b = new ArrayList<>(size);
-				for (int i = 0; i < size; i++) {
-					int j = (i + 1) % size;
-					int ti = types.get(i);
-					int tj = types.get(j);
-					Vertex vi = polygon.getVertices().get(i);
-					Vertex vj = polygon.getVertices().get(j);
-					if (ti != BACK) {
-						addPoint(f, vi);
-						// f.add(vi);
-					}
-					if (ti != FRONT) {
-						addPoint(b, (ti != BACK ? vi.clone() : vi));
-					}
-					if ((ti|tj) == SPANNING) {
-						double dot = this.plane.getNormal().dot(vi.pos);
-						double dist = this.plane.getDist();
-
-						double d = dist - dot;
-
-						// Extract the vector components
-						double xi = vi.pos.x;
-						double yi = vi.pos.y;
-						double zi = vi.pos.z;
-
-						double xj = vj.pos.x;
-						double yj = vj.pos.y;
-						double zj = vj.pos.z;
-
-						// Compute the difference vector (vj - vi)
-						double dx = xj - xi;
-						double dy = yj - yi;
-						double dz = zj - zi;
-
-						// Assuming plane.getNormal() returns a Vector3d or similar with x, y, z fields
-						double nx = plane.getNormal().x;
-						double ny = plane.getNormal().y;
-						double nz = plane.getNormal().z;
-
-						// Compute dot product
-						double dotMinus = nx * dx + ny * dy + nz * dz;
-
-						// Compute scalar t
-						// Paralell case where one point is slightly infront by the same amount that the
-						// other is slightly behind. when summed, they make a point that is exactly on
-						// the plane
-						// therefor the intersection point is halfway between i and j
-						double t = (d / dotMinus);
-						if (!Double.isFinite(t) || t < 0 || t > 1.0) {
-						    continue;
-						}
-
-						// Scale difference vector by tOld
-						double sx = dx * t;
-						double sy = dy * t;
-						double sz = dz * t;
-
-						// Compute interpolated point intrp = vi + scaled vector
-						double intrpX = xi + sx;
-						double intrpY = yi + sy;
-						double intrpZ = zi + sz;
-						Vector3d intrp = new Vector3d(intrpX, intrpY, intrpZ);
-						double distPoly = polygon.getPlane().getDist();
-						double dotNP = normal.dot(intrp);
-						double tnp = dotNP- distPoly;
-						if(Math.abs(tnp)>Plane.getEPSILON()) {
-							throw new RuntimeException("New point doesnt lie on the plane of the split polygon!");
-						}else {
-							addPoint(f, new Vertex(intrp));
-							addPoint(b, new Vertex(intrp.clone()));
-						}
-					}
+		// Put the polygon in the correct list, splitting it when necessary.
+		switch (polygonType) {
+		case COPLANAR:
+			double cp = plane.getNormal().dot(normal);
+			(cp > 0 ? coplanarFront : coplanarBack).add(polygon);
+			break;
+		case FRONT:
+			front.add(polygon);
+			break;
+		case BACK:
+			back.add(polygon);
+			break;
+		case SPANNING:
+			List<Vertex> f = new ArrayList<>(size);
+			List<Vertex> b = new ArrayList<>(size);
+			for (int i = 0; i < size; i++) {
+				int j = (i + 1) % size;
+				int ti = types.get(i);
+				int tj = types.get(j);
+				Vertex vi = polygon.getVertices().get(i);
+				Vertex vj = polygon.getVertices().get(j);
+				if (ti != BACK) {
+					addPoint(f, vi);
+					// f.add(vi);
 				}
-				add(front, f, polygon);
-				add(back, b, polygon);
-				break;
+				if (ti != FRONT) {
+					addPoint(b, (ti != BACK ? vi.clone() : vi));
+				}
+				if ((ti|tj) == SPANNING) {
+					double planeDot = this.plane.getNormal().dot(vi.pos);
+					double planeNormalDistance = this.plane.getDist();
+
+					double d = planeNormalDistance - planeDot;
+
+					// Extract the vector components
+					double xvi = vi.pos.x;
+					double yvi = vi.pos.y;
+					double zvi = vi.pos.z;
+
+					double xvj = vj.pos.x;
+					double yvj = vj.pos.y;
+					double zvj = vj.pos.z;
+
+					// Compute the difference vector (vj - vi)
+					double diff_x = xvj - xvi;
+					double diff_y = yvj - yvi;
+					double diff_z = zvj - zvi;
+
+					// Assuming plane.getNormal() returns a Vector3d or similar with x, y, z fields
+					double planeNormalX = plane.getNormal().x;
+					double planeNormalY = plane.getNormal().y;
+					double planeNormalZ = plane.getNormal().z;
+
+					// Compute dot product
+					double dotMinus = (planeNormalX * diff_x) + (planeNormalY * diff_y) + (planeNormalZ * diff_z);
+
+					// Compute scalar t
+					// Paralell case where one point is slightly infront by the same amount that the
+					// other is slightly behind. when summed, they make a point that is exactly on
+					// the plane
+					// therefor the intersection point is halfway between i and j
+					double t = (d / dotMinus);
+					if (!Double.isFinite(t) || t < 0 || t > 1.0) {
+					    continue;
+					}
+
+					// Scale difference vector by tOld
+					double sx = diff_x * t;
+					double sy = diff_y * t;
+					double sz = diff_z * t;
+
+					// Compute interpolated point intrp = vi + scaled vector
+					double lerp_x = xvi + sx;
+					double lerp_y = yvi + sy;
+					double lerp_z = zvi + sz;
+					Vector3d intrp = new Vector3d(lerp_x, lerp_y, lerp_z);
+//						double distPoly = polygon.getPlane().getDist();
+//						double dotNP = normal.dot(intrp);
+//						double tnp = dotNP- distPoly;
+//						if(Math.abs(tnp)>Plane.getEPSILON()) {
+//							throw new RuntimeException("New point doesnt lie on the plane of the split polygon!");
+//						}else {
+						addPoint(f, new Vertex(intrp));
+						addPoint(b, new Vertex(intrp.clone()));
+					//}
+				}
 			}
-		}
-		if(Debug3dProvider.isProviderAvailible()) {
-//			Debug3dProvider.clearScreen();
-//			Debug3dProvider.addObject(polygons.get(0).getVertices().get(0));
-//			Debug3dProvider.addObject(front.stream().map(polygon -> polygon.setColor(Color.RED)).collect(Collectors.toList()));
-//			List<Polygon> collect = back.stream().map(polygon -> polygon.setColor(Color.WHITE)).collect(Collectors.toList());
-//			Debug3dProvider.addObject(collect);
-//			Debug3dProvider.addObject(coplanarBack.stream().map(polygon -> polygon.setColor(Color.YELLOW)).collect(Collectors.toList()));
-//			Debug3dProvider.addObject(coplanarFront.stream().map(polygon -> polygon.setColor(Color.GREEN)).collect(Collectors.toList()));
-//			Debug3dProvider.clearScreen();
+			add(front, f, polygon);
+			add(back, b, polygon);
+			break;
 		}
 	}
 
