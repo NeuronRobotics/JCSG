@@ -506,7 +506,7 @@ public final class Node {
 
 		double epsilon = Plane.getEPSILON();
 
-		int chunkSize =500;
+		int chunkSize =5000;
 		int loops = polygonNumber / chunkSize;
 		if (loops < 0)
 			loops = 1;
