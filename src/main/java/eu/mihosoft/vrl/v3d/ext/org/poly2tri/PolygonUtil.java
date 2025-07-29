@@ -560,7 +560,6 @@ public class PolygonUtil {
 		boolean reorient = Math.abs(normalOfPlane.z - 1.0) > Plane.getEPSILON();
 		Transform orientationInv = null;
 		boolean debug = false;
-		Vector3d normal = tmp.getPlane().getNormal().clone();
 
 		if (reorient) {
 			Transform orientation = calculateQuaternionTransform(incoming);
@@ -587,7 +586,7 @@ public class PolygonUtil {
 			if (concave.size() == 3) {
 				result.add(concave);
 			} else
-				makeTriangles(concave, cw, result, zplane, normal, debug, orientationInv, reorient,
+				makeTriangles(concave, cw, result, zplane, normalOfPlane, debug, orientationInv, reorient,
 						incoming.getColor());
 		} catch (java.lang.IllegalStateException ex) {
 
@@ -597,10 +596,10 @@ public class PolygonUtil {
 				result.add(repaired);
 			} else {
 				try {
-					makeTriangles(repaired, cw, result, zplane, normal, debug, orientationInv, reorient,
+					makeTriangles(repaired, cw, result, zplane, normalOfPlane, debug, orientationInv, reorient,
 							incoming.getColor());
 				} catch (Exception e) {
-					makeTrianglesInternal(repaired, cw, result, zplane, normal, debug, orientationInv, reorient,
+					makeTrianglesInternal(repaired, cw, result, zplane, normalOfPlane, debug, orientationInv, reorient,
 							incoming.getColor());
 				}
 			}
@@ -733,6 +732,9 @@ public class PolygonUtil {
 						points.remove(p2);
 						ArrayList<Vertex> vertices = new ArrayList<Vertex>(
 								Arrays.asList(new Vertex(p1.clone()), new Vertex(p2.clone()), new Vertex(p3.clone())));
+						if (!Extrude.isCCW(vertices)) {
+							Collections.reverse(vertices);
+						}
 						Polygon one = new Polygon(vertices, concave.getStorage(), true, normal2.clone());
 						if (reorent) {
 							one = one.transform(orentationInv);
