@@ -583,10 +583,10 @@ public class Extrude {
 		// //com.neuronrobotics.sdk.common.Log.error("Parsing "+startString+" \nand\n"+b);
 		return bezierToTransforms(path, path2, iterations, controlA, controlB);
 	}
-	public static CSG sweep(Polygon p, Transform increment, Transform offset, int steps) {
+	public static CSG sweep(Polygon p, Transform increment, Transform offset, int steps) throws ColinearPointsException{
 		return sweep(p,increment,offset,steps, (u,d)->{return new Transform();});
 	}
-	public static CSG sweep(Polygon p, Transform increment, Transform offset, int steps,ITransformProvider provider) {
+	public static CSG sweep(Polygon p, Transform increment, Transform offset, int steps,ITransformProvider provider) throws ColinearPointsException{
 		Polygon offsetP = p.transformed(offset);
 		ArrayList<Polygon> newPolygons = new ArrayList<>();
 		newPolygons.addAll(PolygonUtil.concaveToConvex(offsetP));
@@ -607,7 +607,7 @@ public class Extrude {
 		return CSG.fromPolygons(newPolygons);
 	}
 
-	public static CSG sweep(Polygon p, double angle, double z, double radius, int steps) {
+	public static CSG sweep(Polygon p, double angle, double z, double radius, int steps) throws ColinearPointsException{
 		return sweep(p, new Transform().rotX(angle).movex(z), new Transform().movey(radius), steps);
 	}
 	public static List<Polygon> monotoneExtrude(Polygon polygon2, Polygon polygon1) {

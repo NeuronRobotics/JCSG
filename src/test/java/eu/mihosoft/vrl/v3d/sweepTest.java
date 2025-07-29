@@ -16,7 +16,7 @@ import javafx.scene.text.Font;
 public class sweepTest {
 
 	@Test
-	public void test() throws IOException {
+	public void test() throws Exception {
 
 		
 		File svg = new File("Test.SVG");
