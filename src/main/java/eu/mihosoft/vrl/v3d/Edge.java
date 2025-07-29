@@ -118,15 +118,11 @@ public class Edge {
 	 * @param plane  the plane
 	 * @return the polygon
 	 */
-	public static Polygon toPolygon(List<Vector3d> points, Plane plane) {
+	public static Polygon toPolygon(List<Vector3d> points, Plane plane) throws ColinearPointsException{
 
 //        List<Vector3d> points = edges.stream().().map(e -> e.p1.pos).
 //                collect(Collectors.toList());
 		Polygon p = Polygon.fromPoints(points);
-
-		p.getVertices().stream().forEachOrdered((vertex) -> {
-			vertex.normal = plane.getNormal().clone();
-		});
 
 //        // we try to detect wrong orientation by comparing normals
 //        if (p.plane.normal.angle(plane.normal) > 0.1) {
@@ -141,8 +137,9 @@ public class Edge {
 	 * @param boundaryEdges the boundary edges
 	 * @param plane         the plane
 	 * @return the list
+	 * @throws ColinearPointsException 
 	 */
-	public static List<Polygon> toPolygons(List<Edge> boundaryEdges, Plane plane) {
+	public static List<Polygon> toPolygons(List<Edge> boundaryEdges, Plane plane) throws ColinearPointsException {
 
 		List<Vector3d> boundaryPath = new ArrayList<>();
 
@@ -406,7 +403,7 @@ public class Edge {
 	 * @param boundaryEdges boundary edges (all paths must be closed)
 	 * @return the list
 	 */
-	public static List<Polygon> boundaryPaths(List<Edge> boundaryEdges) {
+	public static List<Polygon> boundaryPaths(List<Edge> boundaryEdges) throws ColinearPointsException{
 		List<Polygon> result = new ArrayList<>();
 
 		boolean[] used = new boolean[boundaryEdges.size()];
@@ -489,8 +486,9 @@ public class Edge {
 	 * @param boundaryEdges the boundary edges
 	 * @param plane         the plane
 	 * @return the list
+	 * @throws ColinearPointsException 
 	 */
-	public static List<Polygon> _toPolygons(List<Edge> boundaryEdges, Plane plane) {
+	public static List<Polygon> _toPolygons(List<Edge> boundaryEdges, Plane plane) throws ColinearPointsException {
 
 		List<Vector3d> boundaryPath = new ArrayList<>();
 
@@ -533,11 +531,11 @@ public class Edge {
 	 *         <code>false</code> otherwise
 	 */
 	public boolean colinear(Vector3d p) {
-		return colinear(p, Plane.EPSILON_Point);
+		return colinear(p, Plane.getEPSILON_Point());
 	}
 	
 	public boolean colinear(Edge p) {
-		return colinear(p.getP1().pos, Plane.EPSILON_Point) && colinear(p.getP2().pos, Plane.EPSILON_Point);
+		return colinear(p.getP1().pos, Plane.getEPSILON_Point()) && colinear(p.getP2().pos, Plane.getEPSILON_Point());
 	}
 	
 	
@@ -637,7 +635,7 @@ public class Edge {
 	    double t = dotProduct / edgeLengthSq;
 	    
 	    // If 0 ≤ t ≤ 1, the point is within the bounds of the edge
-	    return t >= 0 && t <= 1;
+	    return t > 0 && t < 1;
 	}
 
 	/**
@@ -678,12 +676,12 @@ public class Edge {
 			return false;
 		}
 		final Edge other = (Edge) obj;
-		if (this.p1.pos.test(other.p1.pos, Plane.EPSILON_Point)
-				&& this.p2.pos.test(other.p2.pos, Plane.EPSILON_Point)) {
+		if (this.p1.pos.test(other.p1.pos, Plane.getEPSILON_Point())
+				&& this.p2.pos.test(other.p2.pos, Plane.getEPSILON_Point())) {
 			return true;
 		}
-		if (this.p1.pos.test(other.p2.pos, Plane.EPSILON_Point)
-				&& this.p2.pos.test(other.p1.pos, Plane.EPSILON_Point)) {
+		if (this.p1.pos.test(other.p2.pos, Plane.getEPSILON_Point())
+				&& this.p2.pos.test(other.p1.pos, Plane.getEPSILON_Point())) {
 			return true;
 		}
 		if (!(Objects.equals(this.p1, other.p1) || Objects.equals(this.p2, other.p1))) {
@@ -781,7 +779,7 @@ public class Edge {
 
 		Vector3d closestP = closestPOpt.get();
 
-		if (e.contains(closestP)) {
+		if (e.contains(closestP, Plane.getEPSILON())) {
 			return closestPOpt;
 		} else {
 			// intersection point outside of segment
@@ -812,8 +810,9 @@ public class Edge {
 	 *
 	 * @param csg the csg
 	 * @return the list
+	 * @throws ColinearPointsException 
 	 */
-	public static List<Polygon> boundaryPolygons(CSG csg) {
+	public static List<Polygon> boundaryPolygons(CSG csg) throws ColinearPointsException {
 		List<Polygon> result = new ArrayList<>();
 
 		for (List<Polygon> polygonGroup : searchPlaneGroups(csg.getPolygons())) {
@@ -874,7 +873,7 @@ public class Edge {
 		}
 
 		List<Edge> realBndEdges = bndEdgeStream
-				.filter(be -> edges.stream().filter(e -> falseBoundaryEdgeSharedWithOtherEdge(be, e)).count() == 0)
+				.filter(be -> edges.stream().filter(e -> falseBoundaryEdgeSharedWithOtherEdge(be, e)!=null).count() == 0)
 				.collect(Collectors.toList());
 
 		//
@@ -889,8 +888,9 @@ public class Edge {
 	 *
 	 * @param planeGroup the plane group
 	 * @return the list
+	 * @throws ColinearPointsException 
 	 */
-	private static List<Polygon> boundaryPolygonsOfPlaneGroup(List<Polygon> planeGroup) {
+	private static List<Polygon> boundaryPolygonsOfPlaneGroup(List<Polygon> planeGroup) throws ColinearPointsException {
 
 		List<Polygon> polygons = boundaryPathsWithHoles(boundaryPaths(boundaryEdgesOfPlaneGroup(planeGroup)));
 
@@ -905,42 +905,48 @@ public class Edge {
 			if (!holesOfPresult.isPresent()) {
 				result.add(p);
 			} else {
-				result.addAll(PolygonUtil.concaveToConvex(p));
+				result.addAll(PolygonUtil.triangulatePolygon(p));
 			}
 		}
 
 		return result;
 	}
 
-	/**
-	 * False boundary edge shared with other edge.
-	 *
-	 * @param fbe the fbe
-	 * @param e   the e
-	 * @return true, if successful
-	 */
-	public static boolean falseBoundaryEdgeSharedWithOtherEdge(Edge fbe, Edge e) {
+	public static Vertex falseBoundaryEdgeSharedWithOtherEdge(Edge fbe, Edge e) {
 
 		// we don't consider edges with shared end-points since we are only
 		// interested in "false-boundary-edge"-cases
-		boolean sharedEndPointsp1 = e.getP1().pos.test(fbe.getP1().pos) || e.getP1().pos.test(fbe.getP2().pos);
+		boolean test1 = e.getP1().pos.test(fbe.getP1().pos);
+		boolean test3 = e.getP1().pos.test(fbe.getP2().pos);
+		boolean sharedEndPointsp1 = test1 || test3;
 				
-		boolean sharedP2= e.getP2().pos.test(fbe.getP1().pos) || e.getP2().pos.test(fbe.getP2().pos);
+		boolean test = e.getP2().pos.test(fbe.getP1().pos);
+		boolean test2 = e.getP2().pos.test(fbe.getP2().pos);
+		boolean sharedP2= test || test2;
 
 		boolean containsP2 = fbe.contains(e.getP2().pos);
 		boolean containsP1 = fbe.contains(e.getP1().pos);
 
-		if(containsP2||containsP1) {
+		if(sharedEndPointsp1 && sharedP2) {
 			//System.out.println("Edge Contains point!");
 		}
-		if ((!sharedP2) && containsP2) {
-			return true;
+		if ((sharedP2) && containsP1) {
+			return e.getP2();
 		}
-		if ((!sharedEndPointsp1) && containsP1) {
-			return true;
+		if ((sharedEndPointsp1) && containsP2) {
+			return e.getP1();
 		}
-		return false;//fbe.contains(e.getP1().pos) || fbe.contains(e.getP2().pos);
+		return null;
 	}
+//
+//	/** Distance from point r to the infinite line through a → b */
+//	private static double distancePointToLine(Vector3d r, Vector3d a, Vector3d b) {
+//		Vector3d ab = b.minus(a);
+//		Vector3d ar = r.minus(a);
+//		Vector3d cross = ab.cross(ar);
+//	    return cross.length() / ab.length();
+//	}
+
 
 	/**
 	 * Search plane groups.

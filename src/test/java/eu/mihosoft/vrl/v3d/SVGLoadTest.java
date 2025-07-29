@@ -4,10 +4,13 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import eu.mihosoft.vrl.v3d.svg.SVGLoad;
@@ -16,20 +19,59 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.CullFace;
 
 public class SVGLoadTest {
+	@Before
+	public void setup() {
+		CSG.setPreventNonManifoldTriangles(true);
+	}
+	@Test
+	public void vows() throws IOException {
+		
+//		JavaFXInitializer.go();
+//		File svg = new File("vows.svg");
+//		if (!svg.exists())
+//			throw new RuntimeException("Test file missing!" + svg.getAbsolutePath());
+//		SVGLoad s = new SVGLoad(svg.toURI());
+//
+//		ArrayList<CSG> parts = new ArrayList<CSG>(run(s));
+//		for(int i=0;i<parts.size();i++) {
+//			parts.set(i, parts.get(i).rotx(180));
+//		}
+//		
+//		if(parts.size()==0)
+//			throw new RuntimeException("Failed to load");
+//		try {
+//			ThumbnailImage.setImageSize(2000);
+//			ThumbnailImage.setCullFaceValue(CullFace.NONE);
+//			ThumbnailImage.writeImage(Arrays.asList(CSG.unionAll(parts)),new File(svg.getAbsolutePath()+".png")).join();
+//			ThumbnailImage.setImageSize(1000);
+//		} catch (InterruptedException e) {
+//			// Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		for(int i=0;i<parts.size();i++)
+//			FileUtil.write(Paths.get(i+"-flame.stl"),
+//					parts.get(i).toStlString());
+	}
 	//Alexes_Bad.svg
 	@Test
-	public void Alexes_Bad() throws IOException {
+	public void flame() throws IOException {
+		
 		JavaFXInitializer.go();
-		File svg = new File("Alexes_Bad.svg");
+		File svg = new File("flame.svg");
 		if (!svg.exists())
 			throw new RuntimeException("Test file missing!" + svg.getAbsolutePath());
 		SVGLoad s = new SVGLoad(svg.toURI());
-		ArrayList<CSG>p =run(s);
+		CSG nub = new Cylinder(10, 15).toCSG();
+
+		CSG flame =CSG.unionAll(run(s)).moveToCenter().moveToCenterY().toZMin().union(nub.movez(-2));
 		ArrayList<CSG> parts = new ArrayList<CSG>();
-		parts.addAll(p);
-		for(CSG c:p) {
-			parts.add(c.rotx(180).rotz(5).toZMin().difference(c).movez(30).setColor(Color.YELLOW));
-		}
+		parts.add(flame);
+		CSG cut = flame.difference(nub).movey(flame.getTotalY());
+		parts.add(cut);
+		parts.add(flame.roty(180).movex(flame.getTotalX()));
+		parts.add(cut.roty(180).movex(flame.getTotalX()));
+
+		System.out.println("Difference complete");
 		if(parts.size()==0)
 			throw new RuntimeException("Failed to load");
 		try {
@@ -39,6 +81,41 @@ public class SVGLoadTest {
 			// Auto-generated catch block
 			e.printStackTrace();
 		}
+		for(int i=0;i<parts.size();i++)
+			FileUtil.write(Paths.get(i+"-flame.stl"),
+					parts.get(i).toStlString());
+	}
+	//Alexes_Bad.svg
+	@Test
+	public void Alexes_Bad() throws IOException {
+//		
+//		JavaFXInitializer.go();
+//		File svg = new File("Alexes_Bad.svg");
+//		if (!svg.exists())
+//			throw new RuntimeException("Test file missing!" + svg.getAbsolutePath());
+//		SVGLoad s = new SVGLoad(svg.toURI());
+//		ArrayList<CSG>p =run(s);
+//		ArrayList<CSG> parts = new ArrayList<CSG>();
+//		parts.addAll(p);
+//		
+//		for (int i = 0; i < p.size(); i++) {
+//			CSG c = p.get(i);
+//			System.out.println("Perform difference "+i+" of "+p.size());
+//			parts.add(c.rotx(180).rotz(5).toZMin().difference(c).movez(30).setColor(Color.YELLOW));
+//		}
+//		System.out.println("Difference complete");
+//		if(parts.size()==0)
+//			throw new RuntimeException("Failed to load");
+//		try {
+//			ThumbnailImage.setCullFaceValue(CullFace.NONE);
+//			ThumbnailImage.writeImage(parts,new File(svg.getAbsolutePath()+".png")).join();
+//		} catch (InterruptedException e) {
+//			// Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		for(int i=0;i<parts.size();i++)
+//			FileUtil.write(Paths.get(i+"-alex.stl"),
+//					parts.get(i).toStlString());
 	}
 	@Test
 	public void box() throws IOException {
@@ -55,6 +132,9 @@ public class SVGLoadTest {
 			// Auto-generated catch block
 			e.printStackTrace();
 		}
+		for(int i=0;i<parts.size();i++)
+			FileUtil.write(Paths.get(i+"-box.stl"),
+					parts.get(i).toStlString());
 	}
 	@Test
 	public void inside() throws IOException {
@@ -63,7 +143,7 @@ public class SVGLoadTest {
 		if (!svg.exists())
 			throw new RuntimeException("Test file missing!" + svg.getAbsolutePath());
 		SVGLoad s = new SVGLoad(svg.toURI());
-		ArrayList<CSG>parts =run(s);
+		ArrayList<CSG>parts =new ArrayList<>(Arrays.asList(CSG.unionAll(run(s))));
 		try {
 			ThumbnailImage.setCullFaceValue(CullFace.NONE);
 			ThumbnailImage.writeImage(parts,new File(svg.getAbsolutePath()+".png")).join();
@@ -71,6 +151,9 @@ public class SVGLoadTest {
 			// Auto-generated catch block
 			e.printStackTrace();
 		}
+		for(int i=0;i<parts.size();i++)
+			FileUtil.write(Paths.get(i+"-InsideOutsideTest.stl"),
+					parts.get(i).toStlString());
 	}
 	@Test
 	public void adversarial() throws IOException {
@@ -115,7 +198,7 @@ public class SVGLoadTest {
 		double depth = 5 + (layers.size() * 5);
 		for (int i = 0; i < layers.size(); i++) {
 			String layerName = layers.get(i);
-			HashMap<String, ArrayList<CSG>> extrudeLayerToCSG = s.extrudeLayers(depth,0.1, layerName);
+			HashMap<String, ArrayList<CSG>> extrudeLayerToCSG = s.extrudeLayers(depth, layerName);
 			// extrudeLayerToCSG.setColor(Color.web(SVGExporter.colorNames.get(i)));
 			for(String key:extrudeLayerToCSG.keySet()) {
 				//System.out.println("Adding layer: "+key);

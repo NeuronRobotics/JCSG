@@ -227,7 +227,7 @@ public class ConcavePolygonExtrusionTest {
 			new Vector3d(39.41316604614258, -9.238319396972656, 0.0) };
 
 	@Test
-	public void test() {
+	public void test() throws ColinearPointsException {
 		ArrayList<Vector3d> H_points = new ArrayList<Vector3d>(Arrays.asList(helvetica_H));
 		ArrayList<Vector3d> e_points = new ArrayList<Vector3d>(Arrays.asList(helvetica_e));
 

@@ -9,7 +9,7 @@ public interface IExtrusion {
 	 * @param points
 	 * @return
 	 */
-	CSG extrude(Vector3d dir, List<Vector3d> points) ;
+	CSG extrude(Vector3d dir, List<Vector3d> points) throws ColinearPointsException;
     /**
      * Extrude.
      *
@@ -19,5 +19,5 @@ public interface IExtrusion {
      *            the polygon1
      * @return the csg
      */
-	CSG extrude(Vector3d dir, Polygon polygon1);
+	CSG extrude(Vector3d dir, Polygon polygon1)throws ColinearPointsException;
 }

@@ -17,7 +17,11 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.List;
 
+import eu.mihosoft.vrl.v3d.ColinearPointsException;
+import eu.mihosoft.vrl.v3d.Plane;
+import eu.mihosoft.vrl.v3d.Polygon;
 import eu.mihosoft.vrl.v3d.Vector3d;
 import eu.mihosoft.vrl.v3d.Vertex;
 
@@ -30,48 +34,13 @@ import eu.mihosoft.vrl.v3d.Vertex;
  */
 public class STLLoader {
 
-//        /**
-//         * Load the specified stl file and returns the result as a hash map, mapping
-//         * the object names to the corresponding <code>CustomMesh</code> objects.
-//         */
-//        public static Map<String, CustomMesh> load(String stlfile)
-//                        throws IOException {
-//                STLLoader sl = new STLLoader();
-//                try {
-//                        sl.parse(stlfile);
-//                } catch (RuntimeException e) {
-//                        ////System.out.println("error reading " + sl.name);
-//                        throw e;
-//                }
-//                return sl.meshes;
-//        }
-//
 	/**
 	 * Instantiates a new STL loader.
 	 */
-//        private HashMap<String, CustomMesh> meshes;
 	public STLLoader() {
 	}
 
-	/** The line. */
-	String line;
 
-	/** The in. */
-	BufferedReader in;
-
-	/** The vertices. */
-	// attributes of the currently read mesh
-	private ArrayList<Vertex> vertices = new ArrayList<>();
-
-	/** The normal. */
-	//private Vector3d normal = new Vector3d(0.0f, 0.0f, 0.0f); // to be used for file checking
-
-	/** The fis. */
-	private FileInputStream fis;
-
-	/** The triangles. */
-	private int triangles;
-//    private DecimalFormat decimalFormat = new DecimalFormat("0.0E0");
 
 	/**
 	 * Parses the.
@@ -80,8 +49,8 @@ public class STLLoader {
 	 * @return the array list
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	public ArrayList<Vertex> parse(File f) throws IOException {
-		vertices.clear();
+	public ArrayList<Polygon> parse(File f) throws IOException {
+		ArrayList<Polygon> polygons = new ArrayList<>();
 
 		// determine if this is a binary or ASCII STL
 		// and send to the appropriate parsing method
@@ -92,9 +61,9 @@ public class STLLoader {
 			String[] words = line.trim().split("\\s+");
 			if (line.indexOf('\0') < 0 && words[0].equalsIgnoreCase("solid")) {
 				////// System.out.println("Looks like an ASCII STL");
-				parseAscii(f);
+				parseAscii(f,polygons);
 				br.close();
-				return vertices;
+				return polygons;
 			}
 			br.close();
 		} catch (java.lang.NullPointerException ex) {
@@ -108,16 +77,16 @@ public class STLLoader {
 		byte[] buffer = new byte[84];
 		fs.read(buffer, 0, 84);
 		fs.close();
-		triangles = (int) (((buffer[83] & 0xff) << 24) | ((buffer[82] & 0xff) << 16) | ((buffer[81] & 0xff) << 8)
+		int triangles = (int) (((buffer[83] & 0xff) << 24) | ((buffer[82] & 0xff) << 16) | ((buffer[81] & 0xff) << 8)
 				| (buffer[80] & 0xff));
 		if (((f.length() - 84) / 50) == triangles) {
 			////// System.out.println("Looks like a binary STL");
-			parseBinary(f);
-			return vertices;
+			parseBinary(f,polygons, triangles);
+			return polygons;
 		}
 		// System.out.println("File is not a valid STL");
 
-		return vertices;
+		return polygons;
 	}
 
 	/**
@@ -125,13 +94,16 @@ public class STLLoader {
 	 *
 	 * @param f the f
 	 */
-	private void parseAscii(File f) {
+	private void parseAscii(File f,ArrayList<Polygon> polygons) {
+		BufferedReader in=null;
+		String line="";
 		try {
 			in = new BufferedReader(new FileReader(f));
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
+			return;
 		}
-		vertices = new ArrayList<>();
+		ArrayList<Vertex> vertices = new ArrayList<>();
 		try {
 			Vector3d normal = new Vector3d(0, 0,0);
 			while ((line = in.readLine()) != null) {
@@ -141,8 +113,18 @@ public class STLLoader {
 					double y = parseDouble(numbers[2]);
 					double z = parseDouble(numbers[3]);
 					Vector3d vertex = new Vector3d(x, y, z);
-					vertices.add(new Vertex(vertex, normal));
+					vertices.add(new Vertex(vertex));
+					if(vertices.size()==3) {
+						Plane pl = new Plane(normal, vertices);
+						try {
+							polygons.add(new Polygon(vertices, null, true, pl));
+						} catch (ColinearPointsException e) {
+							System.out.println(e.getMessage()+ " STL Load Pruned "+vertices);
+						}
+						vertices.clear();
+					}
 				} else if (numbers[0].equals("facet") && numbers[1].equals("normal")) {
+					normal = new Vector3d(0, 0,0);
 					normal.x = parseDouble(numbers[2]);
 					normal.y = parseDouble(numbers[3]);
 					normal.z = parseDouble(numbers[4]);
@@ -160,11 +142,11 @@ public class STLLoader {
 	 * Parses the binary.
 	 *
 	 * @param f the f
+	 * @param polygons2 
 	 */
-	private void parseBinary(File f) {
-		vertices = new ArrayList<Vertex>();
+	private void parseBinary(File f, ArrayList<Polygon> polygons,int triangles) {
 		try {
-			fis = new FileInputStream(f);
+			FileInputStream fis = new FileInputStream(f);
 			for (int h = 0; h < 84; h++) {
 				fis.read();// skip the header bytes
 			}
@@ -173,6 +155,7 @@ public class STLLoader {
 				for (int tb = 0; tb < 50; tb++) {
 					tri[tb] = (byte) fis.read();
 				}
+				ArrayList<Vertex> vertices = new ArrayList<Vertex>();
 				Vector3d normal = new Vector3d(0, 0,0);
 				normal.x = leBytesToFloat(tri[0], tri[1], tri[2], tri[3]);
 				normal.y = leBytesToFloat(tri[4], tri[5], tri[6], tri[7]);
@@ -183,13 +166,23 @@ public class STLLoader {
 					double py = leBytesToFloat(tri[j + 4], tri[j + 5], tri[j + 6], tri[j + 7]);
 					double pz = leBytesToFloat(tri[j + 8], tri[j + 9], tri[j + 10], tri[j + 11]);
 					Vector3d p = new Vector3d(px, py, pz);
-					vertices.add(new Vertex(p, normal));
+					vertices.add(new Vertex(p));
+					if(vertices.size()==3) {
+						Plane pl = new Plane(normal, vertices);
+						try {
+							polygons.add(new Polygon(vertices, null, true, pl));
+						} catch (ColinearPointsException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						vertices.clear();
+					}
 				}
 			}
 			fis.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}

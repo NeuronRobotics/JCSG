@@ -18,7 +18,7 @@ import eu.mihosoft.vrl.v3d.svg.SVGLoad;
 public class SvgExportTest {
 
 	@Test
-	public void slicetest() throws IOException {
+	public void slicetest() throws IOException, ColinearPointsException {
 		double normalInsetDistance = 0;
 		Transform slicePlane = new Transform();
 
@@ -44,21 +44,21 @@ public class SvgExportTest {
 	}
 
 	@Test
-	public void test() throws IOException {
+	public void test() throws IOException, ColinearPointsException {
 
 		List<Polygon> polygons = new ArrayList<Polygon>();
 
 		List<Vertex> vertices = new ArrayList<Vertex>();
-		vertices.add(new Vertex(new Vector3d(-30, 0), new Vector3d(0, 0)));
-		vertices.add(new Vertex(new Vector3d(100, 0), new Vector3d(0, 0)));
-		vertices.add(new Vertex(new Vector3d(100, 100), new Vector3d(0, 0)));
-		vertices.add(new Vertex(new Vector3d(-30, 100), new Vector3d(0, 0)));
+		vertices.add(new Vertex(new Vector3d(-30, 0)));
+		vertices.add(new Vertex(new Vector3d(100, 0)));
+		vertices.add(new Vertex(new Vector3d(100, 100)));
+		vertices.add(new Vertex(new Vector3d(-30, 100)));
 
 		List<Vertex> vertices2 = new ArrayList<Vertex>();
-		vertices2.add(new Vertex(new Vector3d(50, 50), new Vector3d(0, 0)));
-		vertices2.add(new Vertex(new Vector3d(75, 50), new Vector3d(0, 0)));
-		vertices2.add(new Vertex(new Vector3d(75, 75), new Vector3d(0, 0)));
-		vertices2.add(new Vertex(new Vector3d(50, 75), new Vector3d(0, 0)));
+		vertices2.add(new Vertex(new Vector3d(50, 50)));
+		vertices2.add(new Vertex(new Vector3d(75, 50)));
+		vertices2.add(new Vertex(new Vector3d(75, 75)));
+		vertices2.add(new Vertex(new Vector3d(50, 75)));
 
 		Polygon outline2 = new Polygon(vertices2);
 		Polygon outline = new Polygon(vertices);
@@ -70,21 +70,21 @@ public class SvgExportTest {
 	}
 
 	@Test
-	public void testSlices() throws IOException {
+	public void testSlices() throws IOException, ColinearPointsException {
 
 		List<Polygon> polygons = new ArrayList<Polygon>();
 
 		List<Vertex> vertices = new ArrayList<Vertex>();
-		vertices.add(new Vertex(new Vector3d(-30, 0), new Vector3d(0, 0)));
-		vertices.add(new Vertex(new Vector3d(100, 0), new Vector3d(0, 0)));
-		vertices.add(new Vertex(new Vector3d(100, 100), new Vector3d(0, 0)));
-		vertices.add(new Vertex(new Vector3d(-30, 100), new Vector3d(0, 0)));
+		vertices.add(new Vertex(new Vector3d(-30, 0)));
+		vertices.add(new Vertex(new Vector3d(100, 0)));
+		vertices.add(new Vertex(new Vector3d(100, 100)));
+		vertices.add(new Vertex(new Vector3d(-30, 100)));
 
 		List<Vertex> vertices2 = new ArrayList<Vertex>();
-		vertices2.add(new Vertex(new Vector3d(50, 50), new Vector3d(0, 0)));
-		vertices2.add(new Vertex(new Vector3d(75, 50), new Vector3d(0, 0)));
-		vertices2.add(new Vertex(new Vector3d(75, 75), new Vector3d(0, 0)));
-		vertices2.add(new Vertex(new Vector3d(50, 75), new Vector3d(0, 0)));
+		vertices2.add(new Vertex(new Vector3d(50, 50)));
+		vertices2.add(new Vertex(new Vector3d(75, 50)));
+		vertices2.add(new Vertex(new Vector3d(75, 75)));
+		vertices2.add(new Vertex(new Vector3d(50, 75)));
 
 		Polygon outline2 = new Polygon(vertices2);
 		Polygon outline = new Polygon(vertices);
@@ -96,7 +96,7 @@ public class SvgExportTest {
 	}
 
 	@Test
-	public void testCSGSlices() throws IOException {
+	public void testCSGSlices() throws IOException, ColinearPointsException {
 
 		CSG carrot = new Cube(10, 10, 10).toCSG()
 				// .toXMin()
@@ -120,12 +120,12 @@ public class SvgExportTest {
 
       File defaultDir = new File("svg/SVGExportTest6.svg");
       SVGLoad s = new SVGLoad(defaultDir.toURI());
-      ArrayList<CSG>gear = s.extrude(10,0.001);
+      ArrayList<CSG>gear = s.extrude(10);
       //System.out.println("SVG Elements ="+gear);
       
   }   	
 	@Test
-	public void testManyCSGSlices() throws IOException {
+	public void testManyCSGSlices() throws IOException, ColinearPointsException {
 	// Create a CSG to slice
 	  CSG pin = new Cylinder(10, 100)
 	      .toCSG();
@@ -153,18 +153,22 @@ public class SvgExportTest {
 		carrot.addSlicePlane(new Transform());
 		carrot.addSlicePlane(slicePlane);
 		
-		CSG sphere = new Sphere(10,80,80)
+		CSG sphere = new Sphere(10,40,40)
 						.setCenter(new Vector3d(30, 30))
 						.toCSG();
 		for(int i=0;i<10;i++){
 			Transform sp = new Transform();
-			sp.translateZ(0.9*i);
+			sp.translateZ(0.4*i);
 			sphere.addSlicePlane(sp);
 		}
+		System.out.println("Done slicing");
 		carrot.setName("Square Sections");
 		sphere.setName("Circle Sections");
 		File f = new File("SVGExportTest5.svg");
+		System.out.println("Exporting the polygons...");
 		SVGExporter.export(Arrays.asList(carrot,sphere),f);
+		System.out.println("Loading generated polygons");
 		SVGLoad. toPolygons( f);
+		System.out.println("testManyCSGSlices complete");
 	}
 }

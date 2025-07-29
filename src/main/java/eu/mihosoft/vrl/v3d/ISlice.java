@@ -10,5 +10,5 @@ public interface ISlice {
 	 * @param normalInsetDistance Inset for sliced output
 	 * @return					  A set of polygons defining the sliced shape
 	 */
-	List<Polygon> slice(CSG incoming, Transform slicePlane, double normalInsetDistance);
+	List<Polygon> slice(CSG incoming, Transform slicePlane, double normalInsetDistance) throws ColinearPointsException;
 }

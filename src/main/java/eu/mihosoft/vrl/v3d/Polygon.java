@@ -86,11 +86,12 @@ public final class Polygon implements Serializable{
      *
      * @param points the points that define the polygon
      * @return the decomposed concave polygon (list of convex polygons)
+     * @throws ColinearPointsException 
      */
-    public static List<Polygon> fromConcavePoints(Vector3d... points) {
+    public static List<Polygon> fromConcavePoints(Vector3d... points) throws ColinearPointsException {
         Polygon p = fromPoints(points);
 
-        return PolygonUtil.concaveToConvex(p);
+        return PolygonUtil.triangulatePolygon(p);
     }
 
     /**
@@ -98,11 +99,12 @@ public final class Polygon implements Serializable{
      *
      * @param points the points that define the polygon
      * @return the decomposed concave polygon (list of convex polygons)
+     * @throws ColinearPointsException 
      */
-    public static List<Polygon> fromConcavePoints(List<Vector3d> points) {
+    public static List<Polygon> fromConcavePoints(List<Vector3d> points) throws ColinearPointsException {
         Polygon p = fromPoints(points);
 
-        return PolygonUtil.concaveToConvex(p);
+        return PolygonUtil.triangulatePolygon(p);
     }
 
     /**
@@ -114,9 +116,10 @@ public final class Polygon implements Serializable{
      *
      * @param vertices polygon vertices
      * @param shared shared property
+     * @throws ColinearPointsException 
      */
-    public Polygon(List<Vertex> vertices, PropertyStorage shared, boolean allowDegenerate, Plane p) {
-        this.vertices = pruneDuplicatePoints(vertices);
+    public Polygon(List<Vertex> vertices, PropertyStorage shared, boolean allowDegenerate, Plane p) throws ColinearPointsException {
+        this.setVertices(pruneDuplicatePoints(vertices));
         this.shared = shared;
 	    if(p!=null)
 	    	setPlane(p.clone());
@@ -132,8 +135,9 @@ public final class Polygon implements Serializable{
      *
      * @param vertices polygon vertices
      * @param shared shared property
+     * @throws ColinearPointsException 
      */
-    public Polygon(List<Vertex> vertices, PropertyStorage shared) {
+    public Polygon(List<Vertex> vertices, PropertyStorage shared) throws ColinearPointsException {
         this(vertices,shared,true,null);
     }
     /**
@@ -144,8 +148,9 @@ public final class Polygon implements Serializable{
      * and form a convex loop.
      *
      * @param vertices polygon vertices
+     * @throws ColinearPointsException 
      */
-    public Polygon(List<Vertex> vertices) {
+    public Polygon(List<Vertex> vertices) throws ColinearPointsException {
     	this(vertices,new PropertyStorage(),true,null);
     }
     public static ArrayList<Vertex> pruneDuplicatePoints(List<Vertex> incoming) {
@@ -171,15 +176,11 @@ public final class Polygon implements Serializable{
 			return null;
 		}
 	}
-	private void validateAndInit( boolean allowDegenerate) {
-		vertices=pruneDuplicatePoints(vertices);
+	private void validateAndInit( boolean allowDegenerate) throws ColinearPointsException {
+		setVertices(pruneDuplicatePoints(getVertices()));
 		if(getPlane()==null)
 			this.setPlane(Plane.createFromPoints(
-	                vertices));
-		for (Vertex v : getVertices()) {
-			v.normal = getPlane().getNormal();
-			//v.pos.roundToEpsilon();
-		}
+	                getVertices()));
 		setDegenerate(true);
 		if (Vector3d.ZERO.equals(getPlane().getNormal())) {
 			valid = false;
@@ -211,9 +212,10 @@ public final class Polygon implements Serializable{
      * and form a convex loop.
      *
      * @param vertices polygon vertices
+     * @throws ColinearPointsException 
      *
      */
-    public Polygon(Vertex... vertices) {
+    public Polygon(Vertex... vertices) throws ColinearPointsException {
         this(Arrays.asList(vertices));
     }
 
@@ -228,7 +230,11 @@ public final class Polygon implements Serializable{
         });
         // TODO figure out why this isnt working
         //return new Polygon(newVertices, getStorage(),true,plane.clone()).setColor(getColor());
-        return new Polygon(newVertices, getStorage(),true,null).setColor(getColor());
+        try {
+			return new Polygon(newVertices, getStorage(),true,null).setColor(getColor());
+		} catch (ColinearPointsException e) {
+			throw new RuntimeException(e);
+		}
     }
 
     /**
@@ -237,9 +243,6 @@ public final class Polygon implements Serializable{
      * @return this polygon
      */
     public Polygon flip() {
-        getVertices().forEach((vertex) -> {
-            vertex.flip();
-        });
         Collections.reverse(getVertices());
 
         getPlane().flip();
@@ -340,8 +343,9 @@ public final class Polygon implements Serializable{
      * @param transform the transformation to apply
      *
      * @return this polygon
+     * @throws ColinearPointsException 
      */
-    public Polygon transform(Transform transform) {
+    public Polygon transform(Transform transform) throws ColinearPointsException {
 
         this.getVertices().stream().forEach(
                 (v) -> {
@@ -351,9 +355,8 @@ public final class Polygon implements Serializable{
 
         Vector3d a = this.getVertices().get(0).pos;
 
-//        this.plane.setNormal(Plane.computeNormal(this.getVertices()));
-//        this.plane.setDist(this.plane.getNormal().dot(a));
-        getPlane().transformPlane(transform, a);
+        this.plane=Plane.createFromPoints(getVertices());
+
 
         if (transform.isMirror()) {
             // the transformation includes mirroring. flip polygon
@@ -387,8 +390,9 @@ public final class Polygon implements Serializable{
      *
      * @param transform the transformation to apply
      * @return a transformed copy of this polygon
+     * @throws ColinearPointsException 
      */
-    public Polygon transformed(Transform transform) {
+    public Polygon transformed(Transform transform) throws ColinearPointsException {
         return clone().transform(transform);
     }
 
@@ -398,9 +402,10 @@ public final class Polygon implements Serializable{
      * @param points the points that define the polygon
      * @param shared shared property storage
      * @return a polygon defined by the specified point list
+     * @throws ColinearPointsException 
      */
     public static Polygon fromPoints(List<Vector3d> points,
-            PropertyStorage shared) {
+            PropertyStorage shared) throws ColinearPointsException {
         return fromPoints(points, shared, null,true);
     }
 
@@ -409,8 +414,9 @@ public final class Polygon implements Serializable{
      *
      * @param points the points that define the polygon
      * @return a polygon defined by the specified point list
+     * @throws ColinearPointsException 
      */
-    public static Polygon fromPoints(List<Vector3d> points) {
+    public static Polygon fromPoints(List<Vector3d> points) throws ColinearPointsException {
         return fromPoints(points, new PropertyStorage(), null,true);
     }
 
@@ -419,11 +425,12 @@ public final class Polygon implements Serializable{
      *
      * @param points the points that define the polygon
      * @return a polygon defined by the specified point list
+     * @throws ColinearPointsException 
      */
-    public static Polygon fromPoints(Vector3d... points) {
+    public static Polygon fromPoints(Vector3d... points) throws ColinearPointsException {
         return fromPoints(Arrays.asList(points), new PropertyStorage(), null,true);
     }
-	public static Polygon fromPointsAllowDegenerate(List<Vector3d> vertices2) {
+	public static Polygon fromPointsAllowDegenerate(List<Vector3d> vertices2) throws ColinearPointsException {
 		return fromPoints(vertices2, new PropertyStorage(), null, true);
 	}
     /**
@@ -433,9 +440,10 @@ public final class Polygon implements Serializable{
      * @param shared the shared
      * @param plane may be null
      * @return a polygon defined by the specified point list
+     * @throws ColinearPointsException 
      */
     private static Polygon fromPoints(
-            List<Vector3d> points, PropertyStorage shared, Plane plane, boolean allowDegenerate) {
+            List<Vector3d> points, PropertyStorage shared, Plane plane, boolean allowDegenerate) throws ColinearPointsException {
 
         Vector3d normal
                 = (plane != null) ? plane.getNormal().clone() : new Vector3d(0, 0, 0);
@@ -444,7 +452,7 @@ public final class Polygon implements Serializable{
 
         for (Vector3d p : points) {
             Vector3d vec = p.clone();
-            Vertex vertex = new Vertex(vec, normal);
+            Vertex vertex = new Vertex(vec);
             vertices.add(vertex);
         }
 
@@ -573,9 +581,10 @@ public final class Polygon implements Serializable{
 	 * @param howFarToMove
 	 *            the how far to move
 	 * @return the csg
+	 * @throws ColinearPointsException 
 	 */
 	// Helper/wrapper functions for movement
-	public Polygon movey(Number howFarToMove) {
+	public Polygon movey(Number howFarToMove) throws ColinearPointsException {
 		return this.transformed(Transform.unity().translateY(howFarToMove.doubleValue()));
 	}
 
@@ -585,8 +594,9 @@ public final class Polygon implements Serializable{
 	 * @param howFarToMove
 	 *            the how far to move
 	 * @return the csg
+	 * @throws ColinearPointsException 
 	 */
-	public Polygon movez(Number howFarToMove) {
+	public Polygon movez(Number howFarToMove) throws ColinearPointsException {
 		return this.transformed(Transform.unity().translateZ(howFarToMove.doubleValue()));
 	}
 
@@ -596,8 +606,9 @@ public final class Polygon implements Serializable{
 	 * @param howFarToMove
 	 *            the how far to move
 	 * @return the csg
+	 * @throws ColinearPointsException 
 	 */
-	public Polygon movex(Number howFarToMove) {
+	public Polygon movex(Number howFarToMove) throws ColinearPointsException {
 		return this.transformed(Transform.unity().translateX(howFarToMove.doubleValue()));
 	}
 
@@ -607,9 +618,10 @@ public final class Polygon implements Serializable{
 	 * @param degreesToRotate
 	 *            the degrees to rotate
 	 * @return the csg
+	 * @throws ColinearPointsException 
 	 */
 	// Rotation function, rotates the object
-	public Polygon rotz(Number degreesToRotate) {
+	public Polygon rotz(Number degreesToRotate) throws ColinearPointsException {
 		return this.transformed(new Transform().rotZ(degreesToRotate.doubleValue()));
 	}
 
@@ -619,8 +631,9 @@ public final class Polygon implements Serializable{
 	 * @param degreesToRotate
 	 *            the degrees to rotate
 	 * @return the csg
+	 * @throws ColinearPointsException 
 	 */
-	public Polygon roty(Number degreesToRotate) {
+	public Polygon roty(Number degreesToRotate) throws ColinearPointsException {
 		return this.transformed(new Transform().rotY(degreesToRotate.doubleValue()));
 	}
 
@@ -630,8 +643,9 @@ public final class Polygon implements Serializable{
 	 * @param degreesToRotate
 	 *            the degrees to rotate
 	 * @return the csg
+	 * @throws ColinearPointsException 
 	 */
-	public Polygon rotx(Number degreesToRotate) {
+	public Polygon rotx(Number degreesToRotate) throws ColinearPointsException {
 		return this.transformed(new Transform().rotX(degreesToRotate.doubleValue()));
 	}
 
@@ -641,9 +655,10 @@ public final class Polygon implements Serializable{
 	 * @param scaleValue
 	 *            the scale value
 	 * @return the csg
+	 * @throws ColinearPointsException 
 	 */
 	// Scale function, scales the object
-	public Polygon scalez(Number scaleValue) {
+	public Polygon scalez(Number scaleValue) throws ColinearPointsException {
 		return this.transformed(new Transform().scaleZ(scaleValue.doubleValue()));
 	}
 
@@ -653,8 +668,9 @@ public final class Polygon implements Serializable{
 	 * @param scaleValue
 	 *            the scale value
 	 * @return the csg
+	 * @throws ColinearPointsException 
 	 */
-	public Polygon scaley(Number scaleValue) {
+	public Polygon scaley(Number scaleValue) throws ColinearPointsException {
 		return this.transformed(new Transform().scaleY(scaleValue.doubleValue()));
 	}
 
@@ -664,8 +680,9 @@ public final class Polygon implements Serializable{
 	 * @param scaleValue
 	 *            the scale value
 	 * @return the csg
+	 * @throws ColinearPointsException 
 	 */
-	public Polygon scalex(Number scaleValue) {
+	public Polygon scalex(Number scaleValue) throws ColinearPointsException {
 		return this.transformed(new Transform().scaleX(scaleValue.doubleValue()));
 	}
 
@@ -675,8 +692,9 @@ public final class Polygon implements Serializable{
 	 * @param scaleValue
 	 *            the scale value
 	 * @return the csg
+	 * @throws ColinearPointsException 
 	 */
-	public Polygon scale(Number scaleValue) {
+	public Polygon scale(Number scaleValue) throws ColinearPointsException {
 		return this.transformed(new Transform().scale(scaleValue.doubleValue()));
 	}
 
@@ -777,7 +795,7 @@ public final class Polygon implements Serializable{
 	/**
 	 * @return the vertices
 	 */
-	public List<Vertex> getVertices() {
+	public ArrayList<Vertex> getVertices() {
 		return vertices;
 	}
 	
@@ -785,20 +803,20 @@ public final class Polygon implements Serializable{
 //		for(Vertex vr:vertices)
 //			if(vr.pos.test(v.pos, Plane.getEPSILON()))
 //				return this;
-		vertices.add(index,v);
+		getVertices().add(index,v);
 		
 		return this;
 	}
 
 	public boolean areAllPointsCollinear() {
 		// If we have 2 or fewer points, they're always collinear
-		if (vertices.size() <= 2) {
+		if (getVertices().size() <= 2) {
 			return true;
 		}
 
 		// Get first two points to establish a direction vector
-		Vertex p1 = vertices.get(0);
-		Vertex p2 = vertices.get(1);
+		Vertex p1 = getVertices().get(0);
+		Vertex p2 = getVertices().get(1);
 
 		// Calculate the direction vector between first two points
 		Vector3d direction = p1.pos.minus(p2.pos);
@@ -811,8 +829,8 @@ public final class Polygon implements Serializable{
 		direction.normalize();
 
 		// Check each subsequent point
-		for (int i = 2; i < vertices.size(); i++) {
-			Vertex p = vertices.get(i);
+		for (int i = 2; i < getVertices().size(); i++) {
+			Vertex p = getVertices().get(i);
 
 			// Calculate cross product
 			Vector3d cross = direction.cross(p1.pos.minus(p.pos));
@@ -836,5 +854,14 @@ public final class Polygon implements Serializable{
 		if(plane==null)
 			throw new RuntimeException("Plane can not be null!");
 		this.plane = plane;
+	}
+
+	public void setVertices(ArrayList<Vertex> vertices) {
+		this.vertices = vertices;
+	}
+
+	public int size() {
+		// TODO Auto-generated method stub
+		return vertices.size();
 	}
 }

@@ -98,15 +98,15 @@ public class EdgeIntersectionTest {
             Vector3d expectedPoint) {
         Edge e1 = new Edge(
                 new Vertex(
-                        e1p1, Vector3d.Z_ONE),
+                        e1p1),
                 new Vertex(
-                        e1p2, Vector3d.Z_ONE));
+                        e1p2));
 
         Edge e2 = new Edge(
                 new Vertex(
-                        e2p1, Vector3d.Z_ONE),
+                        e2p1),
                 new Vertex(
-                        e2p2, Vector3d.Z_ONE));
+                        e2p2));
 
         Optional<Vector3d> closestPointResult = e1.getIntersection(e2);
 
@@ -139,15 +139,15 @@ public class EdgeIntersectionTest {
             Vector3d expectedPoint) {
         Edge e1 = new Edge(
                 new Vertex(
-                        e1p1, Vector3d.Z_ONE),
+                        e1p1),
                 new Vertex(
-                        e1p2, Vector3d.Z_ONE));
+                        e1p2));
 
         Edge e2 = new Edge(
                 new Vertex(
-                        e2p1, Vector3d.Z_ONE),
+                        e2p1),
                 new Vertex(
-                        e2p2, Vector3d.Z_ONE));
+                        e2p2));
 
         Optional<Vector3d> closestPointResult = e1.getClosestPoint(e2);
 

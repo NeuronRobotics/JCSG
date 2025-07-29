@@ -40,11 +40,17 @@ public class Wedge extends Primitive {
    */
   @Override
   public List<Polygon> toPolygons() {
-    CSG polygon = Extrude.points(new Vector3d(0, 0, h), // This is the extrusion depth
-        new Vector3d(0, 0), // All values after this are the points in the polygon
-        new Vector3d(d, 0), // Bottom right corner
-        new Vector3d(0, w)// upper right corner
-    ).roty(90).rotz(90);
+    CSG polygon=null;
+	try {
+		polygon = Extrude.points(new Vector3d(0, 0, h), // This is the extrusion depth
+		    new Vector3d(0, 0), // All values after this are the points in the polygon
+		    new Vector3d(d, 0), // Bottom right corner
+		    new Vector3d(0, w)// upper right corner
+		).roty(90).rotz(90);
+	} catch (ColinearPointsException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
     return polygon.getPolygons();
   }
 }

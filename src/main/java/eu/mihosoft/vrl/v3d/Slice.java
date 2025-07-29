@@ -154,8 +154,9 @@ public class Slice {
 		 * @param normalInsetDistance
 		 *            Inset for sliced output
 		 * @return A set of polygons ining the sliced shape
+		 * @throws ColinearPointsException 
 		 */
-		public List<Polygon> slice(CSG incoming, Transform slicePlane, double normalInsetDistance) {
+		public List<Polygon> slice(CSG incoming, Transform slicePlane, double normalInsetDistance) throws ColinearPointsException {
 			if (Thread.interrupted()) {
 				return null;
 			}
@@ -461,7 +462,7 @@ public class Slice {
 		return vertex.getZ() < SLICE_UPPER_BOUND && vertex.getZ() > SLICE_LOWER_BOUND;
 	}
 
-	public static List<Polygon> slice(CSG incoming, Transform slicePlane, double normalInsetDistance) {
+	public static List<Polygon> slice(CSG incoming, Transform slicePlane, double normalInsetDistance) throws ColinearPointsException {
 		try {
 			if(DefaultSliceImp.class.isInstance(sliceEngine)) {
 				// avoid concurrecy issues
@@ -479,7 +480,7 @@ public class Slice {
 		}
 	}
 
-	private static List<Polygon> sanatize(List<Polygon> slice) {
+	private static List<Polygon> sanatize(List<Polygon> slice) throws ColinearPointsException {
 		for (int i = 0; i < slice.size(); i++) {
 			Polygon me = slice.get(i);
 			boolean bad = !Extrude.isCCW(me);
@@ -495,10 +496,10 @@ public class Slice {
 		return slice;
 	}
 
-	public static List<Polygon> slice(CSG incoming) {
+	public static List<Polygon> slice(CSG incoming) throws ColinearPointsException {
 		return slice(incoming, new Transform(),0);
 	}
-	public static List<Polygon> slice(CSG incoming, double normalInsetDistance) {
+	public static List<Polygon> slice(CSG incoming, double normalInsetDistance) throws ColinearPointsException {
 		return slice(incoming, new Transform(),normalInsetDistance);
 	}
 	public static ISlice getSliceEngine() {

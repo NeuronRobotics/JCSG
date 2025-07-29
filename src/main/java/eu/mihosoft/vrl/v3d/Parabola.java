@@ -111,7 +111,7 @@ public class Parabola {
     return eu.mihosoft.vrl.v3d.ext.quickhull3d.HullUtil.hull(pointsOut);
   }
 
-  public static CSG extrudeByEquation(double Radius, double a, double b, double thickness) {
+  public static CSG extrudeByEquation(double Radius, double a, double b, double thickness) throws ColinearPointsException {
     return Extrude.points(new Vector3d(0, 0, thickness), // This is the extrusion depth
         new Parabola().fromEquation(Radius, a, b).getpoints()// upper right corner
     );

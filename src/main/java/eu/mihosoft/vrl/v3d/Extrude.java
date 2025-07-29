@@ -37,6 +37,8 @@ import java.util.ArrayList;
 import com.piro.bezier.BezierPath;
 import eu.mihosoft.vrl.v3d.Transform;
 import eu.mihosoft.vrl.v3d.svg.*;
+import javafx.scene.paint.Color;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -53,6 +55,7 @@ import eu.mihosoft.vrl.v3d.ext.quickhull3d.HullUtil;
  * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
  */
 public class Extrude {
+	private static double MINIMUM_DISTANCE = 0.005;
 	private static IExtrusion extrusionEngine = new IExtrusion() {
 		/**
 		 * Extrudes the specified path (convex or concave polygon without holes or
@@ -62,12 +65,14 @@ public class Extrude {
 		 * @param points path (convex or concave polygon without holes or intersections)
 		 *
 		 * @return a CSG object that consists of the extruded polygon
+		 * @throws ColinearPointsException
 		 */
-		public CSG points(Vector3d dir, List<Vector3d> points) {
+		public CSG points(Vector3d dir, List<Vector3d> points) throws ColinearPointsException {
 
 			List<Vector3d> newList = new ArrayList<>(points);
-
-			return extrude(dir, Polygon.fromPoints(toCCW(newList)));
+			Polygon fromPoints = Polygon.fromPoints(toCCW(newList));
+			PolygonUtil.triangulatePolygon(fromPoints);
+			return extrude(dir, fromPoints);
 		}
 
 		/**
@@ -79,48 +84,28 @@ public class Extrude {
 		 */
 		public CSG extrude(Vector3d dir, Polygon polygon1) {
 
-			return monotoneExtrude(dir, polygon1);
+			try {
+				return monotoneExtrude(dir, polygon1);
+			} catch (ColinearPointsException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return new Cube(10).toCSG().setColor(Color.PINK);
 		}
-		private CSG monotoneExtrude(Vector3d dir, Polygon polygon1) {
+
+		private CSG monotoneExtrude(Vector3d dir, Polygon polygon1) throws ColinearPointsException {
 			ArrayList<Polygon> newPolygons = new ArrayList<>();
 			CSG extrude;
-			//polygon1=polygon1.flipped();
-//			List<Vertex> newVertices = new ArrayList<>();
-//			polygon1.getVertices().forEach((vertex) -> {
-//	            newVertices.add(vertex.clone());
-//	        });
-//	        Polygon top= new Polygon(newVertices, polygon1.getStorage(),true,polygon1.getPlane().clone()).setColor(polygon1.getColor());
-	        Polygon top=polygon1.flipped();
-			newPolygons.addAll(PolygonUtil.concaveToConvex(top));
+			Polygon top = polygon1.flipped();
+			ArrayList<Polygon> triangulatePolygon = PolygonUtil.triangulatePolygon(top);
+			newPolygons.addAll(triangulatePolygon);
 			Polygon polygon2 = polygon1.transformed(new Transform().move(dir));
+			List<Polygon> parts = Extrude.monotoneExtrude(polygon2, polygon1);
+			newPolygons.addAll(parts);
 
-			int numvertices = polygon1.getVertices().size();
-			//com.neuronrobotics.sdk.common.Log.error("Building Polygon "+polygon1.getPoints().size());
-			for (int i = 0; i < numvertices; i++) {
-
-				int nexti = (i + 1) % numvertices;
-
-				Vector3d bottomV1 = polygon1.getVertices().get(i).pos;
-				Vector3d topV1 = polygon2.getVertices().get(i).pos;
-				Vector3d bottomV2 = polygon1.getVertices().get(nexti).pos;
-				Vector3d topV2 = polygon2.getVertices().get(nexti).pos;
-				double distance = bottomV1.minus(bottomV2).magnitude();
-				if(Math.abs(distance)<0.001) {
-					//com.neuronrobotics.sdk.common.Log.error("Skipping invalid polygon "+i+" to "+nexti);
-					continue;
-				}
-				try {
-					newPolygons.add(Polygon.fromPoints(Arrays.asList(bottomV2, topV2, topV1), polygon1.getStorage()));
-					newPolygons.add(Polygon.fromPoints(Arrays.asList(bottomV2, topV1, bottomV1), polygon1.getStorage()));
-				}catch(Exception ex) {
-					//com.neuronrobotics.sdk.common.Log.error("Polygon has problems: ");
-					ex.printStackTrace();
-				}
-			}
-
-			ArrayList<Polygon> topPolygons = PolygonUtil.concaveToConvex(polygon2);
-
-			newPolygons.addAll(topPolygons);
+			//ArrayList<Polygon> topPolygons = PolygonUtil.triangulatePolygon(polygon2);
+			for(Polygon p:triangulatePolygon)
+				newPolygons.add(p.flipped().transformed(new Transform().move(dir)));
 			extrude = CSG.fromPolygons(newPolygons);
 
 			return extrude;
@@ -128,7 +113,13 @@ public class Extrude {
 
 		@Override
 		public CSG extrude(Vector3d dir, List<Vector3d> points) {
-			return points(dir, points);
+			try {
+				return points(dir, points);
+			} catch (ColinearPointsException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return new Cube(10).toCSG().setColor(Color.PINK);
 		}
 	};
 
@@ -139,76 +130,9 @@ public class Extrude {
 		throw new AssertionError("Don't instantiate me!", null);
 	}
 
-	public static CSG polygons(Polygon polygon1, Number zDistance) {
-		return polygons(polygon1, polygon1.transformed(new Transform().movez(zDistance)));
-	}
 
-	public static CSG polygons(Polygon polygon1, Polygon polygon2) {
-		// if(!isCCW(polygon1)) {
-		// polygon1=Polygon.fromPoints(toCCW(polygon1.getPoints()));
-		// }
-		// if(!isCCW(polygon2)) {
-		// polygon2=Polygon.fromPoints(toCCW(polygon2.getPoints()));
-		// }
 
-		ArrayList<Polygon> newPolygons = new ArrayList<>();
-		CSG extrude;
-		newPolygons.addAll(PolygonUtil.concaveToConvex(polygon1.flipped()));
-		if (polygon1.getVertices().size() != polygon2.getVertices().size()) {
-			throw new RuntimeException("These polygons do not match");
-		}
-
-		int numvertices = polygon1.getVertices().size();
-		for (int i = 0; i < numvertices; i++) {
-
-			int nexti = (i + 1) % numvertices;
-
-			Vector3d bottomV1 = polygon1.getVertices().get(i).pos;
-			Vector3d topV1 = polygon2.getVertices().get(i).pos;
-			Vector3d bottomV2 = polygon1.getVertices().get(nexti).pos;
-			Vector3d topV2 = polygon2.getVertices().get(nexti).pos;
-
-			List<Vector3d> pPoints = Arrays.asList(bottomV2, topV2, topV1, bottomV1);
-
-			newPolygons.add(Polygon.fromPoints(pPoints, polygon1.getStorage()));
-
-		}
-
-		polygon2 = polygon2.flipped();
-		List<Polygon> topPolygons = PolygonUtil.concaveToConvex(polygon2.flipped());
-
-		newPolygons.addAll(topPolygons);
-		extrude = CSG.fromPolygons(newPolygons);
-
-		return extrude;
-	}
-
-	public static ArrayList<CSG> polygons(eu.mihosoft.vrl.v3d.Polygon polygon1, ArrayList<Transform> transforms) {
-		if (transforms.size() == 1)
-			transforms.add(0, new Transform());
-		polygon1 = Polygon.fromPoints(toCCW(polygon1.getPoints()));
-		if (transforms.size() < 2) {
-			transforms.add(0, new Transform());
-		}
-		ArrayList<CSG> parts = new ArrayList<>();
-		Transform transform = new Transform();
-		// transform.rotY(90);
-		for (int i = 0; i < transforms.size() - 1; i++) {
-			CSG tmp = polygons(polygon1.transformed(transform).transformed(transforms.get(i)),
-					polygon1.transformed(transform).transformed(transforms.get(i + 1)));
-			parts.add(tmp);
-		}
-		return parts;
-
-	}
-
-	public static ArrayList<CSG> polygons(eu.mihosoft.vrl.v3d.Polygon polygon1, Transform... transformparts) {
-
-		return polygons(polygon1, (ArrayList<Transform>) Arrays.asList(transformparts));
-
-	}
-
-	public static CSG points(Vector3d dir, List<Vector3d> points) {
+	public static CSG points(Vector3d dir, List<Vector3d> points) throws ColinearPointsException {
 
 		return getExtrusionEngine().extrude(dir, points);
 	}
@@ -221,8 +145,9 @@ public class Extrude {
 	 * @param points path (convex or concave polygon without holes or intersections)
 	 *
 	 * @return a CSG object that consists of the extruded polygon
+	 * @throws ColinearPointsException 
 	 */
-	public static CSG points(Vector3d dir, Vector3d... points) {
+	public static CSG points(Vector3d dir, Vector3d... points) throws ColinearPointsException {
 
 		return points(dir, Arrays.asList(points));
 	}
@@ -232,12 +157,13 @@ public class Extrude {
 	 *
 	 * @param points the points
 	 * @return the list
+	 * @throws ColinearPointsException 
 	 */
-	public static List<Vector3d> toCCW(List<Vector3d> points) {
+	public static List<Vector3d> toCCW(List<Vector3d> points) throws ColinearPointsException {
 
 		List<Vector3d> result = new ArrayList<>(points);
 
-		if (!isCCW(Polygon.fromPoints(result))) {
+		if (!isCCWv3d(result)) {
 			Collections.reverse(result);
 		}
 
@@ -249,12 +175,13 @@ public class Extrude {
 	 *
 	 * @param points the points
 	 * @return the list
+	 * @throws ColinearPointsException 
 	 */
-	static List<Vector3d> toCW(List<Vector3d> points) {
+	static List<Vector3d> toCW(List<Vector3d> points) throws ColinearPointsException {
 
 		List<Vector3d> result = new ArrayList<>(points);
 
-		if (isCCW(Polygon.fromPoints(result))) {
+		if (isCCWv3d(result)) {
 			Collections.reverse(result);
 		}
 
@@ -266,65 +193,108 @@ public class Extrude {
 	 *
 	 * @param polygon the polygon
 	 * @return true, if is ccw
+	 * @throws ColinearPointsException 
 	 */
-	public static boolean isCCW(Polygon polygon) {
+	public static boolean isCCW(Polygon polygon) throws ColinearPointsException {
+		return isCCWv3d(polygon.getPoints());
+	}
+	/**
+	 * Checks if is ccw.
+	 *
+	 * @param polygon the polygon
+	 * @return true, if is ccw
+	 * @throws ColinearPointsException 
+	 */
+	public static boolean isCCW(List<Vertex> vertices) throws ColinearPointsException {
+		return isCCW(vertices, new Vector3d(0, 0,1));
+	}
+	/**
+	 * Checks if is ccw.
+	 *
+	 * @param polygon the polygon
+	 * @param normal the normal to check the CCW against. 
+	 * @return true, if is ccw
+	 * @throws ColinearPointsException 
+	 */
+	public static boolean isCCW(List<Vertex> vertices, Vector3d normal) throws ColinearPointsException {
+		Plane p = Plane.createFromPoints(vertices);
+		
+		double dot = normal.dot(p.getNormal());
+		return dot > (1.0 - Plane.getEPSILON());
+	}
 
-		// thanks to Sepp Reiter for explaining me the algorithm!
+	/**
+	 * Checks if is ccw.
+	 *
+	 * @param polygon the polygon
+	 * @return true, if is ccw
+	 */
+	public static boolean isCCWv3d(List<Vector3d> vertices) throws ColinearPointsException {
+		ArrayList<Vertex> v = new ArrayList<Vertex>();
+		for(Vector3d vc:vertices)
+			v.add(new Vertex(vc));
+		return isCCW(v);
 
-		if (polygon.getVertices().size() < 3) {
-			throw new IllegalArgumentException("Only polygons with at least 3 vertices are supported!");
-		}
-
-		// search highest left vertex
-		int highestLeftVertexIndex = 0;
-		Vertex highestLeftVertex = polygon.getVertices().get(0);
-		for (int i = 0; i < polygon.getVertices().size(); i++) {
-			Vertex v = polygon.getVertices().get(i);
-
-			if (v.pos.y > highestLeftVertex.pos.y) {
-				highestLeftVertex = v;
-				highestLeftVertexIndex = i;
-			} else if (v.pos.y == highestLeftVertex.pos.y && v.pos.x < highestLeftVertex.pos.x) {
-				highestLeftVertex = v;
-				highestLeftVertexIndex = i;
-			}
-		}
-
-		// determine next and previous vertex indices
-		int nextVertexIndex = (highestLeftVertexIndex + 1) % polygon.getVertices().size();
-		int prevVertexIndex = highestLeftVertexIndex - 1;
-		if (prevVertexIndex < 0) {
-			prevVertexIndex = polygon.getVertices().size() - 1;
-		}
-		Vertex nextVertex = polygon.getVertices().get(nextVertexIndex);
-		Vertex prevVertex = polygon.getVertices().get(prevVertexIndex);
-
-		// edge 1
-		double a1 = normalizedX(highestLeftVertex.pos, nextVertex.pos);
-
-		// edge 2
-		double a2 = normalizedX(highestLeftVertex.pos, prevVertex.pos);
-
-		// select vertex with lowest x value
-		int selectedVIndex;
-
-		if (a2 > a1) {
-			selectedVIndex = nextVertexIndex;
-		} else {
-			selectedVIndex = prevVertexIndex;
-		}
-
-		if (selectedVIndex == 0 && highestLeftVertexIndex == polygon.getVertices().size() - 1) {
-			selectedVIndex = polygon.getVertices().size();
-		}
-
-		if (highestLeftVertexIndex == 0 && selectedVIndex == polygon.getVertices().size() - 1) {
-			highestLeftVertexIndex = polygon.getVertices().size();
-		}
-
-		// indicates whether edge points from highestLeftVertexIndex towards
-		// the sel index (ccw)
-		return selectedVIndex > highestLeftVertexIndex;
+//		// thanks to Sepp Reiter for explaining me the algorithm!
+//		if (vertices.size() < 3) {
+//			throw new IllegalArgumentException("Only polygons with at least 3 vertices are supported!");
+//		}
+//
+//		// search highest left vertex
+//		int highestLeftVertexIndex = 0;
+//		Vector3d highestLeftVertex = vertices.get(0);
+//		double zSet = highestLeftVertex.z;
+//		for (int i = 0; i < vertices.size(); i++) {
+//
+//			Vector3d v = vertices.get(i);
+//			double abs = Math.abs(zSet - v.z);
+//			if (abs > Plane.getEPSILON()) {
+//				throw new RuntimeException("isCCW can only be performed on the X Y plane "+abs);
+//			}
+//			if (v.y > highestLeftVertex.y) {
+//				highestLeftVertex = v;
+//				highestLeftVertexIndex = i;
+//			} else if (v.y == highestLeftVertex.y && v.x < highestLeftVertex.x) {
+//				highestLeftVertex = v;
+//				highestLeftVertexIndex = i;
+//			}
+//		}
+//
+//		// determine next and previous vertex indices
+//		int nextVertexIndex = (highestLeftVertexIndex + 1) % vertices.size();
+//		int prevVertexIndex = highestLeftVertexIndex - 1;
+//		if (prevVertexIndex < 0) {
+//			prevVertexIndex = vertices.size() - 1;
+//		}
+//		Vector3d nextVertex = vertices.get(nextVertexIndex);
+//		Vector3d prevVertex = vertices.get(prevVertexIndex);
+//
+//		// edge 1
+//		double a1 = normalizedX(highestLeftVertex, nextVertex);
+//
+//		// edge 2
+//		double a2 = normalizedX(highestLeftVertex, prevVertex);
+//
+//		// select vertex with lowest x value
+//		int selectedVIndex;
+//
+//		if (a2 > a1) {
+//			selectedVIndex = nextVertexIndex;
+//		} else {
+//			selectedVIndex = prevVertexIndex;
+//		}
+//
+//		if (selectedVIndex == 0 && highestLeftVertexIndex == vertices.size() - 1) {
+//			selectedVIndex = vertices.size();
+//		}
+//
+//		if (highestLeftVertexIndex == 0 && selectedVIndex == vertices.size() - 1) {
+//			highestLeftVertexIndex = vertices.size();
+//		}
+//
+//		// indicates whether edge points from highestLeftVertexIndex towards
+//		// the sel index (ccw)
+//		return selectedVIndex > highestLeftVertexIndex;
 
 	}
 
@@ -349,13 +319,13 @@ public class Extrude {
 		Extrude.extrusionEngine = extrusionEngine;
 	}
 
-	public static CSG byPath(List<List<Vector3d>> points, double height) {
+	public static CSG byPath(List<List<Vector3d>> points, double height) throws ColinearPointsException {
 
 		return byPath(points, height, 200);
 
 	}
 
-	public static CSG byPath(List<List<Vector3d>> points, double height, int resolution) {
+	public static CSG byPath(List<List<Vector3d>> points, double height, int resolution) throws ColinearPointsException {
 		ArrayList<Transform> trPath = pathToTransforms(points, resolution);
 		ArrayList<Vector3d> finalPath = new ArrayList<>();
 		for (Transform tr : trPath) {
@@ -415,9 +385,9 @@ public class Extrude {
 		}
 		// println "A string = " +pathStringA
 		// println "B String = " +pathStringB
-		BezierPath path = new BezierPath();
+		BezierPath path = new BezierPath(10);
 		path.parsePathString(pathStringA);
-		BezierPath path2 = new BezierPath();
+		BezierPath path2 = new BezierPath(10);
 		path2.parsePathString(pathStringB);
 
 		return bezierToTransforms(path, path2, resolution, null, null);
@@ -430,10 +400,10 @@ public class Extrude {
 
 	public static ArrayList<Transform> bezierToTransforms(Vector3d controlA, Vector3d controlB, Vector3d endPoint,
 			int iterations) {
-		BezierPath path = new BezierPath();
+		BezierPath path = new BezierPath(10);
 		path.parsePathString("C " + controlA.x + "," + controlA.y + " " + controlB.x + "," + controlB.y + " "
 				+ endPoint.x + "," + endPoint.y);
-		BezierPath path2 = new BezierPath();
+		BezierPath path2 = new BezierPath(10);
 		path2.parsePathString("C " + controlA.x + "," + controlA.z + " " + controlB.x + "," + controlB.z + " "
 				+ endPoint.x + "," + endPoint.z);
 
@@ -465,7 +435,7 @@ public class Extrude {
 		Vector3d pointBStart = pathB.eval(0);
 		double x = pointAStart.x, y = pointAStart.y, z = pointBStart.y;
 		double lastx = x, lasty = y, lastz = z;
-		// double  min = (double ) 0.0001;
+		// double min = (double ) 0.0001;
 		int startIndex = 0;
 		if (controlA != null) {
 			startIndex = 1;
@@ -475,7 +445,8 @@ public class Extrude {
 			double rise = zdiff;
 			double run = Math.sqrt((ydiff * ydiff) + (xdiff * xdiff));
 			double rotz = 90 - Math.toDegrees(Math.atan2(xdiff, ydiff));
-			// //com.neuronrobotics.sdk.common.Log.error("Rot z = "+rotz+" x="+xdiff+" y="+ydiff);
+			// //com.neuronrobotics.sdk.common.Log.error("Rot z = "+rotz+" x="+xdiff+"
+			// y="+ydiff);
 			double roty = Math.toDegrees(Math.atan2(rise, run));
 			Transform t = new Transform();
 			t.translateX(x);
@@ -494,7 +465,7 @@ public class Extrude {
 		double rotz;
 		double roty;
 		for (int i = startIndex; i < iterations - 1; i++) {
-			double  pathFunction = (double ) (((double ) i) / ((double ) (iterations - 1)));
+			double pathFunction = (double) (((double) i) / ((double) (iterations - 1)));
 
 			Vector3d pointA = pathA.eval(pathFunction);
 			Vector3d pointB = pathB.eval(pathFunction);
@@ -508,8 +479,8 @@ public class Extrude {
 			t.translateY(y);
 			t.translateZ(z);
 
-			Vector3d pointAEst = pathA.eval((double ) (pathFunction + d));
-			Vector3d pointBEst = pathB.eval((double ) (pathFunction + d));
+			Vector3d pointAEst = pathA.eval((double) (pathFunction + d));
+			Vector3d pointBEst = pathB.eval((double) (pathFunction + d));
 			double xest = pointAEst.x;
 			double yest = pointAEst.y;
 			double zest = pointBEst.y;
@@ -521,13 +492,15 @@ public class Extrude {
 			rise = zdiff;
 			run = Math.sqrt((ydiff * ydiff) + (xdiff * xdiff));
 			rotz = 90 - Math.toDegrees(Math.atan2(xdiff, ydiff));
-			// //com.neuronrobotics.sdk.common.Log.error("Rot z = "+rotz+" x="+xdiff+" y="+ydiff);
+			// //com.neuronrobotics.sdk.common.Log.error("Rot z = "+rotz+" x="+xdiff+"
+			// y="+ydiff);
 			roty = Math.toDegrees(Math.atan2(rise, run));
 
 			t.rotZ(-rotz);
 			t.rotY(roty);
 			// if(i==0)
-			// //com.neuronrobotics.sdk.common.Log.error( " Tr = "+x+" "+y+" "+z+" path = "+pathFunction);
+			// //com.neuronrobotics.sdk.common.Log.error( " Tr = "+x+" "+y+" "+z+" path =
+			// "+pathFunction);
 			// println "z = "+rotz+" y = "+roty
 			p.add(t);
 			lastx = x;
@@ -535,8 +508,8 @@ public class Extrude {
 			lastz = z;
 		}
 
-		Vector3d pointA = pathA.eval((double ) 1);
-		Vector3d pointB = pathB.eval((double ) 1);
+		Vector3d pointA = pathA.eval((double) 1);
+		Vector3d pointB = pathB.eval((double) 1);
 
 		x = pointA.x;
 		y = pointA.y;
@@ -574,42 +547,50 @@ public class Extrude {
 		String b = "M " + start.x + "," + start.z + "\n" + "C " + controlA.x + "," + controlA.z + " " + controlB.x + ","
 				+ controlB.z + " " + endPoint.x + "," + endPoint.z;
 		// println "Start = "+startString
-		BezierPath path = new BezierPath();
+		BezierPath path = new BezierPath(10);
 		path.parsePathString(startString);
-		BezierPath path2 = new BezierPath();
+		BezierPath path2 = new BezierPath(10);
 		path2.parsePathString(b);
 		// newParts.remove(parts.size()-1)
 		// newParts.remove(0)
-		// //com.neuronrobotics.sdk.common.Log.error("Parsing "+startString+" \nand\n"+b);
+		// //com.neuronrobotics.sdk.common.Log.error("Parsing "+startString+"
+		// \nand\n"+b);
 		return bezierToTransforms(path, path2, iterations, controlA, controlB);
 	}
-	public static CSG sweep(Polygon p, Transform increment, Transform offset, int steps) throws ColinearPointsException{
-		return sweep(p,increment,offset,steps, (u,d)->{return new Transform();});
+
+	public static CSG sweep(Polygon p, Transform increment, Transform offset, int steps)
+			throws ColinearPointsException {
+		return sweep(p, increment, offset, steps, (u, d) -> {
+			return new Transform();
+		});
 	}
-	public static CSG sweep(Polygon p, Transform increment, Transform offset, int steps,ITransformProvider provider) throws ColinearPointsException{
+
+	public static CSG sweep(Polygon p, Transform increment, Transform offset, int steps, ITransformProvider provider)
+			throws ColinearPointsException {
 		Polygon offsetP = p.transformed(offset);
 		ArrayList<Polygon> newPolygons = new ArrayList<>();
-		newPolygons.addAll(PolygonUtil.concaveToConvex(offsetP));
+		newPolygons.addAll(PolygonUtil.triangulatePolygon(offsetP));
 		Transform running = new Transform();
 		Polygon prev = offsetP.transformed(provider.get(0, steps));
 		for (int i = 0; i < steps; i++) {
 			running.apply(increment);
-			double unit = ((double)i)/((double)steps);
+			double unit = ((double) i) / ((double) steps);
 			Polygon step = offsetP.transformed(provider.get(unit, steps)).transformed(running);
 			List<Polygon> parts = monotoneExtrude(prev, step);
 			prev = step;
 			newPolygons.addAll(parts);
 		}
 		Polygon polygon2 = prev.clone();
-		List<Polygon> topPolygons = PolygonUtil.concaveToConvex(polygon2.flipped());
+		List<Polygon> topPolygons = PolygonUtil.triangulatePolygon(polygon2.flipped());
 		newPolygons.addAll(topPolygons);
 
 		return CSG.fromPolygons(newPolygons);
 	}
 
-	public static CSG sweep(Polygon p, double angle, double z, double radius, int steps) throws ColinearPointsException{
+	public static CSG sweep(Polygon p, double angle, double z, double radius, int steps) throws ColinearPointsException {
 		return sweep(p, new Transform().rotX(angle).movex(z), new Transform().movey(radius), steps);
 	}
+
 	public static List<Polygon> monotoneExtrude(Polygon polygon2, Polygon polygon1) {
 		List<Polygon> newPolygons = new ArrayList<>();
 
@@ -624,43 +605,44 @@ public class Extrude {
 			Vector3d bottomV2 = polygon1.getVertices().get(nexti).pos;
 			Vector3d topV2 = polygon2.getVertices().get(nexti).pos;
 			double distance = bottomV1.minus(bottomV2).magnitude();
-			if (Math.abs(distance) < Plane.getEPSILON()) {
-				continue;
+			double z1Dist = topV1.minus(bottomV1).magnitude();
+			if (Math.abs(distance) > Plane.getEPSILON() && Math.abs(z1Dist) > Plane.getEPSILON()) {
+				List<Vector3d> asList = Arrays.asList(bottomV2.clone(), topV1.clone(), bottomV1.clone());
+				try {
+					newPolygons.add(Polygon.fromPoints(asList, polygon1.getStorage()));
+				} catch (ColinearPointsException ex) {
+					System.out.println(ex.getMessage()+" Pruning from extrude");
+				}
 			}
-			try {
-				newPolygons.add(Polygon.fromPoints(Arrays.asList(bottomV2, topV2, topV1), polygon1.getStorage()));
-				newPolygons.add(Polygon.fromPoints(Arrays.asList(bottomV2, topV1, bottomV1), polygon1.getStorage()));
-			} catch (Exception ex) {
-				ex.printStackTrace();
+			double distance2 = topV2.minus(topV1).magnitude();
+			double z1Dist2 = topV2.minus(bottomV2).magnitude();
+			if (Math.abs(distance2) > Plane.getEPSILON() && Math.abs(z1Dist2) > Plane.getEPSILON()) {
+				List<Vector3d> asList2 = Arrays.asList(bottomV2.clone(), topV2.clone(), topV1.clone());
+				try {
+					newPolygons.add(Polygon.fromPoints(asList2, polygon1.getStorage()));
+				} catch (ColinearPointsException ex) {
+					System.out.println(ex.getMessage()+" Pruning from extrude");
+				}
 			}
 		}
 		return newPolygons;
 	}
+
 	public static ArrayList<CSG> revolve(CSG slice, double radius, int numSlices) {
 		return revolve(slice, radius, 360.0, null, numSlices);
 	}
 
-	public static ArrayList<CSG> revolve(Polygon poly, int numSlices) {
+	public static ArrayList<CSG> revolve(Polygon poly, int numSlices) throws ColinearPointsException {
 		return revolve(poly, 0, numSlices);
 	}
 
-	public static ArrayList<CSG> revolve(Polygon poly, double radius, int numSlices) {
-		ArrayList<CSG> parts = new ArrayList<CSG>();
-		ArrayList<Polygon> slices = new ArrayList<Polygon>();
-
-		for (int i = 0; i < numSlices; i++) {
-			double angle = 360.0 / ((double) numSlices) * ((double) i);
-			slices.add(poly.transformed(new Transform().movex(radius).roty(angle)));
-		}
-		for (int i = 0; i < slices.size(); i++) {
-			int next = i + 1;
-			if (next == slices.size())
-				next = 0;
-			// println "Extruding "+i+" to "+next
-			parts.add(Extrude.polygons(slices.get(i), slices.get(next)));
-		}
-
-		return parts;
+	public static ArrayList<CSG> revolve(Polygon poly, double radius, int numSlices) throws ColinearPointsException {
+		Polygon p=poly; 
+		double angle=360;
+		double z=0; 
+		int steps=numSlices;
+		CSG result=sweep( p,  angle,  z,  radius,  steps);
+		return new ArrayList<CSG>(Arrays.asList(result));
 	}
 
 	public static ArrayList<CSG> revolve(CSG slice, double radius, double archLen, int numSlices) {
@@ -782,9 +764,9 @@ public class Extrude {
 	}
 
 	public static ArrayList<CSG> moveBezier(CSG slice, BezierPath pathA, int numSlices) {
-		Vector3d pointA = pathA.eval((double ) 1.0);
+		Vector3d pointA = pathA.eval((double) 1.0);
 		String zpath = "C 0,0 " + pointA.x + "," + pointA.y + " " + pointA.x + "," + pointA.y;
-		BezierPath pathB = new BezierPath();
+		BezierPath pathB = new BezierPath(10);
 		pathB.parsePathString(zpath);
 
 		return moveBezier(slice, pathA, pathB, numSlices);
@@ -798,19 +780,22 @@ public class Extrude {
 
 	}
 
-	public static Polygon toCCW(Polygon concave) {
-		if (!isCCW(concave)) {
-//			List<Vector3d> points = concave.getPoints();
-//			List<Vector3d> result = new ArrayList<>(points);
-//			Collections.reverse(result);
-//			return Polygon.fromPoints(result);
-			List<Vertex> points = concave.getVertices();
-			List<Vertex> result = new ArrayList<>(points);
-			Collections.reverse(result);
-			Plane p = concave.getPlane().clone();
-			p.flip();
-			return new Polygon(result, concave.getStorage(), true, p);
-		}
-		return concave;
+//	public static Polygon toCCW(Polygon concave) throws ColinearPointsException {
+//		if (!isCCW(concave)) {
+////			List<Vector3d> points = concave.getPoints();
+////			List<Vector3d> result = new ArrayList<>(points);
+////			Collections.reverse(result);
+////			return Polygon.fromPoints(result);
+//			return concave.flipped();
+//		}
+//		return concave;
+//	}
+
+	public static double getMinimumDIstance() {
+		return MINIMUM_DISTANCE;
+	}
+
+	public static void setMinimumDIstance(double mINIMUM_DISTANCE) {
+		MINIMUM_DISTANCE = mINIMUM_DISTANCE;
 	}
 }

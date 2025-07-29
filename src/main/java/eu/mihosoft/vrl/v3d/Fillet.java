@@ -33,7 +33,7 @@ public class Fillet extends Primitive {
     // .rotz(180)
   }
 
-  public static CSG outerFillet(CSG base, double rad) {
+  public static CSG outerFillet(CSG base, double rad) throws ColinearPointsException {
     List<Polygon> polys = Slice.slice(base);
     return base.union(outerFillet(polys, rad));
   }

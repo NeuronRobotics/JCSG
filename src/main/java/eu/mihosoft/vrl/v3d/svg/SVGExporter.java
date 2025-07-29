@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import eu.mihosoft.vrl.v3d.CSG;
+import eu.mihosoft.vrl.v3d.ColinearPointsException;
 import eu.mihosoft.vrl.v3d.Polygon;
 import eu.mihosoft.vrl.v3d.Slice;
 import eu.mihosoft.vrl.v3d.Transform;
@@ -170,12 +171,12 @@ public class SVGExporter {
 		bw.write(output);
 		bw.close();
 	}
-	public static void export(CSG currentCsg, File defaultDir) throws IOException {
+	public static void export(CSG currentCsg, File defaultDir) throws IOException, ColinearPointsException {
 		SVGExporter svg = new SVGExporter();
 		addCsg(currentCsg,svg);
 		write(svg.make(), defaultDir);
 	}
-	public static void export(List<CSG> currentCsg, File defaultDir) throws IOException {
+	public static void export(List<CSG> currentCsg, File defaultDir) throws IOException, ColinearPointsException {
 		try {
 			eu.mihosoft.vrl.v3d.JavaFXInitializer.go();
 		} catch (Throwable t) {
@@ -198,7 +199,7 @@ public class SVGExporter {
 			//System.out.println("ERROR No UI engine availible, SVG slicing is GPU accelerated and will not work");
 		}
 	}
-	private static void addCsg(CSG currentCsg, SVGExporter svg) throws IOException {
+	private static void addCsg(CSG currentCsg, SVGExporter svg) throws IOException, ColinearPointsException {
 		svg.setName(currentCsg.getName());
 		for(Transform slicePlane:currentCsg.getSlicePlanes()){
 			List<Polygon> polygons = Slice.slice(currentCsg.prepMfg(), slicePlane, 0);

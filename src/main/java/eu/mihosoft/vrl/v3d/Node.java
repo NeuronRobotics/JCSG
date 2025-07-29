@@ -319,7 +319,7 @@ public final class Node {
 	private static void add(List<Polygon> l, Polygon p) {
 		try {
 			// test triangulation of new polygon before adding
-			PolygonUtil.concaveToConvex(p);
+			PolygonUtil.triangulatePolygon(p);
 			l.add(p);
 		} catch (Exception ex) {
 			ex.printStackTrace();

@@ -1559,7 +1559,7 @@ public class CSG implements IuserAPI, Serializable {
 			sb.append("solid v3d.csg\n");
 			for (Polygon p : getPolygons()) {
 				try {
-					Plane.computeNormal(p.getVertices());
+					Plane.createFromPoints(p.getVertices(),null);
 					p.toStlString(sb);
 				} catch (Exception ex) {
 					System.out.println("Prune Polygon on export");
@@ -1986,14 +1986,20 @@ public class CSG implements IuserAPI, Serializable {
 //				}
 				// pointIndexSet.add(pointIndex);
 				Vector3d thispoint = orderedPoints[pointIndex];
-				points.add(new Vertex(thispoint, pl.getNormal()));
+				points.add(new Vertex(thispoint));
 			}
 			if (points.size() < 3) {
 				System.out.println("ERR polygon " + i + " pruned because of too few points");
 				continue;
 			}
-			Polygon p = new Polygon(points, polygon.getStorage(), true, pl);
-			newPoly.add(p);
+			Polygon p;
+			try {
+				p = new Polygon(points, polygon.getStorage(), true, pl);
+				newPoly.add(p);
+			} catch (ColinearPointsException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			polygon.getPoints().clear();
 		}
 		polygons.clear();
@@ -2089,7 +2095,7 @@ public class CSG implements IuserAPI, Serializable {
 
 			try {
 				if (!p.areAllPointsCollinear()) {
-					List<Polygon> triangles = PolygonUtil.concaveToConvex(p);
+					List<Polygon> triangles = PolygonUtil.triangulatePolygon(p);
 					for (Polygon poly : triangles) {
 						toAdd.add(poly);
 					}
@@ -2170,8 +2176,8 @@ public class CSG implements IuserAPI, Serializable {
 			int startingIndex = vertices.size() + 1;
 			sb.append("\n# Reference Datum").append("\n");
 			for (Transform t : datumReferences) {
-				Vertex v = new Vertex(new Vector3d(0, 0, 0), new Vector3d(0, 0, 1)).transform(t);
-				Vertex v1 = new Vertex(new Vector3d(0, 0, 1), new Vector3d(0, 0, 1)).transform(t);
+				Vertex v = new Vertex(new Vector3d(0, 0, 0)).transform(t);
+				Vertex v1 = new Vertex(new Vector3d(0, 0, 1)).transform(t);
 				mapping.put(v, startingIndex++);
 				mapping.put(v1, startingIndex++);
 				mappingTF.put(t, v);

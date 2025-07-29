@@ -157,7 +157,7 @@ public class Sphere extends Primitive {
                 Math.cos(phi),
                 Math.sin(theta) * Math.sin(phi)
         );
-        return new Vertex(c.plus(dir.times(r)), dir);
+        return new Vertex(c.plus(dir.times(r)));
     }
 
     /* (non-Javadoc)
@@ -193,7 +193,12 @@ public class Sphere extends Primitive {
                         sphereVertex(center, radius, i / (double) getNumSlices(),
                                 (j + 1) / (double) getNumStacks())
                 );
-                polygons.add(new Polygon(vertices, getProperties()));
+                try {
+					polygons.add(new Polygon(vertices, getProperties()));
+				} catch (ColinearPointsException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
             }
         }
         return polygons;

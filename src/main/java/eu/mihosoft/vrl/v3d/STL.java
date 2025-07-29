@@ -83,28 +83,9 @@ public class STL {
 	public static CSG file(Path path) throws IOException {
 		STLLoader loader = new STLLoader();
 
-		ArrayList<Polygon> polygons = new ArrayList<>();
-		List<Vertex> vertices = new ArrayList<>();
-		for (Vertex p : loader.parse(path.toFile())) {
-			vertices.add(p);
-			if (vertices.size() == 3) {
-				try {
-					
-					Plane pl = new Plane(vertices.get(0).normal, vertices);
-					polygons.add(new Polygon(vertices, null, false, pl));
-				} catch (RuntimeException ex) {
-					//ex.printStackTrace();
-					System.err.println("Pruning polygon loading STL::file");
-				}
-				vertices = new ArrayList<>();
-			}
-		}
+		ArrayList<Polygon> polygons = loader.parse(path.toFile());
 
 		CSG fromPolygons = CSG.fromPolygons(new PropertyStorage(), polygons);
-		boolean b = CSG.isPreventNonManifoldTriangles();
-		CSG.setPreventNonManifoldTriangles(false);
-		fromPolygons.triangulate();
-		CSG.setPreventNonManifoldTriangles(b);
 		return fromPolygons;
 	}
 }
