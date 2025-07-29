@@ -35,6 +35,7 @@ package eu.mihosoft.vrl.v3d;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -116,7 +117,7 @@ public final class Node {
 	public Node clone() {
 		Node node;
 		try {
-			node = new Node(this.getPlane().clone());
+			node = new Node(this.getThisNodePlane().clone());
 //			node.setPlane(this.getPlane() == null ? null : this.getPlane().clone());
 			node.front = this.front == null ? null : this.front.clone();
 			node.back = this.back == null ? null : this.back.clone();
@@ -168,7 +169,7 @@ public final class Node {
 //			// return;
 //		}
 
-		this.getPlane().flip();
+		this.getThisNodePlane().flip();
 
 		if (this.front != null) {
 			this.front.invert();
@@ -238,7 +239,7 @@ public final class Node {
 	 */
 	private ArrayList<Polygon> clipPolygons(ArrayList<Polygon> polygons) throws Exception {
 
-		if (this.getPlane() == null) {
+		if (this.getThisNodePlane() == null) {
 			throw new RuntimeException("Plane can not be null");
 		}
 		// preallocate the lists so they do not use dynamic memory in split
@@ -318,6 +319,9 @@ public final class Node {
 		if (f.size() < 3)
 			return;
 		try {
+			if(!Extrude.isCCW(f, polygon.getPlane().getNormal())) {
+				Collections.reverse(f);
+			}
 			Polygon fpoly = new Polygon(f, polygon.getStorage(), true, polygon.getPlane())
 					.setColor(polygon.getColor());
 			if (!test)
@@ -344,12 +348,12 @@ public final class Node {
 	 */
 	public void splitPolygon(ArrayList<Polygon> polygons, List<Polygon> cf, List<Polygon> cb,
 			List<Polygon> f, List<Polygon> b) throws Exception {
-		if (polygons.size() < LIMIT_FOR_GPU) {
-			splitPolygonOriginal(polygons, cf, cb, f, b);
-			return;
+		if (polygons.size() > LIMIT_FOR_GPU) {
+//			splitPolygonGPU(polygons, cf, cb, f, b);
+//			return;
 		}
-		splitPolygonGPU(polygons, cf, cb, f, b);
-		
+		splitPolygonOriginal(polygons, cf, cb, f, b);
+
 //		List<Polygon> cf1 = new ArrayList<Polygon>();
 //		List<Polygon> cb1= new ArrayList<Polygon>();
 //		List<Polygon> f1= new ArrayList<Polygon>();
@@ -499,10 +503,10 @@ public final class Node {
 			polygonPointZ[i] = -1;
 		}
 		// Convert plane normal to fixed point
-		double planeNormalX = (this.getPlane().getNormal().x);
-		double planeNormalY = (this.getPlane().getNormal().y);
-		double planeNormalZ = (this.getPlane().getNormal().z);
-		double planeNormalDistance = (this.getPlane().getDist());
+		double planeNormalX = (this.getThisNodePlane().getNormal().x);
+		double planeNormalY = (this.getThisNodePlane().getNormal().y);
+		double planeNormalZ = (this.getThisNodePlane().getNormal().z);
+		double planeNormalDistance = (this.getThisNodePlane().getDist());
 
 		double epsilon = Plane.getEPSILON();
 
@@ -923,36 +927,36 @@ public final class Node {
 		double posEpsilon = Plane.getEPSILON();
 		int size = polygon.getVertices().size();
 		Vector3d normal = polygon.getPlane().getNormal();
-//			for (int i = 0; i < size; i++) {
-//				Vector3d pos = polygon.getVertices().get(i).pos;
-//				double dot = normal.dot(pos);
-//				double t = dot
-//						- dist;
-//				if(Math.abs(t)>0.01) {
-//					throw new RuntimeException("A plane epsilon of "+t+" is impossible");
-//				}
-//				if (t > posEpsilon) {
-//					// com.neuronrobotics.sdk.common.Log.error("Non flat polygon, increasing
-//					// positive epsilon "+t);
-//					posEpsilon = t;
-//				}
-//				if (t < negEpsilon) {
-//					// com.neuronrobotics.sdk.common.Log.error("Non flat polygon, decreasing
-//					// negative epsilon "+t);
-//					negEpsilon = t;
-//				}
-//			}
+			for (int i = 0; i < size; i++) {
+				Vector3d pos = polygon.getVertices().get(i).pos;
+				double dot = normal.dot(pos);
+				double t = dot
+						- polygon.getPlane().getDist();
+				if(Math.abs(t)>0.01) {
+					throw new RuntimeException("A plane epsilon of "+t+" is impossible");
+				}
+				if (t > posEpsilon) {
+					// com.neuronrobotics.sdk.common.Log.error("Non flat polygon, increasing
+					// positive epsilon "+t);
+					posEpsilon = t;
+				}
+				if (t < negEpsilon) {
+					// com.neuronrobotics.sdk.common.Log.error("Non flat polygon, decreasing
+					// negative epsilon "+t);
+					negEpsilon = t;
+				}
+			}
 		int polygonType = 0;
 		List<Integer> types = new ArrayList<>();
 //			boolean someF =false;
 //			boolean someB=false;
 
-		double distP = polygon.getPlane().getDist();
+		//double distP = polygon.getPlane().getDist();
 		for (int i = 0; i < size; i++) {
 			Vector3d pos = polygon.getVertices().get(i).pos;
 //				double dot = normal.dot(pos);
 //				double ep = Math.abs( dot-distP);// this is this points distance from its plane
-			double t = getPlane().getNormal().dot(pos) - getPlane().getDist();
+			double t = getThisNodePlane().getNormal().dot(pos) - getThisNodePlane().getDist();
 			int type = (t < negEpsilon) ? BACK : (t > posEpsilon) ? FRONT : COPLANAR;
 			types.add(type);
 			polygonType = polygonType|type;
@@ -975,7 +979,7 @@ public final class Node {
 		// Put the polygon in the correct list, splitting it when necessary.
 		switch (polygonType) {
 		case COPLANAR:
-			double cp = getPlane().getNormal().dot(normal);
+			double cp = getThisNodePlane().getNormal().dot(normal);
 			(cp > 0 ? coplanarFront : coplanarBack).add(polygon);
 			break;
 		case FRONT:
@@ -1001,8 +1005,8 @@ public final class Node {
 					addPoint(b, (ti != BACK ? vi.clone() : vi));
 				}
 				if ((ti|tj) == SPANNING) {
-					double planeDot = this.getPlane().getNormal().dot(vi.pos);
-					double planeNormalDistance = this.getPlane().getDist();
+					double planeDot = this.getThisNodePlane().getNormal().dot(vi.pos);
+					double planeNormalDistance = this.getThisNodePlane().getDist();
 
 					double d = planeNormalDistance - planeDot;
 
@@ -1021,9 +1025,9 @@ public final class Node {
 					double diff_z = zvj - zvi;
 
 					// Assuming plane.getNormal() returns a Vector3d or similar with x, y, z fields
-					double planeNormalX = getPlane().getNormal().x;
-					double planeNormalY = getPlane().getNormal().y;
-					double planeNormalZ = getPlane().getNormal().z;
+					double planeNormalX = getThisNodePlane().getNormal().x;
+					double planeNormalY = getThisNodePlane().getNormal().y;
+					double planeNormalZ = getThisNodePlane().getNormal().z;
 
 					// Compute dot product
 					double dotMinus = (planeNormalX * diff_x) + (planeNormalY * diff_y) + (planeNormalZ * diff_z);
@@ -1170,7 +1174,7 @@ public final class Node {
 		return count;
 	}
 
-	public Plane getPlane() {
+	public Plane getThisNodePlane() {
 		return myNodePlane;
 	}
 
