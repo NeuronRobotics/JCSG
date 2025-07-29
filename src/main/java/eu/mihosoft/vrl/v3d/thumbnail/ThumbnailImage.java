@@ -30,6 +30,7 @@ import javafx.geometry.Rectangle2D;
 
 public class ThumbnailImage {
 	private static CullFace cullFaceValue = CullFace.BACK;
+	private static int ImageSize=1000;
 
 	public static Bounds getSellectedBounds(List<CSG> incoming) {
 		Vector3d min = null;
@@ -129,18 +130,8 @@ public class ThumbnailImage {
 		camera.getTransforms().add(camDist);
 		//
 
-		// Position the camera
-//	    camera.setTranslateX();
-//	    camera.setTranslateY();
-//		camera.setTranslateZ();
-//		   // Apply rotations to the root group instead of the camera
-//	    root.getTransforms().addAll(
-//	            new Rotate(-5, Rotate.Y_AXIS),
-//	            new Rotate(-45, Rotate.X_AXIS)
-//	    );
-		// Create a scene with the group and camera
-		int i = 1000;
-		Scene scene = new Scene(root, i, i, true, SceneAntialiasing.BALANCED);
+		
+		Scene scene = new Scene(root, getImageSize(), getImageSize(), true, SceneAntialiasing.BALANCED);
 		scene.setFill(Color.TRANSPARENT);
 		scene.setCamera(camera);
 
@@ -155,7 +146,7 @@ public class ThumbnailImage {
 		camera.setFarClip(9000.0); // Set the far clip plane
 
 		// Create the WritableImage first
-		WritableImage snapshot = new WritableImage(i, i);
+		WritableImage snapshot = new WritableImage(getImageSize(), getImageSize());
 
 		root.snapshot(params, snapshot);
 
@@ -208,5 +199,13 @@ public class ThumbnailImage {
 
 	public static void setCullFaceValue(CullFace cullFaceValue) {
 		ThumbnailImage.cullFaceValue = cullFaceValue;
+	}
+
+	public static int getImageSize() {
+		return ImageSize;
+	}
+
+	public static void setImageSize(int imageSize) {
+		ImageSize = imageSize;
 	}
 }
