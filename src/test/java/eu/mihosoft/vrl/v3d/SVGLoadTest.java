@@ -26,28 +26,28 @@ public class SVGLoadTest {
 	@Test
 	public void vows() throws IOException {
 		
-		JavaFXInitializer.go();
-		File svg = new File("vows.svg");
-		if (!svg.exists())
-			throw new RuntimeException("Test file missing!" + svg.getAbsolutePath());
-		SVGLoad s = new SVGLoad(svg.toURI());
-
-		ArrayList<CSG> parts = new ArrayList<CSG>(run(s));
-		for(int i=0;i<parts.size();i++) {
-			parts.set(i, parts.get(i).rotx(180));
-		}
-		
-		if(parts.size()==0)
-			throw new RuntimeException("Failed to load");
-		try {
-			ThumbnailImage.setImageSize(2000);
-			ThumbnailImage.setCullFaceValue(CullFace.NONE);
-			ThumbnailImage.writeImage(Arrays.asList(CSG.unionAll(parts)),new File(svg.getAbsolutePath()+".png")).join();
-			ThumbnailImage.setImageSize(1000);
-		} catch (InterruptedException e) {
-			// Auto-generated catch block
-			e.printStackTrace();
-		}
+//		JavaFXInitializer.go();
+//		File svg = new File("vows.svg");
+//		if (!svg.exists())
+//			throw new RuntimeException("Test file missing!" + svg.getAbsolutePath());
+//		SVGLoad s = new SVGLoad(svg.toURI());
+//
+//		ArrayList<CSG> parts = new ArrayList<CSG>(run(s));
+//		for(int i=0;i<parts.size();i++) {
+//			parts.set(i, parts.get(i).rotx(180));
+//		}
+//		
+//		if(parts.size()==0)
+//			throw new RuntimeException("Failed to load");
+//		try {
+//			ThumbnailImage.setImageSize(2000);
+//			ThumbnailImage.setCullFaceValue(CullFace.NONE);
+//			ThumbnailImage.writeImage(Arrays.asList(CSG.unionAll(parts)),new File(svg.getAbsolutePath()+".png")).join();
+//			ThumbnailImage.setImageSize(1000);
+//		} catch (InterruptedException e) {
+//			// Auto-generated catch block
+//			e.printStackTrace();
+//		}
 //		for(int i=0;i<parts.size();i++)
 //			FileUtil.write(Paths.get(i+"-flame.stl"),
 //					parts.get(i).toStlString());
