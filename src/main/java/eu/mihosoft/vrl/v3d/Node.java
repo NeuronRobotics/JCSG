@@ -69,7 +69,7 @@ public final class Node {
 	/**
 	 * Plane used for BSP.
 	 */
-	private Plane plane;
+	private final Plane myNodePlane;
 	/**
 	 * Polygons in front of the plane.
 	 */
@@ -87,12 +87,13 @@ public final class Node {
 	/**
 	 * Constructor.
 	 *
-	 * Creates a BSP node consisting of the specified polygons.
+	 * Creates a Binary Space Partition (BSP) node consisting of the specified polygons.
 	 *
 	 * @param polygons polygons
 	 * @throws Exception
 	 */
-	public Node(ArrayList<Polygon> polygons) throws Exception {
+	public Node(ArrayList<Polygon> polygons,Plane p) throws Exception {
+		myNodePlane=p.clone();
 		this.polygons = new ArrayList<>();
 		if (polygons != null) {
 			this.build(polygons);
@@ -102,8 +103,8 @@ public final class Node {
 //	/**
 //	 * Constructor. Creates a node without polygons.
 //	 */
-	private Node() throws Exception {
-		this(null);
+	private Node(Plane p) throws Exception {
+		this(null,p);
 	}
 
 	/*
@@ -115,8 +116,8 @@ public final class Node {
 	public Node clone() {
 		Node node;
 		try {
-			node = new Node();
-			node.setPlane(this.getPlane() == null ? null : this.getPlane().clone());
+			node = new Node(this.getPlane().clone());
+//			node.setPlane(this.getPlane() == null ? null : this.getPlane().clone());
 			node.front = this.front == null ? null : this.front.clone();
 			node.back = this.back == null ? null : this.back.clone();
 //	        node.polygons = new ArrayList<>();
@@ -144,86 +145,86 @@ public final class Node {
 	/**
 	 * Converts solid space to empty space and vice verca.
 	 */
-//	public void invert() {
-//
-//		Stream<Polygon> polygonStream;
-//
-//		if (polygons.size() > 200) {
-//			polygonStream = polygons.parallelStream();
-//		} else
-//			polygonStream = polygons.stream();
-//
-//		polygonStream.forEach((polygon) -> {
-//			polygon.flip();
-//		});
-//
+	public void invert() {
+
+		Stream<Polygon> polygonStream;
+
+		if (polygons.size() > 200) {
+			polygonStream = polygons.parallelStream();
+		} else
+			polygonStream = polygons.stream();
+
+		polygonStream.forEach((polygon) -> {
+			polygon.flip();
+		});
+
 //		if (this.getPlane() == null && !polygons.isEmpty()) {
 //			this.setPlane(polygons.get(0).getPlane().clone());
 //		} else if (this.getPlane() == null && polygons.isEmpty()) {
 //
 //			// com.neuronrobotics.sdk.common.Log.error("Please fix me! I don't know what to
 //			// do?");
-//			throw new RuntimeException("Please fix me! Plane = " + plane + " and polygons are empty");
+//			throw new RuntimeException("Please fix me! Plane = " + getPlane() + " and polygons are empty");
 //			// return;
 //		}
-//
-//		this.getPlane().flip();
-//
-//		if (this.front != null) {
-//			this.front.invert();
-//		}
-//		if (this.back != null) {
-//			this.back.invert();
-//		}
-//		Node temp = this.front;
-//		this.front = this.back;
-//		this.back = temp;
-//	}
-	public void invert() {
-	    // Use ArrayList as a stack to track nodes to process
-	    ArrayList<Node> stack = new ArrayList<>();
-	    stack.add(this);
-	    
-	    while (!stack.isEmpty()) {
-	        // Pop the last node from our stack
-	        Node current = stack.remove(stack.size() - 1);
-	        
-	        // Process polygons for current node
-	        Stream<Polygon> polygonStream;
-	        if (current.polygons.size() > 200) {
-	            polygonStream = current.polygons.parallelStream();
-	        } else {
-	            polygonStream = current.polygons.stream();
-	        }
-	        
-	        polygonStream.forEach((polygon) -> {
-	            polygon.flip();
-	        });
-	        
-	        // Handle plane logic
-	        if (current.getPlane() == null && !current.polygons.isEmpty()) {
-	            current.setPlane(current.polygons.get(0).getPlane().clone());
-	        } else if (current.getPlane() == null && current.polygons.isEmpty()) {
-	            throw new RuntimeException("Please fix me! Plane = " + current.plane + " and polygons are empty");
-	        }
-	        
-	        current.getPlane().flip();
-	        
-	        // Add child nodes to stack for processing (if they exist)
-	        // Note: We add them in reverse order so they're processed in the same order as the recursive version
-	        if (current.back != null) {
-	            stack.add(current.back);
-	        }
-	        if (current.front != null) {
-	            stack.add(current.front);
-	        }
-	        
-	        // Swap front and back
-	        Node temp = current.front;
-	        current.front = current.back;
-	        current.back = temp;
-	    }
+
+		this.getPlane().flip();
+
+		if (this.front != null) {
+			this.front.invert();
+		}
+		if (this.back != null) {
+			this.back.invert();
+		}
+		Node temp = this.front;
+		this.front = this.back;
+		this.back = temp;
 	}
+//	public void invert() {
+//	    // Use ArrayList as a stack to track nodes to process
+//	    ArrayList<Node> stack = new ArrayList<>();
+//	    stack.add(this);
+//	    
+//	    while (!stack.isEmpty()) {
+//	        // Pop the last node from our stack
+//	        Node current = stack.remove(stack.size() - 1);
+//	        
+//	        // Process polygons for current node
+//	        Stream<Polygon> polygonStream;
+//	        if (current.polygons.size() > 200) {
+//	            polygonStream = current.polygons.parallelStream();
+//	        } else {
+//	            polygonStream = current.polygons.stream();
+//	        }
+//	        
+//	        polygonStream.forEach((polygon) -> {
+//	            polygon.flip();
+//	        });
+//	        
+//	        // Handle plane logic
+//	        if (current.getPlane() == null && !current.polygons.isEmpty()) {
+//	            current.setPlane(current.polygons.get(0).getPlane().clone());
+//	        } else if (current.getPlane() == null && current.polygons.isEmpty()) {
+//	            throw new RuntimeException("Please fix me! Plane = " + current.plane + " and polygons are empty");
+//	        }
+//	        
+//	        current.getPlane().flip();
+//	        
+//	        // Add child nodes to stack for processing (if they exist)
+//	        // Note: We add them in reverse order so they're processed in the same order as the recursive version
+//	        if (current.back != null) {
+//	            stack.add(current.back);
+//	        }
+//	        if (current.front != null) {
+//	            stack.add(current.front);
+//	        }
+//	        
+//	        // Swap front and back
+//	        Node temp = current.front;
+//	        current.front = current.back;
+//	        current.back = temp;
+//	    }
+//	}
 	/**
 	 * Recursively removes all polygons in the {@link polygons} list that are
 	 * contained within this BSP tree.
@@ -498,10 +499,10 @@ public final class Node {
 			polygonPointZ[i] = -1;
 		}
 		// Convert plane normal to fixed point
-		double planeNormalX = (this.plane.getNormal().x);
-		double planeNormalY = (this.plane.getNormal().y);
-		double planeNormalZ = (this.plane.getNormal().z);
-		double planeNormalDistance = (this.plane.getDist());
+		double planeNormalX = (this.getPlane().getNormal().x);
+		double planeNormalY = (this.getPlane().getNormal().y);
+		double planeNormalZ = (this.getPlane().getNormal().z);
+		double planeNormalDistance = (this.getPlane().getDist());
 
 		double epsilon = Plane.getEPSILON();
 
@@ -951,7 +952,7 @@ public final class Node {
 			Vector3d pos = polygon.getVertices().get(i).pos;
 //				double dot = normal.dot(pos);
 //				double ep = Math.abs( dot-distP);// this is this points distance from its plane
-			double t = plane.getNormal().dot(pos) - plane.getDist();
+			double t = getPlane().getNormal().dot(pos) - getPlane().getDist();
 			int type = (t < negEpsilon) ? BACK : (t > posEpsilon) ? FRONT : COPLANAR;
 			types.add(type);
 			polygonType = polygonType|type;
@@ -974,7 +975,7 @@ public final class Node {
 		// Put the polygon in the correct list, splitting it when necessary.
 		switch (polygonType) {
 		case COPLANAR:
-			double cp = plane.getNormal().dot(normal);
+			double cp = getPlane().getNormal().dot(normal);
 			(cp > 0 ? coplanarFront : coplanarBack).add(polygon);
 			break;
 		case FRONT:
@@ -1000,8 +1001,8 @@ public final class Node {
 					addPoint(b, (ti != BACK ? vi.clone() : vi));
 				}
 				if ((ti|tj) == SPANNING) {
-					double planeDot = this.plane.getNormal().dot(vi.pos);
-					double planeNormalDistance = this.plane.getDist();
+					double planeDot = this.getPlane().getNormal().dot(vi.pos);
+					double planeNormalDistance = this.getPlane().getDist();
 
 					double d = planeNormalDistance - planeDot;
 
@@ -1020,9 +1021,9 @@ public final class Node {
 					double diff_z = zvj - zvi;
 
 					// Assuming plane.getNormal() returns a Vector3d or similar with x, y, z fields
-					double planeNormalX = plane.getNormal().x;
-					double planeNormalY = plane.getNormal().y;
-					double planeNormalZ = plane.getNormal().z;
+					double planeNormalX = getPlane().getNormal().x;
+					double planeNormalY = getPlane().getNormal().y;
+					double planeNormalZ = getPlane().getNormal().z;
 
 					// Compute dot product
 					double dotMinus = (planeNormalX * diff_x) + (planeNormalY * diff_y) + (planeNormalZ * diff_z);
@@ -1138,9 +1139,9 @@ public final class Node {
 			return 0;
 		}
 
-		if (this.getPlane() == null) {
-			this.setPlane(polygons.get(0).getPlane().clone());
-		}
+//		if (this.getPlane() == null) {
+//			this.setPlane(polygons.get(0).getPlane());
+//		}
 		// this.polygons.add(polygons.get(0));
 
 		ArrayList<Polygon> frontP = new ArrayList<>();
@@ -1156,13 +1157,13 @@ public final class Node {
 
 		if (frontP.size() > 0) {
 			if (this.front == null) {
-				this.front = new Node();
+				this.front = new Node(frontP.get(0).getPlane());
 			}
 			count+=this.front.build(frontP, depth + 1, maxDepth);
 		}
 		if (backP.size() > 0) {
 			if (this.back == null) {
-				this.back = new Node();
+				this.back = new Node(backP.get(0).getPlane());
 			}
 			count+=this.back.build(backP, depth + 1, maxDepth);
 		}
@@ -1170,12 +1171,12 @@ public final class Node {
 	}
 
 	public Plane getPlane() {
-		return plane;
+		return myNodePlane;
 	}
 
-	public void setPlane(Plane plane) {
-		if (plane == null)
-			throw new RuntimeException("Plane can not be null!");
-		this.plane = plane;
-	}
+//	public void setPlane(Plane plane) {
+//		if (plane == null)
+//			throw new RuntimeException("Plane can not be null!");
+//		this.myNodePlane = plane.clone();
+//	}
 }
