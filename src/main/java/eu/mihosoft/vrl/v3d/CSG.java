@@ -827,6 +827,9 @@ public class CSG implements IuserAPI, Serializable {
 			}
 //		triangulate();
 //		csg.triangulate();
+		if(!isBoundsTouching(csg)) {
+			return this.dumbUnion(csg);
+		}
 		switch (getOptType()) {
 		case CSG_BOUND:
 			return _unionCSGBoundsOpt(csg).historySync(this).historySync(csg);
@@ -889,11 +892,11 @@ public class CSG implements IuserAPI, Serializable {
 	 *
 	 * @return union of this csg and the specified csgs
 	 */
-	public CSG union(List<CSG> csgs) {
+	public CSG union(List<CSG> incoming) {
 		if (CSGClient.isRunning()) {
 			ArrayList<CSG> go = new ArrayList<CSG>();
 			go.add(this);
-			go.addAll(csgs);
+			go.addAll(incoming);
 			try {
 				return CSGClient.getClient().union(go).get(0);
 			} catch (Exception e) {
@@ -902,6 +905,37 @@ public class CSG implements IuserAPI, Serializable {
 		}
 		CSG solid = this.isHole()?null:this;
 		CSG hole = this.isHole()?this:null;
+		ArrayList<CSG> csgs=new ArrayList<CSG>();
+		CSG dumb = null;
+		if(incoming.size()<10) {
+			csgs.addAll(incoming);
+		}else {
+			for( int i=0;i<incoming.size();i++) {
+				CSG test = incoming.get(i);
+				if(test==null)
+					continue;
+				boolean touching =false;
+				int t=-1;
+				for(int j=0;j<incoming.size();j++) {
+					if(i==j)
+						continue;
+					if(test.isBoundsTouching(incoming.get(j))) {
+						touching=true;
+						t=j;
+						break;
+					}
+				}
+				if(touching) {
+					csgs.add(test);
+				}else {
+					if (dumb==null) {
+						dumb=test;
+					}else
+						dumb=dumb.dumbUnion(test);
+				}
+					
+			}
+		}
 
 		for (int i = 0; i < csgs.size(); i++) {
 			CSG csg = csgs.get(i);
@@ -924,11 +958,17 @@ public class CSG implements IuserAPI, Serializable {
 				getProgressMoniter().progressUpdate(i, csgs.size(), "Union hole", hole);
 			}
 		}
+		CSG result = null;
 		if(solid!=null && hole==null)
-			return solid;
-		if(solid==null&& hole!=null)
-			return hole;
-		return solid.difference(hole);
+			result= solid;
+		else if(solid==null&& hole!=null)
+			result= hole;
+		else 
+			result= solid.difference(hole);
+		if(dumb!=null) {
+			result=result.dumbUnion(dumb);
+		}
+		return result;
 	}
 
 	/**
@@ -1113,17 +1153,17 @@ public class CSG implements IuserAPI, Serializable {
 	private CSG _unionIntersectOpt(CSG csg) {
 		boolean intersects = false;
 
-		Bounds bounds = csg.getBounds();
-
-		for (Polygon p : getPolygons()) {
-			if (bounds.intersects(p.getBounds())) {
-				intersects = true;
-				break;
+		ArrayList<Polygon> allPolygons = new ArrayList<>();
+		if(csg.isBoundsTouching(this)){
+			Bounds bounds = csg.getBounds();
+			for (Polygon p : getPolygons()) {
+				if (bounds.intersects(p.getBounds())) {
+					intersects = true;
+					break;
+				}
 			}
 		}
-
-		ArrayList<Polygon> allPolygons = new ArrayList<>();
-
+			
 		if (intersects) {
 			return _unionNoOpt(csg);
 		} else {
@@ -1149,8 +1189,8 @@ public class CSG implements IuserAPI, Serializable {
 		if (csg.getPolygons().size() == 0)
 			return this.clone();
 		try {
-			Node a = new Node(this.getPolygons());
-			Node b = new Node(csg.getPolygons());
+			Node a = new Node(this.getPolygons(),this.getPolygons().get(0).plane);
+			Node b = new Node(csg.getPolygons(),csg.getPolygons().get(0).plane);
 			a.clipTo(b);
 			b.clipTo(a);
 			b.invert();
@@ -1419,8 +1459,8 @@ public class CSG implements IuserAPI, Serializable {
 	 */
 	private CSG _differenceNoOpt(CSG csg) {
 		try {
-			Node a = new Node(this.clone().getPolygons());
-			Node b = new Node(csg.clone().getPolygons());
+			Node a = new Node(this.clone().getPolygons(),this.getPolygons().get(0).plane);
+			Node b = new Node(csg.clone().getPolygons(),csg.getPolygons().get(0).plane);
 			a.invert();
 			a.clipTo(b);
 			b.clipTo(a);
@@ -1487,8 +1527,8 @@ public class CSG implements IuserAPI, Serializable {
 			return CSG.fromPolygons(new ArrayList<Polygon>()).historySync(this).historySync(csg);
 		}
 		try {
-			Node a = new Node(this.clone().getPolygons());
-			Node b = new Node(csg.clone().getPolygons());
+			Node a = new Node(this.clone().getPolygons(),this.getPolygons().get(0).plane);
+			Node b = new Node(csg.clone().getPolygons(),csg.getPolygons().get(0).plane);
 			a.invert();
 			b.clipTo(a);
 			b.invert();
@@ -3924,6 +3964,8 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	public boolean isBoundsTouching(CSG incoming) {
+		if(incoming==null)
+			return false;
 		return getBounds().isBoundsTouching(incoming.getBounds());
 	}
 
