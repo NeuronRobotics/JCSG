@@ -807,7 +807,7 @@ public class PolygonUtil {
 				if (counter == 2) {
 
 					try {
-						if (Extrude.isCCW(triPoints) == cw) {
+						if (!Extrude.isCCW(triPoints)) {
 							Collections.reverse(triPoints);
 						}
 						Polygon poly;
