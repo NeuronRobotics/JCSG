@@ -56,7 +56,7 @@ public class Plane implements Serializable {
 	 * 0.00000001;
 	 */
 
-	private static double EPSILON = 1.0e-6;
+	private static double EPSILON = 1.0e-5;
 	private static double EPSILON_Point = getEPSILON();
 	// public static double EPSILON_duplicate = 1.0e-4;
 	/**
@@ -401,9 +401,13 @@ public class Plane implements Serializable {
 	}
 
 	public void setNormal(Vector3d normal) {
-		if (Double.isFinite(normal.x) && Double.isFinite(normal.y) && Double.isFinite(normal.z))
+		if (Double.isFinite(normal.x) && Double.isFinite(normal.y) && Double.isFinite(normal.z)) {
+			if (Vector3d.ZERO.equals(normal)) {
+				throw new NumberFormatException(
+						"Normal is zero!");
+			}
 			this.normal = normal.normalized();
-		else {
+		}else {
 
 			NumberFormatException numberFormatException = new NumberFormatException();
 			// numberFormatException.printStackTrace();
