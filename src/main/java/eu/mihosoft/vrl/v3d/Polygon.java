@@ -178,13 +178,13 @@ public final class Polygon implements Serializable {
 		}
 
 		
-		if(fixInversions) {
+		//if(fixInversions) {
 			Vector3d minus = getPlane().getNormal().minus(p.getNormal());
 			double magnitude = minus.magnitude();
 			if (Math.abs( magnitude)>2-(Plane.getEPSILON()*2) ) {
 				Collections.reverse(vertices);
 			}
-		}
+		//}
 		if (!getPlane().checkNormal(vertices)) {
 			if(p.getLengthSquared()>Plane.getEPSILON())
 				setPlane(p);
@@ -193,11 +193,7 @@ public final class Polygon implements Serializable {
 					throw new ColinearPointsException("Failed! the normal provided mismatched to calculated normal");
 		}
 		this.vertices=vertices;
-		if (Vector3d.ZERO.equals(getPlane().getNormal())) {
-			valid = false;
-			throw new ColinearPointsException(
-					"Normal is zero! Probably, duplicate points have been specified!\n\n" + toStlString());
-		}
+		
 
 		if (getVertices().size() < 3) {
 			throw new ColinearPointsException("Invalid polygon: at least 3 vertices expected, got: " + getVertices().size());
@@ -853,6 +849,7 @@ public final class Polygon implements Serializable {
 	public void setPlane(Plane plane) {
 		if (plane == null)
 			throw new RuntimeException("Plane can not be null!");
+	
 		this.plane = plane;
 	}
 
