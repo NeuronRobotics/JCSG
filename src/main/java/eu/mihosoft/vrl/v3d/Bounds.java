@@ -162,19 +162,7 @@ public class Bounds implements Serializable{
         return p.getVertices().stream().allMatch(v -> contains(v));
     }
 
-    /**
-     * Indicates whether the specified polygon intersects with this bounding box
-     * (check includes box boundary).
-     *
-     * @param p polygon to check
-     * @return {@code true} if the polygon intersects this bounding box;
-     * {@code false} otherwise
-     * @deprecated not implemented yet
-     */
-    @Deprecated
-    public boolean intersects(Polygon p) {
-        throw new UnsupportedOperationException("Implementation missing!");
-    }
+
 
     /**
      * Indicates whether the specified bounding box intersects with this
