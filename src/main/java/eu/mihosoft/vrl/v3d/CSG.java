@@ -43,6 +43,7 @@ import eu.mihosoft.vrl.v3d.parametrics.Parameter;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,6 +53,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinWorkerThread;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BooleanSupplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -61,6 +65,7 @@ import com.aparapi.Kernel.EXECUTION_MODE;
 import com.aparapi.Range;
 import com.aparapi.device.Device;
 import com.aparapi.internal.kernel.KernelManager;
+import com.aparapi.internal.kernel.KernelRunner;
 import com.neuronrobotics.interaction.CadInteractionEvent;
 
 import javafx.scene.paint.Color;
@@ -128,6 +133,7 @@ import javafx.scene.transform.Affine;
 
 @SuppressWarnings("restriction")
 public class CSG implements IuserAPI, Serializable {
+	private static final double POINTS_CONTACT_DISTANCE = 0.00001;
 	private static int MinPolygonsForOffloading = 200;
 	private static final long serialVersionUID = 4071874097772427063L;
 	private static IDebug3dProvider providerOf3d = null;
@@ -187,6 +193,7 @@ public class CSG implements IuserAPI, Serializable {
 			System.err.println(type + "  cur:" + currentIndex + " of " + finalIndex);
 		}
 	};
+	private static ForkJoinPool poolGlobal=null;
 
 	/**
 	 * Instantiates a new csg.
@@ -882,27 +889,82 @@ public class CSG implements IuserAPI, Serializable {
 	 *
 	 * @return union of this csg and the specified csgs
 	 */
-	public CSG union(List<CSG> csgs) {
+	public CSG union(List<CSG> incoming) {
 		if (CSGClient.isRunning()) {
 			ArrayList<CSG> go = new ArrayList<CSG>();
 			go.add(this);
-			go.addAll(csgs);
+			go.addAll(incoming);
 			try {
 				return CSGClient.getClient().union(go).get(0);
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
 		}
-		CSG result = this;
+		CSG solid = this.isHole()?null:this;
+		CSG hole = this.isHole()?this:null;
+		ArrayList<CSG> csgs=new ArrayList<CSG>();
+		CSG dumb = null;
+		if(incoming.size()<10) {
+			csgs.addAll(incoming);
+		}else {
+			for( int i=0;i<incoming.size();i++) {
+				CSG test = incoming.get(i);
+				if(test==null)
+					continue;
+				boolean touching =false;
+				int t=-1;
+				for(int j=0;j<incoming.size();j++) {
+					if(i==j)
+						continue;
+					if(test.isBoundsTouching(incoming.get(j))) {
+						touching=true;
+						t=j;
+						break;
+					}
+				}
+				if(touching) {
+					csgs.add(test);
+				}else {
+					if (dumb==null) {
+						dumb=test;
+					}else
+						dumb=dumb.dumbUnion(test);
+				}
+					
+			}
+		}
 
 		for (int i = 0; i < csgs.size(); i++) {
 			CSG csg = csgs.get(i);
-			result = result.union(csg);
-			if (Thread.interrupted())
-				break;
-			progressMoniter.progressUpdate(i, csgs.size(), "Union", result);
+			if (!csg.isHole()) {
+				if(solid!=null)
+					solid = solid.union(csg);
+				else 
+					solid=csg;
+				if (Thread.interrupted())
+					break;
+				getProgressMoniter().progressUpdate(i, csgs.size(), "Union solid", solid);
+			}else {
+				if(hole!=null)
+					hole = hole.union(csg);
+				else
+					hole=csg;
+				hole.setIsHole(true);
+				if (Thread.interrupted())
+					break;
+				getProgressMoniter().progressUpdate(i, csgs.size(), "Union hole", hole);
+			}
 		}
-
+		CSG result = null;
+		if(solid!=null && hole==null)
+			result= solid;
+		else if(solid==null&& hole!=null)
+			result= hole;
+		else 
+			result= solid.difference(hole);
+		if(dumb!=null) {
+			result=result.dumbUnion(dumb);
+		}
 		return result;
 	}
 
@@ -1694,7 +1756,7 @@ public class CSG implements IuserAPI, Serializable {
 		}
 
 		// System.out.println("Data loaded!");
-		float eps = 0.00001f;
+		float eps = (float)POINTS_CONTACT_DISTANCE;
 		float epsSq = (float) (eps * eps);
 		int[] added = new int[numberOfPolygons];
 		int testPointChunk = 50;
@@ -2006,70 +2068,162 @@ public class CSG implements IuserAPI, Serializable {
 		polygons = newPoly;
 		return pointsAdded;
 	}
+	public static List<ForkJoinWorkerThread> getForkJoinWorkers(ForkJoinPool pool) {
+	    return Thread.getAllStackTraces().keySet().stream()
+	        .filter(thread -> thread instanceof ForkJoinWorkerThread)
+	        .map(thread -> (ForkJoinWorkerThread) thread)
+	        .collect(Collectors.toList());
+	}
+    public static void setPrivateThreadPool(KernelRunner kernelRunner, ForkJoinPool newThreadPool) throws Exception {
+        // Get the class of the object
+        Class<?> clazz = kernelRunner.getClass();
 
+        // Get the private field
+        Field threadPoolField = clazz.getDeclaredField("threadPool");
+
+        // Make it accessible
+        threadPoolField.setAccessible(true);
+
+        // Set the new value
+        threadPoolField.set(kernelRunner, newThreadPool);
+    }
+
+    public static ForkJoinPool getPrivateThreadPool(KernelRunner kernelRunner) throws Exception {
+        Class<?> clazz = kernelRunner.getClass();
+        Field threadPoolField = clazz.getDeclaredField("threadPool");
+        threadPoolField.setAccessible(true);
+        return (ForkJoinPool) threadPoolField.get(kernelRunner);
+    }
 	public static void gpuRun(int numberOfPoints, Kernel kernel, float[] done, String type, BooleanSupplier test,
 			int itr, int expectedIterations) {
 
-		progressMoniter.progressUpdate(0, 100, "Start " + typOfCPU(kernel) + type, null);
+		// progressMoniter.progressUpdate(0, 100, "Start " + typOfCPU(kernel) + type,
+		// null);
+		String valueOf = String.valueOf(Runtime.getRuntime().availableProcessors() );
+		System.setProperty("com.aparapi.threadPoolSize", valueOf);
 		if (!useGPU) {
-			String valueOf = String.valueOf(Runtime.getRuntime().availableProcessors() * 4);
 			progressMoniter.progressUpdate(0, 100, "CPU mode " + valueOf, null);
-			System.setProperty("com.aparapi.threadPoolSize", valueOf);
 			kernel.setExecutionMode(Kernel.EXECUTION_MODE.JTP); // Java Thread Pool
 		}
 		int[] iteration = new int[] { 0 };
 
-		Thread thread = new Thread(() -> {
-			long begin = System.currentTimeMillis();
+		long begin = System.currentTimeMillis();
+		boolean print = false;
+		long timeSinceLastPrint = 0;
+		long printLimit = 800;
+		String typOfCPU = typOfCPU(kernel);
+//		ForkJoinPool commonPool = ForkJoinPool.commonPool();
+//        System.out.println("Common ForkJoinPool Status:");
+//        System.out.println("  Pool Size: " + commonPool.getPoolSize());
+//        System.out.println("  Active Thread Count: " + commonPool.getActiveThreadCount());
+//        System.out.println("  Running Thread Count: " + commonPool.getRunningThreadCount());
+//        System.out.println("  Queued Task Count: " + commonPool.getQueuedTaskCount());
+//        System.out.println("  Queued Submission Count: " + commonPool.getQueuedSubmissionCount());
+//        System.out.println("  Steal Count: " + commonPool.getStealCount());
+//        System.out.println("  Parallelism: " + commonPool.getParallelism());
+//        System.out.println("  Is Shutdown: " + commonPool.isShutdown());
+//        System.out.println("  Is Terminated: " + commonPool.isTerminated());
+//        List<ForkJoinWorkerThread> workersInitial=null;
+//        try {
+//
+//	        workersInitial = getForkJoinWorkers(commonPool);
+//	        
+//	        if (workersInitial != null) {
+//	            System.out.println("Worker threads in pool:");
+//	            for (int i = 0; i < workersInitial.size(); i++) {
+//	                ForkJoinWorkerThread worker = workersInitial.get(i);
+//	                if (worker != null) {
+//	                    System.out.println("  Worker[" + i + "]: " + worker.getName() + 
+//	                                     " | State: " + worker.getState() + 
+//	                                     " | Pool Index: " + worker.getPoolIndex() +
+//	                                     " | ID: " + worker.getId());
+//	                }
+//	            }
+//	        }
+//        }catch(Exception ex) {
+//        	ex.printStackTrace();
+//        }
+		try {
 			do {
-				kernel.execute(numberOfPoints);
+				KernelRunner kernelRunner = new KernelRunner(kernel);
+				if(poolGlobal==null)
+					poolGlobal=getPrivateThreadPool(kernelRunner);
+				else
+					setPrivateThreadPool(kernelRunner, poolGlobal);
+				
+				kernelRunner.execute("run", Range.create(null,numberOfPoints), 1);
+				typOfCPU = typOfCPU(kernel);
 				iteration[0] += 1;
-				long sinceStart = System.currentTimeMillis() - begin;
+				long now = System.currentTimeMillis();
+				long sinceStart = now - begin;
 				long took = sinceStart / iteration[0];
 				long expected = took * (expectedIterations + 2);
-				long remaining = expected - sinceStart;
-				for (int i = 0; i < done.length; i++) {
-					done[i] = 0;
+				print = expected > printLimit || print;
+				if (print) {
+					if (now - timeSinceLastPrint > printLimit) {
+						timeSinceLastPrint = now;
+						long remaining = expected - sinceStart;
+						if (done != null)
+							for (int i = 0; i < done.length; i++) {
+								done[i] = 0;
+							}
+						if (remaining < 0)
+							remaining = 0;
+						String dur = makeTimestamp(expected);
+						String rem = makeTimestamp(remaining);
+						progressMoniter.progressUpdate(iteration[0], expectedIterations, "Rem->" + rem + " " + type
+								+ typOfCPU + "(" + iteration[0] + ") Estimated Total: " + dur, null);
+					}
 				}
-				if (remaining < 0)
-					remaining = 0;
-				String dur = makeTimestamp(expected);
-				String rem = makeTimestamp(remaining);
-				progressMoniter.progressUpdate(iteration[0], expectedIterations, "Rem->" + rem + " " + type
-						+ typOfCPU(kernel) + "(" + iteration[0] + ") Estimated Total: " + dur, null);
+
 			} while (test.getAsBoolean());
-		});
-		thread.start();
-		do {
-			if (kernel.getTargetDevice().getType().toString().contains("JTP")) {
-				useGPU = false;
-			}
-			if (!useGPU) {
-				float doneness = 0;
-				for (int i = 0; i < done.length; i++) {
-					doneness += done[i];
-				}
-				float percent = doneness / ((float) done.length) * 100.0f;
-				// int currentPass = kernel.getCurrentPass();
-				// percent=(float)currentPass/(float)numberOfPoints;
-				if (expectedIterations == 1)
-					progressMoniter.progressUpdate((int) (percent), 100,
-							typOfCPU(kernel) + type + "(" + iteration[0] + ")", null);
-			}
-			try {
-				Thread.sleep(useGPU ? 1 : 100);
-			} catch (InterruptedException e) {
-				// Auto-generated catch block
-				e.printStackTrace();
-			}
-		} while (kernel.isExecuting() && thread.isAlive());
-		try {
-			thread.join();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (Exception ex) {
+			ex.printStackTrace();
 		}
-		progressMoniter.progressUpdate(100, 100, "Finished on " + typOfCPU(kernel), null);
+//		commonPool.awaitQuiescence(10, TimeUnit.MILLISECONDS);
+//		List<ForkJoinWorkerThread> workers=null;
+//		List<ForkJoinWorkerThread> workersInit=workersInitial;
+//        try {
+//	        workers = getForkJoinWorkers(commonPool).stream()
+//				    .filter(afterThread -> workersInit.stream()
+//					        .noneMatch(beforeThread -> beforeThread.getId() == afterThread.getId()))
+//					    .collect(Collectors.toList());;
+//	        
+//	        if (workers != null) {
+//	            System.out.println("After Worker threads in pool:");
+//	            for (int i = 0; i < workers.size(); i++) {
+//	                ForkJoinWorkerThread worker = workers.get(i);
+//	                if (worker != null) {
+//	                    System.out.println("  Worker[" + i + "]: " + worker.getName() + 
+//	                                     " | State: " + worker.getState() + 
+//	                                     " | Pool Index: " + worker.getPoolIndex() +
+//	                                     " | ID: " + worker.getId());
+//	                    worker.interrupt();
+//	                }
+//	            }
+//	        }
+//        }catch(Exception ex) {
+//        	ex.printStackTrace();
+//        }
+//        System.out.println("\n2 Common ForkJoinPool Status:");
+//        System.out.println("  2 Pool Size: " + commonPool.getPoolSize());
+//        System.out.println("  2 Active Thread Count: " + commonPool.getActiveThreadCount());
+//        System.out.println("  2 Running Thread Count: " + commonPool.getRunningThreadCount());
+//        System.out.println("  2 Queued Task Count: " + commonPool.getQueuedTaskCount());
+//        System.out.println("  2 Queued Submission Count: " + commonPool.getQueuedSubmissionCount());
+//        System.out.println("  2 Steal Count: " + commonPool.getStealCount());
+//        System.out.println("  2 Parallelism: " + commonPool.getParallelism());
+//        System.out.println("  2 Is Shutdown: " + commonPool.isShutdown());
+//        System.out.println("  2 Is Terminated: " + commonPool.isTerminated());
+		boolean executing ;
+		do {
+			executing=kernel.isExecuting();
+		}while(executing );
+		long sinceStart = System.currentTimeMillis() - begin;
+		if (print)
+			progressMoniter.progressUpdate(100, 100,
+					"Took " + makeTimestamp(sinceStart) + " Finished " + type + " on " + typOfCPU, null);
+		
 	}
 
 	private static String typOfCPU(Kernel kernel) {
@@ -2082,8 +2236,15 @@ public class CSG implements IuserAPI, Serializable {
 		long hours = duration.toHours();
 		long minutes = duration.toMinutes() % 60;
 		long seconds = duration.getSeconds() % 60;
-
-		String dur = String.format("%02d:%02d:%02d", hours, minutes, seconds);
+		long ms = duration.getNano() / 1000000;
+		if (hours > 0) {
+			return String.format("h%02d:m%02d", hours, minutes);
+		}
+		if (minutes > 0)
+			return String.format("m%02d:s%02d", minutes, seconds);
+		if (seconds > 0)
+			return String.format("s%02d:ms%03d", seconds, ms);
+		String dur = String.format("ms%03d", ms);
 		return dur;
 	}
 
@@ -2093,22 +2254,17 @@ public class CSG implements IuserAPI, Serializable {
 			toAdd.add(p);
 		} else {
 
-			try {
-				if (!p.areAllPointsCollinear()) {
-					List<Polygon> triangles = PolygonUtil.triangulatePolygon(p);
+
+				List<Polygon> triangles;
+				try {
+					triangles = PolygonUtil.triangulatePolygon(p);
 					for (Polygon poly : triangles) {
 						toAdd.add(poly);
 					}
-				} else {
-					System.err.println("Polygon is colinear, removing " + p);
-					return;
+				} catch (ColinearPointsException e) {
+					System.out.println(e.getMessage()+" Polygon pruned "+p);
 				}
-			} catch (Throwable ex) {
-//				System.err.println("Failed to triangulate "+p);
-				ex.printStackTrace();
-				progressMoniter.progressUpdate(1, 1, "Pruning bad polygon CSG::updatePolygons " + p, null);
-				return;
-			}
+
 
 		}
 		return;
@@ -2252,7 +2408,7 @@ public class CSG implements IuserAPI, Serializable {
 				return p.transformed(transform);
 			} catch (Exception e) {
 				// e.printStackTrace();
-				System.err.println("Removing Polygon during transform");
+				System.err.println("Removing Polygon during transform " + p);
 				return null;
 			}
 		}).filter(Objects::nonNull).collect(Collectors.toCollection(ArrayList::new));
@@ -3754,7 +3910,7 @@ public class CSG implements IuserAPI, Serializable {
 
 	public static void setPreventNonManifoldTriangles(boolean preventNonManifoldTriangles) {
 		if (!preventNonManifoldTriangles) {
-			if(!warned)
+			if (!warned)
 				System.err.println(
 					"WARNING:This will make STL's incompatible with low quality slicing engines like Slice3r and PrusaSlicer");
 			warned=true;
@@ -3771,6 +3927,8 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	public boolean isBoundsTouching(CSG incoming) {
+		if(incoming==null)
+			return false;
 		return getBounds().isBoundsTouching(incoming.getBounds());
 	}
 
