@@ -2194,7 +2194,7 @@ public class CSG implements IuserAPI, Serializable {
 						String dur = makeTimestamp(expected);
 						String rem = makeTimestamp(remaining);
 						progressMoniter.progressUpdate(iteration[0], expectedIterations, "Rem->" + rem + " " + type
-								+ typOfCPU + " Tot: " + dur, null);
+								+ typOfCPU + " \nTot: " + dur, null);
 					}
 				}
 
