@@ -1781,8 +1781,8 @@ public class CSG implements IuserAPI, Serializable {
 		float eps = (float)POINTS_CONTACT_DISTANCE;
 		float epsSq = (float) (eps * eps);
 		int[] added = new int[numberOfPolygons];
-		int testPointChunk = 10;
-		int snapChunk = 50;
+		int testPointChunk = 100;
+		int snapChunk = 1000;
 		int[] tp = new int[] { 0, snapChunk };
 
 		// Aparapi-compatible kernel with flattened data
@@ -2081,8 +2081,7 @@ public class CSG implements IuserAPI, Serializable {
 				p = new Polygon(points, polygon.getStorage(), true, pl);
 				newPoly.add(p);
 			} catch (ColinearPointsException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				System.out.println("Prining "+points+" "+e);
 			}
 			polygon.getPoints().clear();
 		}
@@ -2194,7 +2193,7 @@ public class CSG implements IuserAPI, Serializable {
 						String dur = makeTimestamp(expected);
 						String rem = makeTimestamp(remaining);
 						progressMoniter.progressUpdate(iteration[0], expectedIterations, "Rem->" + rem + " " + type
-								+ typOfCPU + " \nTot: " + dur, null);
+								+ typOfCPU + " \nTot->" + dur, null);
 					}
 				}
 

@@ -838,7 +838,7 @@ public final class Node {
 			try {
 				splitPolygonsKernel.compile(splitPolygonsKernel.getTargetDevice());
 			}catch(Exception ex) {
-				ex.printStackTrace();
+				System.err.println("GPU missing feature "+ex.getMessage());
 				GPUTest=true;
 			}
 		}
