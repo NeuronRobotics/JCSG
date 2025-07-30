@@ -1781,8 +1781,8 @@ public class CSG implements IuserAPI, Serializable {
 		float eps = (float)POINTS_CONTACT_DISTANCE;
 		float epsSq = (float) (eps * eps);
 		int[] added = new int[numberOfPolygons];
-		int testPointChunk = 50;
-		int snapChunk = 500;
+		int testPointChunk = 10;
+		int snapChunk = 50;
 		int[] tp = new int[] { 0, snapChunk };
 
 		// Aparapi-compatible kernel with flattened data
@@ -2194,7 +2194,7 @@ public class CSG implements IuserAPI, Serializable {
 						String dur = makeTimestamp(expected);
 						String rem = makeTimestamp(remaining);
 						progressMoniter.progressUpdate(iteration[0], expectedIterations, "Rem->" + rem + " " + type
-								+ typOfCPU + "(" + iteration[0] + ") Estimated Total: " + dur, null);
+								+ typOfCPU + " Tot: " + dur, null);
 					}
 				}
 
