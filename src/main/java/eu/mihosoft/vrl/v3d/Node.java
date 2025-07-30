@@ -349,8 +349,8 @@ public final class Node {
 	public void splitPolygon(ArrayList<Polygon> polygons, List<Polygon> cf, List<Polygon> cb,
 			List<Polygon> f, List<Polygon> b) throws Exception {
 		if (polygons.size() > LIMIT_FOR_GPU) {
-//			splitPolygonGPU(polygons, cf, cb, f, b);
-//			return;
+			splitPolygonGPU(polygons, cf, cb, f, b);
+			return;
 		}
 		splitPolygonOriginal(polygons, cf, cb, f, b);
 
