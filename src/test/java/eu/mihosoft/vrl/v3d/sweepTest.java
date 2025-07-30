@@ -16,7 +16,7 @@ import javafx.scene.text.Font;
 public class sweepTest {
 
 	@Test
-	public void test() throws Exception {
+	public void test() throws IOException, ColinearPointsException {
 
 		
 		File svg = new File("Test.SVG");
