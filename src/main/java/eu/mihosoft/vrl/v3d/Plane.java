@@ -56,7 +56,7 @@ public class Plane implements Serializable {
 	 * 0.00000001;
 	 */
 
-	private static double EPSILON = 1.0e-5;
+	private static double EPSILON = 1.0e-8;
 	public static double EPSILON_Point = getEPSILON();
 	// public static double EPSILON_duplicate = 1.0e-4;
 	/**

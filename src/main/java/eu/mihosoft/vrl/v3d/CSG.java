@@ -1179,25 +1179,33 @@ public class CSG implements IuserAPI, Serializable {
 	 *
 	 * @param csg the csg
 	 * @return the csg
+	 * @throws Exception 
 	 */
-	private CSG _unionNoOpt(CSG csg) {
+	private CSG _unionNoOpt(CSG csg)  {
 		if (this.getPolygons().size() == 0)
 			return csg.clone();
 		if (csg.getPolygons().size() == 0)
 			return this.clone();
-		Node a = new Node(this.clone().getPolygons());
-		Node b = new Node(csg.clone().getPolygons());
-		a.clipTo(b);
-		b.clipTo(a);
-		b.invert();
-		b.clipTo(a);
-		b.invert();
-		a.build(b.allPolygons());
-		CSG back = CSG.fromPolygons(a.allPolygons()).optimization(getOptType());
-		if (getName().length() != 0 && csg.getName().length() != 0) {
-			back.setName(name);
+		Node a;
+		try {
+			a = new Node(this.clone().getPolygons(),this.getPolygons().get(0).getPlane());
+			Node b = new Node(csg.clone().getPolygons(),csg.getPolygons().get(0).getPlane());
+			a.clipTo(b);
+			b.clipTo(a);
+			b.invert();
+			b.clipTo(a);
+			b.invert();
+			a.build(b.allPolygons());
+			CSG back = CSG.fromPolygons(a.allPolygons()).optimization(getOptType());
+			if (getName().length() != 0 && csg.getName().length() != 0) {
+				back.setName(name);
+			}
+			return back;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		return back;
+		return dumbUnion(csg);
 	}
 
 	/**
@@ -1431,23 +1439,30 @@ public class CSG implements IuserAPI, Serializable {
 	 */
 	private CSG _differenceNoOpt(CSG csg) {
 
-		Node a = new Node(this.clone().getPolygons());
-		Node b = new Node(csg.clone().getPolygons());
+		Node a;
+		try {
+			a = new Node(this.clone().getPolygons(),this.getPolygons().get(0).getPlane());
+			Node b = new Node(csg.clone().getPolygons(),csg.getPolygons().get(0).getPlane());
 
-		a.invert();
-		a.clipTo(b);
-		b.clipTo(a);
-		b.invert();
-		b.clipTo(a);
-		b.invert();
-		a.build(b.allPolygons());
-		a.invert();
+			a.invert();
+			a.clipTo(b);
+			b.clipTo(a);
+			b.invert();
+			b.clipTo(a);
+			b.invert();
+			a.build(b.allPolygons());
+			a.invert();
 
-		CSG csgA = CSG.fromPolygons(a.allPolygons()).optimization(getOptType());
-		if (getName().length() != 0 && csg.getName().length() != 0) {
-			csgA.setName(name);
+			CSG csgA = CSG.fromPolygons(a.allPolygons()).optimization(getOptType());
+			if (getName().length() != 0 && csg.getName().length() != 0) {
+				csgA.setName(name);
+			}
+			return csgA;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		return csgA;
+		return this;
 	}
 
 	/**
@@ -1495,20 +1510,27 @@ public class CSG implements IuserAPI, Serializable {
 			ex.printStackTrace();
 			return CSG.fromPolygons(new ArrayList<Polygon>()).historySync(this).historySync(csg);
 		}
-		Node a = new Node(this.clone().getPolygons());
-		Node b = new Node(csg.clone().getPolygons());
-		a.invert();
-		b.clipTo(a);
-		b.invert();
-		a.clipTo(b);
-		b.clipTo(a);
-		a.build(b.allPolygons());
-		a.invert();
-		CSG back = CSG.fromPolygons(a.allPolygons()).optimization(getOptType()).historySync(csg).historySync(this);
-		if (getName().length() != 0 && csg.getName().length() != 0) {
-			back.setName(name);
+		Node a;
+		try {
+			a = new Node(this.clone().getPolygons(),this.getPolygons().get(0).getPlane());
+			Node b = new Node(csg.clone().getPolygons(),csg.getPolygons().get(0).getPlane());
+			a.invert();
+			b.clipTo(a);
+			b.invert();
+			a.clipTo(b);
+			b.clipTo(a);
+			a.build(b.allPolygons());
+			a.invert();
+			CSG back = CSG.fromPolygons(a.allPolygons()).optimization(getOptType()).historySync(csg).historySync(this);
+			if (getName().length() != 0 && csg.getName().length() != 0) {
+				back.setName(name);
+			}
+			return back;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		return back;
+		return this;
 	}
 
 	/**
