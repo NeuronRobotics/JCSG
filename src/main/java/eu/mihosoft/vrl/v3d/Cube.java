@@ -161,7 +161,8 @@ public class Cube extends Primitive {
                 try {
 					p.transform(centerTransform);
 				} catch (ColinearPointsException e) {
-					throw new RuntimeException(e);
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
             }
         }
