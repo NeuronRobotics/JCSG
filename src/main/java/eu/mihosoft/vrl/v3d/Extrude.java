@@ -71,7 +71,6 @@ public class Extrude {
 
 			List<Vector3d> newList = new ArrayList<>(points);
 			Polygon fromPoints = Polygon.fromPoints(toCCW(newList));
-			PolygonUtil.triangulatePolygon(fromPoints);
 			return extrude(dir, fromPoints);
 		}
 
@@ -96,18 +95,18 @@ public class Extrude {
 		private CSG monotoneExtrude(Vector3d dir, Polygon polygon1) throws ColinearPointsException {
 			ArrayList<Polygon> newPolygons = new ArrayList<>();
 			CSG extrude;
-			Polygon top = polygon1.flipped();
-			ArrayList<Polygon> triangulatePolygon = PolygonUtil.triangulatePolygon(top);
-			newPolygons.addAll(triangulatePolygon);
+			ArrayList<Polygon> triangulatePolygon = PolygonUtil.triangulatePolygon(polygon1);
+			for(Polygon p:triangulatePolygon) {
+				newPolygons.add(p.flipped());
+				newPolygons.add(p.transformed(new Transform().move(dir)));
+			}
 			Polygon polygon2 = polygon1.transformed(new Transform().move(dir));
 			List<Polygon> parts = Extrude.monotoneExtrude(polygon2, polygon1);
 			newPolygons.addAll(parts);
 
 			//ArrayList<Polygon> topPolygons = PolygonUtil.triangulatePolygon(polygon2);
-			for(Polygon p:triangulatePolygon)
-				newPolygons.add(p.flipped().transformed(new Transform().move(dir)));
+			
 			extrude = CSG.fromPolygons(newPolygons);
-
 			return extrude;
 		}
 
