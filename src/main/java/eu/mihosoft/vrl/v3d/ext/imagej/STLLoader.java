@@ -182,7 +182,7 @@ public class STLLoader {
 							}
 							polygons.add(new Polygon(vertices, null, true, pl));
 						} catch (ColinearPointsException e) {
-							e.printStackTrace();
+							System.out.println(e.getMessage()+ " STL Load Pruned "+vertices);
 						}
 						vertices.clear();
 					}
