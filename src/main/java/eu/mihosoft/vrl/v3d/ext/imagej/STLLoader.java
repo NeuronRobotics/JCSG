@@ -115,8 +115,13 @@ public class STLLoader {
 					Vector3d vertex = new Vector3d(x, y, z);
 					vertices.add(new Vertex(vertex));
 					if(vertices.size()==3) {
-						Plane pl = new Plane(normal, vertices);
 						try {
+							Plane pl=null;
+							try {
+								pl = new Plane(normal, vertices);
+							}catch(NumberFormatException ex) {
+								pl=Plane.createFromPoints(vertices);
+							}
 							polygons.add(new Polygon(vertices, null, true, pl));
 						} catch (ColinearPointsException e) {
 							System.out.println(e.getMessage()+ " STL Load Pruned "+vertices);
