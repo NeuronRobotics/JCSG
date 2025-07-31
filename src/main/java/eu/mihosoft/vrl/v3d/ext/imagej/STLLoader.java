@@ -168,16 +168,15 @@ public class STLLoader {
 					Vector3d p = new Vector3d(px, py, pz);
 					vertices.add(new Vertex(p));
 					if(vertices.size()==3) {
-						Plane pl;
 						try {
-							pl = new Plane(normal, vertices);
-						}catch(NumberFormatException ex) {
-							pl=Plane.createFromPoints(vertices);
-						}
-						try {
+							Plane pl=null;
+							try {
+								pl = new Plane(normal, vertices);
+							}catch(NumberFormatException ex) {
+								pl=Plane.createFromPoints(vertices);
+							}
 							polygons.add(new Polygon(vertices, null, true, pl));
 						} catch (ColinearPointsException e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 						vertices.clear();
@@ -185,11 +184,9 @@ public class STLLoader {
 				}
 			}
 			fis.close();
-		} catch (FileNotFoundException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		}  
 	}
 
 //    private double parseFloat(String string) throws ParseException {
