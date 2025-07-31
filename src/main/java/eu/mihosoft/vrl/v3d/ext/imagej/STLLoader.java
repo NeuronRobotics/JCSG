@@ -168,7 +168,12 @@ public class STLLoader {
 					Vector3d p = new Vector3d(px, py, pz);
 					vertices.add(new Vertex(p));
 					if(vertices.size()==3) {
-						Plane pl = new Plane(normal, vertices);
+						Plane pl;
+						try {
+							pl = new Plane(normal, vertices);
+						}catch(NumberFormatException ex) {
+							pl=Plane.createFromPoints(vertices);
+						}
 						try {
 							polygons.add(new Polygon(vertices, null, true, pl));
 						} catch (ColinearPointsException e) {
