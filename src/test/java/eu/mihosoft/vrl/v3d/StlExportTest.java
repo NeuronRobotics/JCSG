@@ -13,7 +13,6 @@ public class StlExportTest {
 	@Test
 	public void makeBadSTL() throws IOException {
 		long start = System.currentTimeMillis();
-		Plane.setEPSILON(1.0e-7);
 //		Vector3d.setEXPORTEPSILON(1.0e-10);
 		CSG.setUseGPU(true);
 		CSG.setPreventNonManifoldTriangles(true);

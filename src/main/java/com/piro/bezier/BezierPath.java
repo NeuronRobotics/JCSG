@@ -7,26 +7,25 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import eu.mihosoft.vrl.v3d.Edge;
+import eu.mihosoft.vrl.v3d.Extrude;
 import eu.mihosoft.vrl.v3d.Plane;
 import eu.mihosoft.vrl.v3d.Vector3d;
 import eu.mihosoft.vrl.v3d.Vertex;
 
 public class BezierPath {
 
+	private static final double MaximumInterpolationStep = 0.5;
+
 	static final Matcher matchPoint = Pattern.compile("\\s*(\\d+)[^\\d]+(\\d+)\\s*").matcher("");
 
 	BezierListProducer path;
 
 	private ArrayList<Vector3d> plInternal = new ArrayList<Vector3d>();
-	double resolution = 0.075;
+	private final int resolutionPoints;
 
 	/** Creates a new instance of Animate */
-	public BezierPath() {
-	}
-
-	/** Creates a new instance of Animate */
-	public BezierPath(String path) {
-		parsePathString(path);
+	public BezierPath(int resolution) {
+		this.resolutionPoints = resolution;
 	}
 
 	public void parsePathString(String d) {
@@ -57,7 +56,7 @@ public class BezierPath {
 			} else {
 				tokens.addFirst(curToken);
 			}
-			double  x, y;
+			double x, y;
 			switch (curCmd) {
 			case 'M':
 				x = nextFloat(tokens);
@@ -108,53 +107,37 @@ public class BezierPath {
 				break;
 			case 'Q':
 				path.curvetoQuadraticAbs(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens), nextFloat(tokens));
-				for (double i = resolution; i < 1; i += resolution) {
-					addingPoint(i);
-				}
+				expandPath();
 				break;
 			case 'q':
 				path.curvetoQuadraticAbs(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens), nextFloat(tokens));
-				for (double i = resolution; i < 1; i += resolution) {
-					addingPoint(i);
-				}
+				expandPath();
 				break;
 			case 'T':
 				path.curvetoQuadraticSmoothAbs(nextFloat(tokens), nextFloat(tokens));
-				for (double i = resolution; i < 1; i += resolution) {
-					addingPoint(i);
-				}
+				expandPath();
 				break;
 			case 't':
 				path.curvetoQuadraticSmoothRel(nextFloat(tokens), nextFloat(tokens));
-				for (double i = resolution; i < 1; i += resolution) {
-					addingPoint(i);
-				}
+				expandPath();
 				break;
 			case 'C':
 				path.curvetoCubicAbs(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens), nextFloat(tokens),
 						nextFloat(tokens), nextFloat(tokens));
-				for (double i = resolution; i < 1; i += resolution) {
-					addingPoint(i);
-				}
+				expandPath();
 				break;
 			case 'c':
 				path.curvetoCubicRel(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens), nextFloat(tokens),
 						nextFloat(tokens), nextFloat(tokens));
-				for (double i = resolution; i < 1; i += resolution) {
-					addingPoint(i);
-				}
+				expandPath();
 				break;
 			case 'S':
 				path.curvetoCubicSmoothAbs(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens), nextFloat(tokens));
-				for (double i = resolution; i < 1; i += resolution) {
-					addingPoint(i);
-				}
+				expandPath();
 				break;
 			case 's':
 				path.curvetoCubicSmoothRel(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens), nextFloat(tokens));
-				for (double i = resolution; i < 1; i += resolution) {
-					addingPoint(i);
-				}
+				expandPath();
 				break;
 			case 'Z':
 			case 'z':
@@ -170,22 +153,49 @@ public class BezierPath {
 		}
 	}
 
+	private void expandPath() {
+		double resolution = getResolution();
+		for (double i = 0; i < 1; i += resolution) {
+			addingPoint(i);
+		}
+		addingPoint(1);
+	}
+
+	private double getResolution() {
+		Vector3d start = path.bezierSegs.get(path.bezierSegs.size() - 1).eval(0);
+		Vector3d end = path.bezierSegs.get(path.bezierSegs.size() - 1).eval(1);
+		double magnitude = start.minus(end).magnitude();
+		if (magnitude < Plane.getEPSILON())
+			return 1;
+		double dpoints = magnitude /0.75;
+		if (dpoints < 1)
+			dpoints = 1;
+		double increment = 1.0 / dpoints;
+		double min = 1.0 / ((double) resolutionPoints);
+		if (increment < min)
+			increment = min;
+		if (increment > MaximumInterpolationStep)
+			increment = MaximumInterpolationStep;
+//		System.out.println("Path with inc "+points);
+		return increment;
+	}
+
 	private boolean addingPoint(double i) {
 		Vector3d eval = path.bezierSegs.get(path.bezierSegs.size() - 1).eval(i);
 		return setThePoint(eval);
 	}
 
 	private boolean setThePoint(Vector3d eval) {
-		int end = plInternal.size()-1;
-
-		for(Vector3d v:plInternal) {
-			if(Math.abs(v.minus(eval).magnitude())<0.001) {
-				return false;
+		int end = plInternal.size() - 1;
+		for (int i = 0; i < plInternal.size(); i++)
+			if (end > 0) {
+				if (Math.abs(plInternal.get(i).minus(eval).magnitude()) < Extrude.getMinimumDIstance()) {
+					return false;
+				}
 			}
-		}
-		if(plInternal.size()>1) {
-			Edge e = new Edge(new Vertex(plInternal.get(end-1),null), new Vertex(plInternal.get(end),null));
-			if(e.colinear(eval)) {
+		if (plInternal.size() > 1) {
+			Edge e = new Edge(new Vertex(plInternal.get(end - 1)), new Vertex(plInternal.get(end)));
+			if (e.colinear(eval)) {
 				plInternal.set(end, eval);
 				return true;
 			}
@@ -193,7 +203,7 @@ public class BezierPath {
 		return plInternal.add(eval);
 	}
 
-	static protected double  nextFloat(LinkedList<String> l) {
+	static protected double nextFloat(LinkedList<String> l) {
 		String s = l.removeFirst();
 		return Float.parseFloat(s);
 	}
@@ -202,12 +212,12 @@ public class BezierPath {
 	 * Evaluates this animation element for the passed interpolation time. Interp
 	 * must be on [0..1].
 	 */
-	public Vector3d eval(double  interp) {
+	public Vector3d eval(double interp) {
 		Vector3d point = new Vector3d(0, 0);// = new Vector3d();
-		if (interp < 0.001)
-			interp = (double ) 0.001;
-		if (interp > 0.9999)
-			interp = (double ) 0.9999;
+//		if (interp < 0.001)
+//			interp = (double ) 0.001;
+//		if (interp > 0.9999)
+//			interp = (double ) 0.9999;
 
 		double curLength = path.curveLength * interp;
 		for (Iterator<Bezier> it = path.bezierSegs.iterator(); it.hasNext();) {

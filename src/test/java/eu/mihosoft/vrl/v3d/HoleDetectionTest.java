@@ -21,9 +21,10 @@ public class HoleDetectionTest {
 
     /**
      * Hole detection test.
+     * @throws ColinearPointsException 
      */
     @Test
-    public void holeDetectionTest() {
+    public void holeDetectionTest() throws ColinearPointsException {
         
         // one polygon with one hole
         Polygon p1 = Polygon.fromPoints(

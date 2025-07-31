@@ -70,14 +70,24 @@ public class Toroid extends Primitive {
 			double rad = index / f * 2 * Math.PI;
 			double a = Math.cos(rad) * crossSecRad;
 			double b = Math.sin(rad) * crossSecRad;
-			vertices.add(new Vertex(new Vector3d(a,b), new Vector3d(-1, 0,0)));
+			vertices.add(new Vertex(new Vector3d(a,b)));
 		}
-		Polygon poly = new Polygon(vertices, properties);
+		Polygon poly;
+		try {
+			poly = new Polygon(vertices, properties);
+		} catch (ColinearPointsException e) {
+			throw new RuntimeException(e);
+		}
 		ArrayList<Polygon> slices = new ArrayList<Polygon>();
 
 		for (int i = 0; i < numSlices; i++) {
 			double angle = 360.0 / ((double) numSlices) * ((double) i);
-			slices.add(poly.transformed(new Transform().movex(innerRadius+crossSecRad).roty(angle)));
+			try {
+				slices.add(poly.transformed(new Transform().movex(innerRadius+crossSecRad).roty(angle)));
+			} catch (ColinearPointsException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		List<Polygon> newPolygons = new ArrayList<>();
 		for (int j = 0; j < slices.size(); j++) {
@@ -103,7 +113,12 @@ public class Toroid extends Primitive {
 	
 				List<Vector3d> pPoints = Arrays.asList(bottomV2, topV2, topV1, bottomV1);
 	
-				newPolygons.add(Polygon.fromPoints(pPoints, polygon1.getStorage()));
+				try {
+					newPolygons.add(Polygon.fromPoints(pPoints, polygon1.getStorage()));
+				} catch (ColinearPointsException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 	
 			}
 	

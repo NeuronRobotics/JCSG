@@ -40,13 +40,19 @@ public class Isosceles extends Primitive {
 	  		throw new NumberFormatException("h can not be negative");
 	  if(d<=0)
 	  		throw new NumberFormatException("d can not be negative");
-      CSG polygon = Extrude.points(new Vector3d(0, 0, w),// This is the  extrusion depth
-              new Vector3d(0,0),// All values after this are the points in the polygon
-              new Vector3d(0,-h/2),// upper right corner
-              new Vector3d(d,0),// Bottom right corner
-              new Vector3d(0,h/2)// upper right corner
-      ).roty(90)
-      .rotz(180);
+      CSG polygon=null;
+	try {
+		polygon = Extrude.points(new Vector3d(0, 0, w),// This is the  extrusion depth
+		          new Vector3d(0,0),// All values after this are the points in the polygon
+		          new Vector3d(0,-h/2),// upper right corner
+		          new Vector3d(d,0),// Bottom right corner
+		          new Vector3d(0,h/2)// upper right corner
+		  ).roty(90)
+		  .rotz(180);
+	} catch (ColinearPointsException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
       return polygon.getPolygons();
   }
 

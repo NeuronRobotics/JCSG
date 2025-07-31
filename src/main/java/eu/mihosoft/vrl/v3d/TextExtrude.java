@@ -17,6 +17,9 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import com.piro.bezier.BezierPath;
+
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.paint.Color;
@@ -140,20 +143,26 @@ public class TextExtrude {
 
 		// Convert Text to Path
 		Path subtract = (Path) (Shape.subtract(textNode, new Rectangle(0, 0)));
-		List<List<Vector3d>> outlines = extractOutlines(subtract);
+		List<List<Vector3d>> outlines = extractOutlines(subtract,font.getSize());
 		double zOff = 0;
-		boolean b = CSG.isPreventNonManifoldTriangles();
-		CSG.setPreventNonManifoldTriangles(false);
+//		boolean b = CSG.isPreventNonManifoldTriangles();
+//		CSG.setPreventNonManifoldTriangles(false);
 		for (List<Vector3d> points : outlines) {
-			boolean hole = Extrude.isCCW(Polygon.fromPoints(points));
-			CSG newLetter = Extrude.points(new Vector3d(0, 0, dir), points).movez(zOff);
-			newLetter.triangulate();
-			if (!hole)
-				sections.add(newLetter);
-			else
-				holes.add(newLetter);
+			try {
+				boolean hole = Extrude.isCCWv3d(points);
+				CSG newLetter = Extrude.points(new Vector3d(0, 0, dir), points).movez(zOff);
+				//newLetter.triangulate();
+				if (!hole)
+					sections.add(newLetter);
+				else {
+					newLetter.setIsHole(true);
+					holes.add(newLetter);
+				}
+			}catch(ColinearPointsException e) {
+				e.printStackTrace();
+			}
 		}
-		CSG.setPreventNonManifoldTriangles(b);
+//		CSG.setPreventNonManifoldTriangles(b);
 //		// Convert Path elements into lists of points defining the perimeter
 //		// (exterior or interior)
 //		subtract.getElements().forEach(this::getPoints);
@@ -207,19 +216,20 @@ public class TextExtrude {
 	/**
 	 * Converts a JavaFX Text object into a list of cleaned vector lists
 	 * representing the outlines
+	 * @param fontSize 
 	 */
-	public static List<List<Vector3d>> extractOutlines(Path text) {
+	public static List<List<Vector3d>> extractOutlines(Path text, double fontSize) {
 		List<List<Vector3d>> rawOutlines = extractRawOutlines(text);
-		List<List<Vector3d>> cleanedOutlines = new ArrayList<>();
+//		List<List<Vector3d>> cleanedOutlines = new ArrayList<>();
+//
+//		for (List<Vector3d> outline : rawOutlines) {
+//			List<Vector3d> cleaned = cleanOutline(outline,fontSize);
+//			if (cleaned.size() >= 3) { // Only keep outlines with at least 3 points
+//				cleanedOutlines.add(cleaned);
+//			}
+//		}
 
-		for (List<Vector3d> outline : rawOutlines) {
-			List<Vector3d> cleaned = cleanOutline(outline);
-			if (cleaned.size() >= 3) { // Only keep outlines with at least 3 points
-				cleanedOutlines.add(cleaned);
-			}
-		}
-
-		return cleanedOutlines;
+		return rawOutlines;
 	}
 
 	/**
@@ -228,123 +238,55 @@ public class TextExtrude {
 	private static List<List<Vector3d>> extractRawOutlines(Path textPath) {
 		List<List<Vector3d>> allOutlines = new ArrayList<>();
 
-		List<Vector3d> currentPath = new ArrayList<>();
-		Vector3d lastPoint = null;
+		StringBuilder pathBuilder = new StringBuilder();
+		//List<Vector3d> currentPath = new ArrayList<>();
 
 		for (PathElement element : textPath.getElements()) {
-			if (element instanceof MoveTo) {
-				if (!currentPath.isEmpty()) {
-					allOutlines.add(new ArrayList<>(currentPath));
-					currentPath.clear();
-				}
-				MoveTo move = (MoveTo) element;
-				lastPoint = Vector3d.xyz(move.getX(), move.getY(), 0);
-				currentPath.add(lastPoint);
-			} else if (element instanceof LineTo) {
-				LineTo line = (LineTo) element;
-				lastPoint = Vector3d.xyz(line.getX(), line.getY(), 0);
-				currentPath.add(lastPoint);
-			} else if (element instanceof CubicCurveTo) {
-				CubicCurveTo curve = (CubicCurveTo) element;
-				List<Vector3d> curvePoints = approximateCubicCurve(lastPoint,
-						Vector3d.xyz(curve.getControlX1(), curve.getControlY1(), 0),
-						Vector3d.xyz(curve.getControlX2(), curve.getControlY2(), 0),
-						Vector3d.xyz(curve.getX(), curve.getY(), 0));
-				currentPath.addAll(curvePoints);
-				lastPoint = curvePoints.get(curvePoints.size() - 1);
-			} else if (element instanceof QuadCurveTo) {
-				QuadCurveTo curve = (QuadCurveTo) element;
-				List<Vector3d> curvePoints = approximateQuadCurve(lastPoint,
-						Vector3d.xyz(curve.getControlX(), curve.getControlY(), 0),
-						Vector3d.xyz(curve.getX(), curve.getY(), 0));
-				currentPath.addAll(curvePoints);
-				lastPoint = curvePoints.get(curvePoints.size() - 1);
-			}
+		    if (element instanceof MoveTo) {
+		        // If we have a current path, process it with BezierPath
+		        if (pathBuilder.length() > 0) {
+		            BezierPath bezierPath = new BezierPath(5);
+		            bezierPath.parsePathString(pathBuilder.toString());
+		            List<Vector3d> pathPoints = bezierPath.evaluate();
+		            if (!pathPoints.isEmpty()) {
+		                allOutlines.add(new ArrayList<>(pathPoints));
+		            }
+		            pathBuilder = new StringBuilder();
+		        }
+		        
+		        MoveTo move = (MoveTo) element;
+		        pathBuilder.append("M").append(move.getX()).append(" ").append(move.getY());
+		        
+		    } else if (element instanceof LineTo) {
+		        LineTo line = (LineTo) element;
+		        pathBuilder.append("L").append(line.getX()).append(" ").append(line.getY());
+		        
+		    } else if (element instanceof CubicCurveTo) {
+		        CubicCurveTo curve = (CubicCurveTo) element;
+		        pathBuilder.append("C")
+		            .append(curve.getControlX1()).append(" ").append(curve.getControlY1()).append(" ")
+		            .append(curve.getControlX2()).append(" ").append(curve.getControlY2()).append(" ")
+		            .append(curve.getX()).append(" ").append(curve.getY());
+		            
+		    } else if (element instanceof QuadCurveTo) {
+		        QuadCurveTo curve = (QuadCurveTo) element;
+		        pathBuilder.append("Q")
+		            .append(curve.getControlX()).append(" ").append(curve.getControlY()).append(" ")
+		            .append(curve.getX()).append(" ").append(curve.getY());
+		    }
 		}
 
-		if (!currentPath.isEmpty()) {
-			allOutlines.add(currentPath);
+		// Process the final path if it exists
+		if (pathBuilder.length() > 0) {
+		    BezierPath bezierPath = new BezierPath(5);
+		    bezierPath.parsePathString(pathBuilder.toString());
+		    List<Vector3d> pathPoints = bezierPath.evaluate();
+		    if (!pathPoints.isEmpty()) {
+		        allOutlines.add(pathPoints);
+		    }
 		}
 
 		return allOutlines;
-	}
-
-	/**
-	 * Clean an outline by removing duplicate points and ensuring proper closure
-	 */
-	private static List<Vector3d> cleanOutline(List<Vector3d> outline) {
-		if (outline.isEmpty())
-			return outline;
-
-		List<Vector3d> cleaned = new ArrayList<>();
-		for (int i = 0; i < outline.size(); i++) {
-			Vector3d point = outline.get(i);
-			boolean touching=false;
-			for(Vector3d v:cleaned) {
-				if(v.test(point, 0.001))
-					touching=true;
-			}
-			if(!touching)
-				cleaned.add(point);
-		}
-		// Remove redundant points that form zero-area triangles
-		return cleaned;
-	}
-
-	/**
-	 * Remove points that form zero-area triangles with their neighbors
-	 */
-	private static List<Vector3d> removeRedundantPoints(List<Vector3d> points) {
-		if (points.size() < 3)
-			return points;
-
-		List<Vector3d> result = new ArrayList<>();
-		int size = points.size();
-
-		for (int i = 0; i < size; i++) {
-			Vector3d curr = points.get(i);
-			result.add(curr);
-		}
-
-		return result;
-	}
-
-//	private static boolean isNearlyEqual(Vector3d v1, Vector3d v2) {
-//		return v1.minus(v2).length() < POINT_EPSILON;
-//	}
-
-	// Bezier curve methods remain the same
-	private static List<Vector3d> approximateCubicCurve(Vector3d start, Vector3d control1, Vector3d control2,
-			Vector3d end) {
-		List<Vector3d> points = new ArrayList<>();
-		for (double i = 1; i <= CURVE_SEGMENTS; i+=1) {
-			double t = (double) i / CURVE_SEGMENTS;
-			double x = cubicBezier(start.x, control1.x, control2.x, end.x, t);
-			double y = cubicBezier(start.y, control1.y, control2.y, end.y, t);
-			points.add(Vector3d.xyz(x, y, 0));
-		}
-		return points;
-	}
-
-	private static List<Vector3d> approximateQuadCurve(Vector3d start, Vector3d control, Vector3d end) {
-		List<Vector3d> points = new ArrayList<>();
-		for (double i = 1; i <= CURVE_SEGMENTS; i+=1) {
-			double t = (double) i / CURVE_SEGMENTS;
-			double x = quadBezier(start.x, control.x, end.x, t);
-			double y = quadBezier(start.y, control.y, end.y, t);
-			points.add(Vector3d.xyz(x, y, 0));
-		}
-		return points;
-	}
-
-	private static double cubicBezier(double p0, double p1, double p2, double p3, double t) {
-		double mt = 1 - t;
-		return p0 * mt * mt * mt + 3 * p1 * mt * mt * t + 3 * p2 * mt * t * t + p3 * t * t * t;
-	}
-
-	private static double quadBezier(double p0, double p1, double p2, double t) {
-		double mt = 1 - t;
-		return p0 * mt * mt + 2 * p1 * mt * t + p2 * t * t;
 	}
 
 }
