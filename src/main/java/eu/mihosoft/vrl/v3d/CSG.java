@@ -3655,7 +3655,15 @@ public class CSG implements IuserAPI, Serializable {
 			return o.get();
 		return false;
 	}
+	// Hole
+	public CSG setMobileBaseName(String name) {
+		getStorage().set("MobileBaseName", name);
+		return this;
+	}
 
+	public Optional<String> getMobileBaseName() {
+		return getStorage().getValue("MobileBaseName");
+	}
 	public CSG syncProperties(CSG dying) {
 		getStorage().syncProperties(dying.getStorage());
 		regenerate = dying.regenerate;
