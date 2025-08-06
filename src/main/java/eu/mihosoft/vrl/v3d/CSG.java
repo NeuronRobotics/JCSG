@@ -3630,7 +3630,7 @@ public class CSG implements IuserAPI, Serializable {
 		return false;
 	}
 
-	// Hole
+	// Hide
 	public CSG setIsHide(boolean Hide) {
 		getStorage().set("isHide", Hide);
 		return this;
@@ -3642,7 +3642,31 @@ public class CSG implements IuserAPI, Serializable {
 			return o.get();
 		return false;
 	}
+	// NoScale
+	public CSG setNoScale(boolean Hide) {
+		getStorage().set("NoScale", Hide);
+		return this;
+	}
 
+	public boolean isNoScale() {
+		Optional<Boolean> o = getStorage().getValue("NoScale");
+		if (o.isPresent())
+			return o.get();
+		return false;
+	}
+	// IsAlwaysShow
+	public CSG setIsAlwaysShow(boolean Hide) {
+		getStorage().set("isAlwaysShow", Hide);
+		return this;
+	}
+
+	public boolean isAlwaysShow() {
+		Optional<Boolean> o = getStorage().getValue("isAlwaysShow");
+		if (o.isPresent())
+			return o.get();
+		return false;
+	}
+	
 	// Hole
 	public CSG setIsHole(boolean hole) {
 		getStorage().set("isHole", hole);
@@ -3976,5 +4000,5 @@ public class CSG implements IuserAPI, Serializable {
 	public void setCurrentMeshView(MeshView current) {
 		this.current = current;
 	}
-
+	
 }
