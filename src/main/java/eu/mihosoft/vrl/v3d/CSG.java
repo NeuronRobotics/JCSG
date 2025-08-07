@@ -749,8 +749,10 @@ public class CSG implements IuserAPI, Serializable {
 	 */
 	@Override
 	public CSG clone() {
-		CSG csg = new CSG();
-		csg.setOptType(this.getOptType());
+		CSG csg=cloneShallow() ;
+		return csg.historySync(this);
+	}
+	public CSG cloneShallow() {
 		ArrayList<Polygon> collect = new ArrayList<Polygon>();
 		for (Polygon p : polygons) {
 			if (p == null)
@@ -763,10 +765,8 @@ public class CSG implements IuserAPI, Serializable {
 				ex.printStackTrace();
 			}
 		}
-		csg.setPolygons(collect);
-		return csg.historySync(this);
+		return CSG.fromPolygons(collect);
 	}
-
 	/**
 	 * Gets the polygons.
 	 *
