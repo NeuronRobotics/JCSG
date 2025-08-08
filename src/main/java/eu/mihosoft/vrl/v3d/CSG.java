@@ -1781,7 +1781,7 @@ public class CSG implements IuserAPI, Serializable {
 		float eps = (float)POINTS_CONTACT_DISTANCE;
 		float epsSq = (float) (eps * eps);
 		int[] added = new int[numberOfPolygons];
-		int testPointChunk = 100;
+		int testPointChunk = 50;
 		int snapChunk = 1000;
 		int[] tp = new int[] { 0, snapChunk };
 
