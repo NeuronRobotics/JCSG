@@ -3680,6 +3680,15 @@ public class CSG implements IuserAPI, Serializable {
 		return false;
 	}
 	// Hole
+	public CSG setLimbName(String name) {
+		getStorage().set("LimbName", name);
+		return this;
+	}
+
+	public Optional<String> getLimbName() {
+		return getStorage().getValue("LimbMobileBaseName");
+	}
+	
 	public CSG setMobileBaseName(String name) {
 		getStorage().set("MobileBaseName", name);
 		return this;
