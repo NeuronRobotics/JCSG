@@ -3700,6 +3700,7 @@ public class CSG implements IuserAPI, Serializable {
 	public CSG syncProperties(CSG dying) {
 		getStorage().syncProperties(dying.getStorage());
 		regenerate = dying.regenerate;
+		setManipulator(dying.getManipulator());
 		return this;
 	}
 
