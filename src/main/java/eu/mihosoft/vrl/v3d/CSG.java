@@ -2885,10 +2885,12 @@ public class CSG implements IuserAPI, Serializable {
 				.transformed(new Transform().translateZ(shellThickness * zPer)).historySync(this);
 
 	}
-
+	public boolean hasManipulator() {
+		return manipulator!=null;
+	}
 	public Affine getManipulator() {
 		if (manipulator == null)
-			manipulator = new Affine();
+			return new Affine();
 		return manipulator;
 	}
 
@@ -3700,7 +3702,7 @@ public class CSG implements IuserAPI, Serializable {
 	public CSG syncProperties(CSG dying) {
 		getStorage().syncProperties(dying.getStorage());
 		regenerate = dying.regenerate;
-		setManipulator(dying.getManipulator());
+		setManipulator(dying.manipulator);
 		return this;
 	}
 
