@@ -3686,7 +3686,7 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	public Optional<String> getLimbName() {
-		return getStorage().getValue("LimbMobileBaseName");
+		return getStorage().getValue("LimbName");
 	}
 	
 	public CSG setMobileBaseName(String name) {
