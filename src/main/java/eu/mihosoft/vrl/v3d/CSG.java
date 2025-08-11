@@ -2419,8 +2419,8 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return a transformed copy of this CSG
 	 */
 	public CSG transformed(Transform transform) {
-		if( isMotionLock())
-			return this.clone();
+//		if( isMotionLock())
+//			return this.clone();
 		if (getPolygons().isEmpty()) {
 			return clone();
 		}
