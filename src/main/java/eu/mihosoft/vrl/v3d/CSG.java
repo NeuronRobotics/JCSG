@@ -2419,7 +2419,8 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return a transformed copy of this CSG
 	 */
 	public CSG transformed(Transform transform) {
-
+		if( isMotionLock())
+			return this.clone();
 		if (getPolygons().isEmpty()) {
 			return clone();
 		}
@@ -3620,6 +3621,17 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	// Hole
+	public CSG setIsMotionLock(boolean Lock) {
+		getStorage().set("isMotionLock", Lock);
+		return this;
+	}
+
+	public boolean isMotionLock() {
+		Optional<Boolean> o = getStorage().getValue("isMotionLock");
+		if (o.isPresent())
+			return o.get();
+		return false;
+	}
 	public CSG setIsLock(boolean Lock) {
 		getStorage().set("isLock", Lock);
 		return this;
