@@ -330,7 +330,15 @@ public final class Node {
 			System.err.println(ex.getMessage()+" Pruned Colinear polygon "+f );
 		}
 	}
-
+	public static String getOsName() {
+		return System.getProperty("os.name");
+	}
+	public static boolean isWindows() {
+		// //com.neuronrobotics.sdk.common.Log.error("OS name: "+getOsName());
+		return getOsName().toLowerCase().startsWith("windows")
+				|| getOsName().toLowerCase().startsWith("microsoft")
+				|| getOsName().toLowerCase().startsWith("ms");
+	}
 	/**
 	 * Splits a {@link Polygon} by this plane if needed. After that it puts the
 	 * polygons or the polygon fragments in the appropriate lists ({@code front},
@@ -348,7 +356,7 @@ public final class Node {
 	 */
 	public void splitPolygon(ArrayList<Polygon> polygons, List<Polygon> cf, List<Polygon> cb,
 			List<Polygon> f, List<Polygon> b) throws Exception {
-		if (polygons.size() > LIMIT_FOR_GPU) {
+		if (polygons.size() > LIMIT_FOR_GPU && !isWindows()) {
 			splitPolygonGPU(polygons, cf, cb, f, b);
 			return;
 		}
