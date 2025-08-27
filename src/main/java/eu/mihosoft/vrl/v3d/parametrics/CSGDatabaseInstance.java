@@ -37,6 +37,8 @@ public class CSGDatabaseInstance {
 	public void set(String key, Parameter value) {
 		getDatabase();
 		// synchronized(database){
+		if(value==null)
+			throw new RuntimeException();
 		getDatabase().put(key, value);
 		// }
 	}
