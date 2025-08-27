@@ -25,6 +25,13 @@ public class CSGDatabaseInstance {
 
 	public CSGDatabaseInstance(File db) {
 		dbFile = db;
+		if(!dbFile.exists())
+			try {
+				dbFile.createNewFile();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 	}
 
 	public void set(String key, Parameter value) {
@@ -100,61 +107,55 @@ public class CSGDatabaseInstance {
 
 	private ConcurrentHashMap<String, Parameter> getDatabase() {
 		if (database == null) {
-			new Thread() {
-				public void run() {
-					String jsonString;
+
+			String jsonString;
+			try {
+
+				if (!getDbFile().exists()) {
+					setDatabase(new ConcurrentHashMap<String, Parameter>());
+					saveDatabase();
+				} else {
+					InputStream in = null;
 					try {
+						in = FileUtils.openInputStream(getDbFile());
+						jsonString = IOUtils.toString(in);
+					} finally {
+						IOUtils.closeQuietly(in);
+					}
+					ConcurrentHashMap<String, Parameter> tm = gson.fromJson(jsonString, TT_mapStringString);
 
-						if (!getDbFile().exists()) {
-							setDatabase(new ConcurrentHashMap<String, Parameter>());
-						} else {
-							InputStream in = null;
-							try {
-								in = FileUtils.openInputStream(getDbFile());
-								jsonString = IOUtils.toString(in);
-							} finally {
-								IOUtils.closeQuietly(in);
-							}
-							ConcurrentHashMap<String, Parameter> tm = gson.fromJson(jsonString, TT_mapStringString);
-
-							if (tm != null) {
+					if (tm != null) {
 //					        	////System.out.println("Hash Map loaded from "+jsonString);
 //					        	for(String k:tm.keySet()){
 //						        	////System.out.println("Key: "+k+" vlaue= "+tm.get(k));
 //						        }
-								setDatabase(tm);
-							}
-						}
-					} catch (Exception e) {
-						e.printStackTrace();
-						// System.out.println(dbFile.getAbsolutePath());
+						setDatabase(tm);
+					}else {
 						setDatabase(new ConcurrentHashMap<String, Parameter>());
+						saveDatabase();
 					}
-					Runtime.getRuntime().addShutdownHook(new Thread() {
-						@Override
-						public void run() {
-							saveDatabase();
-						}
-					});
 				}
-			}.start();
-			long start = System.currentTimeMillis();
-			while (database == null) {
-				try {
-					Thread.sleep(10);
-				} catch (InterruptedException e) {
-					// Auto-generated catch block
-					e.printStackTrace();
-				}
-				if ((System.currentTimeMillis() - start) > 500) {
-					setDatabase(new ConcurrentHashMap<String, Parameter>());
-				}
+			} catch (Exception e) {
+				//e.printStackTrace();
+				//System.err.println("Failed to load " + dbFile.getAbsolutePath());
+				setDatabase(new ConcurrentHashMap<String, Parameter>());
+				saveDatabase();
 			}
+			Runtime.getRuntime().addShutdownHook(new Thread() {
+				@Override
+				public void run() {
+					saveDatabase();
+				}
+			});
+
 		}
+		if(database==null)
+			throw new RuntimeException();
 		return database;
 	}
 
 	public void loadDatabaseFromFile(File f) {
+		getDatabase();
 		InputStream in = null;
 		String jsonString;
 		try {
@@ -179,7 +180,6 @@ public class CSGDatabaseInstance {
 
 	public String getDataBaseString() {
 		String writeOut = null;
-		getDatabase();
 		// synchronized(database){
 		writeOut = gson.toJson(database, TT_mapStringString);
 		// }
@@ -208,9 +208,6 @@ public class CSGDatabaseInstance {
 	}
 
 	private void setDatabase(ConcurrentHashMap<String, Parameter> database) {
-		if (this.database != null) {
-			return;
-		}
 		this.database = database;
 	}
 
