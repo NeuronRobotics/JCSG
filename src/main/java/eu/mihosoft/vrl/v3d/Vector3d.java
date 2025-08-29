@@ -40,6 +40,7 @@ import static java.lang.Math.min;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.Locale;
 import java.util.Random;
 
 import com.google.gson.annotations.Expose;
@@ -364,7 +365,7 @@ public class Vector3d extends javax.vecmath.Vector3d {
         return  ((double)Math.round(value / epsilon)) * epsilon;
     }
 	private String roundedValue(double v,double ep) {
-		return String.format(getExportString(), roundToEpsilon(v,ep));
+		return String.format(Locale.US,getExportString(), roundToEpsilon(v,ep));
 	}
 
     /**
