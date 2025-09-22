@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 import javax.vecmath.Matrix4d;
 
@@ -177,7 +178,7 @@ public class SVGLoad {
 
 			for (int i = 0; i < pathObjects; i++) {
 				SVGItem item = (SVGItem) pathList.getItem(i);
-				String itemLine = String.format("%s%n", item.getValueAsString());
+				String itemLine = String.format(Locale.US,"%s%n", item.getValueAsString());
 				sb += itemLine;
 			}
 
@@ -545,7 +546,7 @@ public class SVGLoad {
 
 					for (int i = 0; i < pathObjects; i++) {
 						SVGItem item = (SVGItem) pathList.getItem(i);
-						String itemLine = String.format("%s%n", item.getValueAsString());
+						String itemLine = String.format(Locale.US,"%s%n", item.getValueAsString());
 						if (sb == null) {
 							sb = "M " + itemLine;
 						}

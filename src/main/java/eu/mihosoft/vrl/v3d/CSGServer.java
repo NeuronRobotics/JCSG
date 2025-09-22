@@ -17,6 +17,7 @@ import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.security.PrivateKey;
@@ -135,7 +136,7 @@ public class CSGServer {
 		Date notAfter = Date.from(now.plus(365, ChronoUnit.DAYS));
 
 		// Create X.500 distinguished name
-		String distinguishedName = String.format("CN=%s,OU=Auto-Generated,O=Development,L=Unknown,ST=Unknown,C=US",
+		String distinguishedName = String.format(Locale.US,"CN=%s,OU=Auto-Generated,O=Development,L=Unknown,ST=Unknown,C=US",
 				commonName);
 		org.bouncycastle.asn1.x500.X500Name x500Name = new org.bouncycastle.asn1.x500.X500Name(distinguishedName);
 

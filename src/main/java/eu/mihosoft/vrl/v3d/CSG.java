@@ -50,6 +50,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -2259,13 +2260,13 @@ public class CSG implements IuserAPI, Serializable {
 		long seconds = duration.getSeconds() % 60;
 		long ms = duration.getNano() / 1000000;
 		if (hours > 0) {
-			return String.format("h%02d:m%02d", hours, minutes);
+			return String.format(Locale.US,"h%02d:m%02d", hours, minutes);
 		}
 		if (minutes > 0)
-			return String.format("m%02d:s%02d", minutes, seconds);
+			return String.format(Locale.US,"m%02d:s%02d", minutes, seconds);
 		if (seconds > 0)
-			return String.format("s%02d:ms%03d", seconds, ms);
-		String dur = String.format("ms%03d", ms);
+			return String.format(Locale.US,"s%02d:ms%03d", seconds, ms);
+		String dur = String.format(Locale.US,"ms%03d", ms);
 		return dur;
 	}
 
