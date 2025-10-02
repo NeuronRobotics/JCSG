@@ -234,9 +234,13 @@ public class CSGClient {
 	}
 
 	public static boolean isRunning() {
-		if(javafx.application.Platform.isFxApplicationThread()) {
-			new Exception("ERROR! CSG operation detected on UI thread, this is a BAD idea!");
-			return false;// do not run operation on UI thread
+		try {
+			if(javafx.application.Platform.isFxApplicationThread()) {
+				new Exception("ERROR! CSG operation detected on UI thread, this is a BAD idea!");
+				return false;// do not run operation on UI thread
+			}
+		}catch(Exception ex) {
+			// can not be a UI thread if ui toolkit is not running
 		}
 		if (isServerCall())
 			return false;
