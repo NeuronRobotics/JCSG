@@ -9,6 +9,7 @@ public class Parameter {
 	private final ArrayList<String> options=new ArrayList<String>();
 	private Long value=null;
 	private String strValue=null;
+	
 	public Parameter(){}
 	
 	protected void setup(String key,Long defaultValue,ArrayList<String> options){

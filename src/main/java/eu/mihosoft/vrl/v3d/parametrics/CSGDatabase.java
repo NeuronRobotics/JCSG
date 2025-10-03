@@ -55,10 +55,6 @@ public class CSGDatabase {
 		return getInstance().getDbFile();
 	}
 
-	public static void setDbFile(File dbFile) {
-		getInstance().setDbFile(dbFile);
-	}
-
 	public static void reLoadDbFile() {
 		getInstance().reLoadDbFile();
 	}
@@ -68,6 +64,7 @@ public class CSGDatabase {
 	}
 
 	public static void setInstance(CSGDatabaseInstance instance) {
+		System.out.println("\n\nCSG Instance Set here to "+instance.getDbFile().getAbsolutePath()+"\n\n");
 		CSGDatabase.instance = instance;
 	}
 }
