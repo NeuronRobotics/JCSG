@@ -49,7 +49,7 @@ public class CSGDatabaseInstance {
 			@Override
 			public CSG change(CSG oldCSG, String parameterKey, Long newValue) {
 				if (parameterKey.contentEquals(w.getName()))
-					CSGDatabase.get(w.getName()).setValue(newValue);
+					get(w.getName()).setValue(newValue);
 				return oldCSG;
 			}
 		});
@@ -60,14 +60,14 @@ public class CSGDatabaseInstance {
 		ArrayList<Double> vals = new ArrayList<Double>();
 		vals.add(upperBound);
 		vals.add(lowerBound);
-		setParameter(instance,new LengthParameter(key, defaultValue, vals), function);
+		setParameter(instance,new LengthParameter(this,key, defaultValue, vals), function);
 		return this;
 	}
 	public CSGDatabaseInstance setParameter(CSG obj,Parameter w, IParametric function) {
 		if (w == null)
 			return this;
-		if (CSGDatabase.get(w.getName()) == null)
-			CSGDatabase.set(w.getName(), w);
+		if (get(w.getName()) == null)
+			set(w.getName(), w);
 		if (getMapOfparametrics(obj).get(w.getName()) == null)
 			getMapOfparametrics(obj).put(w.getName(), function);
 		return this;
@@ -79,7 +79,7 @@ public class CSGDatabaseInstance {
 
 				@Override
 				public CSG change(CSG oldCSG, String parameterKey, Long newValue) {
-					CSGDatabase.get(key).setValue(newValue);
+					get(key).setValue(newValue);
 					return oldCSG;
 				}
 			});

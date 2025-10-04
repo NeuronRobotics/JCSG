@@ -48,7 +48,7 @@ public class ServerClientTest {
 					return incoming;
 				}
 			});
-			LengthParameter param = new LengthParameter("parameter", (double) 35, new ArrayList<Double>());
+			LengthParameter param = new LengthParameter(CSGDatabase.getInstance(),"parameter", (double) 35, new ArrayList<Double>());
 			
 			a.setParameter(CSGDatabase.getInstance(),param );
 			CSG b = new Cube(20, 30, 5).toCSG();
