@@ -140,12 +140,31 @@ public class CSG implements IuserAPI, Serializable {
 	private static final long serialVersionUID = 4071874097772427063L;
 	private static IDebug3dProvider providerOf3d = null;
 	private static int numFacesInOffset = 15;
+	public static final int INDEX_OF_PARAMETRIC_DEFAULT = 0;
+	public static final int INDEX_OF_PARAMETRIC_LOWER = 1;
+	public static final int INDEX_OF_PARAMETRIC_UPPER = 2;
+	private static HashMap<Integer,PrepForManufacturing> manufactuingMap = new HashMap<Integer, PrepForManufacturing>();
+	private static OptType defaultOptType = OptType.CSG_BOUND;
+	private static String defaultcolor = "#007956";
+	// private boolean triangulated;
+	private static boolean useStackTraces = true;
+	private static boolean preventNonManifoldTriangles = false;
+	private static boolean warned = false;
+	// GPU processing
+	private static boolean useGPU = true;
+	private static int ExtraSpace = 100;
+	private static ICSGProgress progressMoniter = new ICSGProgress() {
+		@Override
+		public void progressUpdate(int currentIndex, int finalIndex, String type, CSG intermediateShape) {
+			System.err.println(type + "  cur:" + currentIndex + " of " + finalIndex);
+		}
+	};
+	private static ForkJoinPool poolGlobal=null;
 
 	/** The polygons. */
 	private ArrayList<Polygon> polygons;
 
 	/** The default opt type. */
-	private static OptType defaultOptType = OptType.CSG_BOUND;
 
 	/** The opt type. */
 	private OptType optType = null;
@@ -157,7 +176,6 @@ public class CSG implements IuserAPI, Serializable {
 	/** The current. */
 	private MeshView current;
 
-	private static String defaultcolor = "#007956";
 
 	/** The color. */
 	// private Color color = getDefaultColor();
@@ -168,33 +186,17 @@ public class CSG implements IuserAPI, Serializable {
 	/** The manipulator. */
 	private Affine manipulator;
 	private Bounds bounds;
-	public static final int INDEX_OF_PARAMETRIC_DEFAULT = 0;
-	public static final int INDEX_OF_PARAMETRIC_LOWER = 1;
-	public static final int INDEX_OF_PARAMETRIC_UPPER = 2;
+
 	private ArrayList<String> groovyFileLines = new ArrayList<>();
-	private PrepForManufacturing manufactuing = null;
 	private IRegenerate regenerate = null;
 	private boolean markForRegeneration = false;
 	private String name = "";
 	private ArrayList<Transform> slicePlanes = null;
 	private ArrayList<String> exportFormats = null;
 	private ArrayList<Transform> datumReferences = null;
-	// private boolean triangulated;
-	private static boolean useStackTraces = true;
-	private static boolean preventNonManifoldTriangles = false;
-	private static boolean warned = false;
-	// GPU processing
-	private static boolean useGPU = true;
-	private int pointsAdded;
-	private static int ExtraSpace = 100;
 
-	private static ICSGProgress progressMoniter = new ICSGProgress() {
-		@Override
-		public void progressUpdate(int currentIndex, int finalIndex, String type, CSG intermediateShape) {
-			System.err.println(type + "  cur:" + currentIndex + " of " + finalIndex);
-		}
-	};
-	private static ForkJoinPool poolGlobal=null;
+	private int pointsAdded;
+
 
 	/**
 	 * Instantiates a new csg.
@@ -2990,7 +2992,7 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	public PrepForManufacturing getManufacturing() {
-		return manufactuing;
+		return manufactuingMap.get(this.hashCode());
 	}
 
 	public PrepForManufacturing getMfg() {
@@ -3002,7 +3004,7 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	public CSG setManufacturing(PrepForManufacturing manufactuing) {
-		this.manufactuing = manufactuing;
+		manufactuingMap.put(this.hashCode(), manufactuing);
 		return this;
 	}
 
@@ -3019,63 +3021,79 @@ public class CSG implements IuserAPI, Serializable {
 
 	@Deprecated
 	public CSG setParameter(CSGDatabaseInstance instance,Parameter w) {
-		setParameter(instance,w, new IParametric() {
-			@Override
-			public CSG change(CSG oldCSG, String parameterKey, Long newValue) {
-				if (parameterKey.contentEquals(w.getName()))
-					CSGDatabase.get(w.getName()).setValue(newValue);
-				return oldCSG;
-			}
-		});
+		instance.setParameter(this, w);
 		return this;
 	}
 	@Deprecated
 	public CSG setParameter(CSGDatabaseInstance instance,String key, double defaultValue, double upperBound, double lowerBound,
 			IParametric function) {
-		ArrayList<Double> vals = new ArrayList<Double>();
-		vals.add(upperBound);
-		vals.add(lowerBound);
-		setParameter(instance,new LengthParameter(key, defaultValue, vals), function);
+		instance.setParameter(this, key, defaultValue, upperBound, lowerBound, function);
 		return this;
 	}
 	@Deprecated
 	public CSG setParameter(CSGDatabaseInstance instance,Parameter w, IParametric function) {
 		if (w == null)
 			return this;
-		if (CSGDatabase.get(w.getName()) == null)
-			CSGDatabase.set(w.getName(), w);
-		if (instance.getMapOfparametrics(this).get(w.getName()) == null)
-			instance.getMapOfparametrics(this).put(w.getName(), function);
+		instance.setParameter(this, w, function);
 		return this;
 	}
 	@Deprecated
 	public CSG setParameterIfNull(CSGDatabaseInstance instance,String key) {
-		if (instance.getMapOfparametrics(this).get(key) == null)
-			instance.getMapOfparametrics(this).put(key, new IParametric() {
-
-				@Override
-				public CSG change(CSG oldCSG, String parameterKey, Long newValue) {
-					CSGDatabase.get(key).setValue(newValue);
-					return oldCSG;
-				}
-			});
+		instance.setParameterIfNull(this, key);
 		return this;
 	}
+
 	@Deprecated
 	public Set<String> getParameters(CSGDatabaseInstance instance) {
-
 		return instance.getMapOfparametrics(this).keySet();
 	}
 	@Deprecated
 	public CSG setParameterNewValue(CSGDatabaseInstance instance, String key, double newValue) {
-		IParametric function = instance.getMapOfparametrics(this).get(key);
-		if (function != null) {
-			CSG setManipulator = function.change(this, key, new Long((long) (newValue * 1000)))
-					.setManipulator(this.getManipulator());
-			setManipulator.setColor(getColor());
-			return setManipulator;
-		}
+		instance.setParameterNewValue(this, key, newValue);
 		return this;
+	}
+	@Deprecated 
+	public HashMap<String, IParametric> getMapOfparametrics(CSGDatabaseInstance instance){
+		return instance.getMapOfparametrics(this);
+	}
+	
+	@Deprecated 
+	public HashMap<String, IParametric> getMapOfparametrics(){
+		new RuntimeException("This is using LEGACY database!").printStackTrace();
+		return CSGDatabase.getInstance().getMapOfparametrics(this);
+	}
+	@Deprecated
+	public CSG setParameter(Parameter w) {
+		new RuntimeException("This is using LEGACY database!").printStackTrace();
+		return setParameter(CSGDatabase.getInstance(),w);
+	}
+	@Deprecated
+	public CSG setParameter(String key, double defaultValue, double upperBound, double lowerBound,
+			IParametric function) {
+		new RuntimeException("This is using LEGACY database!").printStackTrace();
+		setParameter(CSGDatabase.getInstance(), key, defaultValue, upperBound, lowerBound, function);
+		return this;
+	}
+	@Deprecated
+	public CSG setParameter(Parameter w, IParametric function) {
+		new RuntimeException("This is using LEGACY database!").printStackTrace();
+		return setParameter(CSGDatabase.getInstance(), w, function);
+	}
+	@Deprecated
+	public CSG setParameterIfNull(String key) {
+		new RuntimeException("This is using LEGACY database!").printStackTrace();
+		setParameterIfNull(CSGDatabase.getInstance(), key);
+		return this;
+	}
+	@Deprecated
+	public Set<String> getParameters() {
+		new RuntimeException("This is using LEGACY database!").printStackTrace();
+		return getParameters(CSGDatabase.getInstance());
+	}
+	@Deprecated
+	public CSG setParameterNewValue( String key, double newValue) {
+		new RuntimeException("This is using LEGACY database!").printStackTrace();
+		return setParameterNewValue(CSGDatabase.getInstance(),key,newValue);
 	}
 
 	public CSG setRegenerate(IRegenerate function) {

@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -26,22 +28,79 @@ public class CSGDatabaseInstance {
 	final Gson gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 	final ConcurrentHashMap<String, CopyOnWriteArrayList<IParameterChanged>> parameterListeners = new ConcurrentHashMap<>();
 	
-	private  HashMap<CSG,HashMap<String, IParametric>> mapOfAllparametrics = null;
+	private  HashMap<Integer,HashMap<String, IParametric>> mapOfAllparametrics = null;
 	
-	private HashMap<CSG,HashMap<String, IParametric>> getMap(){
+	private HashMap<Integer,HashMap<String, IParametric>> getMap(){
 		if(mapOfAllparametrics==null) {
-			mapOfAllparametrics=new HashMap<CSG, HashMap<String,IParametric>>();
+			mapOfAllparametrics=new HashMap<Integer, HashMap<String,IParametric>>();
 		}
 		return mapOfAllparametrics;
 	}
 	
 	public HashMap<String, IParametric> getMapOfparametrics(CSG source) {
-		if (getMap().get(source) == null) {
-			getMap().put(source,new HashMap<>());
+		if (getMap().get(source.hashCode()) == null) {
+			getMap().put(source.hashCode(),new HashMap<>());
 		}
-		return getMap().get(source);
+		return getMap().get(source.hashCode());
 	}
 	
+	public CSGDatabaseInstance setParameter(CSG instance,Parameter w) {
+		setParameter(instance,w, new IParametric() {
+			@Override
+			public CSG change(CSG oldCSG, String parameterKey, Long newValue) {
+				if (parameterKey.contentEquals(w.getName()))
+					CSGDatabase.get(w.getName()).setValue(newValue);
+				return oldCSG;
+			}
+		});
+		return this;
+	}
+	public CSGDatabaseInstance setParameter(CSG instance,String key, double defaultValue, double upperBound, double lowerBound,
+			IParametric function) {
+		ArrayList<Double> vals = new ArrayList<Double>();
+		vals.add(upperBound);
+		vals.add(lowerBound);
+		setParameter(instance,new LengthParameter(key, defaultValue, vals), function);
+		return this;
+	}
+	public CSGDatabaseInstance setParameter(CSG obj,Parameter w, IParametric function) {
+		if (w == null)
+			return this;
+		if (CSGDatabase.get(w.getName()) == null)
+			CSGDatabase.set(w.getName(), w);
+		if (getMapOfparametrics(obj).get(w.getName()) == null)
+			getMapOfparametrics(obj).put(w.getName(), function);
+		return this;
+	}
+	
+	public CSGDatabaseInstance setParameterIfNull(CSG instance,String key) {
+		if (getMapOfparametrics(instance).get(key) == null)
+			getMapOfparametrics(instance).put(key, new IParametric() {
+
+				@Override
+				public CSG change(CSG oldCSG, String parameterKey, Long newValue) {
+					CSGDatabase.get(key).setValue(newValue);
+					return oldCSG;
+				}
+			});
+		return this;
+	}
+
+	public Set<String> getParameters(CSG instance) {
+
+		return getMapOfparametrics(instance).keySet();
+	}
+	
+	public CSGDatabaseInstance setParameterNewValue(CSG instance, String key, double newValue) {
+		IParametric function = getMapOfparametrics(instance).get(key);
+		if (function != null) {
+			CSG setManipulator = function.change(instance, key, new Long((long) (newValue * 1000)))
+					.setManipulator(instance.getManipulator());
+			setManipulator.setColor(instance.getColor());
+			return this;
+		}
+		return this;
+	}
 	
 	public CSGDatabaseInstance(File db) {
 		dbFile = db;
