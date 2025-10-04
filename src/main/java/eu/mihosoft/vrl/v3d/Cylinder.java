@@ -186,24 +186,24 @@ public class Cylinder extends Primitive {
         this.startRadius = startRadius<MINIMUM_RADIUS?MINIMUM_RADIUS:startRadius;
         this.endRadius = endRadius<MINIMUM_RADIUS?MINIMUM_RADIUS:endRadius;
     }
-    public Cylinder(LengthParameter startRadius, LengthParameter endRadius, LengthParameter height, int numSlices) {
-        this(startRadius.getMM(),endRadius.getMM(),height.getMM(),numSlices);
-        parametrics.add(startRadius);
-        parametrics.add(endRadius);
-        parametrics.add(height);
-    }
-    public Cylinder(LengthParameter startRadius,  LengthParameter height, int numSlices) {
-        this(startRadius,startRadius,height,numSlices);
-    }
-    public Cylinder(LengthParameter startRadius, LengthParameter endRadius, LengthParameter height) {
-        this(startRadius.getMM(),endRadius.getMM(),height.getMM());
-        parametrics.add(startRadius);
-        parametrics.add(endRadius);
-        parametrics.add(height);
-    }
-    public Cylinder(LengthParameter startRadius,  LengthParameter height) {
-        this(startRadius,startRadius,height);
-    }
+//    public Cylinder(LengthParameter startRadius, LengthParameter endRadius, LengthParameter height, int numSlices) {
+//        this(startRadius.getMM(),endRadius.getMM(),height.getMM(),numSlices);
+////        parametrics.add(startRadius);
+////        parametrics.add(endRadius);
+////        parametrics.add(height);
+//    }
+//    public Cylinder(LengthParameter startRadius,  LengthParameter height, int numSlices) {
+//        this(startRadius,startRadius,height,numSlices);
+//    }
+//    public Cylinder(LengthParameter startRadius, LengthParameter endRadius, LengthParameter height) {
+//        this(startRadius.getMM(),endRadius.getMM(),height.getMM());
+////        parametrics.add(startRadius);
+////        parametrics.add(endRadius);
+////        parametrics.add(height);
+//    }
+//    public Cylinder(LengthParameter startRadius,  LengthParameter height) {
+//        this(startRadius,startRadius,height);
+//    }
     /* (non-Javadoc)
      * @see eu.mihosoft.vrl.v3d.Primitive#toPolygons()
      */

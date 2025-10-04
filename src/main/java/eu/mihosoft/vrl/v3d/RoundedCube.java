@@ -59,15 +59,15 @@ public class RoundedCube extends Primitive {
     }
     
 
-    public RoundedCube(LengthParameter w, LengthParameter h, LengthParameter d) {
-        this(Vector3d.ZERO, new Vector3d(w.getMM(), h.getMM(), d.getMM()));
-        parametrics.add(w);
-        parametrics.add(h);
-        parametrics.add(d);
-    }
-    public RoundedCube(LengthParameter size) {
-        this(size,size,size);
-    }
+//    public RoundedCube(LengthParameter w, LengthParameter h, LengthParameter d) {
+//        this(Vector3d.ZERO, new Vector3d(w.getMM(), h.getMM(), d.getMM()));
+//        parametrics.add(w);
+//        parametrics.add(h);
+//        parametrics.add(d);
+//    }
+//    public RoundedCube(LengthParameter size) {
+//        this(size,size,size);
+//    }
 
     /**
      * Constructor. Creates a new rounded cuboid with the specified center and

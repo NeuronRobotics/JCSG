@@ -91,14 +91,14 @@ public class Sphere extends Primitive {
 //        this(Vector3d.ZERO, new Vector3d(w.getMM(), h.getMM(), d.getMM()));
 //
 //    }
-    public Sphere(LengthParameter size) {
-    	this(size.getMM());
-    	parametrics.add(size);
-    }
-    public Sphere(LengthParameter size, int numSlices, int numStacks) {
-    	this(size.getMM(),  numSlices,  numStacks);
-    	parametrics.add(size);
-    }
+//    public Sphere(LengthParameter size) {
+//    	this(size.getMM());
+//    	parametrics.add(size);
+//    }
+//    public Sphere(LengthParameter size, int numSlices, int numStacks) {
+//    	this(size.getMM(),  numSlices,  numStacks);
+//    	parametrics.add(size);
+//    }
     /**
      * Constructor. Creates a sphere with the specified radius, number of slices
      * and stacks.

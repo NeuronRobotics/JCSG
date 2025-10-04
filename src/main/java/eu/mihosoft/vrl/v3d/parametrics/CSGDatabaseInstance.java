@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
+import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -14,6 +15,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
+import eu.mihosoft.vrl.v3d.CSG;
+
 public class CSGDatabaseInstance {
 
 	ConcurrentHashMap<String, Parameter> database = null;
@@ -22,7 +25,24 @@ public class CSGDatabaseInstance {
 	}.getType();
 	final Gson gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 	final ConcurrentHashMap<String, CopyOnWriteArrayList<IParameterChanged>> parameterListeners = new ConcurrentHashMap<>();
-
+	
+	private  HashMap<CSG,HashMap<String, IParametric>> mapOfAllparametrics = null;
+	
+	private HashMap<CSG,HashMap<String, IParametric>> getMap(){
+		if(mapOfAllparametrics==null) {
+			mapOfAllparametrics=new HashMap<CSG, HashMap<String,IParametric>>();
+		}
+		return mapOfAllparametrics;
+	}
+	
+	public HashMap<String, IParametric> getMapOfparametrics(CSG source) {
+		if (getMap().get(source) == null) {
+			getMap().put(source,new HashMap<>());
+		}
+		return getMap().get(source);
+	}
+	
+	
 	public CSGDatabaseInstance(File db) {
 		dbFile = db;
 		if(!dbFile.exists())

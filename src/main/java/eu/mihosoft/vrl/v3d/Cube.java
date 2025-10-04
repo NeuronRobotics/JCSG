@@ -105,15 +105,15 @@ public class Cube extends Primitive {
     public Cube(double w, double h, double d) {
         this(Vector3d.ZERO, new Vector3d(w, h, d));
     }
-    public Cube(LengthParameter w, LengthParameter h, LengthParameter d) {
-        this(Vector3d.ZERO, new Vector3d(w.getMM(), h.getMM(), d.getMM()));
-        parametrics.add(w);
-        parametrics.add(h);
-        parametrics.add(d);
-    }
-    public Cube(LengthParameter size) {
-        this(size,size,size);
-    }
+//    public Cube(LengthParameter w, LengthParameter h, LengthParameter d) {
+//        this(Vector3d.ZERO, new Vector3d(w.getMM(), h.getMM(), d.getMM()));
+////        parametrics.add(w);
+////        parametrics.add(h);
+////        parametrics.add(d);
+//    }
+//    public Cube(LengthParameter size) {
+//        this(size,size,size);
+//    }
     /* (non-Javadoc)
      * @see eu.mihosoft.vrl.v3d.Primitive#toPolygons()
      */

@@ -1,11 +1,14 @@
 package eu.mihosoft.vrl.v3d.parametrics;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import eu.mihosoft.vrl.v3d.CSG;
 
 public class CSGDatabase {
 	private static CSGDatabaseInstance instance = new CSGDatabaseInstance(new File("CSGdatabase.json"));
-
+	
 	public static void set(String key, Parameter value) {
 		getInstance().set(key, value);
 	}

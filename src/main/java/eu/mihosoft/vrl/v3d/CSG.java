@@ -36,6 +36,7 @@ package eu.mihosoft.vrl.v3d;
 import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
 import eu.mihosoft.vrl.v3d.ext.quickhull3d.HullUtil;
 import eu.mihosoft.vrl.v3d.parametrics.CSGDatabase;
+import eu.mihosoft.vrl.v3d.parametrics.CSGDatabaseInstance;
 import eu.mihosoft.vrl.v3d.parametrics.IParametric;
 import eu.mihosoft.vrl.v3d.parametrics.IRegenerate;
 import eu.mihosoft.vrl.v3d.parametrics.LengthParameter;
@@ -172,7 +173,6 @@ public class CSG implements IuserAPI, Serializable {
 	public static final int INDEX_OF_PARAMETRIC_UPPER = 2;
 	private ArrayList<String> groovyFileLines = new ArrayList<>();
 	private PrepForManufacturing manufactuing = null;
-	private HashMap<String, IParametric> mapOfparametrics = null;
 	private IRegenerate regenerate = null;
 	private boolean markForRegeneration = false;
 	private String name = "";
@@ -224,7 +224,6 @@ public class CSG implements IuserAPI, Serializable {
 		ret.setName(getName());
 		ret.setColor(getColor());
 		ret.slicePlanes = slicePlanes;
-		ret.mapOfparametrics = mapOfparametrics;
 		ret.exportFormats = exportFormats;
 		return ret;
 	}
@@ -2937,19 +2936,19 @@ public class CSG implements IuserAPI, Serializable {
 		if (useStackTraces) {
 			this.addCreationEventStringList(dyingCSG.getCreationEventStackTraceList());
 		}
-		Set<String> params = dyingCSG.getParameters();
-		for (String param : params) {
-			boolean existing = false;
-			for (String s : this.getParameters()) {
-				if (s.contentEquals(param))
-					existing = true;
-			}
-			if (!existing) {
-				Parameter vals = CSGDatabase.get(param);
-				if (vals != null)
-					this.setParameter(vals, dyingCSG.getMapOfparametrics().get(param));
-			}
-		}
+//		Set<String> params = dyingCSG.getParameters();
+//		for (String param : params) {
+//			boolean existing = false;
+//			for (String s : this.getParameters()) {
+//				if (s.contentEquals(param))
+//					existing = true;
+//			}
+//			if (!existing) {
+//				Parameter vals = CSGDatabase.get(param);
+//				if (vals != null)
+//					this.setParameter(vals, dyingCSG.getMapOfparametrics().get(param));
+//			}
+//		}
 		if (getName().length() == 0)
 			setName(dyingCSG.getName());
 		setColor(dyingCSG.getColor());
@@ -3017,18 +3016,10 @@ public class CSG implements IuserAPI, Serializable {
 //		return setManufacturing(manufactuing);
 //	}
 
-	public CSG setParameter(Parameter w, IParametric function) {
-		if (w == null)
-			return this;
-		if (CSGDatabase.get(w.getName()) == null)
-			CSGDatabase.set(w.getName(), w);
-		if (getMapOfparametrics().get(w.getName()) == null)
-			getMapOfparametrics().put(w.getName(), function);
-		return this;
-	}
 
-	public CSG setParameter(Parameter w) {
-		setParameter(w, new IParametric() {
+	@Deprecated
+	public CSG setParameter(CSGDatabaseInstance instance,Parameter w) {
+		setParameter(instance,w, new IParametric() {
 			@Override
 			public CSG change(CSG oldCSG, String parameterKey, Long newValue) {
 				if (parameterKey.contentEquals(w.getName()))
@@ -3038,19 +3029,29 @@ public class CSG implements IuserAPI, Serializable {
 		});
 		return this;
 	}
-
-	public CSG setParameter(String key, double defaultValue, double upperBound, double lowerBound,
+	@Deprecated
+	public CSG setParameter(CSGDatabaseInstance instance,String key, double defaultValue, double upperBound, double lowerBound,
 			IParametric function) {
 		ArrayList<Double> vals = new ArrayList<Double>();
 		vals.add(upperBound);
 		vals.add(lowerBound);
-		setParameter(new LengthParameter(key, defaultValue, vals), function);
+		setParameter(instance,new LengthParameter(key, defaultValue, vals), function);
 		return this;
 	}
-
-	public CSG setParameterIfNull(String key) {
-		if (getMapOfparametrics().get(key) == null)
-			getMapOfparametrics().put(key, new IParametric() {
+	@Deprecated
+	public CSG setParameter(CSGDatabaseInstance instance,Parameter w, IParametric function) {
+		if (w == null)
+			return this;
+		if (CSGDatabase.get(w.getName()) == null)
+			CSGDatabase.set(w.getName(), w);
+		if (instance.getMapOfparametrics(this).get(w.getName()) == null)
+			instance.getMapOfparametrics(this).put(w.getName(), function);
+		return this;
+	}
+	@Deprecated
+	public CSG setParameterIfNull(CSGDatabaseInstance instance,String key) {
+		if (instance.getMapOfparametrics(this).get(key) == null)
+			instance.getMapOfparametrics(this).put(key, new IParametric() {
 
 				@Override
 				public CSG change(CSG oldCSG, String parameterKey, Long newValue) {
@@ -3060,14 +3061,14 @@ public class CSG implements IuserAPI, Serializable {
 			});
 		return this;
 	}
+	@Deprecated
+	public Set<String> getParameters(CSGDatabaseInstance instance) {
 
-	public Set<String> getParameters() {
-
-		return getMapOfparametrics().keySet();
+		return instance.getMapOfparametrics(this).keySet();
 	}
-
-	public CSG setParameterNewValue(String key, double newValue) {
-		IParametric function = getMapOfparametrics().get(key);
+	@Deprecated
+	public CSG setParameterNewValue(CSGDatabaseInstance instance, String key, double newValue) {
+		IParametric function = instance.getMapOfparametrics(this).get(key);
 		if (function != null) {
 			CSG setManipulator = function.change(this, key, new Long((long) (newValue * 1000)))
 					.setManipulator(this.getManipulator());
@@ -3097,12 +3098,7 @@ public class CSG implements IuserAPI, Serializable {
 		return this;
 	}
 
-	public HashMap<String, IParametric> getMapOfparametrics() {
-		if (mapOfparametrics == null) {
-			mapOfparametrics = new HashMap<>();
-		}
-		return mapOfparametrics;
-	}
+
 
 	public boolean isMarkedForRegeneration() {
 		return markForRegeneration;
