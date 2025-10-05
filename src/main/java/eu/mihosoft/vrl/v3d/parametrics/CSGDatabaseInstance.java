@@ -25,7 +25,10 @@ public class CSGDatabaseInstance {
 	File dbFile = null;
 	final Type TT_mapStringString = new TypeToken<ConcurrentHashMap<String, Parameter>>() {
 	}.getType();
-	final Gson gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+	//final Gson gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+	private static Gson gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting()
+			.excludeFieldsWithoutExposeAnnotation()
+			.create();
 	final ConcurrentHashMap<String, CopyOnWriteArrayList<IParameterChanged>> parameterListeners = new ConcurrentHashMap<>();
 	
 	private  HashMap<Integer,HashMap<String, IParametric>> mapOfAllparametrics = null;
