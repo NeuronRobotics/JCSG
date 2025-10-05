@@ -135,31 +135,31 @@ import javafx.scene.transform.Affine;
 
 @SuppressWarnings("restriction")
 public class CSG implements IuserAPI, Serializable {
-	private static final double POINTS_CONTACT_DISTANCE = 0.00001;
-	private static int MinPolygonsForOffloading = 200;
-	private static final long serialVersionUID = 4071874097772427063L;
-	private static IDebug3dProvider providerOf3d = null;
-	private static int numFacesInOffset = 15;
-	public static final int INDEX_OF_PARAMETRIC_DEFAULT = 0;
-	public static final int INDEX_OF_PARAMETRIC_LOWER = 1;
-	public static final int INDEX_OF_PARAMETRIC_UPPER = 2;
-	private static HashMap<Integer,PrepForManufacturing> manufactuingMap = new HashMap<Integer, PrepForManufacturing>();
-	private static OptType defaultOptType = OptType.CSG_BOUND;
-	private static String defaultcolor = "#007956";
+	transient private static final double POINTS_CONTACT_DISTANCE = 0.00001;
+	transient private static int MinPolygonsForOffloading = 200;
+	transient private static final long serialVersionUID = 4071874097772427063L;
+	transient private static IDebug3dProvider providerOf3d = null;
+	transient private static int numFacesInOffset = 15;
+	transient public static final int INDEX_OF_PARAMETRIC_DEFAULT = 0;
+	transient public static final int INDEX_OF_PARAMETRIC_LOWER = 1;
+	transient public static final int INDEX_OF_PARAMETRIC_UPPER = 2;
+	transient private static HashMap<Integer, PrepForManufacturing> manufactuingMap = new HashMap<Integer, PrepForManufacturing>();
+	transient private static OptType defaultOptType = OptType.CSG_BOUND;
+	transient private static String defaultcolor = "#007956";
 	// private boolean triangulated;
-	private static boolean useStackTraces = true;
-	private static boolean preventNonManifoldTriangles = false;
-	private static boolean warned = false;
+	transient private static boolean useStackTraces = true;
+	transient private static boolean preventNonManifoldTriangles = false;
+	transient private static boolean warned = false;
 	// GPU processing
-	private static boolean useGPU = true;
-	private static int ExtraSpace = 100;
-	private static ICSGProgress progressMoniter = new ICSGProgress() {
+	transient private static boolean useGPU = true;
+	transient private static int ExtraSpace = 100;
+	transient private static ICSGProgress progressMoniter = new ICSGProgress() {
 		@Override
 		public void progressUpdate(int currentIndex, int finalIndex, String type, CSG intermediateShape) {
 			System.err.println(type + "  cur:" + currentIndex + " of " + finalIndex);
 		}
 	};
-	private static ForkJoinPool poolGlobal=null;
+	transient private static ForkJoinPool poolGlobal = null;
 
 	/** The polygons. */
 	private ArrayList<Polygon> polygons;
@@ -174,8 +174,7 @@ public class CSG implements IuserAPI, Serializable {
 	private PropertyStorage assembly;
 
 	/** The current. */
-	private MeshView current;
-
+	transient private MeshView current;
 
 	/** The color. */
 	// private Color color = getDefaultColor();
@@ -188,7 +187,7 @@ public class CSG implements IuserAPI, Serializable {
 	private Bounds bounds;
 
 	private ArrayList<String> groovyFileLines = new ArrayList<>();
-	private IRegenerate regenerate = null;
+	transient private IRegenerate regenerate = null;
 	private boolean markForRegeneration = false;
 	private String name = "";
 	private ArrayList<Transform> slicePlanes = null;
