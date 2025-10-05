@@ -31,20 +31,20 @@ public class CSGDatabaseInstance {
 			.excludeFieldsWithoutExposeAnnotation().create();
 	final ConcurrentHashMap<String, CopyOnWriteArrayList<IParameterChanged>> parameterListeners = new ConcurrentHashMap<>();
 
-	private HashMap<Integer, HashMap<String, IParametric>> mapOfAllparametrics = null;
+	private HashMap<String, HashMap<String, IParametric>> mapOfAllparametrics = null;
 
-	private HashMap<Integer, HashMap<String, IParametric>> getMap() {
+	private HashMap<String, HashMap<String, IParametric>> getMap() {
 		if (mapOfAllparametrics == null) {
-			mapOfAllparametrics = new HashMap<Integer, HashMap<String, IParametric>>();
+			mapOfAllparametrics = new HashMap<String, HashMap<String, IParametric>>();
 		}
 		return mapOfAllparametrics;
 	}
 
 	public HashMap<String, IParametric> getMapOfparametrics(CSG source) {
-		if (getMap().get(source.hashCode()) == null) {
-			getMap().put(source.hashCode(), new HashMap<>());
+		if (getMap().get(source.getUniqueId()) == null) {
+			getMap().put(source.getUniqueId(), new HashMap<>());
 		}
-		return getMap().get(source.hashCode());
+		return getMap().get(source.getUniqueId());
 	}
 
 	public CSGDatabaseInstance setParameter(CSG instance, Parameter w) {
@@ -133,7 +133,6 @@ public class CSGDatabaseInstance {
 
 	public Parameter get(String key) {
 		Parameter ret = null;
-		getDatabase();// load database before synchronization
 		// synchronized(database){
 		ret = getDatabase().get(key);
 		// }
