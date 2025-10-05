@@ -3,12 +3,18 @@ package eu.mihosoft.vrl.v3d.parametrics;
 import java.util.ArrayList;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import com.google.gson.annotations.Expose;
+
 public class Parameter {
-	
+	@Expose(serialize = true, deserialize = true)
 	private String name=null;
+	@Expose(serialize = true, deserialize = true)
 	private final ArrayList<String> options=new ArrayList<String>();
+	@Expose(serialize = true, deserialize = true)
 	private Long value=null;
+	@Expose(serialize = true, deserialize = true)
 	private String strValue=null;
+	@Expose(serialize = false, deserialize = false)
 	private CSGDatabaseInstance instance;
 	
 	//public Parameter(){}
