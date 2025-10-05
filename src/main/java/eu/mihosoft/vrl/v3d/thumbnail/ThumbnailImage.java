@@ -11,6 +11,7 @@ import javax.imageio.ImageIO;
 import eu.mihosoft.vrl.v3d.Bounds;
 import eu.mihosoft.vrl.v3d.CSG;
 import eu.mihosoft.vrl.v3d.Vector3d;
+import eu.mihosoft.vrl.v3d.parametrics.CSGDatabaseInstance;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.SceneAntialiasing;
@@ -66,11 +67,11 @@ public class ThumbnailImage {
 		return new Bounds(min, max);
 	}
 
-	public static WritableImage get(List<CSG> c) {
+	public static WritableImage get(List<CSG> c,CSGDatabaseInstance instance) {
 		ArrayList<CSG> csgList = new ArrayList<CSG>();
 		for (CSG cs : c) {
 			if (cs.getManipulator() != null) {
-				csgList.add(cs.transformed(TransformConverter.fromAffine(cs.getManipulator())).syncProperties(cs));
+				csgList.add(cs.transformed(TransformConverter.fromAffine(cs.getManipulator())).syncProperties(instance,cs));
 			} else
 				csgList.add(cs);
 		}
@@ -153,20 +154,20 @@ public class ThumbnailImage {
 		return snapshot;
 	}
 
-	public static Thread writeImage(CSG incoming, File toPNG) {
+	public static Thread writeImage(CSGDatabaseInstance instance,CSG incoming, File toPNG) {
 		ArrayList<CSG> bits = new ArrayList<CSG>();
 		bits.add(incoming);
-		return writeImage(bits, toPNG);
+		return writeImage(instance,bits, toPNG);
 	}
 
-	public static Thread writeImage(List<CSG> incoming, File toPNG) {
+	public static Thread writeImage(CSGDatabaseInstance instance,List<CSG> incoming, File toPNG) {
 		Thread t = new Thread(new Runnable() {
 			WritableImage img = null;
 
 			@Override
 			public void run() {
 				File image = toPNG;
-				javafx.application.Platform.runLater(() -> img = ThumbnailImage.get(incoming));
+				javafx.application.Platform.runLater(() -> img = ThumbnailImage.get(incoming,instance));
 				while (img == null)
 					try {
 						Thread.sleep(16);

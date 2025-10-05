@@ -2938,22 +2938,26 @@ public class CSG implements IuserAPI, Serializable {
 		if (useStackTraces) {
 			this.addCreationEventStringList(dyingCSG.getCreationEventStackTraceList());
 		}
-//		Set<String> params = dyingCSG.getParameters();
-//		for (String param : params) {
-//			boolean existing = false;
-//			for (String s : this.getParameters()) {
-//				if (s.contentEquals(param))
-//					existing = true;
-//			}
-//			if (!existing) {
-//				Parameter vals = CSGDatabase.get(param);
-//				if (vals != null)
-//					this.setParameter(vals, dyingCSG.getMapOfparametrics().get(param));
-//			}
-//		}
 		if (getName().length() == 0)
 			setName(dyingCSG.getName());
 		setColor(dyingCSG.getColor());
+		return this;
+	}
+
+	public CSG syncParameter(CSGDatabaseInstance instance,CSG dyingCSG) {
+		Set<String> params = dyingCSG.getParameters(instance);
+		for (String param : params) {
+			boolean existing = false;
+			for (String s : this.getParameters(instance)) {
+				if (s.contentEquals(param))
+					existing = true;
+			}
+			if (!existing) {
+				Parameter vals = instance.get(param);
+				if (vals != null)
+					this.setParameter(instance,vals, dyingCSG.getMapOfparametrics(instance).get(param));
+			}
+		}
 		return this;
 	}
 
@@ -3057,44 +3061,44 @@ public class CSG implements IuserAPI, Serializable {
 		return instance.getMapOfparametrics(this);
 	}
 	
-	@Deprecated 
-	public HashMap<String, IParametric> getMapOfparametrics(){
-		new RuntimeException("This is using LEGACY database!").printStackTrace();
-		return CSGDatabase.getInstance().getMapOfparametrics(this);
-	}
-	@Deprecated
-	public CSG setParameter(Parameter w) {
-		new RuntimeException("This is using LEGACY database!").printStackTrace();
-		return setParameter(CSGDatabase.getInstance(),w);
-	}
-	@Deprecated
-	public CSG setParameter(String key, double defaultValue, double upperBound, double lowerBound,
-			IParametric function) {
-		new RuntimeException("This is using LEGACY database!").printStackTrace();
-		setParameter(CSGDatabase.getInstance(), key, defaultValue, upperBound, lowerBound, function);
-		return this;
-	}
-	@Deprecated
-	public CSG setParameter(Parameter w, IParametric function) {
-		new RuntimeException("This is using LEGACY database!").printStackTrace();
-		return setParameter(CSGDatabase.getInstance(), w, function);
-	}
-	@Deprecated
-	public CSG setParameterIfNull(String key) {
-		new RuntimeException("This is using LEGACY database!").printStackTrace();
-		setParameterIfNull(CSGDatabase.getInstance(), key);
-		return this;
-	}
-	@Deprecated
-	public Set<String> getParameters() {
-		new RuntimeException("This is using LEGACY database!").printStackTrace();
-		return getParameters(CSGDatabase.getInstance());
-	}
-	@Deprecated
-	public CSG setParameterNewValue( String key, double newValue) {
-		new RuntimeException("This is using LEGACY database!").printStackTrace();
-		return setParameterNewValue(CSGDatabase.getInstance(),key,newValue);
-	}
+//	@Deprecated 
+//	public HashMap<String, IParametric> getMapOfparametrics(){
+//		new RuntimeException("This is using LEGACY database!").printStackTrace();
+//		return CSGDatabase.getInstance().getMapOfparametrics(this);
+//	}
+//	@Deprecated
+//	public CSG setParameter(Parameter w) {
+//		new RuntimeException("This is using LEGACY database!").printStackTrace();
+//		return setParameter(CSGDatabase.getInstance(),w);
+//	}
+//	@Deprecated
+//	public CSG setParameter(String key, double defaultValue, double upperBound, double lowerBound,
+//			IParametric function) {
+//		new RuntimeException("This is using LEGACY database!").printStackTrace();
+//		setParameter(CSGDatabase.getInstance(), key, defaultValue, upperBound, lowerBound, function);
+//		return this;
+//	}
+//	@Deprecated
+//	public CSG setParameter(Parameter w, IParametric function) {
+//		new RuntimeException("This is using LEGACY database!").printStackTrace();
+//		return setParameter(CSGDatabase.getInstance(), w, function);
+//	}
+//	@Deprecated
+//	public CSG setParameterIfNull(String key) {
+//		new RuntimeException("This is using LEGACY database!").printStackTrace();
+//		setParameterIfNull(CSGDatabase.getInstance(), key);
+//		return this;
+//	}
+//	@Deprecated
+//	public Set<String> getParameters() {
+//		new RuntimeException("This is using LEGACY database!").printStackTrace();
+//		return getParameters(CSGDatabase.getInstance());
+//	}
+//	@Deprecated
+//	public CSG setParameterNewValue( String key, double newValue) {
+//		new RuntimeException("This is using LEGACY database!").printStackTrace();
+//		return setParameterNewValue(CSGDatabase.getInstance(),key,newValue);
+//	}
 
 	public CSG setRegenerate(IRegenerate function) {
 		regenerate = function;
@@ -3726,10 +3730,11 @@ public class CSG implements IuserAPI, Serializable {
 	public Optional<String> getMobileBaseName() {
 		return getStorage().getValue("MobileBaseName");
 	}
-	public CSG syncProperties(CSG dying) {
+	public CSG syncProperties(CSGDatabaseInstance instance,CSG dying) {
 		getStorage().syncProperties(dying.getStorage());
 		regenerate = dying.regenerate;
 		setManipulator(dying.manipulator);
+		syncParameter(instance,dying);
 		return this;
 	}
 
