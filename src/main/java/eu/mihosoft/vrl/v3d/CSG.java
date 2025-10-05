@@ -146,6 +146,8 @@ public class CSG implements IuserAPI, Serializable {
 	transient public static final int INDEX_OF_PARAMETRIC_UPPER = 2;
 	transient private static HashMap<String, PrepForManufacturing> manufactuingMap = new HashMap<String, PrepForManufacturing>();
 	transient private static HashMap<String,IRegenerate> regenerate = new HashMap<String, IRegenerate>();
+	transient private static HashMap<String,Affine> manipulator = new HashMap<String, Affine>();
+
 	transient private static OptType defaultOptType = OptType.CSG_BOUND;
 	transient private static String defaultcolor = "#007956";
 	// private boolean triangulated;
@@ -185,7 +187,6 @@ public class CSG implements IuserAPI, Serializable {
 	private double b = getDefaultColor().getBlue();
 	private double o = getDefaultColor().getOpacity();
 	/** The manipulator. */
-	private Affine manipulator;
 	private Bounds bounds;
 
 	private ArrayList<String> groovyFileLines = new ArrayList<>();
@@ -297,14 +298,13 @@ public class CSG implements IuserAPI, Serializable {
 	 * @param manipulator the manipulator
 	 * @return the affine
 	 */
-	public CSG setManipulator(javafx.scene.transform.Affine manipulator) {
+	public CSG setManipulator(javafx.scene.transform.Affine m) {
 		if (manipulator == null)
 			return this;
-		Affine old = manipulator;
-		this.manipulator = manipulator;
+		manipulator.put(getUniqueId(), m);
 		if (getCurrentMeshView() != null) {
 			getCurrentMeshView().getTransforms().clear();
-			getCurrentMeshView().getTransforms().add(manipulator);
+			getCurrentMeshView().getTransforms().add(m);
 		}
 		return this;
 	}
@@ -553,7 +553,7 @@ public class CSG implements IuserAPI, Serializable {
 
 	public ArrayList<CSG> move(ArrayList<Transform> p) {
 		ArrayList<CSG> bits = new ArrayList<CSG>();
-		for (Transform t : p) {
+		for (int i = 0; i < p.size(); i++) {
 			bits.add(this.clone());
 		}
 		return move(bits, p);
@@ -931,13 +931,13 @@ public class CSG implements IuserAPI, Serializable {
 				if(test==null)
 					continue;
 				boolean touching =false;
-				int t=-1;
+				//int t=-1;
 				for(int j=0;j<incoming.size();j++) {
 					if(i==j)
 						continue;
 					if(test.isBoundsTouching(incoming.get(j))) {
 						touching=true;
-						t=j;
+						//t=j;
 						break;
 					}
 				}
@@ -1856,7 +1856,7 @@ public class CSG implements IuserAPI, Serializable {
 		tp[0] = 0;
 		tp[1] = testPointChunk;
 		HashSet<Integer> unique = new HashSet<Integer>();
-		int running = 0;
+		//int running = 0;
 		for (int i = 0; i < numberOfPolygons; i++) {
 			int ps = polyStartIndex[i];
 			int size = polySizes[i];
@@ -2878,9 +2878,9 @@ public class CSG implements IuserAPI, Serializable {
 		return union(minkowskiHullShape(printNozzel));
 	}
 
-	private int getNumFacesForOffsets() {
-		return getNumfacesinoffset();
-	}
+//	private int getNumFacesForOffsets() {
+//		return getNumfacesinoffset();
+//	}
 
 	public CSG makeKeepaway(Number sn) {
 		double shellThickness = sn.doubleValue();
@@ -2909,9 +2909,9 @@ public class CSG implements IuserAPI, Serializable {
 		return manipulator!=null;
 	}
 	public Affine getManipulator() {
-		if (manipulator == null)
-			return new Affine();
-		return manipulator;
+		if (manipulator.get(uniqueId) == null)
+			manipulator.put(uniqueId, new Affine());
+		return manipulator.get(uniqueId);
 	}
 
 	public CSG addCreationEventStackTraceList(ArrayList<Exception> incoming) {
@@ -3747,8 +3747,8 @@ public class CSG implements IuserAPI, Serializable {
 	}
 	public CSG syncProperties(CSGDatabaseInstance instance,CSG dying) {
 		getStorage().syncProperties(dying.getStorage());
-		regenerate = dying.regenerate;
-		setManipulator(dying.manipulator);
+		regenerate.put(uniqueId,regenerate.get(dying.uniqueId)) ;
+		setManipulator(manipulator.get(dying.uniqueId));
 		syncParameter(instance,dying);
 		return this;
 	}
