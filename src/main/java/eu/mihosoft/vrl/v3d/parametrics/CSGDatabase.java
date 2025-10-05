@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+
 import eu.mihosoft.vrl.v3d.CSG;
 
 public class CSGDatabase {
@@ -63,6 +64,7 @@ public class CSGDatabase {
 //	}
 
 	public static CSGDatabaseInstance getInstance() {
+		new Exception("Depricated database access!").printStackTrace();
 		return instance;
 	}
 	public static void setInstance(CSGDatabaseInstance instance) {
