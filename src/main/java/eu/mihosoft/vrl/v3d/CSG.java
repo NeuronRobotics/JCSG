@@ -2960,15 +2960,7 @@ public class CSG implements IuserAPI, Serializable {
 		syncCadoodleCatagories(dyingCSG);
 		return this;
 	}
-	private void syncCadoodleCatagories(CSG dyingCSG) {
-		setIsHole(dyingCSG.isHole());
-		setIsHide(dyingCSG.isHide());
-		setIsAlwaysShow(dyingCSG.isAlwaysShow());
-		setIsLock(dyingCSG.isLock());
-		setIsMotionLock(dyingCSG.isMotionLock());
-		setIsWireFrame(dyingCSG.isWireFrame());
-		setColor(dyingCSG.getColor());
-	}
+
 
 	public CSG syncParameter(CSGDatabaseInstance instance,CSG dyingCSG) {
 		syncCadoodleCatagories(dyingCSG);
@@ -3717,6 +3709,7 @@ public class CSG implements IuserAPI, Serializable {
 		getStorage().set("isAlwaysShow", Hide);
 		return this;
 	}
+	
 
 	public boolean isAlwaysShow() {
 		Optional<Boolean> o = getStorage().getValue("isAlwaysShow");
@@ -3736,6 +3729,17 @@ public class CSG implements IuserAPI, Serializable {
 		if (o.isPresent())
 			return o.get();
 		return false;
+	}
+	
+	private void syncCadoodleCatagories(CSG dyingCSG) {
+		setIsHole(dyingCSG.isHole());
+		setIsHide(dyingCSG.isHide());
+		setIsAlwaysShow(dyingCSG.isAlwaysShow());
+		setIsLock(dyingCSG.isLock());
+		setIsMotionLock(dyingCSG.isMotionLock());
+		setIsWireFrame(dyingCSG.isWireFrame());
+		setColor(dyingCSG.getColor());
+		setNoScale(dyingCSG.isNoScale());
 	}
 	// Hole
 	public CSG setLimbName(String name) {
