@@ -2957,11 +2957,21 @@ public class CSG implements IuserAPI, Serializable {
 		}
 		if (getName().length() == 0)
 			setName(dyingCSG.getName());
-		setColor(dyingCSG.getColor());
+		syncCadoodleCatagories(dyingCSG);
 		return this;
+	}
+	private void syncCadoodleCatagories(CSG dyingCSG) {
+		setIsHole(dyingCSG.isHole());
+		setIsHide(dyingCSG.isHide());
+		setIsAlwaysShow(dyingCSG.isAlwaysShow());
+		setIsLock(dyingCSG.isLock());
+		setIsMotionLock(dyingCSG.isMotionLock());
+		setIsWireFrame(dyingCSG.isWireFrame());
+		setColor(dyingCSG.getColor());
 	}
 
 	public CSG syncParameter(CSGDatabaseInstance instance,CSG dyingCSG) {
+		syncCadoodleCatagories(dyingCSG);
 		Set<String> params = dyingCSG.getParameters(instance);
 		for (String param : params) {
 			boolean existing = false;
