@@ -113,13 +113,13 @@ public class CSGDatabaseInstance {
 			try {
 				dbFile.createNewFile();
 				saveDatabase();
-			} catch (IOException e) {
+			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		}else {
-			getDatabase();
 		}
+		getDatabase();
+		
 	}
 
 	public void set(String key, Parameter value) {
@@ -139,15 +139,15 @@ public class CSGDatabaseInstance {
 		return ret;
 	}
 
-	public void clear() {
-
-		getDatabase();
-		// synchronized(database){
-		database.clear();
-		// }
-		parameterListeners.clear();
-		saveDatabase();
-	}
+//	public void clear() {
+//
+//		getDatabase();
+//		// synchronized(database){
+//		database.clear();
+//		// }
+//		parameterListeners.clear();
+//		saveDatabase();
+//	}
 
 	public void addParameterListener(String key, IParameterChanged l) {
 		CopyOnWriteArrayList<IParameterChanged> list = getParamListeners(key);
@@ -224,15 +224,19 @@ public class CSGDatabaseInstance {
 					}
 				}
 			} catch (Exception e) {
-				// e.printStackTrace();
-				// System.err.println("Failed to load " + dbFile.getAbsolutePath());
+				e.printStackTrace();
+				System.err.println("Failed to load " + dbFile.getAbsolutePath());
 				setDatabase(new ConcurrentHashMap<String, Parameter>());
-				saveDatabase();
 			}
 			Runtime.getRuntime().addShutdownHook(new Thread() {
 				@Override
 				public void run() {
-					saveDatabase();
+					try {
+						saveDatabase();
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 			});
 
@@ -276,7 +280,10 @@ public class CSGDatabaseInstance {
 		return writeOut;
 	}
 
-	public void saveDatabase() {
+	public void saveDatabase() throws Exception {
+		if(database.size()==0) {
+			throw new Exception("Can not save an empty database! to "+getDbFile().getAbsolutePath());
+		}
 		String writeOut = getDataBaseString();
 		try {
 			if (!getDbFile().exists()) {
