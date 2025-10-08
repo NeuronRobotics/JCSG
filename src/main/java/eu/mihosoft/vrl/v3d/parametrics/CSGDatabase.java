@@ -1,6 +1,8 @@
 package eu.mihosoft.vrl.v3d.parametrics;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -8,8 +10,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import eu.mihosoft.vrl.v3d.CSG;
 
 public class CSGDatabase {
-	private static CSGDatabaseInstance instance = new CSGDatabaseInstance(new File("CSGdatabase.json"));
-	
+	private static CSGDatabaseInstance instance ;
 //	public static void set(String key, Parameter value) {
 //		getInstance().set(key, value);
 //	}
@@ -65,6 +66,14 @@ public class CSGDatabase {
 
 	public static CSGDatabaseInstance getInstance() {
 		new Exception("Depricated database access!").printStackTrace();
+		if(instance==null) {
+			try {
+				instance = new CSGDatabaseInstance( Files.createTempFile("CSGDatabase", ".json").toFile());
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+
+		}
 		return instance;
 	}
 	public static void setInstance(CSGDatabaseInstance instance) {
