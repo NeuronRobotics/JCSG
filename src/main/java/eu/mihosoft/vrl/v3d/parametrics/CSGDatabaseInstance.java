@@ -281,7 +281,8 @@ public class CSGDatabaseInstance {
 
 	public void saveDatabase() throws Exception {
 		if(database.size()==0) {
-			throw new Exception("Can not save an empty database! to "+getDbFile().getAbsolutePath());
+			 new Exception("Can not save an empty database! to "+getDbFile().getAbsolutePath()).printStackTrace();;
+			 return;
 		}
 		String writeOut = getDataBaseString();
 		try {
