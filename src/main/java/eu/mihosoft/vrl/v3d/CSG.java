@@ -2957,6 +2957,8 @@ public class CSG implements IuserAPI, Serializable {
 		}
 		if (getName().length() == 0)
 			setName(dyingCSG.getName());
+		setColor(dyingCSG.getColor());
+		//str.syncProperties(dyingCSG.str);
 		syncCadoodleCatagories(dyingCSG);
 		return this;
 	}
@@ -3658,6 +3660,9 @@ public class CSG implements IuserAPI, Serializable {
 
 	// Hole
 	public CSG setIsMotionLock(boolean Lock) {
+		if(Lock) {
+			new RuntimeException("Motion Lock Enabled here").printStackTrace();
+		}
 		getStorage().set("isMotionLock", Lock);
 		return this;
 	}
@@ -3740,6 +3745,15 @@ public class CSG implements IuserAPI, Serializable {
 		setIsWireFrame(dyingCSG.isWireFrame());
 		setColor(dyingCSG.getColor());
 		setNoScale(dyingCSG.isNoScale());
+	}
+	public void setDefaultCadoodleCatagories() {
+		setIsHole(false);
+		setIsHide(false);
+		setIsAlwaysShow(false);
+		setIsLock(false);
+		setIsMotionLock(false);
+		setIsWireFrame(false);
+		setNoScale(false);
 	}
 	// Hole
 	public CSG setLimbName(String name) {
