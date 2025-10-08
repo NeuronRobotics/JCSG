@@ -220,7 +220,6 @@ public class CSGDatabaseInstance {
 						setDatabase(tm);
 					} else {
 						setDatabase(new ConcurrentHashMap<String, Parameter>());
-						saveDatabase();
 					}
 				}
 			} catch (Exception e) {
