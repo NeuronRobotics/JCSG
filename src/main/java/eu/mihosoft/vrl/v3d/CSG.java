@@ -3161,9 +3161,7 @@ public class CSG implements IuserAPI, Serializable {
 	public boolean touching(CSG incoming) {
 		// Fast bounding box overlap check, quick fail if not intersecting
 		// bounding boxes
-		if (this.getMaxX() > incoming.getMinX() && this.getMinX() < incoming.getMaxX()
-				&& this.getMaxY() > incoming.getMinY() && this.getMinY() < incoming.getMaxY()
-				&& this.getMaxZ() > incoming.getMinZ() && this.getMinZ() < incoming.getMaxZ()) {
+		if (isBoundsTouching(incoming)) {
 			// Run a full intersection
 			CSG inter = this.intersect(incoming);
 			if (inter.getPolygons().size() > 0) {
