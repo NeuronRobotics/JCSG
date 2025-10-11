@@ -3658,9 +3658,9 @@ public class CSG implements IuserAPI, Serializable {
 
 	// Hole
 	public CSG setIsMotionLock(boolean Lock) {
-		if(Lock) {
-			new RuntimeException("Motion Lock Enabled here").printStackTrace();
-		}
+//		if(Lock) {
+//			new RuntimeException("Motion Lock Enabled here").printStackTrace();
+//		}
 		getStorage().set("isMotionLock", Lock);
 		return this;
 	}
