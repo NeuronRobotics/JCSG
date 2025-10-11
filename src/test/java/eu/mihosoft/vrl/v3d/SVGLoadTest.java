@@ -13,6 +13,7 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
+import eu.mihosoft.vrl.v3d.parametrics.CSGDatabase;
 import eu.mihosoft.vrl.v3d.svg.SVGLoad;
 import eu.mihosoft.vrl.v3d.thumbnail.ThumbnailImage;
 import javafx.scene.paint.Color;
@@ -76,7 +77,7 @@ public class SVGLoadTest {
 			throw new RuntimeException("Failed to load");
 		try {
 			ThumbnailImage.setCullFaceValue(CullFace.NONE);
-			ThumbnailImage.writeImage(parts,new File(svg.getAbsolutePath()+".png")).join();
+			ThumbnailImage.writeImage(CSGDatabase.getInstance(),parts,new File(svg.getAbsolutePath()+".png")).join();
 		} catch (InterruptedException e) {
 			// Auto-generated catch block
 			e.printStackTrace();
@@ -127,7 +128,7 @@ public class SVGLoadTest {
 		ArrayList<CSG>parts =run(s);
 		try {
 			ThumbnailImage.setCullFaceValue(CullFace.NONE);
-			ThumbnailImage.writeImage(parts,new File(svg.getAbsolutePath()+".png")).join();
+			ThumbnailImage.writeImage(CSGDatabase.getInstance(),parts,new File(svg.getAbsolutePath()+".png")).join();
 		} catch (InterruptedException e) {
 			// Auto-generated catch block
 			e.printStackTrace();
@@ -146,7 +147,7 @@ public class SVGLoadTest {
 		ArrayList<CSG>parts =new ArrayList<>(Arrays.asList(CSG.unionAll(run(s))));
 		try {
 			ThumbnailImage.setCullFaceValue(CullFace.NONE);
-			ThumbnailImage.writeImage(parts,new File(svg.getAbsolutePath()+".png")).join();
+			ThumbnailImage.writeImage(CSGDatabase.getInstance(),parts,new File(svg.getAbsolutePath()+".png")).join();
 		} catch (InterruptedException e) {
 			// Auto-generated catch block
 			e.printStackTrace();
@@ -165,7 +166,7 @@ public class SVGLoadTest {
 		ArrayList<CSG>parts =run(s);
 		try {
 			ThumbnailImage.setCullFaceValue(CullFace.NONE);
-			ThumbnailImage.writeImage(parts,new File(svg.getAbsolutePath()+".png")).join();
+			ThumbnailImage.writeImage(CSGDatabase.getInstance(),parts,new File(svg.getAbsolutePath()+".png")).join();
 		} catch (InterruptedException e) {
 			// Auto-generated catch block
 			e.printStackTrace();

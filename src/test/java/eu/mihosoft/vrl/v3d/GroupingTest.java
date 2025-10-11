@@ -4,6 +4,8 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
+import eu.mihosoft.vrl.v3d.parametrics.CSGDatabase;
+
 public class GroupingTest {
 
 	@Test
@@ -13,7 +15,7 @@ public class GroupingTest {
 		c.addGroupMembership(groupID);
 		c.setName("MyName");
 		c.addIsGroupResult(groupID);
-		CSG copy = c.clone().syncProperties(c).setName(c.getName());
+		CSG copy = c.clone().syncProperties(CSGDatabase.getInstance(),c).setName(c.getName());
 		copy.removeGroupMembership(groupID);
 		copy.removeIsGroupResult(groupID);
 		

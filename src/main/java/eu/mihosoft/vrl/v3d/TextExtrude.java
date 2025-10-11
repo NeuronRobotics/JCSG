@@ -168,12 +168,12 @@ public class TextExtrude {
 //		subtract.getElements().forEach(this::getPoints);
 
 		for (int i = 0; i < sections.size(); i++) {
+			sections.get(i).setIsHole(false);
 			for (CSG h : holes) {
 				try {
 					if (sections.get(i).isBoundsTouching(h)) {
 						// println "Hole found "
-						CSG nl = sections.get(i).difference(h);
-
+						CSG nl = sections.get(i).difference(h).setIsHole(false);
 						sections.set(i, nl);
 					}
 				} catch (Exception e) {

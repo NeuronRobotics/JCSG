@@ -8,6 +8,8 @@ import java.util.ArrayList;
 
 import org.junit.Test;
 
+import eu.mihosoft.vrl.v3d.parametrics.CSGDatabase;
+import eu.mihosoft.vrl.v3d.parametrics.CSGDatabaseInstance;
 import eu.mihosoft.vrl.v3d.parametrics.LengthParameter;
 
 public class ServerClientTest {
@@ -47,8 +49,12 @@ public class ServerClientTest {
 					return incoming;
 				}
 			});
-			LengthParameter param = new LengthParameter("parameter", (double) 35, new ArrayList<Double>());
-			a.setParameter(param);
+			CSGDatabaseInstance instance = CSGDatabase.getInstance();
+			
+			LengthParameter param = new LengthParameter(instance,"parameter", (double) 35, new ArrayList<Double>());
+			
+			a.setParameter(CSGDatabase.getInstance(),param );
+			instance.saveDatabase();
 			CSG b = new Cube(20, 30, 5).toCSG();
 			b.getBounds();
 			CSG c = new Cube(10, 10, 10).toCSG();

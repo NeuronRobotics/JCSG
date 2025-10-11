@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -14,30 +17,115 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
+import eu.mihosoft.vrl.v3d.CSG;
+
 public class CSGDatabaseInstance {
 
 	ConcurrentHashMap<String, Parameter> database = null;
 	File dbFile = null;
 	final Type TT_mapStringString = new TypeToken<ConcurrentHashMap<String, Parameter>>() {
 	}.getType();
-	final Gson gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+	// final Gson gson = new
+	// GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+	private static Gson gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting()
+			.excludeFieldsWithoutExposeAnnotation().create();
 	final ConcurrentHashMap<String, CopyOnWriteArrayList<IParameterChanged>> parameterListeners = new ConcurrentHashMap<>();
+
+	private HashMap<String, HashMap<String, IParametric>> mapOfAllparametrics = null;
+
+	private HashMap<String, HashMap<String, IParametric>> getMap() {
+		if (mapOfAllparametrics == null) {
+			mapOfAllparametrics = new HashMap<String, HashMap<String, IParametric>>();
+		}
+		return mapOfAllparametrics;
+	}
+
+	public HashMap<String, IParametric> getMapOfparametrics(CSG source) {
+		if (getMap().get(source.getUniqueId()) == null) {
+			getMap().put(source.getUniqueId(), new HashMap<>());
+		}
+		return getMap().get(source.getUniqueId());
+	}
+
+	public CSGDatabaseInstance setParameter(CSG instance, Parameter w) {
+		setParameter(instance, w, new IParametric() {
+			@Override
+			public CSG change(CSG oldCSG, String parameterKey, Long newValue) {
+				if (parameterKey.contentEquals(w.getName()))
+					get(w.getName()).setValue(newValue);
+				return oldCSG;
+			}
+		});
+		return this;
+	}
+
+	public CSGDatabaseInstance setParameter(CSG instance, String key, double defaultValue, double upperBound,
+			double lowerBound, IParametric function) {
+		ArrayList<Double> vals = new ArrayList<Double>();
+		vals.add(upperBound);
+		vals.add(lowerBound);
+		setParameter(instance, new LengthParameter(this, key, defaultValue, vals), function);
+		return this;
+	}
+
+	public CSGDatabaseInstance setParameter(CSG obj, Parameter w, IParametric function) {
+		if (w == null)
+			return this;
+		if (get(w.getName()) == null)
+			set(w.getName(), w);
+		if (getMapOfparametrics(obj).get(w.getName()) == null)
+			getMapOfparametrics(obj).put(w.getName(), function);
+		return this;
+	}
+
+	public CSGDatabaseInstance setParameterIfNull(CSG instance, String key) {
+		if (getMapOfparametrics(instance).get(key) == null)
+			getMapOfparametrics(instance).put(key, new IParametric() {
+
+				@Override
+				public CSG change(CSG oldCSG, String parameterKey, Long newValue) {
+					get(key).setValue(newValue);
+					return oldCSG;
+				}
+			});
+		return this;
+	}
+
+	public Set<String> getParameters(CSG instance) {
+
+		return getMapOfparametrics(instance).keySet();
+	}
+
+	public CSGDatabaseInstance setParameterNewValue(CSG instance, String key, double newValue) {
+		IParametric function = getMapOfparametrics(instance).get(key);
+		if (function != null) {
+			CSG setManipulator = function.change(instance, key, new Long((long) (newValue * 1000)))
+					.setManipulator(instance.getManipulator());
+			setManipulator.setColor(instance.getColor());
+			return this;
+		}
+		return this;
+	}
 
 	public CSGDatabaseInstance(File db) {
 		dbFile = db;
-		if(!dbFile.exists())
+		if (!dbFile.exists()) {
 			try {
 				dbFile.createNewFile();
-			} catch (IOException e) {
+				saveDatabase();
+			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		}
+		getDatabase();
+		
 	}
 
 	public void set(String key, Parameter value) {
 		getDatabase();
 		// synchronized(database){
-		if(value==null)
+		if (value == null)
 			throw new RuntimeException();
 		getDatabase().put(key, value);
 		// }
@@ -45,22 +133,21 @@ public class CSGDatabaseInstance {
 
 	public Parameter get(String key) {
 		Parameter ret = null;
-		getDatabase();// load database before synchronization
 		// synchronized(database){
 		ret = getDatabase().get(key);
 		// }
 		return ret;
 	}
 
-	public void clear() {
-
-		getDatabase();
-		// synchronized(database){
-		database.clear();
-		// }
-		parameterListeners.clear();
-		saveDatabase();
-	}
+//	public void clear() {
+//
+//		getDatabase();
+//		// synchronized(database){
+//		database.clear();
+//		// }
+//		parameterListeners.clear();
+//		saveDatabase();
+//	}
 
 	public void addParameterListener(String key, IParameterChanged l) {
 		CopyOnWriteArrayList<IParameterChanged> list = getParamListeners(key);
@@ -127,31 +214,33 @@ public class CSGDatabaseInstance {
 					ConcurrentHashMap<String, Parameter> tm = gson.fromJson(jsonString, TT_mapStringString);
 
 					if (tm != null) {
-//					        	////System.out.println("Hash Map loaded from "+jsonString);
-//					        	for(String k:tm.keySet()){
-//						        	////System.out.println("Key: "+k+" vlaue= "+tm.get(k));
-//						        }
+						for (String k : tm.keySet()) {
+							tm.get(k).setInstance(this);
+						}
 						setDatabase(tm);
-					}else {
+					} else {
 						setDatabase(new ConcurrentHashMap<String, Parameter>());
-						saveDatabase();
 					}
 				}
 			} catch (Exception e) {
-				//e.printStackTrace();
-				//System.err.println("Failed to load " + dbFile.getAbsolutePath());
+				e.printStackTrace();
+				System.err.println("Failed to load " + dbFile.getAbsolutePath());
 				setDatabase(new ConcurrentHashMap<String, Parameter>());
-				saveDatabase();
 			}
 			Runtime.getRuntime().addShutdownHook(new Thread() {
 				@Override
 				public void run() {
-					saveDatabase();
+					try {
+						saveDatabase();
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 			});
 
 		}
-		if(database==null)
+		if (database == null)
 			throw new RuntimeException();
 		return database;
 	}
@@ -167,7 +256,9 @@ public class CSGDatabaseInstance {
 				ConcurrentHashMap<String, Parameter> tm = gson.fromJson(jsonString, TT_mapStringString);
 				if (tm != null)
 					for (String k : tm.keySet()) {
-						set(k, tm.get(k));
+						Parameter value = tm.get(k);
+						value.setInstance(this);
+						set(k, value);
 					}
 				saveDatabase();
 			} catch (Exception e) {
@@ -188,7 +279,11 @@ public class CSGDatabaseInstance {
 		return writeOut;
 	}
 
-	public void saveDatabase() {
+	public void saveDatabase() throws Exception {
+		if(database.size()==0) {
+			 new Exception("Can not save an empty database! to "+getDbFile().getAbsolutePath()).printStackTrace();;
+			 return;
+		}
 		String writeOut = getDataBaseString();
 		try {
 			if (!getDbFile().exists()) {

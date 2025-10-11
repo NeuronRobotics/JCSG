@@ -7,6 +7,7 @@ import java.io.IOException;
 
 import org.junit.Test;
 
+import eu.mihosoft.vrl.v3d.parametrics.CSGDatabase;
 import eu.mihosoft.vrl.v3d.thumbnail.ThumbnailImage;
 import javafx.scene.shape.CullFace;
 
@@ -19,7 +20,7 @@ public class StlLoadTest {
 		CSG loaded = STL.file(file.toPath());
 		try {
 			ThumbnailImage.setCullFaceValue(CullFace.NONE);
-			ThumbnailImage.writeImage(loaded,new File(file.getAbsolutePath()+".png")).join();
+			ThumbnailImage.writeImage(CSGDatabase.getInstance(),loaded,new File(file.getAbsolutePath()+".png")).join();
 		} catch (InterruptedException e) {
 			// Auto-generated catch block
 			e.printStackTrace();

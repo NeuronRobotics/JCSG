@@ -3,23 +3,32 @@ package eu.mihosoft.vrl.v3d.parametrics;
 import java.util.ArrayList;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import com.google.gson.annotations.Expose;
+
 public class Parameter {
-	
+	@Expose(serialize = true, deserialize = true)
 	private String name=null;
+	@Expose(serialize = true, deserialize = true)
 	private final ArrayList<String> options=new ArrayList<String>();
+	@Expose(serialize = true, deserialize = true)
 	private Long value=null;
+	@Expose(serialize = true, deserialize = true)
 	private String strValue=null;
+	@Expose(serialize = false, deserialize = false)
+	private CSGDatabaseInstance instance;
 	
-	public Parameter(){}
+	//public Parameter(){}
+	public Parameter(CSGDatabaseInstance instance){
+		this.setInstance(instance);}
 	
 	protected void setup(String key,Long defaultValue,ArrayList<String> options){
 		this.name = key;
-		if(CSGDatabase.get(name)==null)
+		if(getInstance().get(name)==null)
 			setValue(defaultValue);
 		else{
-			setValue(CSGDatabase.get(name).getValue());
+			setValue(getInstance().get(name).getValue());
 		}
-		CSGDatabase.addParameterListener(name, new IParameterChanged() {
+		getInstance().addParameterListener(name, new IParameterChanged() {
 			@Override
 			public void parameterChanged(String name, Parameter p) {
 				value = p.getValue();// if another instance of parameter with this key changes value
@@ -28,16 +37,16 @@ public class Parameter {
 		for(String o:options){
 			this.options.add(o);
 		}
-		CSGDatabase.set(key, this);
+		getInstance().set(key, this);
 	}
 	protected void setup(String key,String defaultValue,ArrayList<String> options){
 		this.name = key;
-		if(CSGDatabase.get(name)==null)
+		if(getInstance().get(name)==null)
 			this.strValue = defaultValue;
 		else{
-			this.strValue = CSGDatabase.get(name).getStrValue();
+			this.strValue = getInstance().get(name).getStrValue();
 		}
-		CSGDatabase.addParameterListener(name, new IParameterChanged() {
+		getInstance().addParameterListener(name, new IParameterChanged() {
 			@Override
 			public void parameterChanged(String name, Parameter p) {
 				strValue = p.getStrValue();// if another instance of parameter with this key changes value
@@ -46,7 +55,7 @@ public class Parameter {
 		for(String o:options){
 			this.options.add(o);
 		}
-		CSGDatabase.set(key, this);
+		getInstance().set(key, this);
 	}
 	public String getName() {
 		return name;
@@ -55,7 +64,7 @@ public class Parameter {
 	public void setValue(Long newVal){
 		if(value!=newVal){
 			value=newVal;
-			CopyOnWriteArrayList<IParameterChanged> listeners = CSGDatabase.getParamListeners(name);
+			CopyOnWriteArrayList<IParameterChanged> listeners = getInstance().getParamListeners(name);
 			for(int i=0;i<listeners.size();i++){
 			  IParameterChanged l=listeners.get(i);
 				l.parameterChanged(name, this);
@@ -77,7 +86,7 @@ public class Parameter {
 	public void setStrValue(String newValue) {
 		if(!strValue.contentEquals(newValue)){
 			strValue = newValue;
-			CopyOnWriteArrayList<IParameterChanged> listeners = CSGDatabase.getParamListeners(name);
+			CopyOnWriteArrayList<IParameterChanged> listeners = getInstance().getParamListeners(name);
 			for(IParameterChanged l:listeners){
 				l.parameterChanged(name, this);
 			}
@@ -98,6 +107,12 @@ public class Parameter {
 	}
 	public double getMicrons(){
 		return (Long)getValue();
+	}
+	public CSGDatabaseInstance getInstance() {
+		return instance;
+	}
+	public void setInstance(CSGDatabaseInstance instance) {
+		this.instance = instance;
 	}
 	
 

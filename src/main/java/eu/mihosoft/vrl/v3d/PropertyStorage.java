@@ -40,6 +40,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javafx.scene.paint.Color;
 
@@ -50,8 +51,10 @@ import javafx.scene.paint.Color;
  */
 public class PropertyStorage implements Serializable{
 
-    /** The map. */
-    private final Map<String, Object> map = new HashMap<>();
+    private static final long serialVersionUID = 1460815261025940141L;
+
+	/** The map. */
+    private final ConcurrentHashMap<String, Object> map = new ConcurrentHashMap<>();
 
     /** The Constant colors. */
     private static final Color[] colors = {
