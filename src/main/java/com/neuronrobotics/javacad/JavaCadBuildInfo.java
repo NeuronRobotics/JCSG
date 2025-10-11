@@ -11,8 +11,7 @@ import java.io.InputStreamReader;
  */
 public class JavaCadBuildInfo {
 	/** The Constant NAME. */
-	private static final String NAME = "Neuron Robotics SDK "
-			+ getProtocolVersion() + "." + getSDKVersion() + "("
+	private static final String NAME = "Neuron Robotics SDK " + getProtocolVersion() + "." + getSDKVersion() + "("
 			+ getBuildVersion() + ")";
 
 	/**
@@ -33,7 +32,11 @@ public class JavaCadBuildInfo {
 	 * @return the protocol version
 	 */
 	public static int getProtocolVersion() {
-		return getBuildInfo()[0];
+		try {
+			return getBuildInfo()[0];
+		} catch (NumberFormatException ex) {
+			return 0;
+		}
 	}
 
 	/**
@@ -64,7 +67,11 @@ public class JavaCadBuildInfo {
 		String[] splits = s.split("[.]+");
 		int[] rev = new int[3];
 		for (int i = 0; i < 3; i++) {
-			rev[i] = new Integer(splits[i]);
+			try {
+				rev[i] = new Integer(splits[i]);
+			} catch (Exception ex) {
+				rev[i] = 0;
+			}
 		}
 		return rev;
 	}
@@ -107,8 +114,7 @@ public class JavaCadBuildInfo {
 	 */
 	public static String getBuildDate() {
 		String s = "";
-		InputStream is = JavaCadBuildInfo.class
-				.getResourceAsStream("/META-INF/MANIFEST.MF");
+		InputStream is = JavaCadBuildInfo.class.getResourceAsStream("/META-INF/MANIFEST.MF");
 		BufferedReader br = new BufferedReader(new InputStreamReader(is));
 		String line;
 		try {

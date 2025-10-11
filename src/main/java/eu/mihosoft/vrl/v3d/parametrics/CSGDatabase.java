@@ -65,7 +65,7 @@ public class CSGDatabase {
 //	}
 
 	public static CSGDatabaseInstance getInstance() {
-		new Exception("Depricated database access!").printStackTrace();
+		//new Exception("Depricated database access!").printStackTrace();
 		if(instance==null) {
 			try {
 				instance = new CSGDatabaseInstance( Files.createTempFile("CSGDatabase", ".json").toFile());
