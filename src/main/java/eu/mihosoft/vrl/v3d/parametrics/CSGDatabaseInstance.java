@@ -112,7 +112,6 @@ public class CSGDatabaseInstance {
 		if (!dbFile.exists()) {
 			try {
 				dbFile.createNewFile();
-				saveDatabase();
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -280,7 +279,7 @@ public class CSGDatabaseInstance {
 	}
 
 	public void saveDatabase() throws Exception {
-		if(database.size()==0) {
+		if(database ==null ||database.size()==0) {
 			 new Exception("Can not save an empty database! to "+getDbFile().getAbsolutePath()).printStackTrace();;
 			 return;
 		}
