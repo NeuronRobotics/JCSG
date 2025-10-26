@@ -229,6 +229,8 @@ public class CSGDatabaseInstance {
 			Runtime.getRuntime().addShutdownHook(new Thread() {
 				@Override
 				public void run() {
+					if(database ==null ||database.size()==0)
+						return;
 					try {
 						saveDatabase();
 					} catch (Exception e) {
