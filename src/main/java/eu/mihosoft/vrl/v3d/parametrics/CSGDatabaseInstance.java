@@ -201,7 +201,6 @@ public class CSGDatabaseInstance {
 
 				if (!getDbFile().exists()) {
 					setDatabase(new ConcurrentHashMap<String, Parameter>());
-					saveDatabase();
 				} else {
 					InputStream in = null;
 					try {
