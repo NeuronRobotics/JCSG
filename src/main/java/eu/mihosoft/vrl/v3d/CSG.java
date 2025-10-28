@@ -1800,7 +1800,7 @@ public class CSG implements IuserAPI, Serializable {
 		float eps = (float)POINTS_CONTACT_DISTANCE;
 		float epsSq = (float) (eps * eps);
 		int[] added = new int[numberOfPolygons];
-		int testPointChunk = 50;
+		int testPointChunk = 500;
 		int snapChunk = 1000;
 		int[] tp = new int[] { 0, snapChunk };
 
@@ -2215,7 +2215,7 @@ public class CSG implements IuserAPI, Serializable {
 								+ typOfCPU + " \nTot->" + dur, null);
 					}
 				}
-
+				Thread.sleep(16);
 			} while (test.getAsBoolean());
 		} catch (Exception ex) {
 			ex.printStackTrace();
