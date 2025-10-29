@@ -211,8 +211,9 @@ public class CSG implements IuserAPI, Serializable {
 			addStackTrace(new Exception());
 		}
 	}
-	public void setID(CSG dying) {
+	public CSG setID(CSG dying) {
 		uniqueId=dying.uniqueId;
+		return this;
 	}
    @Override
     public boolean equals(Object obj) {
