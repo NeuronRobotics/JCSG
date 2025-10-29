@@ -155,7 +155,7 @@ public class CSG implements IuserAPI, Serializable {
 	transient private static boolean preventNonManifoldTriangles = false;
 	transient private static boolean warned = false;
 	// GPU processing
-	transient private static boolean useGPU = true;
+	transient private static boolean useGPU = false;
 	transient private static int ExtraSpace = 100;
 	transient private static ICSGProgress progressMoniter = new ICSGProgress() {
 		@Override
@@ -769,7 +769,8 @@ public class CSG implements IuserAPI, Serializable {
 	@Override
 	public CSG clone() {
 		CSG csg=cloneShallow() ;
-		return csg.historySync(this);
+		CSG historySync = csg.historySync(this);
+		return historySync;
 	}
 	public CSG cloneShallow() {
 		ArrayList<Polygon> collect = new ArrayList<Polygon>();
@@ -1800,7 +1801,7 @@ public class CSG implements IuserAPI, Serializable {
 		float eps = (float)POINTS_CONTACT_DISTANCE;
 		float epsSq = (float) (eps * eps);
 		int[] added = new int[numberOfPolygons];
-		int testPointChunk = 500;
+		int testPointChunk = 1000;
 		int snapChunk = 1000;
 		int[] tp = new int[] { 0, snapChunk };
 
