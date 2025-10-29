@@ -17,6 +17,11 @@ public class Parameter {
 	@Expose(serialize = false, deserialize = false)
 	private CSGDatabaseInstance instance;
 	
+	@Override
+	public String toString() {
+		return name+" "+value+" "+strValue;
+	}
+	
 	//public Parameter(){}
 	public Parameter(CSGDatabaseInstance instance){
 		this.setInstance(instance);}

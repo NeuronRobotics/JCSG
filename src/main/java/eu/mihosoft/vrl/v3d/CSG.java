@@ -198,7 +198,7 @@ public class CSG implements IuserAPI, Serializable {
 	private ArrayList<Transform> datumReferences = null;
 
 	private int pointsAdded;
-	private final String uniqueId = UUID.randomUUID().toString();
+	private String uniqueId = UUID.randomUUID().toString();
 
 	/**
 	 * Instantiates a new csg.
@@ -210,6 +210,9 @@ public class CSG implements IuserAPI, Serializable {
 			// This is the trace for where this csg was created
 			addStackTrace(new Exception());
 		}
+	}
+	public void setID(CSG dying) {
+		uniqueId=dying.uniqueId;
 	}
    @Override
     public boolean equals(Object obj) {
