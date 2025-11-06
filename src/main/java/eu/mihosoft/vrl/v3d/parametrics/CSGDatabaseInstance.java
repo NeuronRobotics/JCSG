@@ -118,7 +118,7 @@ public class CSGDatabaseInstance {
 			}
 		}
 		getDatabase();
-		
+
 	}
 
 	public void set(String key, Parameter value) {
@@ -228,7 +228,7 @@ public class CSGDatabaseInstance {
 			Runtime.getRuntime().addShutdownHook(new Thread() {
 				@Override
 				public void run() {
-					if(database ==null ||database.size()==0)
+					if (database == null || database.size() == 0)
 						return;
 					try {
 						saveDatabase();
@@ -280,28 +280,30 @@ public class CSGDatabaseInstance {
 	}
 
 	public void saveDatabase() throws Exception {
-		if(database ==null ||database.size()==0) {
-			 new Exception("Can not save an empty database! to "+getDbFile().getAbsolutePath()).printStackTrace();;
-			 return;
+		if (database == null || database.size() == 0) {
+			new Exception("Can not save an empty database! to " + getDbFile().getAbsolutePath()).printStackTrace();
+			;
+			return;
 		}
 		String writeOut = getDataBaseString();
-		try {
-			if (!getDbFile().exists()) {
-				getDbFile().createNewFile();
-			}
-			OutputStream out = null;
+
+		if (!getDbFile().exists()) {
 			try {
-				out = FileUtils.openOutputStream(getDbFile(), false);
-				IOUtils.write(writeOut, out);
-				out.flush();
-				out.close(); // don't swallow close Exception if copy completes normally
-			} finally {
-				IOUtils.closeQuietly(out);
+				getDbFile().createNewFile();
+			} catch (IOException e) {
+				return;
 			}
-		} catch (IOException e) {
-			// Auto-generated catch block
-			e.printStackTrace();
 		}
+		OutputStream out = null;
+		try {
+			out = FileUtils.openOutputStream(getDbFile(), false);
+			IOUtils.write(writeOut, out);
+			out.flush();
+			out.close(); // don't swallow close Exception if copy completes normally
+		} finally {
+			IOUtils.closeQuietly(out);
+		}
+
 	}
 
 	private void setDatabase(ConcurrentHashMap<String, Parameter> database) {
