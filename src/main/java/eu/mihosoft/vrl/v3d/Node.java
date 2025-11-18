@@ -57,7 +57,7 @@ import javafx.scene.paint.Color;
  * no distinction between internal and leaf nodes.
  */
 public final class Node {
-	private static final int LIMIT_FOR_GPU = 5000;
+	//private static final int LIMIT_FOR_GPU = 5000;
 	public static final int COPLANAR = 0;
 	public static final int FRONT = 1;
 	public static final int BACK = 2;
@@ -356,10 +356,10 @@ public final class Node {
 	 */
 	public void splitPolygon(ArrayList<Polygon> polygons, List<Polygon> cf, List<Polygon> cb,
 			List<Polygon> f, List<Polygon> b) throws Exception {
-		if (polygons.size() > LIMIT_FOR_GPU && !isWindows()) {
-			splitPolygonGPU(polygons, cf, cb, f, b);
-			return;
-		}
+//		if (polygons.size() > LIMIT_FOR_GPU && !isWindows()) {
+//			splitPolygonGPU(polygons, cf, cb, f, b);
+//			return;
+//		}
 		splitPolygonOriginal(polygons, cf, cb, f, b);
 
 //		List<Polygon> cf1 = new ArrayList<Polygon>();
