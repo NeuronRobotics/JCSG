@@ -82,7 +82,7 @@ public final class Node {
 
 	private long maxDepth = -1;
 
-	private int count = 1;
+	private long count = 1;
 	private static boolean GPUTest = false;;
 
 	/**
@@ -1127,8 +1127,8 @@ public final class Node {
 	 * @throws Exception
 	 */
 	public final void build(ArrayList<Polygon> polygons) throws Exception {
-		int size = count;
-		build(polygons, 0, polygons.size()*size);
+		long size = count;
+		build(polygons, 0, ((long)polygons.size())*size);
 	}
 
 	/**
@@ -1140,8 +1140,8 @@ public final class Node {
 	 * @param polygons polygons used to build the BSP
 	 * @throws Exception
 	 */
-	public final int build(ArrayList<Polygon> polygons, long depth, long maxDepth) throws Exception {
-		if (depth > maxDepth) {
+	public final long build(ArrayList<Polygon> polygons, long depth, long maxDepth) throws Exception {
+		if (depth > maxDepth && maxDepth>0) {
 			new RuntimeException("Impossible Node depth " + depth + " with " + polygons.size() + " remaining max = "+maxDepth ).printStackTrace();
 		}
 
