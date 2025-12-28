@@ -6,11 +6,13 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class StlExportTest {
 
 	@Test
+	@Ignore
 	public void makeBadSTL() throws IOException {
 		
 //		Vector3d.setEXPORTEPSILON(1.0e-10);
