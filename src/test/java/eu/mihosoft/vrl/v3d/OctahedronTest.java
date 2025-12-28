@@ -23,8 +23,8 @@ public class OctahedronTest {
 		assertTrue(octahedron.intersect(box).getPolygons().size() == 0);
 		assertTrue(insphere.difference(octahedron).getPolygons().size() == 0);
 		
-//		FileUtil.write(Paths.get("octahedron.stl"),
-//			octahedron.toStlString());
+		FileUtil.write(Paths.get("octahedron.stl"),
+			octahedron.toStlString());
 	}
 
 }

@@ -19,7 +19,6 @@ import eu.mihosoft.vrl.v3d.svg.SVGLoad;
 public class SvgExportTest {
 
 	@Test
-	@Ignore
 	public void slicetest() throws IOException, ColinearPointsException {
 		double normalInsetDistance = 0;
 		Transform slicePlane = new Transform();

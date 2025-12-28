@@ -57,7 +57,6 @@ public class SVGLoadTest {
 	}
 	//Alexes_Bad.svg
 	@Test
-	@Ignore
 	public void flame() throws IOException {
 		
 		JavaFXInitializer.go();
@@ -91,7 +90,6 @@ public class SVGLoadTest {
 	}
 	//Alexes_Bad.svg
 	@Test
-	@Ignore
 	public void Alexes_Bad() throws IOException {
 //		
 //		JavaFXInitializer.go();
@@ -123,7 +121,6 @@ public class SVGLoadTest {
 //					parts.get(i).toStlString());
 	}
 	@Test
-	@Ignore
 	public void box() throws IOException {
 		JavaFXInitializer.go();
 		File svg = new File("box.svg");
@@ -163,7 +160,6 @@ public class SVGLoadTest {
 					parts.get(i).toStlString());
 	}
 	@Test
-	@Ignore
 	public void adversarial() throws IOException {
 		JavaFXInitializer.go();
 		File svg = new File("Part-Num-0.svg");
@@ -184,7 +180,6 @@ public class SVGLoadTest {
 
 	
 	@Test
-	@Ignore
 	public void test() throws IOException {
 		File svg = new File("Test.SVG");
 		if (!svg.exists())

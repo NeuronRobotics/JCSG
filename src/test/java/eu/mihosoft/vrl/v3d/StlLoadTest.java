@@ -15,7 +15,6 @@ import javafx.scene.shape.CullFace;
 public class StlLoadTest {
 
 	@Test
-	@Ignore
 	public void test() throws IOException {
 		String filename = "brokenSTL.STL";
 		File file = new File(filename);

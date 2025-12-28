@@ -15,7 +15,7 @@ import static org.junit.Assert.*;
 
 public class SliceTest {
 	@Test
-	@Ignore
+
 	public void slice() throws Exception {
 		// Create a CSG to slice
 		CSG carrot = new Cube(10, 10, 10).toCSG();
@@ -30,7 +30,6 @@ public class SliceTest {
 	}
 
 	@Test
-	@Ignore
 	public void sliceWithHole() throws Exception {
 		// Create a CSG to slice
 		CSG carrot = new Cube(10, 10, 10).toCSG().difference(new Cube(4, 4, 100).toCSG());
