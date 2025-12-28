@@ -1,6 +1,14 @@
 name: "Test Build"
 
-on: [pull_request]
+on:
+  push:
+    branches:
+      - '*'
+    tags-ignore:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
 
 jobs:
   build:
@@ -31,7 +39,7 @@ jobs:
           sudo apt install libgtk2.0-0
           
     - name: Pull a JavaFX JDK
-      run: wget http://static.azul.com/zulu/bin/zulu8.33.0.1-ca-fx-jdk8.0.192-linux_x64.tar.gz
+      run: wget https://cdn.azul.com/zulu/bin/zulu21.46.19-ca-fx-jdk21.0.9-linux_x64.tar.gz
 
     - name: After JDK download, list directory contnts
       run: pwd; ls -la
@@ -39,8 +47,8 @@ jobs:
     - name: Set Java
       uses: actions/setup-java@v1
       with:
-        java-version: 1.8
-        jdkFile: ./zulu8.33.0.1-ca-fx-jdk8.0.192-linux_x64.tar.gz
+        java-version: 21
+        jdkFile: ./zulu21.46.19-ca-fx-jdk21.0.9-linux_x64.tar.gz
 
       
     - name: Test with Gradle 
