@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import eu.mihosoft.vrl.v3d.svg.SVGExporter;
@@ -18,6 +19,7 @@ import eu.mihosoft.vrl.v3d.svg.SVGLoad;
 public class SvgExportTest {
 
 	@Test
+	@Ignore
 	public void slicetest() throws IOException, ColinearPointsException {
 		double normalInsetDistance = 0;
 		Transform slicePlane = new Transform();

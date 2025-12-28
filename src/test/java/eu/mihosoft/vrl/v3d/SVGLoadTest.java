@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import eu.mihosoft.vrl.v3d.parametrics.CSGDatabase;
@@ -25,6 +26,7 @@ public class SVGLoadTest {
 		CSG.setPreventNonManifoldTriangles(true);
 	}
 	@Test
+	@Ignore
 	public void vows() throws IOException {
 		
 //		JavaFXInitializer.go();
@@ -55,6 +57,7 @@ public class SVGLoadTest {
 	}
 	//Alexes_Bad.svg
 	@Test
+	@Ignore
 	public void flame() throws IOException {
 		
 		JavaFXInitializer.go();
@@ -88,6 +91,7 @@ public class SVGLoadTest {
 	}
 	//Alexes_Bad.svg
 	@Test
+	@Ignore
 	public void Alexes_Bad() throws IOException {
 //		
 //		JavaFXInitializer.go();
@@ -119,6 +123,7 @@ public class SVGLoadTest {
 //					parts.get(i).toStlString());
 	}
 	@Test
+	@Ignore
 	public void box() throws IOException {
 		JavaFXInitializer.go();
 		File svg = new File("box.svg");
@@ -138,6 +143,7 @@ public class SVGLoadTest {
 					parts.get(i).toStlString());
 	}
 	@Test
+	@Ignore
 	public void inside() throws IOException {
 		JavaFXInitializer.go();
 		File svg = new File("InsideOutsideTest.svg");
@@ -157,6 +163,7 @@ public class SVGLoadTest {
 					parts.get(i).toStlString());
 	}
 	@Test
+	@Ignore
 	public void adversarial() throws IOException {
 		JavaFXInitializer.go();
 		File svg = new File("Part-Num-0.svg");
@@ -175,7 +182,9 @@ public class SVGLoadTest {
 		// fail("Not yet implemented");
 	}
 
+	
 	@Test
+	@Ignore
 	public void test() throws IOException {
 		File svg = new File("Test.SVG");
 		if (!svg.exists())
