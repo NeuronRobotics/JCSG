@@ -176,11 +176,11 @@ public class ThumbnailImage {
 					} catch (InterruptedException e) {
 						// Auto-generated catch block
 						e.printStackTrace();
-						break;
+						return;
 					}
 					if((System.currentTimeMillis()-start)>1000) {
 						System.err.println("Image failed to render!");
-						return;
+						throw new RuntimeException("Failed to load image");
 						
 					}
 				}
@@ -195,7 +195,7 @@ public class ThumbnailImage {
 		});
 		t.setUncaughtExceptionHandler((thread, throwable) -> {
 			throwable.printStackTrace();
-			thread.interrupt();
+			//thread.interrupt();
 		});
 		t.start();
 		return t;
