@@ -23,8 +23,8 @@ public class DodecahedronTest {
 		assertTrue(dodecahedron.intersect(box).getPolygons().size() == 0);
 		assertTrue(insphere.difference(dodecahedron).getPolygons().size() == 0);
 		
-		FileUtil.write(Paths.get("dodecahedron.stl"),
-			dodecahedron.toStlString());
+//		FileUtil.write(Paths.get("dodecahedron.stl"),
+//			dodecahedron.toStlString());
 	}
 
 }

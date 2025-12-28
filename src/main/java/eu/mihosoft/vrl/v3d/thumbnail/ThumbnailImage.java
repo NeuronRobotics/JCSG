@@ -168,7 +168,8 @@ public class ThumbnailImage {
 			public void run() {
 				File image = toPNG;
 				javafx.application.Platform.runLater(() -> img = ThumbnailImage.get(incoming,instance));
-				while (img == null)
+				long start = System.currentTimeMillis();
+				while (img == null) {
 					try {
 						Thread.sleep(16);
 						// com.neuronrobotics.sdk.common.Log.error("Waiting for image to write");
@@ -177,6 +178,12 @@ public class ThumbnailImage {
 						e.printStackTrace();
 						break;
 					}
+					if((System.currentTimeMillis()-start)>1000) {
+						System.err.println("Image failed to render!");
+						return;
+						
+					}
+				}
 				BufferedImage bufferedImage = SwingFXUtils.fromFXImage(img, null);
 
 				try {

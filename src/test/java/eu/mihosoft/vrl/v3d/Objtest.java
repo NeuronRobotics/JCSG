@@ -19,8 +19,8 @@ public class Objtest {
 				.split("# Faces")[1]
 				.split("# End")[0].trim();
 		assertFalse(s.length()<4);		
-		FileUtil.write(Paths.get("test.obj"),
-				csg.toObjString());
+//		FileUtil.write(Paths.get("test.obj"),
+//				csg.toObjString());
 //		csg.toObj().toFiles(Paths.get("test2.obj"));
 	}
 
