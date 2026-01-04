@@ -509,7 +509,7 @@ public class PolygonUtil {
 	 * 
 	 * @throws ColinearPointsException
 	 */
-	private static Transform calculateQuaternionTransform(Polygon concave) throws ColinearPointsException {
+	public static Transform calculateNormalTransform(Polygon concave) throws ColinearPointsException {
 		// Normalize inputs
 		Vector3d u = concave.getPlane().getNormal();
 		Vector3d v = new Vector3d(0, 0, 1);
@@ -562,7 +562,7 @@ public class PolygonUtil {
 		boolean debug = false;
 
 		if (reorient) {
-			Transform orientation = calculateQuaternionTransform(incoming);
+			Transform orientation = calculateNormalTransform(incoming);
 			tmp = incoming.transformed(orientation);
 			orientationInv = orientation.inverse();
 		}
