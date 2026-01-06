@@ -2911,10 +2911,10 @@ public class CSG implements IuserAPI, Serializable {
 
 	}
 	public boolean hasManipulator() {
-		return manipulator!=null;
+		return manipulator.get(uniqueId) != null;
 	}
 	public Affine getManipulator() {
-		if (manipulator.get(uniqueId) == null)
+		if (!hasManipulator() )
 			manipulator.put(uniqueId, new Affine());
 		return manipulator.get(uniqueId);
 	}
