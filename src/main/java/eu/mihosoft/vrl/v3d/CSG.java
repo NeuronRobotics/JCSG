@@ -346,7 +346,12 @@ public class CSG implements IuserAPI, Serializable {
 			current.getTransforms().clear();
 
 		if (hasManipulator)
-			current.getTransforms().add(getManipulator());
+			try {
+				current.getTransforms().add(getManipulator());
+			} catch (MissingManipulatorException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		if (hasAssembly)
 			current.getTransforms().add((Affine) getAssemblyStorage().getValue("AssembleAffine").get());
 
@@ -2913,9 +2918,9 @@ public class CSG implements IuserAPI, Serializable {
 	public boolean hasManipulator() {
 		return manipulator.get(uniqueId) != null;
 	}
-	public Affine getManipulator() {
+	public Affine getManipulator() throws MissingManipulatorException{
 		if (!hasManipulator() )
-			manipulator.put(uniqueId, new Affine());
+			throw new MissingManipulatorException("Can not get a manipulator that does not exist");
 		return manipulator.get(uniqueId);
 	}
 
@@ -3140,7 +3145,12 @@ public class CSG implements IuserAPI, Serializable {
 		CSG regenerate2 = regenerate.get(getUniqueId()).regenerate(this);
 		if (regenerate2 != null) {
 			if(hasManipulator())
-				regenerate2.setManipulator(this.getManipulator());
+				try {
+					regenerate2.setManipulator(this.getManipulator());
+				} catch (MissingManipulatorException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			return regenerate2.historySync(this);
 		}
 		return this;

@@ -18,6 +18,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 import eu.mihosoft.vrl.v3d.CSG;
+import eu.mihosoft.vrl.v3d.MissingManipulatorException;
 
 public class CSGDatabaseInstance {
 
@@ -101,7 +102,12 @@ public class CSGDatabaseInstance {
 		if (function != null) {
 			CSG setManipulator = function.change(instance, key, new Long((long) (newValue * 1000)));
 			if(setManipulator.hasManipulator())
-				setManipulator.setManipulator(instance.getManipulator());
+				try {
+					setManipulator.setManipulator(instance.getManipulator());
+				} catch (MissingManipulatorException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			setManipulator.setColor(instance.getColor());
 			return this;
 		}
