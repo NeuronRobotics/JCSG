@@ -99,8 +99,9 @@ public class CSGDatabaseInstance {
 	public CSGDatabaseInstance setParameterNewValue(CSG instance, String key, double newValue) {
 		IParametric function = getMapOfparametrics(instance).get(key);
 		if (function != null) {
-			CSG setManipulator = function.change(instance, key, new Long((long) (newValue * 1000)))
-					.setManipulator(instance.getManipulator());
+			CSG setManipulator = function.change(instance, key, new Long((long) (newValue * 1000)));
+			if(setManipulator.hasManipulator())
+				setManipulator.setManipulator(instance.getManipulator());
 			setManipulator.setColor(instance.getColor());
 			return this;
 		}

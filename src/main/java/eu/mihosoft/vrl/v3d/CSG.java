@@ -339,7 +339,7 @@ public class CSG implements IuserAPI, Serializable {
 		PhongMaterial m = new PhongMaterial(getColor());
 		current.setMaterial(m);
 
-		boolean hasManipulator = getManipulator() != null;
+		boolean hasManipulator = hasManipulator();
 		boolean hasAssembly = getAssemblyStorage().getValue("AssembleAffine") != Optional.empty();
 
 		if (hasManipulator || hasAssembly)
@@ -3138,9 +3138,11 @@ public class CSG implements IuserAPI, Serializable {
 		if (regenerate == null)
 			return this;
 		CSG regenerate2 = regenerate.get(getUniqueId()).regenerate(this);
-		if (regenerate2 != null)
-			return regenerate2.setManipulator(this.getManipulator()).historySync(this);
-		;
+		if (regenerate2 != null) {
+			if(hasManipulator())
+				regenerate2.setManipulator(this.getManipulator());
+			return regenerate2.historySync(this);
+		}
 		return this;
 	}
 

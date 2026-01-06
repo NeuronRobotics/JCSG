@@ -70,7 +70,7 @@ public class ThumbnailImage {
 	public static WritableImage get(List<CSG> c,CSGDatabaseInstance instance) {
 		ArrayList<CSG> csgList = new ArrayList<CSG>();
 		for (CSG cs : c) {
-			if (cs.getManipulator() != null) {
+			if (cs.hasManipulator()) {
 				csgList.add(cs.transformed(TransformConverter.fromAffine(cs.getManipulator())).syncProperties(instance,cs));
 			} else
 				csgList.add(cs);
