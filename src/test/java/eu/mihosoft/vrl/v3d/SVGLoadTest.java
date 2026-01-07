@@ -79,8 +79,8 @@ public class SVGLoadTest {
 			throw new RuntimeException("Failed to load");
 		try {
 			ThumbnailImage.setCullFaceValue(CullFace.NONE);
-			ThumbnailImage.writeImage(CSGDatabase.getInstance(),parts,new File(svg.getAbsolutePath()+".png")).join();
-		} catch (InterruptedException e) {
+			new ThumbnailImage().writeImage(CSGDatabase.getInstance(),parts,new File(svg.getAbsolutePath()+".png"));
+		} catch (Exception e) {
 			// Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -130,8 +130,8 @@ public class SVGLoadTest {
 		ArrayList<CSG>parts =run(s);
 		try {
 			ThumbnailImage.setCullFaceValue(CullFace.NONE);
-			ThumbnailImage.writeImage(CSGDatabase.getInstance(),parts,new File(svg.getAbsolutePath()+".png")).join();
-		} catch (InterruptedException e) {
+			new ThumbnailImage().writeImage(CSGDatabase.getInstance(),parts,new File(svg.getAbsolutePath()+".png"));
+		} catch (Exception e) {
 			// Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -150,8 +150,8 @@ public class SVGLoadTest {
 		ArrayList<CSG>parts =new ArrayList<>(Arrays.asList(CSG.unionAll(run(s))));
 		try {
 			ThumbnailImage.setCullFaceValue(CullFace.NONE);
-			ThumbnailImage.writeImage(CSGDatabase.getInstance(),parts,new File(svg.getAbsolutePath()+".png")).join();
-		} catch (InterruptedException e) {
+			new ThumbnailImage() .writeImage(CSGDatabase.getInstance(),parts,new File(svg.getAbsolutePath()+".png"));
+		} catch (Exception e) {
 			// Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -169,8 +169,8 @@ public class SVGLoadTest {
 		ArrayList<CSG>parts =run(s);
 		try {
 			ThumbnailImage.setCullFaceValue(CullFace.NONE);
-			ThumbnailImage.writeImage(CSGDatabase.getInstance(),parts,new File(svg.getAbsolutePath()+".png")).join();
-		} catch (InterruptedException e) {
+			new ThumbnailImage().writeImage(CSGDatabase.getInstance(),parts,new File(svg.getAbsolutePath()+".png"));
+		} catch (Exception e) {
 			// Auto-generated catch block
 			e.printStackTrace();
 		}

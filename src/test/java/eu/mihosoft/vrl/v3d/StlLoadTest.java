@@ -21,8 +21,8 @@ public class StlLoadTest {
 		CSG loaded = STL.file(file.toPath());
 		try {
 			ThumbnailImage.setCullFaceValue(CullFace.NONE);
-			ThumbnailImage.writeImage(CSGDatabase.getInstance(),loaded,new File(file.getAbsolutePath()+".png")).join();
-		} catch (InterruptedException e) {
+			new ThumbnailImage().writeImage(CSGDatabase.getInstance(),loaded,new File(file.getAbsolutePath()+".png"));
+		} catch (Exception e) {
 			// Auto-generated catch block
 			e.printStackTrace();
 		}
