@@ -30,7 +30,7 @@ import javafx.scene.transform.Transform;
 import javafx.scene.transform.Rotate;
 import javafx.geometry.Rectangle2D;
 
-public class ThumbnailImage {
+public class ThumbnailImageCSG {
 	private static CullFace cullFaceValue = CullFace.BACK;
 	private static int ImageSize = 1000;
 	private WritableImage img;
@@ -204,7 +204,7 @@ public class ThumbnailImage {
 	}
 
 	public static void setCullFaceValue(CullFace cullFaceValue) {
-		ThumbnailImage.cullFaceValue = cullFaceValue;
+		ThumbnailImageCSG.cullFaceValue = cullFaceValue;
 	}
 
 	public static int getImageSize() {
