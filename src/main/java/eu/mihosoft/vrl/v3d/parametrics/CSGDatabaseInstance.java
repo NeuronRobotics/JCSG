@@ -232,19 +232,6 @@ public class CSGDatabaseInstance {
 				System.err.println("Failed to load " + dbFile.getAbsolutePath());
 				setDatabase(new ConcurrentHashMap<String, Parameter>());
 			}
-			Runtime.getRuntime().addShutdownHook(new Thread() {
-				@Override
-				public void run() {
-					if (database == null || database.size() == 0)
-						return;
-					try {
-						saveDatabase();
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-			});
 
 		}
 		if (database == null)
@@ -267,7 +254,7 @@ public class CSGDatabaseInstance {
 						value.setInstance(this);
 						set(k, value);
 					}
-				saveDatabase();
+				//saveDatabase();
 			} catch (Exception e) {
 				// System.out.println(f.getAbsolutePath());
 				e.printStackTrace();
