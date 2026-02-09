@@ -62,6 +62,7 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.triangulate.polygon.ConstrainedDelaunayTriangulator;
 
+
 //import earcut4j.Earcut;
 
 /**
@@ -512,31 +513,59 @@ public class PolygonUtil {
 	public static Transform calculateNormalTransform(Polygon concave) throws ColinearPointsException {
 		// Normalize inputs
 		Vector3d u = concave.getPlane().getNormal();
-		Vector3d v = new Vector3d(0, 0, 1);
+		Vector3d pureZVect = new Vector3d(0, 0, 1);
+		Vector3d pureXVect = new Vector3d(1, 0, 0);
 
-		double dot = u.dot(v);
+		double dotZ = u.dot(pureZVect);
+		double dotX = u.dot(pureXVect);
 		// If u ≈ v → identity
-		if (dot > 1.0 - Plane.getEPSILON()) {
+		if (dotZ > 1.0 - Plane.getEPSILON()) {
 			return new Transform();
 		}
-		if (dot < -1.0 + Plane.getEPSILON()) {
+		if (dotZ < -1.0 + Plane.getEPSILON()) {
 			return new Transform().rotX(180);
 		}
+		if (dotX > 1.0 - Plane.getEPSILON()) {
+			return new Transform().rotY(90);
+		}
+		if (dotX < -1.0 + Plane.getEPSILON()) {
+			return new Transform().rotY(-90);
+		}
 		double aboutZ = Math.toDegrees(Math.atan2(u.y, u.x));
-
+		if(Double.isNaN(aboutZ))
+			throw new RuntimeException("Failed to creat a rotation angle");
 		Transform transform1 = new Transform().rotZ(aboutZ);
 		Vector3d u2 = u.transformed(transform1);
+		Transform transform;
 		double aboutY = Math.toDegrees(Math.atan2(u2.x, u2.z));
-		Transform transform = new Transform().rotY(aboutY).apply(transform1);
+		if(Double.isNaN(aboutY))
+			throw new RuntimeException("Failed to creat a rotation angle");
+		Transform rotY = new Transform().rotY(aboutY);
+		transform = rotY.apply(transform1);
+	
+		
 		Vector3d u3 = u.transformed(transform).normalized();
 
 		Polygon test = concave.transformed(transform);
-		double abs = Math.abs(test.plane.getNormal().z);
+		Vector3d normal = test.plane.getNormal();
+		double abs = Math.abs(normal.z);
 		if (1 - abs > 0.1) {
 			System.out.println("Error with " + test);
 			// Plane p = Plane.createFromPoints(test.getVertices());
-			 new ColinearPointsException("Failed to reorent the polygon for processing! z off by "+abs+" "+test.plane.getNormal()).printStackTrace();
+			 new ColinearPointsException("Failed to reorent the polygon for processing! z off by "+abs+" "+normal).printStackTrace();
 		}
+		
+		Matrix4d rotation = transform.getInternalMatrix();
+		Quat4d q1 = new Quat4d();
+		rotation.get(q1);
+		javax.vecmath.Vector3d t1 = new javax.vecmath.Vector3d();
+		rotation.get(t1);
+		List<Double> asList = Arrays.asList(t1.x, t1.y, t1.z, q1.w, q1.x, q1.y, q1.z);
+		for(Double d:asList){
+			if(Double.isInfinite(d)||Double.isNaN(d))
+				throw new RuntimeException("Failed to produce a matrix");
+		}
+		
 		return transform;
 	}
 
