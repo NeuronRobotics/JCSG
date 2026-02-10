@@ -1283,12 +1283,6 @@ public class Transform implements Serializable {
 	 * 
 	 * @param q1 the quaternion into which the rotation component is placed
 	 */
-	/**
-	 * Performs an SVD normalization of q1 matrix in order to acquire the normalized
-	 * rotational component; the values are placed into the Quat4d parameter.
-	 * 
-	 * @param q1 the quaternion into which the rotation component is placed
-	 */
 	public final void get(Quat4d q1) {
 		double[] tmp_rot = new double[9]; // scratch matrix
 		double[] tmp_scale = new double[3]; // scratch matrix
@@ -1300,56 +1294,89 @@ public class Transform implements Serializable {
 		// tmp_rot[3]=m10, tmp_rot[4]=m11, tmp_rot[5]=m12,
 		// tmp_rot[6]=m20, tmp_rot[7]=m21, tmp_rot[8]=m22
 
-		// There are different ways to compute the quaternion elements
-		// from the matrix. They all involve computing one element from
-		// the diagonal of the matrix, and computing the three other ones
-		// using a formula involving a division by the first element,
-		// which unfortunately can be zero. Since the norm of the
-		// quaternion is 1, we know at least one element has an absolute
-		// value greater or equal to 0.5, so it is always possible to
-		// select the right formula and avoid division by zero and even
-		// numerical inaccuracy. Checking the elements in turn and using
-		// the first one greater than 0.45 is safe (this leads to a simple
-		// test since qi = 0.45 implies 4 qi^2 - 1 = -0.19)
-
 		double s = tmp_rot[0] + tmp_rot[4] + tmp_rot[8];
 		if (s > -0.19) {
 			// compute q.w and deduce q.x, q.y and q.z
 			q1.w = 0.5 * Math.sqrt(s + 1.0);
 			double inv = 0.25 / q1.w;
-			q1.x = inv * (tmp_rot[7] - tmp_rot[5]);
-			q1.y = inv * (tmp_rot[2] - tmp_rot[6]);
-			q1.z = inv * (tmp_rot[1] - tmp_rot[3]);
+			q1.x = (tmp_rot[7] - tmp_rot[5]) * inv;
+			q1.y = (tmp_rot[2] - tmp_rot[6]) * inv;
+			q1.z = (tmp_rot[3] - tmp_rot[1]) * inv;
 		} else {
 			s = tmp_rot[0] - tmp_rot[4] - tmp_rot[8];
 			if (s > -0.19) {
 				// compute q.x and deduce q.w, q.y and q.z
 				q1.x = 0.5 * Math.sqrt(s + 1.0);
 				double inv = 0.25 / q1.x;
-				q1.w = inv * (tmp_rot[7] - tmp_rot[5]);
-				q1.y = inv * (tmp_rot[1] + tmp_rot[3]);
-				q1.z = inv * (tmp_rot[2] + tmp_rot[6]);
+				q1.w = (tmp_rot[7] - tmp_rot[5]) * inv;
+				q1.y = (tmp_rot[3] + tmp_rot[1]) * inv;
+				q1.z = (tmp_rot[6] + tmp_rot[2]) * inv;
 			} else {
 				s = tmp_rot[4] - tmp_rot[0] - tmp_rot[8];
 				if (s > -0.19) {
 					// compute q.y and deduce q.w, q.x and q.z
 					q1.y = 0.5 * Math.sqrt(s + 1.0);
 					double inv = 0.25 / q1.y;
-					q1.w = inv * (tmp_rot[2] - tmp_rot[6]);
-					q1.x = inv * (tmp_rot[1] + tmp_rot[3]);
-					q1.z = inv * (tmp_rot[7] + tmp_rot[5]);
+					q1.w = (tmp_rot[2] - tmp_rot[6]) * inv;
+					q1.x = (tmp_rot[3] + tmp_rot[1]) * inv;
+					q1.z = (tmp_rot[7] + tmp_rot[5]) * inv;
 				} else {
 					// compute q.z and deduce q.w, q.x and q.y
 					s = tmp_rot[8] - tmp_rot[0] - tmp_rot[4];
 					q1.z = 0.5 * Math.sqrt(s + 1.0);
 					double inv = 0.25 / q1.z;
-					q1.w = inv * (tmp_rot[1] - tmp_rot[3]);
-					q1.x = inv * (tmp_rot[2] + tmp_rot[6]);
-					q1.y = inv * (tmp_rot[7] + tmp_rot[5]);
+					q1.w = (tmp_rot[3] - tmp_rot[1]) * inv;
+					q1.x = (tmp_rot[6] + tmp_rot[2]) * inv;
+					q1.y = (tmp_rot[7] + tmp_rot[5]) * inv;
 				}
 			}
 		}
 	}
+//	/**
+//	 * Performs an SVD normalization of q1 matrix in order to acquire the normalized
+//	 * rotational component; the values are placed into the Quat4d parameter.
+//	 * 
+//	 * @param q1 the quaternion into which the rotation component is placed
+//	 */
+//	public final void get(Quat4d q1) {
+//		double[] tmp_rot = new double[9]; // scratch matrix
+//		double[] tmp_scale = new double[3]; // scratch matrix
+//
+//		getScaleRotate(tmp_scale, tmp_rot);
+//
+//		double ww;
+//
+//		ww = 0.25 * (1.0 + tmp_rot[0] + tmp_rot[4] + tmp_rot[8]);
+//		if (!((ww < 0 ? -ww : ww) < 1.0e-30)) {
+//			q1.w = Math.sqrt(ww);
+//			ww = 0.25 / q1.w;
+//			q1.x = (tmp_rot[7] - tmp_rot[5]) * ww;
+//			q1.y = (tmp_rot[2] - tmp_rot[6]) * ww;
+//			q1.z = (tmp_rot[3] - tmp_rot[1]) * ww;
+//			return;
+//		}
+//
+//		q1.w = 0.0f;
+//		ww = -0.5 * (tmp_rot[4] + tmp_rot[8]);
+//		if (!((ww < 0 ? -ww : ww) < 1.0e-30)) {
+//			q1.x = Math.sqrt(ww);
+//			ww = 0.5 / q1.x;
+//			q1.y = tmp_rot[3] * ww;
+//			q1.z = tmp_rot[6] * ww;
+//			return;
+//		}
+//
+//		q1.x = 0.0;
+//		ww = 0.5 * (1.0 - tmp_rot[8]);
+//		if (!((ww < 0 ? -ww : ww) < 1.0e-30)) {
+//			q1.y = Math.sqrt(ww);
+//			q1.z = tmp_rot[7] / (2.0 * q1.y);
+//			return;
+//		}
+//
+//		q1.y = 0.0;
+//		q1.z = 1.0;
+//	}
 
 	public Quat4d getQuat() {
 		Quat4d q1 = new Quat4d();
