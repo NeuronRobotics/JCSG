@@ -540,8 +540,9 @@ public class PolygonUtil {
 		double aboutY = Math.toDegrees(Math.atan2(u2.x, u2.z));
 		if(Double.isNaN(aboutY))
 			throw new RuntimeException("Failed to creat a rotation angle");
+		
 		Transform rotY = new Transform().rotY(aboutY);
-		transform = rotY.apply(transform1);
+		transform = rotY.copy().apply(transform1);
 	
 		
 		Vector3d u3 = u.transformed(transform).normalized();
@@ -556,14 +557,13 @@ public class PolygonUtil {
 		}
 		
 		Matrix4d rotation = transform.getInternalMatrix();
-		Quat4d q1 = new Quat4d();
-		rotation.get(q1);
+		Quat4d q1 = transform.getQuat();
 		javax.vecmath.Vector3d t1 = new javax.vecmath.Vector3d();
 		rotation.get(t1);
 		List<Double> asList = Arrays.asList(t1.x, t1.y, t1.z, q1.w, q1.x, q1.y, q1.z);
 		for(Double d:asList){
 			if(Double.isInfinite(d)||Double.isNaN(d))
-				throw new RuntimeException("Failed to produce a matrix");
+				throw new RuntimeException("Failed to produce a matrix ");
 		}
 		
 		return transform;
