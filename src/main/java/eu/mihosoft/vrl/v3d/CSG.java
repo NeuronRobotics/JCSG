@@ -145,8 +145,8 @@ public class CSG implements IuserAPI, Serializable {
 	transient public static final int INDEX_OF_PARAMETRIC_LOWER = 1;
 	transient public static final int INDEX_OF_PARAMETRIC_UPPER = 2;
 	transient private static HashMap<String, PrepForManufacturing> manufactuingMap = new HashMap<String, PrepForManufacturing>();
-	transient private static HashMap<String,IRegenerate> regenerate = new HashMap<String, IRegenerate>();
-	transient private static HashMap<String,Affine> manipulator = new HashMap<String, Affine>();
+	transient private static HashMap<String, IRegenerate> regenerate = new HashMap<String, IRegenerate>();
+	transient private static HashMap<String, Affine> manipulator = new HashMap<String, Affine>();
 
 	transient private static OptType defaultOptType = OptType.CSG_BOUND;
 	transient private static String defaultcolor = "#007956";
@@ -190,7 +190,7 @@ public class CSG implements IuserAPI, Serializable {
 	private Bounds bounds;
 
 	private ArrayList<String> groovyFileLines = new ArrayList<>();
-	
+
 	private boolean markForRegeneration = false;
 	private String name = "";
 	private ArrayList<Transform> slicePlanes = null;
@@ -211,27 +211,32 @@ public class CSG implements IuserAPI, Serializable {
 			addStackTrace(new Exception());
 		}
 	}
+
 	public CSG setID(CSG dying) {
-		uniqueId=dying.uniqueId;
+		uniqueId = dying.uniqueId;
 		return this;
 	}
-   @Override
-    public boolean equals(Object obj) {
-        // Check if same reference
-        if (this == obj) return true;
-        
-        // Check if null or different class
-        if (obj == null || getClass() != obj.getClass()) return false;
-        
-        // Cast and compare fields
-        CSG test = (CSG) obj;
-        return this.getUniqueId().contentEquals(test.getUniqueId());
-    }
-   	@Override
-   	public int hashCode() {
-   		return getUniqueId().hashCode();
-   	}
-	    
+
+	@Override
+	public boolean equals(Object obj) {
+		// Check if same reference
+		if (this == obj)
+			return true;
+
+		// Check if null or different class
+		if (obj == null || getClass() != obj.getClass())
+			return false;
+
+		// Cast and compare fields
+		CSG test = (CSG) obj;
+		return this.getUniqueId().contentEquals(test.getUniqueId());
+	}
+
+	@Override
+	public int hashCode() {
+		return getUniqueId().hashCode();
+	}
+
 	public CSG addDatumReference(Transform t) {
 		if (getDatumReferences() == null)
 			setDatumReferences(new ArrayList<Transform>());
@@ -777,10 +782,11 @@ public class CSG implements IuserAPI, Serializable {
 	 */
 	@Override
 	public CSG clone() {
-		CSG csg=cloneShallow() ;
+		CSG csg = cloneShallow();
 		CSG historySync = csg.historySync(this);
 		return historySync;
 	}
+
 	public CSG cloneShallow() {
 		ArrayList<Polygon> collect = new ArrayList<Polygon>();
 		for (Polygon p : polygons) {
@@ -796,6 +802,7 @@ public class CSG implements IuserAPI, Serializable {
 		}
 		return CSG.fromPolygons(collect);
 	}
+
 	/**
 	 * Gets the polygons.
 	 *
@@ -929,55 +936,55 @@ public class CSG implements IuserAPI, Serializable {
 				throw new RuntimeException(e);
 			}
 		}
-		CSG solid = this.isHole()?null:this;
-		CSG hole = this.isHole()?this:null;
-		ArrayList<CSG> csgs=new ArrayList<CSG>();
+		CSG solid = this.isHole() ? null : this;
+		CSG hole = this.isHole() ? this : null;
+		ArrayList<CSG> csgs = new ArrayList<CSG>();
 		CSG dumb = null;
-		if(incoming.size()<10) {
+		if (incoming.size() < 10) {
 			csgs.addAll(incoming);
-		}else {
-			for( int i=0;i<incoming.size();i++) {
+		} else {
+			for (int i = 0; i < incoming.size(); i++) {
 				CSG test = incoming.get(i);
-				if(test==null)
+				if (test == null)
 					continue;
-				boolean touching =false;
-				//int t=-1;
-				for(int j=0;j<incoming.size();j++) {
-					if(i==j)
+				boolean touching = false;
+				// int t=-1;
+				for (int j = 0; j < incoming.size(); j++) {
+					if (i == j)
 						continue;
-					if(test.isBoundsTouching(incoming.get(j))) {
-						touching=true;
-						//t=j;
+					if (test.isBoundsTouching(incoming.get(j))) {
+						touching = true;
+						// t=j;
 						break;
 					}
 				}
-				if(touching) {
+				if (touching) {
 					csgs.add(test);
-				}else {
-					if (dumb==null) {
-						dumb=test;
-					}else
-						dumb=dumb.dumbUnion(test);
+				} else {
+					if (dumb == null) {
+						dumb = test;
+					} else
+						dumb = dumb.dumbUnion(test);
 				}
-					
+
 			}
 		}
 
 		for (int i = 0; i < csgs.size(); i++) {
 			CSG csg = csgs.get(i);
 			if (!csg.isHole()) {
-				if(solid!=null)
+				if (solid != null)
 					solid = solid.union(csg);
-				else 
-					solid=csg;
+				else
+					solid = csg;
 				if (Thread.interrupted())
 					break;
 				getProgressMoniter().progressUpdate(i, csgs.size(), "Union solid", solid);
-			}else {
-				if(hole!=null)
+			} else {
+				if (hole != null)
 					hole = hole.union(csg);
 				else
-					hole=csg;
+					hole = csg;
 				hole.setIsHole(true);
 				if (Thread.interrupted())
 					break;
@@ -985,14 +992,14 @@ public class CSG implements IuserAPI, Serializable {
 			}
 		}
 		CSG result = null;
-		if(solid!=null && hole==null)
-			result= solid;
-		else if(solid==null&& hole!=null)
-			result= hole;
-		else 
-			result= solid.difference(hole);
-		if(dumb!=null) {
-			result=result.dumbUnion(dumb);
+		if (solid != null && hole == null)
+			result = solid;
+		else if (solid == null && hole != null)
+			result = hole;
+		else
+			result = solid.difference(hole);
+		if (dumb != null) {
+			result = result.dumbUnion(dumb);
 		}
 		return result;
 	}
@@ -1208,17 +1215,17 @@ public class CSG implements IuserAPI, Serializable {
 	 *
 	 * @param csg the csg
 	 * @return the csg
-	 * @throws Exception 
+	 * @throws Exception
 	 */
-	private CSG _unionNoOpt(CSG csg)  {
+	private CSG _unionNoOpt(CSG csg) {
 		if (this.getPolygons().size() == 0)
 			return csg.clone();
 		if (csg.getPolygons().size() == 0)
 			return this.clone();
 		Node a;
 		try {
-			a = new Node(this.clone().getPolygons(),this.getPolygons().get(0).getPlane());
-			Node b = new Node(csg.clone().getPolygons(),csg.getPolygons().get(0).getPlane());
+			a = new Node(this.clone().getPolygons(), this.getPolygons().get(0).getPlane());
+			Node b = new Node(csg.clone().getPolygons(), csg.getPolygons().get(0).getPlane());
 			a.clipTo(b);
 			b.clipTo(a);
 			b.invert();
@@ -1470,8 +1477,8 @@ public class CSG implements IuserAPI, Serializable {
 
 		Node a;
 		try {
-			a = new Node(this.clone().getPolygons(),this.getPolygons().get(0).getPlane());
-			Node b = new Node(csg.clone().getPolygons(),csg.getPolygons().get(0).getPlane());
+			a = new Node(this.clone().getPolygons(), this.getPolygons().get(0).getPlane());
+			Node b = new Node(csg.clone().getPolygons(), csg.getPolygons().get(0).getPlane());
 
 			a.invert();
 			a.clipTo(b);
@@ -1541,8 +1548,8 @@ public class CSG implements IuserAPI, Serializable {
 		}
 		Node a;
 		try {
-			a = new Node(this.clone().getPolygons(),this.getPolygons().get(0).getPlane());
-			Node b = new Node(csg.clone().getPolygons(),csg.getPolygons().get(0).getPlane());
+			a = new Node(this.clone().getPolygons(), this.getPolygons().get(0).getPlane());
+			Node b = new Node(csg.clone().getPolygons(), csg.getPolygons().get(0).getPlane());
 			a.invert();
 			b.clipTo(a);
 			b.invert();
@@ -1672,7 +1679,7 @@ public class CSG implements IuserAPI, Serializable {
 			sb.append("solid v3d.csg\n");
 			for (Polygon p : getPolygons()) {
 				try {
-					Plane.createFromPoints(p.getVertices(),null);
+					Plane.createFromPoints(p.getVertices(), null);
 					p.toStlString(sb);
 				} catch (Exception ex) {
 					System.out.println("Prune Polygon on export");
@@ -1730,7 +1737,12 @@ public class CSG implements IuserAPI, Serializable {
 					new RuntimeException("Mesh too large to process with integers!").printStackTrace();
 				else {
 					System.err.println("Processing Mesh Manifold with " + longLength * 4 + " byte buffer");
-					added = runGPUMakeManifold(itr, (int) np, (int) longLength, numberOfPolygons);
+					added = 0;
+					try {
+						added = runGPUMakeManifold(itr, (int) np, (int) longLength, numberOfPolygons);
+					} catch (Exception ex) {
+						ex.printStackTrace();
+					}
 					if (added >= 0)
 						System.out.println("Manifold iteration added " + added + " points ");
 					else {
@@ -1807,7 +1819,7 @@ public class CSG implements IuserAPI, Serializable {
 		}
 
 		// System.out.println("Data loaded!");
-		float eps = (float)POINTS_CONTACT_DISTANCE;
+		float eps = (float) POINTS_CONTACT_DISTANCE;
 		float epsSq = (float) (eps * eps);
 		int[] added = new int[numberOfPolygons];
 		int testPointChunk = 1000;
@@ -1866,7 +1878,7 @@ public class CSG implements IuserAPI, Serializable {
 		tp[0] = 0;
 		tp[1] = testPointChunk;
 		HashSet<Integer> unique = new HashSet<Integer>();
-		//int running = 0;
+		// int running = 0;
 		for (int i = 0; i < numberOfPolygons; i++) {
 			int ps = polyStartIndex[i];
 			int size = polySizes[i];
@@ -2110,7 +2122,7 @@ public class CSG implements IuserAPI, Serializable {
 				p = new Polygon(points, polygon.getStorage(), true, pl);
 				newPoly.add(p);
 			} catch (ColinearPointsException e) {
-				System.out.println("Prining "+points+" "+e);
+				System.out.println("Prining " + points + " " + e);
 			}
 			polygon.getPoints().clear();
 		}
@@ -2118,38 +2130,39 @@ public class CSG implements IuserAPI, Serializable {
 		polygons = newPoly;
 		return pointsAdded;
 	}
+
 	public static List<ForkJoinWorkerThread> getForkJoinWorkers(ForkJoinPool pool) {
-	    return Thread.getAllStackTraces().keySet().stream()
-	        .filter(thread -> thread instanceof ForkJoinWorkerThread)
-	        .map(thread -> (ForkJoinWorkerThread) thread)
-	        .collect(Collectors.toList());
+		return Thread.getAllStackTraces().keySet().stream().filter(thread -> thread instanceof ForkJoinWorkerThread)
+				.map(thread -> (ForkJoinWorkerThread) thread).collect(Collectors.toList());
 	}
-    public static void setPrivateThreadPool(KernelRunner kernelRunner, ForkJoinPool newThreadPool) throws Exception {
-        // Get the class of the object
-        Class<?> clazz = kernelRunner.getClass();
 
-        // Get the private field
-        Field threadPoolField = clazz.getDeclaredField("threadPool");
+	public static void setPrivateThreadPool(KernelRunner kernelRunner, ForkJoinPool newThreadPool) throws Exception {
+		// Get the class of the object
+		Class<?> clazz = kernelRunner.getClass();
 
-        // Make it accessible
-        threadPoolField.setAccessible(true);
+		// Get the private field
+		Field threadPoolField = clazz.getDeclaredField("threadPool");
 
-        // Set the new value
-        threadPoolField.set(kernelRunner, newThreadPool);
-    }
+		// Make it accessible
+		threadPoolField.setAccessible(true);
 
-    public static ForkJoinPool getPrivateThreadPool(KernelRunner kernelRunner) throws Exception {
-        Class<?> clazz = kernelRunner.getClass();
-        Field threadPoolField = clazz.getDeclaredField("threadPool");
-        threadPoolField.setAccessible(true);
-        return (ForkJoinPool) threadPoolField.get(kernelRunner);
-    }
+		// Set the new value
+		threadPoolField.set(kernelRunner, newThreadPool);
+	}
+
+	public static ForkJoinPool getPrivateThreadPool(KernelRunner kernelRunner) throws Exception {
+		Class<?> clazz = kernelRunner.getClass();
+		Field threadPoolField = clazz.getDeclaredField("threadPool");
+		threadPoolField.setAccessible(true);
+		return (ForkJoinPool) threadPoolField.get(kernelRunner);
+	}
+
 	public static void gpuRun(int numberOfPoints, Kernel kernel, float[] done, String type, BooleanSupplier test,
 			int itr, int expectedIterations) {
 
 		// progressMoniter.progressUpdate(0, 100, "Start " + typOfCPU(kernel) + type,
 		// null);
-		String valueOf = String.valueOf(Runtime.getRuntime().availableProcessors() );
+		String valueOf = String.valueOf(Runtime.getRuntime().availableProcessors());
 		System.setProperty("com.aparapi.threadPoolSize", valueOf);
 		if (!useGPU) {
 			progressMoniter.progressUpdate(0, 100, "CPU mode " + valueOf, null);
@@ -2196,12 +2209,12 @@ public class CSG implements IuserAPI, Serializable {
 		try {
 			do {
 				KernelRunner kernelRunner = new KernelRunner(kernel);
-				if(poolGlobal==null)
-					poolGlobal=getPrivateThreadPool(kernelRunner);
+				if (poolGlobal == null)
+					poolGlobal = getPrivateThreadPool(kernelRunner);
 				else
 					setPrivateThreadPool(kernelRunner, poolGlobal);
-				
-				kernelRunner.execute("run", Range.create(null,numberOfPoints), 1);
+
+				kernelRunner.execute("run", Range.create(null, numberOfPoints), 1);
 				typOfCPU = typOfCPU(kernel);
 				iteration[0] += 1;
 				long now = System.currentTimeMillis();
@@ -2221,8 +2234,8 @@ public class CSG implements IuserAPI, Serializable {
 							remaining = 0;
 						String dur = makeTimestamp(expected);
 						String rem = makeTimestamp(remaining);
-						progressMoniter.progressUpdate(iteration[0], expectedIterations, "Rem->" + rem + " " + type
-								+ typOfCPU + " \nTot->" + dur, null);
+						progressMoniter.progressUpdate(iteration[0], expectedIterations,
+								"Rem->" + rem + " " + type + typOfCPU + " \nTot->" + dur, null);
 					}
 				}
 				Thread.sleep(16);
@@ -2265,15 +2278,15 @@ public class CSG implements IuserAPI, Serializable {
 //        System.out.println("  2 Parallelism: " + commonPool.getParallelism());
 //        System.out.println("  2 Is Shutdown: " + commonPool.isShutdown());
 //        System.out.println("  2 Is Terminated: " + commonPool.isTerminated());
-		boolean executing ;
+		boolean executing;
 		do {
-			executing=kernel.isExecuting();
-		}while(executing );
+			executing = kernel.isExecuting();
+		} while (executing);
 		long sinceStart = System.currentTimeMillis() - begin;
 		if (print)
 			progressMoniter.progressUpdate(100, 100,
 					"Took " + makeTimestamp(sinceStart) + " Finished " + type + " on " + typOfCPU, null);
-		
+
 	}
 
 	private static String typOfCPU(Kernel kernel) {
@@ -2288,13 +2301,13 @@ public class CSG implements IuserAPI, Serializable {
 		long seconds = duration.getSeconds() % 60;
 		long ms = duration.getNano() / 1000000;
 		if (hours > 0) {
-			return String.format(Locale.US,"h%02d:m%02d", hours, minutes);
+			return String.format(Locale.US, "h%02d:m%02d", hours, minutes);
 		}
 		if (minutes > 0)
-			return String.format(Locale.US,"m%02d:s%02d", minutes, seconds);
+			return String.format(Locale.US, "m%02d:s%02d", minutes, seconds);
 		if (seconds > 0)
-			return String.format(Locale.US,"s%02d:ms%03d", seconds, ms);
-		String dur = String.format(Locale.US,"ms%03d", ms);
+			return String.format(Locale.US, "s%02d:ms%03d", seconds, ms);
+		String dur = String.format(Locale.US, "ms%03d", ms);
 		return dur;
 	}
 
@@ -2304,17 +2317,15 @@ public class CSG implements IuserAPI, Serializable {
 			toAdd.add(p);
 		} else {
 
-
-				List<Polygon> triangles;
-				try {
-					triangles = PolygonUtil.triangulatePolygon(p);
-					for (Polygon poly : triangles) {
-						toAdd.add(poly);
-					}
-				} catch (ColinearPointsException e) {
-					System.out.println(e.getMessage()+" Polygon pruned "+p);
+			List<Polygon> triangles;
+			try {
+				triangles = PolygonUtil.triangulatePolygon(p);
+				for (Polygon poly : triangles) {
+					toAdd.add(poly);
 				}
-
+			} catch (ColinearPointsException e) {
+				System.out.println(e.getMessage() + " Polygon pruned " + p);
+			}
 
 		}
 		return;
@@ -2915,11 +2926,13 @@ public class CSG implements IuserAPI, Serializable {
 				.transformed(new Transform().translateZ(shellThickness * zPer)).historySync(this);
 
 	}
+
 	public boolean hasManipulator() {
 		return manipulator.get(uniqueId) != null;
 	}
-	public Affine getManipulator() throws MissingManipulatorException{
-		if (!hasManipulator() )
+
+	public Affine getManipulator() throws MissingManipulatorException {
+		if (!hasManipulator())
 			throw new MissingManipulatorException("Can not get a manipulator that does not exist");
 		return manipulator.get(uniqueId);
 	}
@@ -2968,13 +2981,12 @@ public class CSG implements IuserAPI, Serializable {
 		if (getName().length() == 0)
 			setName(dyingCSG.getName());
 		setColor(dyingCSG.getColor());
-		//str.syncProperties(dyingCSG.str);
+		// str.syncProperties(dyingCSG.str);
 		syncCadoodleCatagories(dyingCSG);
 		return this;
 	}
 
-
-	public CSG syncParameter(CSGDatabaseInstance instance,CSG dyingCSG) {
+	public CSG syncParameter(CSGDatabaseInstance instance, CSG dyingCSG) {
 		syncCadoodleCatagories(dyingCSG);
 		Set<String> params = dyingCSG.getParameters(instance);
 		for (String param : params) {
@@ -2986,7 +2998,7 @@ public class CSG implements IuserAPI, Serializable {
 			if (!existing) {
 				Parameter vals = instance.get(param);
 				if (vals != null)
-					this.setParameter(instance,vals, dyingCSG.getMapOfparametrics(instance).get(param));
+					this.setParameter(instance, vals, dyingCSG.getMapOfparametrics(instance).get(param));
 			}
 		}
 		return this;
@@ -3027,7 +3039,7 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	public PrepForManufacturing getManufacturing() {
-		if(manufactuingMap.get(this.getUniqueId())==null) {
+		if (manufactuingMap.get(this.getUniqueId()) == null) {
 			manufactuingMap.put(this.getUniqueId(), new PrepForManufacturing() {
 				@Override
 				public CSG prep(CSG incoming) {
@@ -3051,36 +3063,42 @@ public class CSG implements IuserAPI, Serializable {
 		return this;
 	}
 
-	public CSG setParameter(CSGDatabaseInstance instance,Parameter w) {
+	public CSG setParameter(CSGDatabaseInstance instance, Parameter w) {
 		instance.setParameter(this, w);
 		return this;
 	}
-	public CSG setParameter(CSGDatabaseInstance instance,String key, double defaultValue, double upperBound, double lowerBound,
-			IParametric function) {
+
+	public CSG setParameter(CSGDatabaseInstance instance, String key, double defaultValue, double upperBound,
+			double lowerBound, IParametric function) {
 		instance.setParameter(this, key, defaultValue, upperBound, lowerBound, function);
 		return this;
 	}
-	public CSG setParameter(CSGDatabaseInstance instance,Parameter w, IParametric function) {
+
+	public CSG setParameter(CSGDatabaseInstance instance, Parameter w, IParametric function) {
 		if (w == null)
 			return this;
 		instance.setParameter(this, w, function);
 		return this;
 	}
-	public CSG setParameterIfNull(CSGDatabaseInstance instance,String key) {
+
+	public CSG setParameterIfNull(CSGDatabaseInstance instance, String key) {
 		instance.setParameterIfNull(this, key);
 		return this;
 	}
+
 	public Set<String> getParameters(CSGDatabaseInstance instance) {
 		return instance.getMapOfparametrics(this).keySet();
 	}
+
 	public CSG setParameterNewValue(CSGDatabaseInstance instance, String key, double newValue) {
 		instance.setParameterNewValue(this, key, newValue);
 		return this;
 	}
-	public HashMap<String, IParametric> getMapOfparametrics(CSGDatabaseInstance instance){
+
+	public HashMap<String, IParametric> getMapOfparametrics(CSGDatabaseInstance instance) {
 		return instance.getMapOfparametrics(this);
 	}
-	
+
 //	@Deprecated 
 //	public HashMap<String, IParametric> getMapOfparametrics(){
 //		new RuntimeException("This is using LEGACY database!").printStackTrace();
@@ -3126,7 +3144,7 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	public IRegenerate getRegenerate() {
-		if(regenerate.get(getUniqueId())==null) {
+		if (regenerate.get(getUniqueId()) == null) {
 			regenerate.put(getUniqueId(), new IRegenerate() {
 				@Override
 				public CSG regenerate(CSG previous) {
@@ -3144,7 +3162,7 @@ public class CSG implements IuserAPI, Serializable {
 			return this;
 		CSG regenerate2 = regenerate.get(getUniqueId()).regenerate(this);
 		if (regenerate2 != null) {
-			if(hasManipulator())
+			if (hasManipulator())
 				try {
 					regenerate2.setManipulator(this.getManipulator());
 				} catch (MissingManipulatorException e) {
@@ -3155,8 +3173,6 @@ public class CSG implements IuserAPI, Serializable {
 		}
 		return this;
 	}
-
-
 
 	public boolean isMarkedForRegeneration() {
 		return markForRegeneration;
@@ -3688,6 +3704,7 @@ public class CSG implements IuserAPI, Serializable {
 			return o.get();
 		return false;
 	}
+
 	public CSG setIsLock(boolean Lock) {
 		getStorage().set("isLock", Lock);
 		return this;
@@ -3712,6 +3729,7 @@ public class CSG implements IuserAPI, Serializable {
 			return o.get();
 		return false;
 	}
+
 	// NoScale
 	public CSG setNoScale(boolean Hide) {
 		getStorage().set("NoScale", Hide);
@@ -3724,12 +3742,12 @@ public class CSG implements IuserAPI, Serializable {
 			return o.get();
 		return false;
 	}
+
 	// IsAlwaysShow
 	public CSG setIsAlwaysShow(boolean Hide) {
 		getStorage().set("isAlwaysShow", Hide);
 		return this;
 	}
-	
 
 	public boolean isAlwaysShow() {
 		Optional<Boolean> o = getStorage().getValue("isAlwaysShow");
@@ -3737,7 +3755,7 @@ public class CSG implements IuserAPI, Serializable {
 			return o.get();
 		return false;
 	}
-	
+
 	// Hole
 	public CSG setIsHole(boolean hole) {
 		getStorage().set("isHole", hole);
@@ -3750,7 +3768,7 @@ public class CSG implements IuserAPI, Serializable {
 			return o.get();
 		return false;
 	}
-	
+
 	private void syncCadoodleCatagories(CSG dyingCSG) {
 		setIsHole(dyingCSG.isHole());
 		setIsHide(dyingCSG.isHide());
@@ -3761,6 +3779,7 @@ public class CSG implements IuserAPI, Serializable {
 		setColor(dyingCSG.getColor());
 		setNoScale(dyingCSG.isNoScale());
 	}
+
 	public void setDefaultCadoodleCatagories() {
 		setIsHole(false);
 		setIsHide(false);
@@ -3770,6 +3789,7 @@ public class CSG implements IuserAPI, Serializable {
 		setIsWireFrame(false);
 		setNoScale(false);
 	}
+
 	// Hole
 	public CSG setLimbName(String name) {
 		getStorage().set("LimbName", name);
@@ -3779,7 +3799,7 @@ public class CSG implements IuserAPI, Serializable {
 	public Optional<String> getLimbName() {
 		return getStorage().getValue("LimbName");
 	}
-	
+
 	public CSG setMobileBaseName(String name) {
 		getStorage().set("MobileBaseName", name);
 		return this;
@@ -3788,11 +3808,12 @@ public class CSG implements IuserAPI, Serializable {
 	public Optional<String> getMobileBaseName() {
 		return getStorage().getValue("MobileBaseName");
 	}
-	public CSG syncProperties(CSGDatabaseInstance instance,CSG dying) {
+
+	public CSG syncProperties(CSGDatabaseInstance instance, CSG dying) {
 		getStorage().syncProperties(dying.getStorage());
-		regenerate.put(uniqueId,regenerate.get(dying.uniqueId)) ;
+		regenerate.put(uniqueId, regenerate.get(dying.uniqueId));
 		setManipulator(manipulator.get(dying.uniqueId));
-		syncParameter(instance,dying);
+		syncParameter(instance, dying);
 		return this;
 	}
 
@@ -4067,8 +4088,8 @@ public class CSG implements IuserAPI, Serializable {
 		if (!preventNonManifoldTriangles) {
 			if (!warned)
 				System.err.println(
-					"WARNING:This will make STL's incompatible with low quality slicing engines like Slice3r and PrusaSlicer");
-			warned=true;
+						"WARNING:This will make STL's incompatible with low quality slicing engines like Slice3r and PrusaSlicer");
+			warned = true;
 		}
 		CSG.preventNonManifoldTriangles = preventNonManifoldTriangles;
 	}
@@ -4082,7 +4103,7 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	public boolean isBoundsTouching(CSG incoming) {
-		if(incoming==null)
+		if (incoming == null)
 			return false;
 		return getBounds().isBoundsTouching(incoming.getBounds());
 	}
@@ -4106,5 +4127,5 @@ public class CSG implements IuserAPI, Serializable {
 	public String getUniqueId() {
 		return uniqueId;
 	}
-	
+
 }
