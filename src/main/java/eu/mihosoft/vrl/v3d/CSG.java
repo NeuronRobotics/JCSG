@@ -136,7 +136,7 @@ import javafx.scene.transform.Affine;
 
 @SuppressWarnings("restriction")
 public class CSG implements IuserAPI, Serializable {
-	transient private static final double POINTS_CONTACT_DISTANCE = 0.00001;
+	transient private static final double POINTS_CONTACT_DISTANCE = 0.0001;
 	transient private static int MinPolygonsForOffloading = 200;
 	transient private static final long serialVersionUID = 4071874097772427063L;
 	transient private static IDebug3dProvider providerOf3d = null;
@@ -1698,6 +1698,14 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	public CSG triangulate(boolean fix) {
+		return triangulate(fix, false);
+	}
+
+	public CSG snapPoints() {
+		return triangulate(false, true);
+	}
+
+	public CSG triangulate(boolean fix, boolean justSnap) {
 //		if (fix && needsDegeneratesPruned)
 //			triangulated = false;
 //		if (triangulated)
@@ -1739,7 +1747,7 @@ public class CSG implements IuserAPI, Serializable {
 					System.err.println("Processing Mesh Manifold with " + longLength * 4 + " byte buffer");
 					added = 0;
 					try {
-						added = runGPUMakeManifold(itr, (int) np, (int) longLength, numberOfPolygons);
+						added = runGPUMakeManifold(itr, (int) np, (int) longLength, numberOfPolygons, justSnap);
 					} catch (Exception ex) {
 						ex.printStackTrace();
 					}
@@ -1753,7 +1761,8 @@ public class CSG implements IuserAPI, Serializable {
 			} while (added < 0 && itr++ < 51);
 		}
 		// }
-		performTriangulation();
+		if (!justSnap)
+			performTriangulation();
 		// System.out.println("Complete Triangulation \n\n");
 		// now all polygons are definantly triangles
 		// triangulated = true;
@@ -1772,7 +1781,7 @@ public class CSG implements IuserAPI, Serializable {
 		}
 	}
 
-	private int runGPUMakeManifold(int iteration, int np, int longLength, int numPoly) {
+	private int runGPUMakeManifold(int iteration, int np, int longLength, int numPoly, boolean justSnap) {
 		if (iteration < 0 || np <= 0 || longLength <= 0 || numPoly <= 0)
 			throw new RuntimeException("Error none of the dataa lengths can be negative nor 0");
 		// Flattened approach - more Aparapi-friendly
@@ -2058,39 +2067,39 @@ public class CSG implements IuserAPI, Serializable {
 			}// Run method
 		};
 		pointsAdded = 0;
-
-		gpuRun(numberOfPolygons, findNonManifoldPoints, done, "Manifold Itr(" + iteration + ")", () -> {
-			// for (int tp = 0; tp < uniquePoints.length; tp++)
-			// Iterate through each of the test points in host thread
-			tp[0] += testPointChunk;
-			tp[1] += testPointChunk;
-			if (tp[1] > uniquePoints.length)
-				tp[1] = uniquePoints.length;
-			if (tp[0] < uniquePoints.length)
-				return true;
-			pointsAdded = 0;
-			String out = "points added report [";
-			for (int x = 0; x < added.length; x++) {
-				if (added[x] < 0) {
-					progressMoniter.progressUpdate(1, 1,
-							"\n\nManifold failed after " + x + " of " + numberOfPolygons + " polygons ", this);
-					pointsAdded = -1;
-					break;
-				} else {
-					pointsAdded += added[x];
-					if (added[x] > 0 && out.length() < 300)
-						out += " to " + x + " added " + (added[x]) + " size " + polySizes[x] + " , ";
+		if (!justSnap) {
+			gpuRun(numberOfPolygons, findNonManifoldPoints, done, "Manifold Itr(" + iteration + ")", () -> {
+				// for (int tp = 0; tp < uniquePoints.length; tp++)
+				// Iterate through each of the test points in host thread
+				tp[0] += testPointChunk;
+				tp[1] += testPointChunk;
+				if (tp[1] > uniquePoints.length)
+					tp[1] = uniquePoints.length;
+				if (tp[0] < uniquePoints.length)
+					return true;
+				pointsAdded = 0;
+				String out = "points added report [";
+				for (int x = 0; x < added.length; x++) {
+					if (added[x] < 0) {
+						progressMoniter.progressUpdate(1, 1,
+								"\n\nManifold failed after " + x + " of " + numberOfPolygons + " polygons ", this);
+						pointsAdded = -1;
+						break;
+					} else {
+						pointsAdded += added[x];
+						if (added[x] > 0 && out.length() < 300)
+							out += " to " + x + " added " + (added[x]) + " size " + polySizes[x] + " , ";
+					}
 				}
-			}
-			out += "]";
-			out = "Total added " + pointsAdded + " " + out;
-			if (pointsAdded > 0) {
-				progressMoniter.progressUpdate(1, 1, out, this);
-				// return true;
-			}
-			return false;
-		}, iteration, uniquePoints.length / testPointChunk);
-
+				out += "]";
+				out = "Total added " + pointsAdded + " " + out;
+				if (pointsAdded > 0) {
+					progressMoniter.progressUpdate(1, 1, out, this);
+					// return true;
+				}
+				return false;
+			}, iteration, uniquePoints.length / testPointChunk);
+		}
 		ArrayList<Polygon> newPoly = new ArrayList<>();
 		for (int i = 0; i < polygons.size(); i++) {
 			Polygon polygon = polygons.get(i);
