@@ -513,12 +513,13 @@ public class PolygonUtil {
 	public static Transform calculateNormalTransform(Polygon concave) throws ColinearPointsException {
 		// Normalize inputs
 		Vector3d u = concave.getPlane().getNormal();
-		Vector3d pureZVect = new Vector3d(0, 0, 1);
 		Vector3d pureXVect = new Vector3d(1, 0, 0);
+		Vector3d pureYVect = new Vector3d(0, 1, 0);
+		Vector3d pureZVect = new Vector3d(0, 0, 1);
 
-		double dotZ = u.dot(pureZVect);
 		double dotX = u.dot(pureXVect);
-		// If u ≈ v → identity
+		double dotY = u.dot(pureYVect);
+		double dotZ = u.dot(pureZVect);
 		if (dotZ > 1.0 - Plane.getEPSILON()) {
 			return new Transform();
 		}
@@ -530,6 +531,12 @@ public class PolygonUtil {
 		}
 		if (dotX < -1.0 + Plane.getEPSILON()) {
 			return new Transform().rotY(-90);
+		}
+		if (dotY > 1.0 - Plane.getEPSILON()) {
+			return new Transform().rotX(90);
+		}
+		if (dotY < -1.0 + Plane.getEPSILON()) {
+			return new Transform().rotX(-90);
 		}
 		double aboutZ = Math.toDegrees(Math.atan2(u.y, u.x));
 		if(Double.isNaN(aboutZ))

@@ -2131,7 +2131,8 @@ public class CSG implements IuserAPI, Serializable {
 				p = new Polygon(points, polygon.getStorage(), true, pl);
 				newPoly.add(p);
 			} catch (ColinearPointsException e) {
-				System.out.println("Prining " + points + " " + e);
+				System.err.println("Pruning " + points);
+				e.printStackTrace();
 			}
 			polygon.getPoints().clear();
 		}
