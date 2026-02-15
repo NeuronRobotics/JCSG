@@ -533,13 +533,13 @@ public class PolygonUtil {
 		}
 		double aboutZ = Math.toDegrees(Math.atan2(u.y, u.x));
 		if(Double.isNaN(aboutZ))
-			throw new RuntimeException("Failed to creat a rotation angle");
+			throw new ColinearPointsException("Failed to creat a rotation angle");
 		Transform transform1 = new Transform().rotZ(aboutZ);
 		Vector3d u2 = u.transformed(transform1);
 		Transform transform;
 		double aboutY = Math.toDegrees(Math.atan2(u2.x, u2.z));
 		if(Double.isNaN(aboutY))
-			throw new RuntimeException("Failed to creat a rotation angle");
+			throw new ColinearPointsException("Failed to creat a rotation angle");
 		
 		Transform rotY = new Transform().rotY(aboutY);
 		transform = rotY.copy().apply(transform1);
@@ -551,7 +551,7 @@ public class PolygonUtil {
 		Vector3d normal = test.plane.getNormal();
 		double abs = Math.abs(normal.z);
 		if (1 - abs > 0.1) {
-			System.out.println("Error with " + test);
+			System.out.println("Error with " + test+" normal "+normal);
 			// Plane p = Plane.createFromPoints(test.getVertices());
 			 new ColinearPointsException("Failed to reorent the polygon for processing! z off by "+abs+" "+normal).printStackTrace();
 		}
@@ -563,7 +563,7 @@ public class PolygonUtil {
 		List<Double> asList = Arrays.asList(t1.x, t1.y, t1.z, q1.w, q1.x, q1.y, q1.z);
 		for(Double d:asList){
 			if(Double.isInfinite(d)||Double.isNaN(d))
-				throw new RuntimeException("Failed to produce a matrix ");
+				throw new ColinearPointsException("Failed to produce a matrix ");
 		}
 		
 		return transform;
