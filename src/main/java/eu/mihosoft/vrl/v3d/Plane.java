@@ -204,14 +204,23 @@ public class Plane implements Serializable {
 		if (p != null) {
 			Vector3d normal = p.getNormal();
 			Vector3d normal2 = getNormal();
+			double dot = 1-Math.abs(normal.dot(normal2));
 			// check for actual misallignment
-			double d = 0.0001;
-			if ((normal.x) - (normal2.x) > d
-					|| (normal.y) - (normal2.y) > d
-					|| (normal.z) - (normal2.z) > d) {
-				if (Math.abs(normal.x) - Math.abs(normal2.x) > d
-						|| Math.abs(normal.y) - Math.abs(normal2.y) > d
-						|| Math.abs(normal.z) - Math.abs(normal2.z) > d) {
+			double d = Plane.getEPSILON();
+			if(dot<d)
+				return true;
+			double e3 = (normal.x) - (normal2.x);
+			double e4 = (normal.y) - (normal2.y);
+			double e5 = (normal.z) - (normal2.z);
+			if (e3 > d
+					|| e4 > d
+					|| e5 > d) {
+				double e = Math.abs(normal.x) - Math.abs(normal2.x);
+				double e2 = Math.abs(normal.y) - Math.abs(normal2.y);
+				double f = Math.abs(normal.z) - Math.abs(normal2.z);
+				if (e > d
+						|| e2 > d
+						|| f > d) {
 					return false;
 				}
 				return false;

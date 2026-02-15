@@ -155,7 +155,7 @@ public final class Polygon implements Serializable {
 		for (int i = 0; i < incoming.size(); i++) {
 			Vertex v = incoming.get(i);
 			for(Vertex vt:newPoints) {
-				if(vt.pos.test(v.pos)) {
+				if(vt.pos.test(v.pos,Plane.getEPSILON()/2.0)) {
 					v=null;
 					break;
 				}

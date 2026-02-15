@@ -532,12 +532,12 @@ public class PolygonUtil {
 		if (dotX < -1.0 + Plane.getEPSILON()) {
 			return new Transform().rotY(-90);
 		}
-		if (dotY > 1.0 - Plane.getEPSILON()) {
-			return new Transform().rotX(90);
-		}
-		if (dotY < -1.0 + Plane.getEPSILON()) {
-			return new Transform().rotX(-90);
-		}
+//		if (dotY > 1.0 - Plane.getEPSILON()) {
+//			return new Transform().rotX(90);
+//		}
+//		if (dotY < -1.0 + Plane.getEPSILON()) {
+//			return new Transform().rotX(-90);
+//		}
 		double aboutZ = Math.toDegrees(Math.atan2(u.y, u.x));
 		if(Double.isNaN(aboutZ))
 			throw new ColinearPointsException("Failed to creat a rotation angle");

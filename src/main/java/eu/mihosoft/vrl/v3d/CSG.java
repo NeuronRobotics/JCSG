@@ -136,7 +136,7 @@ import javafx.scene.transform.Affine;
 
 @SuppressWarnings("restriction")
 public class CSG implements IuserAPI, Serializable {
-	transient private static final double POINTS_CONTACT_DISTANCE = Plane.getEPSILON();
+	transient private static final double POINTS_CONTACT_DISTANCE =  0.00001;
 	transient private static int MinPolygonsForOffloading = 200;
 	transient private static final long serialVersionUID = 4071874097772427063L;
 	transient private static IDebug3dProvider providerOf3d = null;
@@ -2107,18 +2107,18 @@ public class CSG implements IuserAPI, Serializable {
 			ArrayList<Vertex> points = new ArrayList<Vertex>();
 			int startIndex = polyStartIndex[i];
 			int polySize = polySizes[i];
-			HashSet<Integer> pointIndexSet = new HashSet<Integer>();
+//			HashSet<Integer> pointIndexSet = new HashSet<Integer>();
 			for (int j = 0; j < polySize; j++) {
 				int pointIndex = polygonPointOrder[startIndex + j];
 				if (pointIndex < 0) {
 					new RuntimeException("Algorithm error").printStackTrace();
 					continue;
 				}
-				if (pointIndexSet.contains(pointIndex)) {
-					System.out.println("ERR polygon " + i + " already has a point " + pointIndex);
-					continue;
-				}
-				pointIndexSet.add(pointIndex);
+//				if (pointIndexSet.contains(pointIndex)) {
+//					System.out.println("ERR polygon " + i + " already has a point " + pointIndex);
+//					continue;
+//				}
+//				pointIndexSet.add(pointIndex);
 				Vector3d thispoint = orderedPoints[pointIndex];
 				points.add(new Vertex(thispoint));
 			}
