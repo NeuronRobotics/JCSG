@@ -155,7 +155,7 @@ public final class Polygon implements Serializable {
 		for (int i = 0; i < incoming.size(); i++) {
 			Vertex v = incoming.get(i);
 			for(Vertex vt:newPoints) {
-				if(vt.pos.test(v.pos,Plane.getEPSILON()/2.0)) {
+				if(vt.pos.test(v.pos,Plane.getEPSILON())) {
 					v=null;
 					break;
 				}
@@ -176,21 +176,11 @@ public final class Polygon implements Serializable {
 		if (getPlane() == null) {
 			setPlane(p);
 		}
-
-		
-		//if(fixInversions) {
-			Vector3d minus = getPlane().getNormal().minus(p.getNormal());
-			double magnitude = minus.magnitude();
-			if (Math.abs( magnitude)>2-(Plane.getEPSILON()*2) ) {
-				Collections.reverse(vertices);
-			}
-		//}
-		if (!getPlane().checkNormal(vertices)) {
-			if(p.getLengthSquared()>Plane.getEPSILON())
-				setPlane(p);
-			else
-				if (getPlane() == null) 
-					throw new ColinearPointsException("Failed! the normal provided mismatched to calculated normal");
+		if (getPlane().checkNormal(vertices)==NormalState.FLIPPED ) {
+			Collections.reverse(vertices);
+		}
+		if (getPlane().checkNormal(vertices)!=NormalState.SAME) {
+			throw new ColinearPointsException("Failed! the normal provided mismatched to calculated normal");
 		}
 		this.vertices=vertices;
 		
@@ -198,10 +188,33 @@ public final class Polygon implements Serializable {
 		if (getVertices().size() < 3) {
 			throw new ColinearPointsException("Invalid polygon: at least 3 vertices expected, got: " + getVertices().size());
 		}
+		Vector3d normal = getPlane().getNormal();
+		double dist = getPlane().getDist();
+		boolean adusted = false;
+		for (int i = 0; i < getVertices().size(); i++) {
+			Vector3d pos = getVertices().get(i).pos;
+			double dot = normal.dot(pos);
+			double a = dot - dist;
+			double t = Math.abs(a);
+			if(t>0.01) {
+				throw new RuntimeException("A plane epsilon of "+t+" is impossible");
+			}
+			if (t > Plane.getEPSILON()) {
+			    pos.x -= a * normal.x;
+			    pos.y -= a * normal.y;
+			    pos.z -= a * normal.z;
+			    adusted=true;
+				 //new ColinearPointsException("Non flat polygon, epsilon = "+a+" vs planer test of "+Plane.getEPSILON()).printStackTrace();;
+			}
+		}
+		if(adusted) {
+			validateAndInit(fixInversions);
+			return;
+		}
 
 		if( !areAllPointsCollinear())
 			return;
-		new ColinearPointsException("This polygon is colinear");
+		throw new ColinearPointsException("This polygon is colinear");
 		
 	}
 
@@ -257,9 +270,10 @@ public final class Polygon implements Serializable {
 //		} catch (ColinearPointsException e) {
 //			plane.flip();
 //		}
-		if (!getPlane().checkNormal(vertices)) {
+		NormalState checkNormal = getPlane().checkNormal(vertices);
+		if (checkNormal!=NormalState.SAME) {
 	//		getPlane().checkNormal(vertices);
-			new RuntimeException("Failed! the normal provided mismatched to calculated normal").printStackTrace();	
+			throw new RuntimeException("Failed! the normal provided mismatched to calculated normal "+checkNormal);	
 		}
 		
 		return this;

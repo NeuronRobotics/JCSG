@@ -51,9 +51,35 @@ import com.google.gson.annotations.Expose;
  *
  * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
  */
-public class Vector3d extends javax.vecmath.Vector3d {
+public class Vector3d 
+{
     
+	public double x,y,z;
 
+    /**
+     * Returns the length of this vector.
+     * @return the length of this vector
+     */
+    public final double length()
+    {
+        return Math.sqrt(this.x*this.x + this.y*this.y + this.z*this.z);
+    }
+    /**
+     * Normalizes this vector in place.
+     */
+    public final void normalize()
+    {
+        double norm;
+
+        norm = 1.0/Math.sqrt(this.x*this.x + this.y*this.y + this.z*this.z);
+        this.x *= norm;
+        this.y *= norm;
+        this.z *= norm;
+    }
+    public boolean epsilonEquals(Vector3d in, double ep) {
+    	return test(in, ep);
+    }
+    
     private static  String exportString = "%.10f";
 
 	private static  double EXPORTEPSILON =1.0e-10;
@@ -86,9 +112,9 @@ public class Vector3d extends javax.vecmath.Vector3d {
      * @param z z value
      */
     public Vector3d(double x, double y, double z) {
-//    	if(!Double.isFinite(x)||!Double.isFinite(y)||!Double.isFinite(z)) {
-//    		throw new NumberFormatException("Vectors must be real "+x+" "+y+" "+z);
-//    	}
+    	if(!Double.isFinite(x)||!Double.isFinite(y)||!Double.isFinite(z)) {
+    		throw new NumberFormatException("Vectors must be real "+x+" "+y+" "+z);
+    	}
         this.x = x;
         this.y = y;
         this.z = z;

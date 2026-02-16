@@ -271,8 +271,7 @@ public final class Node {
 			return 1;
 		}
 		try {
-			testAddPolygon(l, orderedPoints, polygonPointX, polygonPointY, polygonPointZ, polygon, polygonBase, size,
-					false);
+			testAddPolygon(l, orderedPoints, polygonPointX, polygonPointY, polygonPointZ, polygon, polygonBase, size);
 			return 1;
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -282,7 +281,7 @@ public final class Node {
 	}
 
 	private static void testAddPolygon(List<Polygon> l, ArrayList<Vertex> orderedPoints, double[] polygonPointX,
-			double[] polygonPointY, double[] polygonPointZ, Polygon polygon, int polygonBase, int size, boolean test) {
+			double[] polygonPointY, double[] polygonPointZ, Polygon polygon, int polygonBase, int size) {
 		List<Vertex> f = new ArrayList<>();
 		for (int i = polygonBase; i < polygonBase + size; i++) {
 			if (i < orderedPoints.size()) {
@@ -296,7 +295,7 @@ public final class Node {
 			}
 		}
 
-		add(l, f, polygon, test);
+		add(l, f, polygon);
 	}
 
 	private static boolean addPoint(List<Vertex> f, Vertex v) {
@@ -311,24 +310,23 @@ public final class Node {
 		return f.add(v);
 	}
 
-	private static void add(List<Polygon> l, List<Vertex> f, Polygon polygon) {
-		add(l, f, polygon, false);
-	}
+//	private static void add(List<Polygon> l, List<Vertex> f, Polygon polygon) {
+//		add(l, f, polygon, false);
+//	}
 
-	private static void add(List<Polygon> l, List<Vertex> f, Polygon polygon, boolean test) {
+	private static void add(List<Polygon> l, List<Vertex> f, Polygon polygon) {
 		if (f.size() < 3)
 			return;
 		try {
-			if(!Extrude.isCCW(f, polygon.getPlane().getNormal())) {
+			if(polygon.getPlane().checkNormal(f) == NormalState.FLIPPED) {
 				Collections.reverse(f);
 			}
 			Polygon fpoly = new Polygon(f, polygon.getStorage(), true, polygon.getPlane())
 					.setColor(polygon.getColor());
-			if (!test)
-				l.add(fpoly);	
+			l.add(fpoly);	
 		}catch(ColinearPointsException ex) {
-			//ex.printStackTrace();
-			System.err.println(ex.getMessage()+" Pruned Collinear polygon "+f );
+			ex.printStackTrace();
+			System.err.println("Pruned Collinear polygon "+f+" "+ex.getMessage() );
 		}
 	}
 	public static String getOsName() {
@@ -934,21 +932,8 @@ public final class Node {
 		// search for the epsilon values of the incoming plane
 		double posEpsilon = Plane.getEPSILON();
 		int size = polygon.getVertices().size();
-		Vector3d normal = polygon.getPlane().getNormal();
-			for (int i = 0; i < size; i++) {
-				Vector3d pos = polygon.getVertices().get(i).pos;
-				double dot = normal.dot(pos);
-				double t = Math.abs(dot - polygon.getPlane().getDist());
-				if(t>0.01) {
-					throw new RuntimeException("A plane epsilon of "+t+" is impossible");
-				}
-				if (t > posEpsilon) {
-					// com.neuronrobotics.sdk.common.Log.error("Non flat polygon, increasing
-					// positive epsilon "+t);
-					posEpsilon = t;
-				}
+		//Vector3d normal = polygon.getPlane().getNormal();
 
-			}
 		int polygonType = 0;
 		List<Integer> types = new ArrayList<>();
 //			boolean someF =false;
@@ -982,7 +967,7 @@ public final class Node {
 		// Put the polygon in the correct list, splitting it when necessary.
 		switch (polygonType) {
 		case COPLANAR:
-			double cp = getThisNodePlane().getNormal().dot(normal);
+			double cp = getThisNodePlane().getNormal().dot(polygon.getPlane().getNormal());
 			(cp > 0 ? coplanarFront : coplanarBack).add(polygon);
 			break;
 		case FRONT:
@@ -1042,6 +1027,7 @@ public final class Node {
 					// therefor the intersection point is halfway between i and j
 					double t = (d / dotMinus);
 					if (!Double.isFinite(t) || t < 0 || t > 1.0) {
+						new RuntimeException("ERROR in interpolation!").printStackTrace();
 					    continue;
 					}
 

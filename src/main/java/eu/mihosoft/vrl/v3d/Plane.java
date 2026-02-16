@@ -101,10 +101,15 @@ public class Plane implements Serializable {
 	 * @throws ColinearPointsException 
 	 */
 	public Plane(List<Vertex> vertices, Vector3d testNorm) throws ColinearPointsException {
-		Vector3d a = vertices.get(0).pos;
+		
 		Vector3d n = computeNormal(vertices, testNorm);
 		this.setNormal(n);
-		this.setDist(n.dot(a));
+		double distAvg = 0;
+		for(int i=0;i<vertices.size();i++) {
+			Vector3d a = vertices.get(i).pos;
+			distAvg+=n.dot(a);
+		}
+		this.setDist(distAvg/((double)vertices.size()));
 	}
 
 	/**
@@ -193,7 +198,7 @@ public class Plane implements Serializable {
 	    return false;
 	}
 
-	public boolean checkNormal(ArrayList<Vertex> vertex) {
+	public NormalState checkNormal(List<Vertex> vertex) {
 		Plane p = null;
 		try {
 			p = Plane.createFromPoints(vertex, getNormal());
@@ -203,84 +208,21 @@ public class Plane implements Serializable {
 		if (p != null) {
 			Vector3d normal = p.getNormal();
 			Vector3d normal2 = getNormal();
-			double dot = 1-Math.abs(normal.dot(normal2));
+			double dot2 = normal.dot(normal2);
+			double dot = 1-dot2;
+			double dFlipped = 2-dot2;
 			// check for actual misallignment
-			double d = Plane.getEPSILON();
-			if(dot<d)
-				return true;
-			double e3 = (normal.x) - (normal2.x);
-			double e4 = (normal.y) - (normal2.y);
-			double e5 = (normal.z) - (normal2.z);
-			if (e3 > d
-					|| e4 > d
-					|| e5 > d) {
-				double e = Math.abs(normal.x) - Math.abs(normal2.x);
-				double e2 = Math.abs(normal.y) - Math.abs(normal2.y);
-				double f = Math.abs(normal.z) - Math.abs(normal2.z);
-				if (e > d
-						|| e2 > d
-						|| f > d) {
-					return false;
-				}
-				return false;
-			}
+			double d = Plane.getEPSILON()*100;
+			if(dot>d)
+				if(dFlipped>d)
+					return NormalState.DIVERGENT;
+				else
+					return NormalState.FLIPPED;
+						
 		}
-		return true;
+		return NormalState.SAME;
 	}
 	
-	public static Vector3d computeNormalCrossProduct(List<Vertex> verts) {
-		int n = verts.size();
-		if (n < 3)
-			return new Vector3d(0, 0, 1);
-
-		// 1. Build all edge vectors
-		List<Vector3d> edges = new ArrayList<>();
-
-		for (int j = 0; j < n; j++) {
-			Vector3d e = verts.get((j+1)%n).pos.minus(verts.get(j).pos);
-			edges.add(e);
-			
-		}
-		
-
-		// 2. Find pair with smallest |dot| / (|e1||e2|)
-		double bestScore = Double.POSITIVE_INFINITY;
-		Vector3d bestE1 = null, bestE2 = null;
-		for (int i = 0; i < edges.size(); i++) {
-			Vector3d e1 = edges.get(i);
-			double len1 = e1.length();
-			for (int j = i + 1; j < edges.size(); j++) {
-				Vector3d e2 = edges.get(j);
-				double len2 = e2.length();
-				double score = Math.abs(e1.dot(e2)) / (len1 * len2);
-				if (score < bestScore) {
-					bestScore = score;
-					bestE1 = e1;
-					bestE2 = e2;
-				}
-			}
-		}
-
-		// 3. Fallback: use first three vertices if no good pair found
-		if (bestE1 == null) {
-			Vector3d v0 = verts.get(0).pos;
-			bestE1 = verts.get(1).pos.minus(v0);
-			bestE2 = verts.get(2).pos.minus(v0);
-		}
-
-		// 4. Compute normal
-		Vector3d normal = bestE1.cross(bestE2);
-		if (normal.magnitude() < Plane.getEPSILON()) {
-			throw new RuntimeException("Fail! Normal can not be computed");
-		}
-		normal.normalize();
-		Vector3d v0 = verts.get(0).pos;
-		Vector3d std = verts.get(1).pos.minus(v0).cross(verts.get(2).pos.minus(v0)).normalized();
-		if (normal.dot(std) < 0) {
-			normal = normal.negated();
-		}
-		return normal;
-	}
 
 
 

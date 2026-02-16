@@ -178,6 +178,7 @@ public class STLLoader {
 							try {
 								pl = new Plane(normal, vertices);
 							}catch(NumberFormatException ex) {
+								System.out.println(" STL has bad Normal "+normal);
 								pl=Plane.createFromPoints(vertices);
 							}
 							polygons.add(new Polygon(vertices, null, true, pl));
