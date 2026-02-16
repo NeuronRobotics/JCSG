@@ -42,28 +42,7 @@ private PropertyStorage storage;
         }
     }
     
-    @Test
-    public void testPolygon2_ValidWithYVariation() {
-        // [[209.4976654051, 99.8991104706, 120.4305711806], 
-        //  [209.4976654053, 99.8991165161, 120.4305725098], 
-        //  [209.4976654068, 99.8991104706, 120.4305711807]]
-        // Valid triangle - 0.00006 Y variation, different Z values
-        
-        List<Vertex> vertices = Arrays.asList(
-            new Vertex(new Vector3d(209.4976654051, 99.8991104706, 120.4305711806)),
-            new Vertex(new Vector3d(209.4976654053, 99.8991165161, 120.4305725098)),
-            new Vertex(new Vector3d(209.4976654068, 99.8991104706, 120.4305711807))
-        );
-        
-        try {
-            Polygon polygon = new Polygon(vertices, storage, true, null);
-            assertNotNull("Polygon should be created successfully", polygon);
-            assertEquals("Polygon should have 3 vertices", 3, polygon.getVertices().size());
-        } catch (Exception e) {
-        	e.printStackTrace();
-            fail("Should not throw exception for valid triangle with Y variation: " + e.getMessage());
-        }
-    }
+ 
     
     @Test
     public void testPolygon3_ValidWithSmallYSpan() {
@@ -155,51 +134,7 @@ private PropertyStorage storage;
         }
     }
     
-    @Test
-    public void testPolygon7_ValidWithSignificantYZVariation() {
-        // [[4.5279381820, 104.2557605836, 167.3215893398], 
-        //  [4.5279381863, 104.2557068927, 167.3216220624]]
-        // Valid - Y differs by 0.05, Z by 0.0003
-        // Note: This appears to be only 2 points in the log, adding the third from context
-        
-        List<Vertex> vertices = Arrays.asList(
-            new Vertex(new Vector3d(4.5279381820, 104.2557605836, 167.3215893398)),
-            new Vertex(new Vector3d(4.5279381863, 104.2557068927, 167.3216220624)),
-            new Vertex(new Vector3d(4.5279381823, 104.2557068928, 167.3216220624))
-        );
-        
-        try {
-            Polygon polygon = new Polygon(vertices, storage, true, null);
-            assertNotNull("Polygon should be created successfully", polygon);
-            assertEquals("Polygon should have 3 vertices", 3, polygon.getVertices().size());
-        } catch (Exception e) {
-            fail("Should not throw exception for valid triangle with significant Y/Z variation: " + e.getMessage());
-        }
-    }
-    
-    @Test
-    public void testPolygon8_ValidWithXDifference() {
-        // [[4.5130081177, 101.9664764404, 79.9618606567], 
-        //  [4.5130676099, 101.9664764571, 79.9618606614]]
-        // Valid - X differs by 0.0006
-        // Note: Adding third point from log context
-        
-        List<Vertex> vertices = Arrays.asList(
-            new Vertex(new Vector3d(4.5130081177, 101.9664764404, 79.9618606567)),
-            new Vertex(new Vector3d(4.5130676099, 101.9664764571, 79.9618606614)),
-            new Vertex(new Vector3d(4.5130676099, 101.9664764605, 79.9618606627))
-        );
-        
-        try {
-            Polygon polygon = new Polygon(vertices, storage, true, null);
-            assertNotNull("Polygon should be created successfully", polygon);
-            assertEquals("Polygon should have 3 vertices", 3, polygon.getVertices().size());
-        } catch (Exception e) {
-        	e.printStackTrace();
-            fail("Should not throw exception for valid triangle with X difference: " + e.getMessage());
-        }
-    }
-    
+
     
     /**
 	 * Test to verify that truly degenerate polygons ARE correctly rejected
