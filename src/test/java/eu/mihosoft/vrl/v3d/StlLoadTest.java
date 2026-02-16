@@ -20,7 +20,6 @@ public class StlLoadTest {
 		JavaFXInitializer.go();
 	}
 	@Test
-	@Ignore
 	public void tower() throws IOException {
 		String filename = "fixedTower.STL";
 		File file = new File(filename);
