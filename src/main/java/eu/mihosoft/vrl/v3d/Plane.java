@@ -52,11 +52,10 @@ public class Plane implements Serializable {
 	/**
 	 * EPSILON is the tolerance used by
 	 * {@link #splitPolygon(eu.mihosoft.vrl.v3d.Polygon, java.util.List, java.util.List, java.util.List, java.util.List) }
-	 * to decide if a point is on the plane. public static final double EPSILON =
-	 * 0.00000001;
+	 * to decide if a point is on the plane. public static final double EPSILON 
 	 */
 
-	private static double EPSILON = 1.0e-8;
+	private static double EPSILON = 1.0e-9;
 	public static double EPSILON_Point = getEPSILON();
 	// public static double EPSILON_duplicate = 1.0e-4;
 	/**

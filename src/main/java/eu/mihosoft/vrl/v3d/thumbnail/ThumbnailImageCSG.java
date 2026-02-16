@@ -182,7 +182,7 @@ public class ThumbnailImageCSG {
 				e.printStackTrace();
 				return;
 			}
-			if ((System.currentTimeMillis() - start) > 100) {
+			if ((System.currentTimeMillis() - start) > 500) {
 				System.err.println("Image failed to render!");
 				throw new RuntimeException("Failed to load image");
 
