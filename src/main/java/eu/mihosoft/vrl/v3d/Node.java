@@ -932,14 +932,16 @@ public final class Node {
 	private void splitSinglePolygon(Polygon polygon,List<Polygon> coplanarFront, List<Polygon> coplanarBack, List<Polygon> front,
 			List<Polygon> back) {
 		// search for the epsilon values of the incoming plane
+		double negEpsilon = -Plane.getEPSILON();
 		double posEpsilon = Plane.getEPSILON();
 		int size = polygon.getVertices().size();
 		Vector3d normal = polygon.getPlane().getNormal();
 			for (int i = 0; i < size; i++) {
 				Vector3d pos = polygon.getVertices().get(i).pos;
 				double dot = normal.dot(pos);
-				double t = Math.abs(dot - polygon.getPlane().getDist());
-				if(t>0.01) {
+				double t = dot
+						- polygon.getPlane().getDist();
+				if(Math.abs(t)>0.01) {
 					throw new RuntimeException("A plane epsilon of "+t+" is impossible");
 				}
 				if (t > posEpsilon) {
@@ -947,7 +949,11 @@ public final class Node {
 					// positive epsilon "+t);
 					posEpsilon = t;
 				}
-
+				if (t < negEpsilon) {
+					// com.neuronrobotics.sdk.common.Log.error("Non flat polygon, decreasing
+					// negative epsilon "+t);
+					negEpsilon = t;
+				}
 			}
 		int polygonType = 0;
 		List<Integer> types = new ArrayList<>();
@@ -960,7 +966,7 @@ public final class Node {
 //				double dot = normal.dot(pos);
 //				double ep = Math.abs( dot-distP);// this is this points distance from its plane
 			double t = getThisNodePlane().getNormal().dot(pos) - getThisNodePlane().getDist();
-			int type = (t < (-posEpsilon)) ? BACK : (t > posEpsilon) ? FRONT : COPLANAR;
+			int type = (t < negEpsilon) ? BACK : (t > posEpsilon) ? FRONT : COPLANAR;
 			types.add(type);
 			polygonType = polygonType|type;
 
