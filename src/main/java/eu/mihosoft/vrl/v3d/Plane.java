@@ -121,7 +121,12 @@ public class Plane implements Serializable {
 	 */
 	public Plane(Vector3d normal, List<Vertex> vertices) {
 		this.setNormal(normal.normalized());
-		this.setDist(normal.dot(vertices.get(0).pos));
+		double distAvg = 0;
+		for(int i=0;i<vertices.size();i++) {
+			Vector3d a = vertices.get(i).pos;
+			distAvg+=normal.dot(a);
+		}
+		this.setDist(distAvg/((double)vertices.size()));
 	}
 	/**
 	 * Constructor. Creates a new plane defined by its normal vector and the

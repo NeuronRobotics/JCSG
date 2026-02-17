@@ -189,9 +189,10 @@ public final class Polygon implements Serializable {
 			throw new ColinearPointsException("Invalid polygon: at least 3 vertices expected, got: " + getVertices().size());
 		}
 		Vector3d normal = getPlane().getNormal();
-		double dist = getPlane().getDist();
+		
 		boolean adusted = false;
 		for (int i = 0; i < getVertices().size(); i++) {
+			double dist = getPlane().getDist();
 			Vector3d pos = getVertices().get(i).pos;
 			double dot = normal.dot(pos);
 			double a = dot - dist;
@@ -200,11 +201,18 @@ public final class Polygon implements Serializable {
 				throw new RuntimeException("A plane epsilon of "+t+" is impossible");
 			}
 			if (t > Plane.getEPSILON()) {
-			    pos.x -= a * normal.x;
-			    pos.y -= a * normal.y;
-			    pos.z -= a * normal.z;
+				if(adusted) {
+					//new ColinearPointsException("Non flat polygon, epsilon = "+a+" vs planer test of "+Plane.getEPSILON()).printStackTrace();;
+					double d = a * normal.x;
+				    double e = a * normal.y;
+				    double e2 = a * normal.z;
+					pos.x -= d;
+					pos.y -= e;
+					pos.z -= e2;
+				}else {
+					getPlane().setDist(dist+a);
+				}
 			    adusted=true;
-				 //new ColinearPointsException("Non flat polygon, epsilon = "+a+" vs planer test of "+Plane.getEPSILON()).printStackTrace();;
 			}
 		}
 		if(adusted) {

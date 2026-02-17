@@ -325,7 +325,7 @@ public final class Node {
 					.setColor(polygon.getColor());
 			l.add(fpoly);	
 		}catch(ColinearPointsException ex) {
-			ex.printStackTrace();
+			//ex.printStackTrace();
 			System.err.println("Pruned Collinear polygon "+f+" "+ex.getMessage() );
 		}
 	}
