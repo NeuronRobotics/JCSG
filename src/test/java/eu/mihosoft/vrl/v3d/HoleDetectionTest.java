@@ -22,9 +22,10 @@ public class HoleDetectionTest {
     /**
      * Hole detection test.
      * @throws ColinearPointsException 
+     * @throws NonFlatPolygonException 
      */
     @Test
-    public void holeDetectionTest() throws ColinearPointsException {
+    public void holeDetectionTest() throws ColinearPointsException, NonFlatPolygonException {
         
         // one polygon with one hole
         Polygon p1 = Polygon.fromPoints(

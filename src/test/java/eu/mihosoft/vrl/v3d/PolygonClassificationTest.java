@@ -140,9 +140,10 @@ private PropertyStorage storage;
 	 * Test to verify that truly degenerate polygons ARE correctly rejected
 	 * 
 	 * @throws ColinearPointsException
+     * @throws NonFlatPolygonException 
 	 */
     @Test(expected = ColinearPointsException.class)
-    public void testDegeneratePolygon_DuplicatePoints() throws ColinearPointsException {
+    public void testDegeneratePolygon_DuplicatePoints() throws ColinearPointsException, NonFlatPolygonException {
         // This SHOULD fail - duplicate points
         List<Vertex> vertices = Arrays.asList(
             new Vertex(new Vector3d(10.5175167546, 116.6176943528, 83.1832321598)),
@@ -158,9 +159,10 @@ private PropertyStorage storage;
     /**
      * Test to verify that collinear points ARE correctly rejected
      * @throws ColinearPointsException 
+     * @throws NonFlatPolygonException 
      */
     @Test(expected = ColinearPointsException.class)
-    public void testDegeneratePolygon_Collinear() throws ColinearPointsException {
+    public void testDegeneratePolygon_Collinear() throws ColinearPointsException, NonFlatPolygonException {
         // This SHOULD fail - all points on same line (same Y coordinate, collinear in XZ)
         List<Vertex> vertices = Arrays.asList(
             new Vertex(new Vector3d(10.5068817145, 98.4507751465, 35.0306403108)),
