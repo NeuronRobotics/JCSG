@@ -1,5 +1,7 @@
 package eu.mihosoft.vrl.v3d;
 
+import java.util.List;
+
 public interface IPolygonRepairTool {
-	Polygon repairOverlappingEdges(Polygon concave) throws ColinearPointsException;
+	List<Polygon> repairOverlappingEdges(Polygon concave) throws ColinearPointsException;
 }

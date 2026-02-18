@@ -39,8 +39,10 @@ import eu.mihosoft.vrl.v3d.Debug3dProvider;
 import eu.mihosoft.vrl.v3d.Edge;
 import eu.mihosoft.vrl.v3d.Extrude;
 import eu.mihosoft.vrl.v3d.IPolygonRepairTool;
+import eu.mihosoft.vrl.v3d.NonFlatPolygonException;
 import eu.mihosoft.vrl.v3d.Plane;
 import eu.mihosoft.vrl.v3d.Polygon;
+import eu.mihosoft.vrl.v3d.PropertyStorage;
 import eu.mihosoft.vrl.v3d.Transform;
 import eu.mihosoft.vrl.v3d.Vector3d;
 import eu.mihosoft.vrl.v3d.Vertex;
@@ -183,10 +185,11 @@ public class PolygonUtil {
 		if (modifiable.size() > 2) {
 			try {
 				Polygon polygon = new Polygon(modifiable, concave1.getStorage(), false, concave1.getPlane());
-				return polygon;
+				return Arrays.asList(polygon);
 			} catch (ColinearPointsException e) {
 				System.out.println(" Pruning polygon in repair " + concave1 + " to " + modifiable);
-
+			} catch (NonFlatPolygonException e) {
+				triangulatePolygon(modifiable, concave1.getStorage(), false, concave1.getPlane());
 			}
 		}
 		throw new ColinearPointsException("Fix failed!");
@@ -510,9 +513,27 @@ public class PolygonUtil {
 	 * 
 	 * @throws ColinearPointsException
 	 */
+	/**
+	 * Calculates a quaternion-based transform that rotates `from` vector to align
+	 * with (0,0,1).
+	 * 
+	 * @throws ColinearPointsException
+	 */
 	public static Transform calculateNormalTransform(Polygon concave) throws ColinearPointsException {
+		Transform transform = calculateNormalTransform(concave.getPlane());
+		Polygon test = concave.transformed(transform);
+		Vector3d normal = test.plane.getNormal();
+		double abs = Math.abs(normal.z);
+		if (1 - abs > 0.1) {
+			System.out.println("Error with " + test+" normal "+normal);
+			// Plane p = Plane.createFromPoints(test.getVertices());
+			 new ColinearPointsException("Failed to reorent the polygon for processing! z off by "+abs+" "+normal).printStackTrace();
+		}
+		return transform;
+	}
+	public static Transform calculateNormalTransform(Plane p) throws ColinearPointsException {
 		// Normalize inputs
-		Vector3d u = concave.getPlane().getNormal();
+		Vector3d u = p.getNormal();
 		Vector3d pureXVect = new Vector3d(1, 0, 0);
 		Vector3d pureYVect = new Vector3d(0, 1, 0);
 		Vector3d pureZVect = new Vector3d(0, 0, 1);
@@ -552,17 +573,7 @@ public class PolygonUtil {
 		transform = rotY.copy().apply(transform1);
 	
 		
-		Vector3d u3 = u.transformed(transform).normalized();
 
-		Polygon test = concave.transformed(transform);
-		Vector3d normal = test.plane.getNormal();
-		double abs = Math.abs(normal.z);
-		if (1 - abs > 0.1) {
-			System.out.println("Error with " + test+" normal "+normal);
-			// Plane p = Plane.createFromPoints(test.getVertices());
-			 new ColinearPointsException("Failed to reorent the polygon for processing! z off by "+abs+" "+normal).printStackTrace();
-		}
-		
 		Matrix4d rotation = transform.getInternalMatrix();
 		Quat4d q1 = transform.getQuat();
 		javax.vecmath.Vector3d t1 = new javax.vecmath.Vector3d();
@@ -583,22 +594,25 @@ public class PolygonUtil {
 	 * @return the list
 	 * @throws ColinearPointsException
 	 */
-	public static ArrayList<Polygon> triangulatePolygon(Polygon incoming) throws ColinearPointsException {
+	
+	public static ArrayList<Polygon> triangulatePolygon(Polygon p) throws ColinearPointsException{
 		ArrayList<Polygon> result = new ArrayList<>();
+		if (p == null)
+			return result;
+		if (p.getVertices().size() < 3)
+			return result;
+		return triangulatePolygon(p.getVertices(), p.getStorage(), false, p.getPlane());
+	}
+	public static ArrayList<Polygon> triangulatePolygon(List<Vertex> vertices, PropertyStorage shared, boolean allowDegenerate, Plane p) throws ColinearPointsException {
 
-		if (incoming == null)
-			return result;
-		if (incoming.getVertices().size() < 3)
-			return result;
-		Polygon tmp = incoming;
-		Vector3d normalOfPlane = incoming.getPlane().getNormal().clone();
+		Vector3d normalOfPlane = p.getNormal().clone();
 		normalOfPlane.normalize();
 		boolean reorient = Math.abs(normalOfPlane.z - 1.0) > Plane.getEPSILON();
 		Transform orientationInv = null;
 		boolean debug = false;
 
 		if (reorient) {
-			Transform orientation = calculateNormalTransform(incoming);
+			Transform orientation = calculateNormalTransform(p);
 			tmp = incoming.transformed(orientation);
 			orientationInv = orientation.inverse();
 		}
