@@ -88,7 +88,7 @@ public final class Polygon implements Serializable {
 	 * @param points the points that define the polygon
 	 * @return the decomposed concave polygon (list of convex polygons)
 	 */
-	public static List<Polygon> fromConcavePoints(Vector3d... points) throws ColinearPointsException {
+	public static List<Polygon> fromConcavePoints(Vector3d... points) throws ColinearPointsException,NonFlatPolygonException  {
 		Polygon p = fromPoints(points);
 
 		return PolygonUtil.triangulatePolygon(p);
@@ -100,7 +100,7 @@ public final class Polygon implements Serializable {
 	 * @param points the points that define the polygon
 	 * @return the decomposed concave polygon (list of convex polygons)
 	 */
-	public static List<Polygon> fromConcavePoints(List<Vector3d> points)throws ColinearPointsException  {
+	public static List<Polygon> fromConcavePoints(List<Vector3d> points)throws ColinearPointsException,NonFlatPolygonException   {
 		Polygon p = fromPoints(points);
 
 		return PolygonUtil.triangulatePolygon(p);
@@ -115,7 +115,7 @@ public final class Polygon implements Serializable {
 	 * @param vertices polygon vertices
 	 * @param shared   shared property
 	 */
-	public Polygon(List<Vertex> vertices, PropertyStorage shared, boolean allowDegenerate, Plane p) throws ColinearPointsException {
+	public Polygon(List<Vertex> vertices, PropertyStorage shared, boolean allowDegenerate, Plane p) throws ColinearPointsException,NonFlatPolygonException  {
 		this.setVertices(pruneDuplicatePoints(vertices));
 		this.shared = shared;
 		if (p != null)
@@ -133,7 +133,7 @@ public final class Polygon implements Serializable {
 	 * @param vertices polygon vertices
 	 * @param shared   shared property
 	 */
-	public Polygon(List<Vertex> vertices, PropertyStorage shared) throws ColinearPointsException {
+	public Polygon(List<Vertex> vertices, PropertyStorage shared) throws ColinearPointsException,NonFlatPolygonException  {
 		this(vertices, shared, true, null);
 	}
 
@@ -145,7 +145,7 @@ public final class Polygon implements Serializable {
 	 *
 	 * @param vertices polygon vertices
 	 */
-	public Polygon(List<Vertex> vertices) throws ColinearPointsException {
+	public Polygon(List<Vertex> vertices) throws ColinearPointsException,NonFlatPolygonException  {
 		this(vertices, new PropertyStorage(), true, null);
 	}
 
@@ -170,7 +170,7 @@ public final class Polygon implements Serializable {
 		}
 	}
 
-	private void validateAndInit(boolean fixInversions) throws ColinearPointsException {
+	private void validateAndInit(boolean fixInversions) throws ColinearPointsException,NonFlatPolygonException {
 		ArrayList<Vertex>  vertices = pruneDuplicatePoints(this.vertices);
 		Plane p = Plane.createFromPoints(vertices);
 		if (getPlane() == null) {
@@ -201,24 +201,10 @@ public final class Polygon implements Serializable {
 				throw new RuntimeException("A plane epsilon of "+t+" is impossible");
 			}
 			if (t > Plane.getEPSILON()) {
-				if(adusted) {
-					//new ColinearPointsException("Non flat polygon, epsilon = "+a+" vs planer test of "+Plane.getEPSILON()).printStackTrace();;
-					double d = a * normal.x;
-				    double e = a * normal.y;
-				    double e2 = a * normal.z;
-					pos.x -= d;
-					pos.y -= e;
-					pos.z -= e2;
-				}else {
-					getPlane().setDist(dist+a);
-				}
-			    adusted=true;
+				throw new NonFlatPolygonException("Failed because polygon is not flat");
 			}
 		}
-		if(adusted) {
-			validateAndInit(fixInversions);
-			return;
-		}
+
 
 		if( !areAllPointsCollinear())
 			return;
@@ -240,7 +226,7 @@ public final class Polygon implements Serializable {
 	 * @param vertices polygon vertices
 	 *
 	 */
-	public Polygon(Vertex... vertices) throws ColinearPointsException {
+	public Polygon(Vertex... vertices) throws ColinearPointsException,NonFlatPolygonException  {
 		this(Arrays.asList(vertices));
 	}
 
@@ -442,7 +428,7 @@ public final class Polygon implements Serializable {
 	 * @param shared shared property storage
 	 * @return a polygon defined by the specified point list
 	 */
-	public static Polygon fromPoints(List<Vector3d> points, PropertyStorage shared) throws ColinearPointsException {
+	public static Polygon fromPoints(List<Vector3d> points, PropertyStorage shared) throws ColinearPointsException,NonFlatPolygonException  {
 		return fromPoints(points, shared, null, true);
 	}
 
@@ -452,7 +438,7 @@ public final class Polygon implements Serializable {
 	 * @param points the points that define the polygon
 	 * @return a polygon defined by the specified point list
 	 */
-	public static Polygon fromPoints(List<Vector3d> points)throws ColinearPointsException  {
+	public static Polygon fromPoints(List<Vector3d> points)throws ColinearPointsException,NonFlatPolygonException   {
 		return fromPoints(points, new PropertyStorage(), null, true);
 	}
 
@@ -462,11 +448,11 @@ public final class Polygon implements Serializable {
 	 * @param points the points that define the polygon
 	 * @return a polygon defined by the specified point list
 	 */
-	public static Polygon fromPoints(Vector3d... points)throws ColinearPointsException  {
+	public static Polygon fromPoints(Vector3d... points)throws ColinearPointsException,NonFlatPolygonException   {
 		return fromPoints(Arrays.asList(points), new PropertyStorage(), null, true);
 	}
 
-	public static Polygon fromPointsAllowDegenerate(List<Vector3d> vertices2) throws ColinearPointsException {
+	public static Polygon fromPointsAllowDegenerate(List<Vector3d> vertices2) throws ColinearPointsException,NonFlatPolygonException  {
 		return fromPoints(vertices2, new PropertyStorage(), null, true);
 	}
 
@@ -479,7 +465,7 @@ public final class Polygon implements Serializable {
 	 * @return a polygon defined by the specified point list
 	 */
 	public static Polygon fromPoints(List<Vector3d> points, PropertyStorage shared, Plane plane,
-			boolean allowDegenerate)throws ColinearPointsException  {
+			boolean allowDegenerate)throws ColinearPointsException,NonFlatPolygonException   {
 		List<Vertex> vertices = new ArrayList<>();
 		for (Vector3d p : points) {
 			Vector3d vec = p.clone();

@@ -136,7 +136,7 @@ import javafx.scene.transform.Affine;
 
 @SuppressWarnings("restriction")
 public class CSG implements IuserAPI, Serializable {
-	transient private static final double POINTS_CONTACT_DISTANCE =  0.00001;
+	transient private static final double POINTS_CONTACT_DISTANCE = 0.0001;
 	transient private static int MinPolygonsForOffloading = 200;
 	transient private static final long serialVersionUID = 4071874097772427063L;
 	transient private static IDebug3dProvider providerOf3d = null;

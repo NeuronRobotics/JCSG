@@ -217,7 +217,7 @@ public class Plane implements Serializable {
 			double dot = 1-dot2;
 			double dFlipped = 2-dot2;
 			// check for actual misallignment
-			double d = Plane.getEPSILON()*100;
+			double d = Plane.getEPSILON();
 			if(dot>d)
 				if(dFlipped>d)
 					return NormalState.DIVERGENT;
