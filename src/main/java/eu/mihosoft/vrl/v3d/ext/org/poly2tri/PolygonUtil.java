@@ -64,7 +64,6 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.triangulate.polygon.ConstrainedDelaunayTriangulator;
 
-
 //import earcut4j.Earcut;
 
 /**
@@ -74,12 +73,13 @@ import org.locationtech.jts.triangulate.polygon.ConstrainedDelaunayTriangulator;
  */
 public class PolygonUtil {
 	public static final double triangleScale = 1;
-	private static IPolygonRepairTool repair = concave1 -> {
+	private static IPolygonRepairTool repair = (List<Vertex>vertices, PropertyStorage shared,
+			boolean allowDegenerate, Plane p, Color color) -> {
 
 		ArrayList<Edge> edges = new ArrayList<Edge>();
 		ArrayList<Vertex> toRemove = new ArrayList<Vertex>();
 		HashMap<Vertex, Vertex> replace = new HashMap<>();
-		List<Vertex> v1 = concave1.getVertices();
+		List<Vertex> v1 = vertices;
 		ArrayList<Vertex> modifiable = new ArrayList<Vertex>();
 
 		for (int i = 0; i < v1.size(); i++) {
@@ -184,12 +184,13 @@ public class PolygonUtil {
 			modifiable.remove(vr);
 		if (modifiable.size() > 2) {
 			try {
-				Polygon polygon = new Polygon(modifiable, concave1.getStorage(), false, concave1.getPlane());
+				Polygon polygon = new Polygon(modifiable, shared, allowDegenerate, p);
+				polygon.setColor(color);
 				return Arrays.asList(polygon);
 			} catch (ColinearPointsException e) {
-				System.out.println(" Pruning polygon in repair " + concave1 + " to " + modifiable);
+				System.out.println(" Pruning polygon in repair " + vertices + " to " + modifiable);
 			} catch (NonFlatPolygonException e) {
-				triangulatePolygon(modifiable, concave1.getStorage(), false, concave1.getPlane());
+				return triangulatePolygon(modifiable, shared, allowDegenerate, p, color);
 			}
 		}
 		throw new ColinearPointsException("Fix failed!");
@@ -525,12 +526,14 @@ public class PolygonUtil {
 		Vector3d normal = test.plane.getNormal();
 		double abs = Math.abs(normal.z);
 		if (1 - abs > 0.1) {
-			System.out.println("Error with " + test+" normal "+normal);
+			System.out.println("Error with " + test + " normal " + normal);
 			// Plane p = Plane.createFromPoints(test.getVertices());
-			 new ColinearPointsException("Failed to reorent the polygon for processing! z off by "+abs+" "+normal).printStackTrace();
+			new ColinearPointsException("Failed to reorent the polygon for processing! z off by " + abs + " " + normal)
+					.printStackTrace();
 		}
 		return transform;
 	}
+
 	public static Transform calculateNormalTransform(Plane p) throws ColinearPointsException {
 		// Normalize inputs
 		Vector3d u = p.getNormal();
@@ -560,30 +563,28 @@ public class PolygonUtil {
 //			return new Transform().rotX(-90);
 //		}
 		double aboutZ = Math.toDegrees(Math.atan2(u.y, u.x));
-		if(Double.isNaN(aboutZ))
+		if (Double.isNaN(aboutZ))
 			throw new ColinearPointsException("Failed to creat a rotation angle");
 		Transform transform1 = new Transform().rotZ(aboutZ);
 		Vector3d u2 = u.transformed(transform1);
 		Transform transform;
 		double aboutY = Math.toDegrees(Math.atan2(u2.x, u2.z));
-		if(Double.isNaN(aboutY))
+		if (Double.isNaN(aboutY))
 			throw new ColinearPointsException("Failed to creat a rotation angle");
-		
+
 		Transform rotY = new Transform().rotY(aboutY);
 		transform = rotY.copy().apply(transform1);
-	
-		
 
 		Matrix4d rotation = transform.getInternalMatrix();
 		Quat4d q1 = transform.getQuat();
 		javax.vecmath.Vector3d t1 = new javax.vecmath.Vector3d();
 		rotation.get(t1);
 		List<Double> asList = Arrays.asList(t1.x, t1.y, t1.z, q1.w, q1.x, q1.y, q1.z);
-		for(Double d:asList){
-			if(Double.isInfinite(d)||Double.isNaN(d))
+		for (Double d : asList) {
+			if (Double.isInfinite(d) || Double.isNaN(d))
 				throw new ColinearPointsException("Failed to produce a matrix ");
 		}
-		
+
 		return transform;
 	}
 
@@ -594,144 +595,80 @@ public class PolygonUtil {
 	 * @return the list
 	 * @throws ColinearPointsException
 	 */
-	
-	public static ArrayList<Polygon> triangulatePolygon(Polygon p) throws ColinearPointsException{
+
+	public static ArrayList<Polygon> triangulatePolygon(Polygon p) throws ColinearPointsException {
 		ArrayList<Polygon> result = new ArrayList<>();
 		if (p == null)
 			return result;
 		if (p.getVertices().size() < 3)
 			return result;
-		return triangulatePolygon(p.getVertices(), p.getStorage(), false, p.getPlane());
+		return triangulatePolygon(p.getVertices(), p.getStorage(), false, p.getPlane(),p.getColor());
 	}
-	public static ArrayList<Polygon> triangulatePolygon(List<Vertex> vertices, PropertyStorage shared, boolean allowDegenerate, Plane p) throws ColinearPointsException {
 
+	public static List<Vertex> transformed(List<Vertex> vertices, Transform transform) {
+		List<Vertex> tmp = new ArrayList<Vertex>();
+		tmp.addAll(vertices);
+		tmp.stream().forEach((v) -> {
+			v.clone().transform(transform);
+		});
+		return tmp;
+	}
+
+	public static ArrayList<Polygon> triangulatePolygon(List<Vertex> vertices, PropertyStorage shared,
+			boolean allowDegenerate, Plane p, Color c) throws ColinearPointsException {
+		ArrayList<Polygon> result = new ArrayList<>();
 		Vector3d normalOfPlane = p.getNormal().clone();
 		normalOfPlane.normalize();
 		boolean reorient = Math.abs(normalOfPlane.z - 1.0) > Plane.getEPSILON();
 		Transform orientationInv = null;
 		boolean debug = false;
-
+		List<Vertex> tmp = vertices;
 		if (reorient) {
+			Polygon incoming;
 			Transform orientation = calculateNormalTransform(p);
-			tmp = incoming.transformed(orientation);
+			tmp = transformed(vertices, orientation);
 			orientationInv = orientation.inverse();
 		}
 
 		boolean cw = false;
-//		if(!Extrude.isCCW(tmp)) {
-//			ArrayList<Vertex> v =new ArrayList<Vertex>(tmp.getVertices());
-//			Collections.reverse(v);
-//			tmp = new Polygon(v, tmp.getStorage(), false, null);
-//		}
-		Polygon concave = tmp;
-		double zplane = concave.getVertices().get(0).pos.z;
-//		for (Vector3d v : concave.getPoints()) {
-//			double abs = Math.abs(zplane - v.z);
-//			if (abs > 0.1) {
-//				new RuntimeException("Failed to triangulate, points must be coplainer, delta: " + abs)
-//						.printStackTrace();
-//			}
-//		}
-		try {
-			if (concave.size() == 3) {
-				result.add(concave);
-			} else
+		double zplane = vertices.get(0).pos.z;
+
+		if (vertices.size() == 3) {
+			result.add(new Polygon(vertices, shared, allowDegenerate, p));
+		} else
+			try {
 				makeTriangles(concave, cw, result, zplane, normalOfPlane, debug, orientationInv, reorient,
-						incoming.getColor());
-		} catch (java.lang.IllegalStateException ex) {
+						c);
+			} catch (java.lang.IllegalStateException ex) {
 
-			Polygon repaired = repairOverlappingEdges(concave);
-			int end = repaired.getVertices().size();
-			if (end == 3) {
-				result.add(repaired);
-			} else {
-				try {
-					makeTriangles(repaired, cw, result, zplane, normalOfPlane, debug, orientationInv, reorient,
-							incoming.getColor());
-				} catch (Exception e) {
-					makeTrianglesInternal(repaired, cw, result, zplane, normalOfPlane, debug, orientationInv, reorient,
-							incoming.getColor());
+				Polygon repaired = repairOverlappingEdges(concave);
+				int end = repaired.getVertices().size();
+				if (end == 3) {
+					result.add(repaired);
+				} else {
+					try {
+						makeTriangles(repaired, cw, result, zplane, normalOfPlane, debug, orientationInv, reorient,
+								c);
+					} catch (Exception e) {
+						makeTrianglesInternal(repaired, cw, result, zplane, normalOfPlane, debug, orientationInv,
+								reorient,c);
+					}
 				}
-			}
-			
-			if (reorient) {
-				repaired = repaired.transform(orientationInv);
-			}
-			incoming.setVertices(repaired.getVertices());
 
-		}
+				if (reorient) {
+					repaired = repaired.transform(orientationInv);
+				}
+				vertices.clear();
+				vertices.addAll(repaired.getVertices());
+			}
 
 		return result;
 	}
 
-	private static Polygon repairOverlappingEdges(Polygon concave) throws ColinearPointsException {
+	private static List<Polygon> repairOverlappingEdges(Polygon concave) throws ColinearPointsException {
 
-		return getRepair().repairOverlappingEdges(concave);
+		return getRepair().repairOverlappingEdges(concave.getVertices(),concave.getStorage(),false,concave.getPlane(),concave.getColor());
 	}
-
-//	private static void fourPointSpecialCase(Polygon concave, boolean cw, List<Polygon> result, double zplane,
-//			Vector3d normal, boolean debug, Transform orentationInv, boolean reorent, Color color)  {
-//		List<Vector3d> points = concave.getPoints();
-//		int size = points.size();
-//		for (int i = 0; i < size; i++) {
-//			// Get first two points to establish a direction vector
-//			Vector3d p1 = points.get(i);
-//			Vector3d p2 = points.get((i + 1) % size);
-//
-//			// Calculate the direction vector between first two points
-//			Vector3d direction = p1.minus(p2);
-//			// Normalize the direction vector
-//			double length = direction.length();
-//			double ep = Plane.getEPSILON();
-//			if (length < ep) { // If points are effectively identical
-//				continue;
-//			}
-//			direction.normalize();
-//			Vector3d p3 = points.get((i + 2) % size);
-//
-//			// Calculate cross product
-//			Vector3d cross = direction.cross(p1.minus(p3));
-//			// Calculate magnitude of cross product
-//			double magnitude = Math.abs(cross.length());
-//
-//			// If magnitude is not close to zero, points are not collinear
-//			if (magnitude > ep) {
-//
-//				Plane normal2 = concave.plane;
-//				try {
-//					Polygon one = new Polygon(
-//							new ArrayList<Vertex>(Arrays.asList(new Vertex(p1), new Vertex(p2), new Vertex(p3))),
-//							concave.getStorage(), true, normal2);
-//					if (reorent) {
-//						one = one.transform(orentationInv);
-//					}
-//					one.setColor(color);
-//					result.add(one);
-//				} catch (ColinearPointsException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
-//				try {
-//					Polygon two = new Polygon(
-//							new ArrayList<Vertex>(Arrays.asList(new Vertex(points.get((i + 3) % size)),
-//									new Vertex(points.get((i + 4) % size)), new Vertex(points.get((i + 5) % size)))),
-//							concave.getStorage(), true, normal2);
-//					if (reorent) {
-//						two = two.transform(orentationInv);
-//					}
-//					two.setColor(color);
-//					result.add(two);
-//				} catch (ColinearPointsException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
-//	
-//
-//				return;
-//			}
-//		}
-//
-//	}
 
 	private static void makeTrianglesInternal(Polygon concave, boolean cw, List<Polygon> result, double zplane,
 			Vector3d normal, boolean debug, Transform orentationInv, boolean reorent, Color color)
@@ -767,7 +704,7 @@ public class PolygonUtil {
 				Vector3d p3 = points.get((i + 2) % size);
 				double abs = Math.abs(z - p3.z);
 				if (abs > 0.1) {
-					 new RuntimeException("Failed to triangulate, points must be coplainer").printStackTrace();
+					new RuntimeException("Failed to triangulate, points must be coplainer").printStackTrace();
 				}
 
 				// Calculate cross product
@@ -793,6 +730,9 @@ public class PolygonUtil {
 						result.add(one);
 					} catch (ColinearPointsException ex) {
 						System.out.println(ex.getMessage() + " Triangulation Pruned point " + p2);
+					} catch (NonFlatPolygonException e) {
+						System.err.println("Impossible!! a 3 point polygon should not be able to be non-flat");
+						e.printStackTrace();
 					}
 					if (points.size() == 2) {
 						points.clear();
@@ -806,7 +746,8 @@ public class PolygonUtil {
 			}
 			if (size == points.size()) {
 				if (result.size() == 0)
-					throw new ColinearPointsException("Triangulation Internal Error! All remaining points are colinear!");
+					throw new ColinearPointsException(
+							"Triangulation Internal Error! All remaining points are colinear!");
 				return;
 			}
 		}
@@ -843,9 +784,9 @@ public class PolygonUtil {
 				Vertex e = null;// new Vertex(pos);
 				for (int x = 0; x < toTri.getVertices().size(); x++) {
 					Vector3d test = toTri.getVertices().get(x).pos;
-					double diffX = Math.abs( test.x-pos.x);
-					double diffY = Math.abs(test.y-pos.y);
-					if (diffY<Plane.getEPSILON() && diffX<Plane.getEPSILON()) {
+					double diffX = Math.abs(test.x - pos.x);
+					double diffY = Math.abs(test.y - pos.y);
+					if (diffY < Plane.getEPSILON() && diffX < Plane.getEPSILON()) {
 						e = toTri.getVertices().get(x).clone();
 						break;
 					}
@@ -853,7 +794,7 @@ public class PolygonUtil {
 				if (e == null) {
 					throw new RuntimeException("Failed to find point! " + pos + " missing from " + toTri);
 				}
-				if(!triPoints.contains(e))
+				if (!triPoints.contains(e))
 					triPoints.add(e);
 
 				if (counter == 2) {
@@ -883,6 +824,9 @@ public class PolygonUtil {
 						result.add(poly);
 					} catch (ColinearPointsException ex) {
 						System.out.println(ex.getMessage() + " Pruned new triangle as colinear " + triPoints);
+					} catch (NonFlatPolygonException e1) {
+						System.err.println("Impossible! it should not be possible to have anon-flat triangle");
+						e1.printStackTrace();
 					}
 
 					counter = 0;
