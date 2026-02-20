@@ -73,8 +73,8 @@ import org.locationtech.jts.triangulate.polygon.ConstrainedDelaunayTriangulator;
  */
 public class PolygonUtil {
 	public static final double triangleScale = 1;
-	private static IPolygonRepairTool repair = (List<Vertex>vertices, PropertyStorage shared,
-			boolean allowDegenerate, Plane p, Color color) -> {
+	private static IPolygonRepairTool repair = (List<Vertex> vertices, PropertyStorage shared, boolean allowDegenerate,
+			Plane p, Color color) -> {
 
 		ArrayList<Edge> edges = new ArrayList<Edge>();
 		ArrayList<Vertex> toRemove = new ArrayList<Vertex>();
@@ -602,7 +602,7 @@ public class PolygonUtil {
 			return result;
 		if (p.getVertices().size() < 3)
 			return result;
-		return triangulatePolygon(p.getVertices(), p.getStorage(), false, p.getPlane(),p.getColor());
+		return triangulatePolygon(p.getVertices(), p.getStorage(), false, p.getPlane(), p.getColor());
 	}
 
 	public static List<Vertex> transformed(List<Vertex> vertices, Transform transform) {
@@ -634,40 +634,49 @@ public class PolygonUtil {
 		double zplane = vertices.get(0).pos.z;
 
 		if (vertices.size() == 3) {
-			result.add(new Polygon(vertices, shared, allowDegenerate, p));
+			try {
+				result.add(new Polygon(vertices, shared, allowDegenerate, p));
+			} catch (ColinearPointsException e) {
+				e.printStackTrace();
+			} catch (NonFlatPolygonException e) {
+				e.printStackTrace();
+			}
 		} else
 			try {
-				makeTriangles(concave, cw, result, zplane, normalOfPlane, debug, orientationInv, reorient,
-						c);
+				makeTriangles(vertices, shared, allowDegenerate, p, cw, result, zplane, normalOfPlane, debug,
+						orientationInv, reorient, c);
 			} catch (java.lang.IllegalStateException ex) {
 
-				Polygon repaired = repairOverlappingEdges(concave);
-				int end = repaired.getVertices().size();
-				if (end == 3) {
-					result.add(repaired);
-				} else {
-					try {
-						makeTriangles(repaired, cw, result, zplane, normalOfPlane, debug, orientationInv, reorient,
-								c);
-					} catch (Exception e) {
-						makeTrianglesInternal(repaired, cw, result, zplane, normalOfPlane, debug, orientationInv,
-								reorient,c);
+				List<Polygon> repairedList = repairOverlappingEdges(vertices, shared, allowDegenerate, p, c);
+				for (Polygon repaired : repairedList) {
+					int end = repaired.getVertices().size();
+					if (end == 3) {
+						result.add(repaired);
+					} else {
+						try {
+							makeTriangles(repaired.getVertices(),repaired.getStorage(),false,repaired.getPlane(), cw, result, zplane, normalOfPlane, debug, orientationInv, reorient,
+									c);
+						} catch (Exception e) {
+							makeTrianglesInternal(repaired, cw, result, zplane, normalOfPlane, debug, orientationInv,
+									reorient, c);
+						}
 					}
-				}
 
-				if (reorient) {
-					repaired = repaired.transform(orientationInv);
+					if (reorient) {
+						repaired = repaired.transform(orientationInv);
+					}
+					vertices.clear();
+					vertices.addAll(repaired.getVertices());
 				}
-				vertices.clear();
-				vertices.addAll(repaired.getVertices());
 			}
 
 		return result;
 	}
 
-	private static List<Polygon> repairOverlappingEdges(Polygon concave) throws ColinearPointsException {
+	private static List<Polygon> repairOverlappingEdges(List<Vertex> vertices, PropertyStorage shared,
+			boolean allowDegenerate, Plane p, Color c) throws ColinearPointsException {
 
-		return getRepair().repairOverlappingEdges(concave.getVertices(),concave.getStorage(),false,concave.getPlane(),concave.getColor());
+		return getRepair().repairOverlappingEdges(vertices, shared, false, p, c);
 	}
 
 	private static void makeTrianglesInternal(Polygon concave, boolean cw, List<Polygon> result, double zplane,
@@ -754,24 +763,24 @@ public class PolygonUtil {
 
 	}
 
-	private static void makeTriangles(Polygon concave, boolean cw, List<Polygon> result, double zplane, Vector3d normal,
-			boolean debug, Transform orentationInv, boolean reorent, Color color) {
+	private static void makeTriangles(List<Vertex> vertices, PropertyStorage shared, boolean allowDegenerate, Plane p,
+			boolean cw, List<Polygon> result, double zplane, Vector3d normal, boolean debug, Transform orentationInv,
+			boolean reorent, Color color) {
 
-		Polygon toTri = concave;
+		// Polygon toTri = concave;
 
-		Coordinate[] coordinates = new Coordinate[toTri.getVertices().size() + 1];
-		for (int i = 0; i < toTri.getVertices().size(); i++) {
-			Vector3d v = toTri.getVertices().get(i).pos;
+		Coordinate[] coordinates = new Coordinate[vertices.size() + 1];
+		for (int i = 0; i < vertices.size(); i++) {
+			Vector3d v = vertices.get(i).pos;
 			coordinates[i] = new Coordinate(v.x * triangleScale, v.y * triangleScale, v.z * triangleScale);
 		}
-		Vector3d v = toTri.getVertices().get(0).pos;
-		coordinates[toTri.getVertices().size()] = new Coordinate(v.x * triangleScale, v.y * triangleScale,
-				v.z * triangleScale);
+		Vector3d v = vertices.get(0).pos;
+		coordinates[vertices.size()] = new Coordinate(v.x * triangleScale, v.y * triangleScale, v.z * triangleScale);
 		// use the default factory, which gives full double-precision
 		Geometry geom = new GeometryFactory().createPolygon(coordinates);
 		Geometry triangles = ConstrainedDelaunayTriangulator.triangulate(geom);
 		ArrayList<Vertex> triPoints = new ArrayList<>();
-		Plane p1 = concave.getPlane().clone();
+		Plane p1 = p;
 		for (int i = 0; i < triangles.getNumGeometries(); i++) {
 			Geometry tri = triangles.getGeometryN(i);
 			Coordinate[] coords = tri.getCoordinates();
@@ -782,17 +791,17 @@ public class PolygonUtil {
 				Coordinate tp = coords[j];
 				Vector3d pos = new Vector3d(tp.getX() / triangleScale, tp.getY() / triangleScale, zplane);
 				Vertex e = null;// new Vertex(pos);
-				for (int x = 0; x < toTri.getVertices().size(); x++) {
-					Vector3d test = toTri.getVertices().get(x).pos;
+				for (int x = 0; x < vertices.size(); x++) {
+					Vector3d test = vertices.get(x).pos;
 					double diffX = Math.abs(test.x - pos.x);
 					double diffY = Math.abs(test.y - pos.y);
 					if (diffY < Plane.getEPSILON() && diffX < Plane.getEPSILON()) {
-						e = toTri.getVertices().get(x).clone();
+						e = vertices.get(x).clone();
 						break;
 					}
 				}
 				if (e == null) {
-					throw new RuntimeException("Failed to find point! " + pos + " missing from " + toTri);
+					throw new RuntimeException("Failed to find point! " + pos + " missing from " + vertices);
 				}
 				if (!triPoints.contains(e))
 					triPoints.add(e);
@@ -804,7 +813,7 @@ public class PolygonUtil {
 							Collections.reverse(triPoints);
 						}
 						Polygon poly;
-						poly = new Polygon(triPoints, concave.getStorage(), true, p1);
+						poly = new Polygon(triPoints, shared, true, p1);
 						// poly = Extrude.toCCW(poly);
 						// poly.getPlane().setNormal(concave.getPlane().getNormal());
 
