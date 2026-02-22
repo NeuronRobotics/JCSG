@@ -284,8 +284,14 @@ public class Slice {
 								p.add(new Vector3d((it[0] * scaleX) + xOffset, (it[1] * scaleY) + yOffset, 0));
 							}
 
-							Polygon polyNew = Polygon.fromPoints(p);
-							polys.add(polyNew);
+							List<Polygon> polylist;
+							try {
+								polylist = Polygon.fromVector3d(p);
+								polys.addAll(polylist);
+							} catch (ColinearPointsException | NonFlatPolygonException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
 							listOfPointsForThisPoly.clear();
 							if (pixelVersionOfPoints.size() > 0) {
 								pixStart = pixelVersionOfPoints.remove(0);
@@ -305,7 +311,12 @@ public class Slice {
 				for (int[] it : listOfPointsForThisPoly) {
 					p.add(new Vector3d((it[0] * scaleX) + xOffset, (it[1] * scaleY) + yOffset, 0));
 				}
-				polys.add(Polygon.fromPoints(p));
+				try {
+					polys.addAll(Polygon.fromVector3d(p));
+				} catch (ColinearPointsException | NonFlatPolygonException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				// if(display)BowlerStudioController.getBowlerStudio() .addObject(polys, new
 				// File("."))
 			}
@@ -485,11 +496,7 @@ public class Slice {
 			Polygon me = slice.get(i);
 			boolean bad = !Extrude.isCCW(me);
 			if (bad) {
-				// println "Bad polygon!"
-				List<Vector3d> points = me.getPoints();
-				ArrayList<Vector3d> result = new ArrayList<Vector3d>(points);
-				Collections.reverse(result);
-				me = Polygon.fromPoints(result);
+				me.flip();
 			}
 			slice.set(i, me);
 		}
