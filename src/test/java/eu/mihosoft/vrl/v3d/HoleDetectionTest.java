@@ -28,7 +28,7 @@ public class HoleDetectionTest {
     public void holeDetectionTest() throws ColinearPointsException, NonFlatPolygonException {
         
         // one polygon with one hole
-        Polygon p1 = Polygon.fromPoints(
+        Polygon p1 = Polygon.fromConcavePoints(
                 new Vector3d(1, 1),
                 new Vector3d(2, 3),
                 new Vector3d(4, 3),
@@ -36,17 +36,17 @@ public class HoleDetectionTest {
                 new Vector3d(4, 1),
                 new Vector3d(3, 0),
                 new Vector3d(2, 2)
-        );
-        Polygon p1Hole = Polygon.fromPoints(
+        ).get(0);
+        Polygon p1Hole = Polygon.fromConcavePoints(
                 new Vector3d(3, 1),
                 new Vector3d(3, 2),
                 new Vector3d(4, 2)
-        );
+        ).get(0);
 
         createNumHolesTest(Arrays.asList(p1, p1Hole), 1, 0);
         
         // one polygon with two holes
-        Polygon p2 = Polygon.fromPoints(
+        Polygon p2 = Polygon.fromConcavePoints(
                 new Vector3d(1, 1),
                 new Vector3d(2, 2),
                 new Vector3d(1, 5),
@@ -56,24 +56,24 @@ public class HoleDetectionTest {
                 new Vector3d(6, 5),
                 new Vector3d(6, 1),
                 new Vector3d(3, 0)
-        );
-        Polygon p2Hole1 = Polygon.fromPoints(
+        ).get(0);
+        Polygon p2Hole1 = Polygon.fromConcavePoints(
                 new Vector3d(3, 2),
                 new Vector3d(3, 3),
                 new Vector3d(4, 2),
                 new Vector3d(4, 1)
-        );
-        Polygon p2Hole2 = Polygon.fromPoints(
+        ).get(0);
+        Polygon p2Hole2 = Polygon.fromConcavePoints(
                 new Vector3d(2, 3),
                 new Vector3d(2, 4),
                 new Vector3d(3, 4)
-        );
+        ).get(0);
 
         createNumHolesTest(Arrays.asList(p2, p2Hole1, p2Hole2), 2, 0, 0);
         
         // one polygon with two holes, one of the holes contains another
         // polygon with one hole
-        Polygon p3 = Polygon.fromPoints(
+        Polygon p3 = Polygon.fromConcavePoints(
                 new Vector3d(1, 1),
                 new Vector3d(2, 2),
                 new Vector3d(1, 5),
@@ -83,35 +83,35 @@ public class HoleDetectionTest {
                 new Vector3d(6, 5),
                 new Vector3d(6, 1),
                 new Vector3d(3, 0)
-        );
-        Polygon p3Hole1 = Polygon.fromPoints(
+        ).get(0);
+        Polygon p3Hole1 = Polygon.fromConcavePoints(
                 new Vector3d(3, 2),
                 new Vector3d(3, 3),
                 new Vector3d(4, 4),
                 new Vector3d(5, 3),
                 new Vector3d(5, 2),
                 new Vector3d(4, 1)
-        );
+        ).get(0);
         
-        Polygon p3p1 = Polygon.fromPoints(
+        Polygon p3p1 = Polygon.fromConcavePoints(
                 new Vector3d(4, 2),
                 new Vector3d(3.5, 2.5),
                 new Vector3d(4, 3),
                 new Vector3d(4.5, 2.5)
-        );
+        ).get(0);
         
-        Polygon p3p1Hole = Polygon.fromPoints(
+        Polygon p3p1Hole = Polygon.fromConcavePoints(
                 new Vector3d(4, 2.25),
                 new Vector3d(3.75, 2.5),
                 new Vector3d(4, 2.75),
                 new Vector3d(4.25, 2.5)
-        );
+        ).get(0);
         
-        Polygon p3Hole2 = Polygon.fromPoints(
+        Polygon p3Hole2 = Polygon.fromConcavePoints(
                 new Vector3d(2, 3),
                 new Vector3d(2, 4),
                 new Vector3d(3, 4)
-        );
+        ).get(0);
 
         createNumHolesTest(
                 Arrays.asList(p3, p3Hole1, p3Hole2, p3p1, p3p1Hole),
