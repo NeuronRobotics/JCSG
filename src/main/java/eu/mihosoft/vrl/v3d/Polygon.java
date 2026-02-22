@@ -162,17 +162,20 @@ public final class Polygon implements Serializable {
 	 * @param p the reference plane provided to the polygon for flatness checking
 	 * @return a List<Polygon> defined by the specified point list
 	 */
-	public static List<Polygon> get(List<Vertex> vertices, PropertyStorage shared, boolean fixAFlat, Plane p) throws ColinearPointsException,NonFlatPolygonException{
+	public static List<Polygon> get(List<Vertex> vertices, PropertyStorage shared, boolean fixAFlat, Plane p, Color c) throws ColinearPointsException,NonFlatPolygonException{
 		List<Polygon> back = new ArrayList<Polygon>();
 		try {
-			back.add(new Polygon(vertices, shared, p));
+			back.add(new Polygon(vertices, shared, p).setColor(c));
 		}catch(NonFlatPolygonException e) {
 			if(fixAFlat)
-				return PolygonUtil.triangulatePolygon(vertices,shared, fixAFlat, p,CSG.getDefaultColor());
+				return PolygonUtil.triangulatePolygon(vertices,shared, fixAFlat, p,c);
 			else
 				throw e;
 		}
 		return back;
+	}
+	public static List<Polygon> get(List<Vertex> vertices, PropertyStorage shared, boolean fixAFlat, Plane p) throws ColinearPointsException,NonFlatPolygonException{
+		return get(vertices, shared, fixAFlat, p,CSG.getDefaultColor());
 	}
 	/**
 	 * Decomposes the specified concave polygon into convex polygons.
