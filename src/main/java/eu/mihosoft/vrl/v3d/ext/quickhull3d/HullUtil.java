@@ -8,6 +8,7 @@ package eu.mihosoft.vrl.v3d.ext.quickhull3d;
 import eu.mihosoft.vrl.v3d.CSG;
 import eu.mihosoft.vrl.v3d.CSGClient;
 import eu.mihosoft.vrl.v3d.ColinearPointsException;
+import eu.mihosoft.vrl.v3d.NonFlatPolygonException;
 import eu.mihosoft.vrl.v3d.Vector3d;
 import eu.mihosoft.vrl.v3d.Polygon;
 import eu.mihosoft.vrl.v3d.PropertyStorage;
@@ -90,8 +91,11 @@ public class HullUtil {
 			}
 
 			try {
-				polygons.add(Polygon.fromPoints(vertices, storage));
+				polygons.addAll(Polygon.fromConcavePoints(vertices, storage));
 			} catch (ColinearPointsException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (NonFlatPolygonException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
