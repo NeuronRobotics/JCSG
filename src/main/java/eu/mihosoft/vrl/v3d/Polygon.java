@@ -189,6 +189,7 @@ public final class Polygon implements Serializable {
 		}
 		return PolygonUtil.triangulatePolygon(vertices,new PropertyStorage(), false, null,CSG.getDefaultColor());
 	}
+	
 //	/**
 //	 * Creates a polygon from the specified point list.
 //	 *
