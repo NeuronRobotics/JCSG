@@ -321,12 +321,13 @@ public final class Node {
 			if(polygon.getPlane().checkNormal(f) == NormalState.FLIPPED) {
 				Collections.reverse(f);
 			}
-			Polygon fpoly = new Polygon(f, polygon.getStorage(), true, polygon.getPlane())
-					.setColor(polygon.getColor());
-			l.add(fpoly);	
+			List<Polygon> fpoly =  Polygon.get(f, polygon.getStorage(), true, polygon.getPlane(),polygon.getColor());
+			l.addAll(fpoly);	
 		}catch(ColinearPointsException ex) {
 			//ex.printStackTrace();
 			System.err.println("Pruned Collinear polygon "+f+" "+ex.getMessage() );
+		} catch (NonFlatPolygonException e) {
+			e.printStackTrace();
 		}
 	}
 	public static String getOsName() {
