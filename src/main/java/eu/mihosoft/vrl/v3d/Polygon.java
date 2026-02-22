@@ -73,38 +73,6 @@ public final class Polygon implements Serializable {
 	private boolean valid = true;
 	private boolean degenerate = false;
 
-	/**
-	 * Sets the storage.
-	 *
-	 * @param storage the new storage
-	 */
-	void setStorage(PropertyStorage storage) {
-		this.shared = storage;
-	}
-
-	/**
-	 * Decomposes the specified concave polygon into convex polygons.
-	 *
-	 * @param points the points that define the polygon
-	 * @return the decomposed concave polygon (list of convex polygons)
-	 */
-	public static List<Polygon> fromConcavePoints(Vector3d... points) throws ColinearPointsException,NonFlatPolygonException  {
-		Polygon p = fromPoints(points);
-
-		return PolygonUtil.triangulatePolygon(p);
-	}
-
-	/**
-	 * Decomposes the specified concave polygon into convex polygons.
-	 *
-	 * @param points the points that define the polygon
-	 * @return the decomposed concave polygon (list of convex polygons)
-	 */
-	public static List<Polygon> fromConcavePoints(List<Vector3d> points)throws ColinearPointsException,NonFlatPolygonException   {
-		Polygon p = fromPoints(points);
-
-		return PolygonUtil.triangulatePolygon(p);
-	}
 
 	/**
 	 * Constructor. Creates a new polygon that consists of the specified vertices.
@@ -115,7 +83,7 @@ public final class Polygon implements Serializable {
 	 * @param vertices polygon vertices
 	 * @param shared   shared property
 	 */
-	public Polygon(List<Vertex> vertices, PropertyStorage shared, boolean allowDegenerate, Plane p) throws ColinearPointsException,NonFlatPolygonException  {
+	private Polygon(List<Vertex> vertices, PropertyStorage shared, boolean allowDegenerate, Plane p) throws ColinearPointsException,NonFlatPolygonException  {
 		this.setVertices(pruneDuplicatePoints(vertices));
 		this.shared = shared;
 		if (p != null)
@@ -133,7 +101,7 @@ public final class Polygon implements Serializable {
 	 * @param vertices polygon vertices
 	 * @param shared   shared property
 	 */
-	public Polygon(List<Vertex> vertices, PropertyStorage shared) throws ColinearPointsException,NonFlatPolygonException  {
+	private Polygon(List<Vertex> vertices, PropertyStorage shared) throws ColinearPointsException,NonFlatPolygonException  {
 		this(vertices, shared, true, null);
 	}
 
@@ -145,9 +113,99 @@ public final class Polygon implements Serializable {
 	 *
 	 * @param vertices polygon vertices
 	 */
-	public Polygon(List<Vertex> vertices) throws ColinearPointsException,NonFlatPolygonException  {
+	private Polygon(List<Vertex> vertices) throws ColinearPointsException,NonFlatPolygonException  {
 		this(vertices, new PropertyStorage(), true, null);
 	}
+	/**
+	 * Constructor. Creates a new polygon that consists of the specified vertices.
+	 *
+	 * Note: the vertices used to initialize a polygon must be coplanar and form a
+	 * convex loop.
+	 *
+	 * @param vertices polygon vertices
+	 *
+	 */
+	private Polygon(Vertex... vertices) throws ColinearPointsException,NonFlatPolygonException  {
+		this(Arrays.asList(vertices));
+	}
+	/**
+	 * Decomposes the specified concave polygon into convex polygons.
+	 *
+	 * @param points the points that define the polygon
+	 * @return the decomposed concave polygon (list of convex polygons)
+	 */
+	public static List<Polygon> fromConcavePoints(Vector3d... points) throws ColinearPointsException,NonFlatPolygonException  {
+		Polygon p = fromPoints(points);
+
+		return PolygonUtil.triangulatePolygon(p);
+	}
+	/**
+	 * Creates a polygon from the specified point list.
+	 *
+	 * @param points the points that define the polygon
+	 * @param shared shared property storage
+	 * @return a polygon defined by the specified point list
+	 */
+	public static Polygon fromPoints(List<Vector3d> points, PropertyStorage shared) throws ColinearPointsException,NonFlatPolygonException  {
+		return fromPoints(points, shared, null, true);
+	}
+
+	/**
+	 * Creates a polygon from the specified point list.
+	 *
+	 * @param points the points that define the polygon
+	 * @return a polygon defined by the specified point list
+	 */
+	public static Polygon fromPoints(List<Vector3d> points)throws ColinearPointsException,NonFlatPolygonException   {
+		return fromPoints(points, new PropertyStorage(), null, true);
+	}
+
+	/**
+	 * Creates a polygon from the specified points.
+	 *
+	 * @param points the points that define the polygon
+	 * @return a polygon defined by the specified point list
+	 */
+	public static Polygon fromPoints(Vector3d... points)throws ColinearPointsException,NonFlatPolygonException   {
+		return fromPoints(Arrays.asList(points), new PropertyStorage(), null, true);
+	}
+
+	public static Polygon fromPointsAllowDegenerate(List<Vector3d> vertices2) throws ColinearPointsException,NonFlatPolygonException  {
+		return fromPoints(vertices2, new PropertyStorage(), null, true);
+	}
+
+	/**
+	 * Creates a polygon from the specified point list.
+	 *
+	 * @param points the points that define the polygon
+	 * @param shared the shared
+	 * @param plane  may be null
+	 * @return a polygon defined by the specified point list
+	 */
+	public static Polygon fromPoints(List<Vector3d> points, PropertyStorage shared, Plane plane,
+			boolean allowDegenerate)throws ColinearPointsException,NonFlatPolygonException   {
+		List<Vertex> vertices = new ArrayList<>();
+		for (Vector3d p : points) {
+			Vector3d vec = p.clone();
+			Vertex vertex = new Vertex(vec);
+			vertices.add(vertex);
+		}
+
+		return new Polygon(vertices, shared, allowDegenerate, plane);
+	}
+
+	/**
+	 * Decomposes the specified concave polygon into convex polygons.
+	 *
+	 * @param points the points that define the polygon
+	 * @return the decomposed concave polygon (list of convex polygons)
+	 */
+	public static List<Polygon> fromConcavePoints(List<Vector3d> points)throws ColinearPointsException,NonFlatPolygonException   {
+		Polygon p = fromPoints(points);
+
+		return PolygonUtil.triangulatePolygon(p);
+	}
+
 
 	public static ArrayList<Vertex> pruneDuplicatePoints(List<Vertex> incoming) {
 		// return incoming;
@@ -170,6 +228,14 @@ public final class Polygon implements Serializable {
 		}
 	}
 
+	/**
+	 * Sets the storage.
+	 *
+	 * @param storage the new storage
+	 */
+	void setStorage(PropertyStorage storage) {
+		this.shared = storage;
+	}
 	private void validateAndInit(boolean fixInversions) throws ColinearPointsException,NonFlatPolygonException {
 		ArrayList<Vertex>  vertices = pruneDuplicatePoints(this.vertices);
 		Plane p = Plane.createFromPoints(vertices);
@@ -217,18 +283,7 @@ public final class Polygon implements Serializable {
 		getVertices().add(b);
 	}
 
-	/**
-	 * Constructor. Creates a new polygon that consists of the specified vertices.
-	 *
-	 * Note: the vertices used to initialize a polygon must be coplanar and form a
-	 * convex loop.
-	 *
-	 * @param vertices polygon vertices
-	 *
-	 */
-	public Polygon(Vertex... vertices) throws ColinearPointsException,NonFlatPolygonException  {
-		this(Arrays.asList(vertices));
-	}
+
 
 	/*
 	 * (non-Javadoc)
@@ -421,60 +476,7 @@ public final class Polygon implements Serializable {
 		return clone().transform(transform);
 	}
 
-	/**
-	 * Creates a polygon from the specified point list.
-	 *
-	 * @param points the points that define the polygon
-	 * @param shared shared property storage
-	 * @return a polygon defined by the specified point list
-	 */
-	public static Polygon fromPoints(List<Vector3d> points, PropertyStorage shared) throws ColinearPointsException,NonFlatPolygonException  {
-		return fromPoints(points, shared, null, true);
-	}
 
-	/**
-	 * Creates a polygon from the specified point list.
-	 *
-	 * @param points the points that define the polygon
-	 * @return a polygon defined by the specified point list
-	 */
-	public static Polygon fromPoints(List<Vector3d> points)throws ColinearPointsException,NonFlatPolygonException   {
-		return fromPoints(points, new PropertyStorage(), null, true);
-	}
-
-	/**
-	 * Creates a polygon from the specified points.
-	 *
-	 * @param points the points that define the polygon
-	 * @return a polygon defined by the specified point list
-	 */
-	public static Polygon fromPoints(Vector3d... points)throws ColinearPointsException,NonFlatPolygonException   {
-		return fromPoints(Arrays.asList(points), new PropertyStorage(), null, true);
-	}
-
-	public static Polygon fromPointsAllowDegenerate(List<Vector3d> vertices2) throws ColinearPointsException,NonFlatPolygonException  {
-		return fromPoints(vertices2, new PropertyStorage(), null, true);
-	}
-
-	/**
-	 * Creates a polygon from the specified point list.
-	 *
-	 * @param points the points that define the polygon
-	 * @param shared the shared
-	 * @param plane  may be null
-	 * @return a polygon defined by the specified point list
-	 */
-	public static Polygon fromPoints(List<Vector3d> points, PropertyStorage shared, Plane plane,
-			boolean allowDegenerate)throws ColinearPointsException,NonFlatPolygonException   {
-		List<Vertex> vertices = new ArrayList<>();
-		for (Vector3d p : points) {
-			Vector3d vec = p.clone();
-			Vertex vertex = new Vertex(vec);
-			vertices.add(vertex);
-		}
-
-		return new Polygon(vertices, shared, allowDegenerate, plane);
-	}
 
 	/**
 	 * Returns the bounds of this polygon.
