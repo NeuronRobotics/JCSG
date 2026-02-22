@@ -1679,7 +1679,7 @@ public class CSG implements IuserAPI, Serializable {
 			sb.append("solid v3d.csg\n");
 			for (Polygon p : getPolygons()) {
 				try {
-					Plane.createFromPoints(p.getVertices(), null);
+					Plane.createFromPoints(p.getVertices());
 					p.toStlString(sb);
 				} catch (Exception ex) {
 					System.out.println("Prune Polygon on export");

@@ -51,7 +51,7 @@ import com.google.gson.annotations.Expose;
  *
  * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
  */
-public class Vector3d 
+public class Vector3d implements Serializable
 {
     
 	public double x,y,z;

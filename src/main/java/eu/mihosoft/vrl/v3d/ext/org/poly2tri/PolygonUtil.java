@@ -614,6 +614,9 @@ public class PolygonUtil {
 
 	public static ArrayList<Polygon> triangulatePolygon(List<Vertex> vertices, PropertyStorage shared,
 			boolean allowDegenerate, Plane p, Color c) throws ColinearPointsException {
+		if(p==null) {
+			p=Plane.createFromPoints(vertices);
+		}
 		ArrayList<Polygon> result = new ArrayList<>();
 		Vector3d normalOfPlane = p.getNormal().clone();
 		normalOfPlane.normalize();

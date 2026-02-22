@@ -318,10 +318,13 @@ public final class Node {
 		if (f.size() < 3)
 			return;
 		try {
-			if(polygon.getPlane().checkNormal(f) == NormalState.FLIPPED) {
+			NormalState checkNormal = polygon.getPlane().checkNormal(f);
+			if(checkNormal == NormalState.FLIPPED) {
 				Collections.reverse(f);
 			}
-			List<Polygon> fpoly =  Polygon.fromVertex(f, polygon.getStorage(), true, polygon.getPlane(),polygon.getColor());
+			List<Polygon> fpoly =  Polygon.fromVertex(f, polygon.getStorage(), true, 
+					checkNormal==NormalState.SAME? polygon.getPlane():null,
+							polygon.getColor());
 			l.addAll(fpoly);	
 		}catch(ColinearPointsException ex) {
 			//ex.printStackTrace();

@@ -88,7 +88,7 @@ public class Plane implements Serializable {
 	 * @param normal plane normal
 	 * @param dist   distance from origin
 	 */
-	public Plane(Vector3d normal, double dist) {
+	private Plane(Vector3d normal, double dist) {
 		this.setNormal(normal.normalized());
 		this.setDist(dist);
 	}
@@ -100,45 +100,25 @@ public class Plane implements Serializable {
 	 * @param dist   distance from origin
 	 * @throws ColinearPointsException 
 	 */
-	public Plane(List<Vertex> vertices, Vector3d testNorm) throws ColinearPointsException {
+	public Plane(List<Vertex> vertices) throws ColinearPointsException {
 		
-		Vector3d n = computeNormal(vertices, testNorm);
+		Vector3d n = computeNormal(vertices);
 		this.setNormal(n);
 		double distAvg = 0;
 		for(int i=0;i<vertices.size();i++) {
 			Vector3d a = vertices.get(i).pos;
-			distAvg+=n.dot(a);
+			double dot = n.dot(a);
+			double diff=00;
+			if(i>0) {
+				 diff = (distAvg/(double)(i))-dot;
+			}
+			distAvg+=dot;
 		}
-		this.setDist(distAvg/((double)vertices.size()));
+		double dist2 = distAvg/((double)vertices.size());
+		this.setDist(dist2);
 	}
 
-	/**
-	 * Constructor. Creates a new plane defined by its normal vector and the
-	 * distance to the origin.
-	 *
-	 * @param normal plane normal
-	 * @param dist   distance from origin
-	 */
-	public Plane(Vector3d normal, List<Vertex> vertices) {
-		this.setNormal(normal.normalized());
-		double distAvg = 0;
-		for(int i=0;i<vertices.size();i++) {
-			Vector3d a = vertices.get(i).pos;
-			distAvg+=normal.dot(a);
-		}
-		this.setDist(distAvg/((double)vertices.size()));
-	}
-	/**
-	 * Constructor. Creates a new plane defined by its normal vector and the
-	 * distance to the origin.
-	 *
-	 * @param normal plane normal
-	 * @param dist   distance from origin
-	 */
-	public Plane(Vector3d normal, Vector3d vertice) {
-		this.setNormal(normal.normalized());
-		this.setDist(normal.dot(vertice));
-	}
+
 	/**
 	 * Creates a plane defined by the the specified points.
 	 * 
@@ -150,28 +130,11 @@ public class Plane implements Serializable {
 	 * @return a plane
 	 */
 	public static Plane createFromPoints(List<Vertex> vertices) throws ColinearPointsException {
-		return createFromPoints(vertices, null);
+		return new Plane(vertices);
 	}
 
-	/**
-	 * Creates a plane defined by the the specified points.
-	 * 
-	 * @param vector3d
-	 *
-	 * @param a        first point
-	 * @param b        second point
-	 * @param c        third point
-	 * @return a plane
-	 */
-	public static Plane createFromPoints(List<Vertex> vertices, Vector3d testNorm) throws ColinearPointsException {
-		return new Plane(vertices,  testNorm);
-	}
 
-	public Vector3d computeNormal(List<Vertex> vertices) throws ColinearPointsException{
-		return computeNormal(vertices, null);
-	}
-
-	public Vector3d computeNormal(List<Vertex> vertices, Vector3d testNorm) throws ColinearPointsException {
+	public Vector3d computeNormal(List<Vertex> vertices) throws ColinearPointsException {
 
 		if (vertices == null || vertices.size() < 3) {
 			throw new ColinearPointsException("Can not find normal without at least 3 points "+vertices);
@@ -206,16 +169,17 @@ public class Plane implements Serializable {
 	public NormalState checkNormal(List<Vertex> vertex) {
 		Plane p = null;
 		try {
-			p = Plane.createFromPoints(vertex, getNormal());
+			p = Plane.createFromPoints(vertex);
 		} catch (Exception ex) {
-			 //ex.printStackTrace();
+			ex.printStackTrace();
+			return NormalState.DIVERGENT;
 		}
 		if (p != null) {
 			Vector3d normal = p.getNormal();
 			Vector3d normal2 = getNormal();
 			double dot2 = normal.dot(normal2);
 			double dot = 1-dot2;
-			double dFlipped = 2-dot2;
+			double dFlipped = 1+dot2;
 			// check for actual misallignment
 			double d = Plane.getEPSILON();
 			if(dot>d)

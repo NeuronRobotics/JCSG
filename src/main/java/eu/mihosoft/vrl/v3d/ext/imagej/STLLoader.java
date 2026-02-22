@@ -119,7 +119,7 @@ public class STLLoader {
 						try {
 							Plane pl=null;
 							try {
-								pl = new Plane(normal, vertices);
+								pl = new Plane( vertices);
 							}catch(NumberFormatException ex) {
 								pl=Plane.createFromPoints(vertices);
 							}
@@ -180,7 +180,7 @@ public class STLLoader {
 						try {
 							Plane pl=null;
 							try {
-								pl = new Plane(normal, vertices);
+								pl = new Plane( vertices);
 							}catch(NumberFormatException ex) {
 								System.out.println(" STL has bad Normal "+normal);
 								pl=Plane.createFromPoints(vertices);
