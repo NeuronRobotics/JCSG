@@ -91,7 +91,7 @@ public class HullUtil {
 			}
 
 			try {
-				polygons.addAll(Polygon.fromConcavePoints(vertices, storage));
+				polygons.addAll(Polygon.fromVector3d(vertices, storage));
 			} catch (ColinearPointsException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

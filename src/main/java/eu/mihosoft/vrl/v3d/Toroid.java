@@ -116,7 +116,7 @@ public class Toroid extends Primitive {
 				List<Vector3d> pPoints = Arrays.asList(bottomV2, topV2, topV1, bottomV1);
 	
 				try {
-					newPolygons.addAll(Polygon.fromConcavePoints(pPoints, polygon1.getStorage()));
+					newPolygons.addAll(Polygon.fromVector3d(pPoints, polygon1.getStorage()));
 				} catch (ColinearPointsException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

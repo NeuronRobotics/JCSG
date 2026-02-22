@@ -194,7 +194,7 @@ public class Sphere extends Primitive {
                                 (j + 1) / (double) getNumStacks())
                 );
                 try {
-					polygons.add(new Polygon(vertices, getProperties()));
+					polygons.add(Polygon.fromVector3d(vertices, getProperties()));
 				} catch (ColinearPointsException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
