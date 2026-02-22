@@ -33,7 +33,7 @@ private PropertyStorage storage;
         );
         
         try {
-            Polygon polygon =  Polygon.get(vertices, storage, true, null).get(0);
+            Polygon polygon =  Polygon.fromVertex(vertices, storage, true, null).get(0);
             assertNotNull("Polygon should be created successfully", polygon);
             assertEquals("Polygon should have 3 vertices", 3, polygon.getVertices().size());
         } catch (Exception e) {
@@ -58,7 +58,7 @@ private PropertyStorage storage;
         );
         
         try {
-            Polygon polygon = Polygon.get(vertices, storage, true, null).get(0);
+            Polygon polygon = Polygon.fromVertex(vertices, storage, true, null).get(0);
             assertNotNull("Polygon should be created successfully", polygon);
             assertEquals("Polygon should have 3 vertices", 3, polygon.getVertices().size());
         } catch (Exception e) {
@@ -81,7 +81,7 @@ private PropertyStorage storage;
         );
         
         try {
-            Polygon polygon = Polygon.get(vertices, storage, true, null).get(0);
+            Polygon polygon = Polygon.fromVertex(vertices, storage, true, null).get(0);
             assertNotNull("Polygon should be created successfully", polygon);
             assertEquals("Polygon should have 3 vertices", 3, polygon.getVertices().size());
         } catch (Exception e) {
@@ -104,7 +104,7 @@ private PropertyStorage storage;
         );
         
         try {
-            Polygon polygon = Polygon.get(vertices, storage, true, null).get(0);
+            Polygon polygon = Polygon.fromVertex(vertices, storage, true, null).get(0);
             assertNotNull("Polygon should be created successfully", polygon);
             assertEquals("Polygon should have 3 vertices", 3, polygon.getVertices().size());
         } catch (Exception e) {
@@ -126,7 +126,7 @@ private PropertyStorage storage;
         );
         
         try {
-            Polygon polygon = Polygon.get(vertices, storage, true, null).get(0);
+            Polygon polygon = Polygon.fromVertex(vertices, storage, true, null).get(0);
             assertNotNull("Polygon should be created successfully", polygon);
             assertEquals("Polygon should have 3 vertices", 3, polygon.getVertices().size());
         } catch (Exception e) {
@@ -151,7 +151,7 @@ private PropertyStorage storage;
             new Vertex(new Vector3d(10.5175167546, 116.6176943528, 83.1832321598))
         );
         
-		Polygon polygon = Polygon.get(vertices, storage, true, null).get(0);
+		Polygon polygon = Polygon.fromVertex(vertices, storage, true, null).get(0);
 
         fail("Should have thrown exception for duplicate points");
     }
@@ -170,7 +170,7 @@ private PropertyStorage storage;
             new Vertex(new Vector3d(10.5068817145, 98.4507751465, 35.0306403108))
         );
         
-		Polygon polygon = Polygon.get(vertices, storage, true, null).get(0);
+		Polygon polygon = Polygon.fromVertex(vertices, storage, true, null).get(0);
 
         fail("Should have thrown exception for collinear points");
     }

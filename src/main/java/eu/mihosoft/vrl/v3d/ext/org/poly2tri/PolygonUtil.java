@@ -184,7 +184,7 @@ public class PolygonUtil {
 			modifiable.remove(vr);
 		if (modifiable.size() > 2) {
 			try {
-				return Polygon.get(modifiable, shared, true, p, color);
+				return Polygon.fromVertex(modifiable, shared, true, p, color);
 			} catch (ColinearPointsException e) {
 				System.out.println(" Pruning polygon in repair " + vertices + " to " + modifiable);
 			} catch (NonFlatPolygonException e) {
@@ -633,7 +633,7 @@ public class PolygonUtil {
 
 		if (vertices.size() == 3) {
 			try {
-				result.addAll(Polygon.get(vertices, shared, false, p));
+				result.addAll(Polygon.fromVertex(vertices, shared, false, p));
 			} catch (ColinearPointsException e) {
 				e.printStackTrace();
 			} catch (NonFlatPolygonException e) {
@@ -730,7 +730,7 @@ public class PolygonUtil {
 						if (!Extrude.isCCW(vertices)) {
 							Collections.reverse(vertices);
 						}
-						List<Polygon> onel = Polygon.get(vertices, concave.getStorage(), true, normal2.clone());
+						List<Polygon> onel = Polygon.fromVertex(vertices, concave.getStorage(), true, normal2.clone());
 						for (Polygon one : onel) {
 							if (reorent) {
 								one = one.transform(orentationInv);
@@ -815,7 +815,7 @@ public class PolygonUtil {
 							Collections.reverse(triPoints);
 						}
 						List<Polygon> polyl;
-						polyl = Polygon.get(triPoints, shared, true, p1);
+						polyl = Polygon.fromVertex(triPoints, shared, true, p1);
 						// poly = Extrude.toCCW(poly);
 						// poly.getPlane().setNormal(concave.getPlane().getNormal());
 						for (Polygon poly : polyl) {

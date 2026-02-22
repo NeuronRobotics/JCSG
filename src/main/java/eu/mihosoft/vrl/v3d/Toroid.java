@@ -74,7 +74,7 @@ public class Toroid extends Primitive {
 		}
 		Polygon poly;
 		try {
-			poly =  Polygon.get(vertices, properties,true,null).get(0);
+			poly =  Polygon.fromVertex(vertices, properties,true,null).get(0);
 		} catch (ColinearPointsException e) {
 			throw new RuntimeException(e);
 		} catch (NonFlatPolygonException e) {

@@ -123,7 +123,7 @@ public class STLLoader {
 							}catch(NumberFormatException ex) {
 								pl=Plane.createFromPoints(vertices);
 							}
-							polygons.addAll( Polygon.get(vertices, null, true, pl));
+							polygons.addAll( Polygon.fromVertex(vertices, null, true, pl));
 						} catch (ColinearPointsException e) {
 							System.out.println(e.getMessage()+ " STL Load Pruned "+vertices);
 						} catch (NonFlatPolygonException e) {
@@ -185,7 +185,7 @@ public class STLLoader {
 								System.out.println(" STL has bad Normal "+normal);
 								pl=Plane.createFromPoints(vertices);
 							}
-							polygons.addAll( Polygon.get(vertices, null, true, pl));
+							polygons.addAll( Polygon.fromVertex(vertices, null, true, pl));
 						} catch (ColinearPointsException e) {
 							System.out.println(e.getMessage()+ " STL Load Pruned "+vertices);
 						} catch (NonFlatPolygonException e) {
