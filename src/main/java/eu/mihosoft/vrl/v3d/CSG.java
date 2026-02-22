@@ -2126,12 +2126,15 @@ public class CSG implements IuserAPI, Serializable {
 				System.out.println("ERR polygon " + i + " pruned because of too few points");
 				continue;
 			}
-			Polygon p;
+			List<Polygon> p;
 			try {
-				p = new Polygon(points, polygon.getStorage(), true, pl);
-				newPoly.add(p);
+				p =  Polygon.get(points, polygon.getStorage(), true, pl);
+				newPoly.addAll(p);
 			} catch (ColinearPointsException e) {
 				System.err.println("Pruning " + points);
+				e.printStackTrace();
+			} catch (NonFlatPolygonException e) {
+				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			polygon.getPoints().clear();
