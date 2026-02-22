@@ -214,6 +214,21 @@ public final class Polygon implements Serializable {
 		}
 		return PolygonUtil.triangulatePolygon(vertices,shared, false, null,CSG.getDefaultColor());
 	}
+	/**
+	 * Decomposes the specified concave polygon into convex polygons.
+	 *
+	 * @param points the points that define the polygon
+	 * @return the decomposed concave polygon (list of convex polygons)
+	 */
+	public static List<Polygon> fromVector3d(List<Vector3d> points,Plane pl )throws ColinearPointsException,NonFlatPolygonException   {
+		List<Vertex> vertices = new ArrayList<>();
+		for (Vector3d p : points) {
+			Vector3d vec = p.clone();
+			Vertex vertex = new Vertex(vec);
+			vertices.add(vertex);
+		}
+		return PolygonUtil.triangulatePolygon(vertices,new PropertyStorage(), false, pl,CSG.getDefaultColor());
+	}
 //	/**
 //	 * Creates a polygon from the specified point list.
 //	 *

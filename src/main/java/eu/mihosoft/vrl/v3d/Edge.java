@@ -111,25 +111,25 @@ public class Edge {
 		return edges.stream().map(e -> e.p1.pos).collect(Collectors.toList());
 	}
 
-	/**
-	 * To polygon.
-	 *
-	 * @param points the points
-	 * @param plane  the plane
-	 * @return the polygon
-	 */
-	public static Polygon toPolygon(List<Vector3d> points, Plane plane) throws ColinearPointsException{
-
-//        List<Vector3d> points = edges.stream().().map(e -> e.p1.pos).
-//                collect(Collectors.toList());
-		Polygon p = Polygon.fromPoints(points);
-
-//        // we try to detect wrong orientation by comparing normals
-//        if (p.plane.normal.angle(plane.normal) > 0.1) {
-//            p.flip();
-//        }
-		return p;
-	}
+//	/**
+//	 * To polygon.
+//	 *
+//	 * @param points the points
+//	 * @param plane  the plane
+//	 * @return the polygon
+//	 */
+//	public static Polygon toPolygon(List<Vector3d> points, Plane plane) throws ColinearPointsException{
+//
+////        List<Vector3d> points = edges.stream().().map(e -> e.p1.pos).
+////                collect(Collectors.toList());
+//		Polygon p = Polygon.fromPoints(points);
+//
+////        // we try to detect wrong orientation by comparing normals
+////        if (p.plane.normal.angle(plane.normal) > 0.1) {
+////            p.flip();
+////        }
+//		return p;
+//	}
 
 	/**
 	 * To polygons.
@@ -169,7 +169,12 @@ public class Edge {
 		// com.neuronrobotics.sdk.common.Log.error("#bnd-path-length: " +
 		// boundaryPath.size());
 
-		result.add(toPolygon(boundaryPath, plane));
+		try {
+			result.addAll(Polygon.fromVector3d(boundaryPath, plane));
+		} catch (ColinearPointsException | NonFlatPolygonException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 		return result;
 	}
@@ -449,7 +454,12 @@ public class Edge {
 				break;
 			}
 
-			result.add(Polygon.fromPoints(boundaryPath));
+			try {
+				result.addAll(Polygon.fromVector3d(boundaryPath));
+			} catch (ColinearPointsException | NonFlatPolygonException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			startIndex = nextUnused(used);
 
 			if (startIndex > 0) {
@@ -518,7 +528,12 @@ public class Edge {
 		// com.neuronrobotics.sdk.common.Log.error("#bnd-path-length: " +
 		// boundaryPath.size());
 
-		result.add(toPolygon(boundaryPath, plane));
+		try {
+			result.addAll(Polygon.fromVector3d(boundaryPath, plane));
+		} catch (ColinearPointsException | NonFlatPolygonException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 		return result;
 	}
