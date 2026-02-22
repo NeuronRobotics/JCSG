@@ -70,8 +70,14 @@ public class Extrude {
 		public CSG points(Vector3d dir, List<Vector3d> points) throws ColinearPointsException {
 
 			List<Vector3d> newList = new ArrayList<>(points);
-			Polygon fromPoints = Polygon.fromPoints(toCCW(newList));
-			return extrude(dir, fromPoints);
+			Polygon fromPoints;
+			try {
+				fromPoints = Polygon.fromVector3d(toCCW(newList)).get(0);
+
+				return extrude(dir, fromPoints);
+			} catch (ColinearPointsException | NonFlatPolygonException e) {
+				throw new RuntimeException(e);
+			}
 		}
 
 		/**
@@ -101,8 +107,14 @@ public class Extrude {
 				newPolygons.add(p.transformed(new Transform().move(dir)));
 			}
 			Polygon polygon2 = polygon1.transformed(new Transform().move(dir));
-			List<Polygon> parts = Extrude.monotoneExtrude(polygon2, polygon1);
-			newPolygons.addAll(parts);
+			List<Polygon> parts;
+			try {
+				parts = Extrude.monotoneExtrude(polygon2, polygon1);
+				newPolygons.addAll(parts);
+			} catch (NonFlatPolygonException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 
 			//ArrayList<Polygon> topPolygons = PolygonUtil.triangulatePolygon(polygon2);
 			
@@ -575,9 +587,15 @@ public class Extrude {
 			running.apply(increment);
 			double unit = ((double) i) / ((double) steps);
 			Polygon step = offsetP.transformed(provider.get(unit, steps)).transformed(running);
-			List<Polygon> parts = monotoneExtrude(prev, step);
-			prev = step;
-			newPolygons.addAll(parts);
+			List<Polygon> parts;
+			try {
+				parts = monotoneExtrude(prev, step);
+				prev = step;
+				newPolygons.addAll(parts);
+			} catch (NonFlatPolygonException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		Polygon polygon2 = prev.clone();
 		List<Polygon> topPolygons = PolygonUtil.triangulatePolygon(polygon2.flipped());
@@ -590,7 +608,7 @@ public class Extrude {
 		return sweep(p, new Transform().rotX(angle).movex(z), new Transform().movey(radius), steps);
 	}
 
-	public static List<Polygon> monotoneExtrude(Polygon polygon2, Polygon polygon1) {
+	public static List<Polygon> monotoneExtrude(Polygon polygon2, Polygon polygon1) throws NonFlatPolygonException {
 		List<Polygon> newPolygons = new ArrayList<>();
 
 		int numvertices = polygon1.getVertices().size();
@@ -608,7 +626,7 @@ public class Extrude {
 			if (Math.abs(distance) > Plane.getEPSILON() && Math.abs(z1Dist) > Plane.getEPSILON()) {
 				List<Vector3d> asList = Arrays.asList(bottomV2.clone(), topV1.clone(), bottomV1.clone());
 				try {
-					newPolygons.add(Polygon.fromPoints(asList, polygon1.getStorage()));
+					newPolygons.addAll(Polygon.fromVector3d(asList, polygon1.getStorage()));
 				} catch (ColinearPointsException ex) {
 					System.out.println(ex.getMessage()+" Pruning from extrude");
 				}
@@ -618,7 +636,7 @@ public class Extrude {
 			if (Math.abs(distance2) > Plane.getEPSILON() && Math.abs(z1Dist2) > Plane.getEPSILON()) {
 				List<Vector3d> asList2 = Arrays.asList(bottomV2.clone(), topV2.clone(), topV1.clone());
 				try {
-					newPolygons.add(Polygon.fromPoints(asList2, polygon1.getStorage()));
+					newPolygons.addAll(Polygon.fromVector3d(asList2, polygon1.getStorage()));
 				} catch (ColinearPointsException ex) {
 					System.out.println(ex.getMessage()+" Pruning from extrude");
 				}
