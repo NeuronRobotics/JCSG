@@ -2128,7 +2128,7 @@ public class CSG implements IuserAPI, Serializable {
 			}
 			List<Polygon> p;
 			try {
-				p =  Polygon.get(points, polygon.getStorage(), true, pl);
+				p =  Polygon.fromVertex(points, polygon.getStorage(), true, pl);
 				newPoly.addAll(p);
 			} catch (ColinearPointsException e) {
 				System.err.println("Pruning " + points);
