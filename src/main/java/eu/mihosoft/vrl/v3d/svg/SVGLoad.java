@@ -40,6 +40,7 @@ import eu.mihosoft.vrl.v3d.CSG;
 import eu.mihosoft.vrl.v3d.ColinearPointsException;
 import eu.mihosoft.vrl.v3d.Edge;
 import eu.mihosoft.vrl.v3d.Extrude;
+import eu.mihosoft.vrl.v3d.NonFlatPolygonException;
 import eu.mihosoft.vrl.v3d.Plane;
 import eu.mihosoft.vrl.v3d.Polygon;
 import eu.mihosoft.vrl.v3d.PropertyStorage;
@@ -178,7 +179,7 @@ public class SVGLoad {
 
 			for (int i = 0; i < pathObjects; i++) {
 				SVGItem item = (SVGItem) pathList.getItem(i);
-				String itemLine = String.format(Locale.US,"%s%n", item.getValueAsString());
+				String itemLine = String.format(Locale.US, "%s%n", item.getValueAsString());
 				sb += itemLine;
 			}
 
@@ -546,7 +547,7 @@ public class SVGLoad {
 
 					for (int i = 0; i < pathObjects; i++) {
 						SVGItem item = (SVGItem) pathList.getItem(i);
-						String itemLine = String.format(Locale.US,"%s%n", item.getValueAsString());
+						String itemLine = String.format(Locale.US, "%s%n", item.getValueAsString());
 						if (sb == null) {
 							sb = "M " + itemLine;
 						}
@@ -663,14 +664,23 @@ public class SVGLoad {
 				List<Polygon> list = getPolygonByLayers().get(encapsulatingLayer);
 				// Polygon poly = Polygon.fromPoints(p , new PropertyStorage(), new Plane(new
 				// Vector3d(0, 0, 1),p.get(0)) , true);
-				Polygon poly = Polygon.fromPoints(p);
-				PolygonUtil.triangulatePolygon(poly);
-				poly.setHole(hole);
-				if (c != null) {
-					colors.put(poly, c);
-					poly.setColor(c);
+				List<Polygon> polys;
+				try {
+					polys = Polygon.fromConcavePoints(p);
+					for (Polygon poly : polys) {
+						PolygonUtil.triangulatePolygon(poly);
+						poly.setHole(hole);
+						if (c != null) {
+							colors.put(poly, c);
+							poly.setColor(c);
+						}
+						list.add(poly);
+					}
+				} catch (NonFlatPolygonException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
-				list.add(poly);
+
 			} catch (ColinearPointsException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
