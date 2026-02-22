@@ -321,7 +321,7 @@ public final class Node {
 			if(polygon.getPlane().checkNormal(f) == NormalState.FLIPPED) {
 				Collections.reverse(f);
 			}
-			List<Polygon> fpoly =  Polygon.get(f, polygon.getStorage(), true, polygon.getPlane(),polygon.getColor());
+			List<Polygon> fpoly =  Polygon.fromVertex(f, polygon.getStorage(), true, polygon.getPlane(),polygon.getColor());
 			l.addAll(fpoly);	
 		}catch(ColinearPointsException ex) {
 			//ex.printStackTrace();

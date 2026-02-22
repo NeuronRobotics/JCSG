@@ -66,18 +66,20 @@ public class Polyhedron extends Primitive {
             return points.get(i).clone();
         };
 
-        Function<List<Integer>, Polygon> faceListToPolygon
+        Function<List<Integer>, List<Polygon>> faceListToPolygon
                 = (List<Integer> faceList) -> {
                     try {
-						return Polygon.fromPoints(faceList.stream().map(indexToPoint).
+						return Polygon.fromVector3d(faceList.stream().map(indexToPoint).
 						        collect(Collectors.toList()), properties);
-					} catch (ColinearPointsException e) {
+					} catch (Exception e) {
 						throw new RuntimeException(e);
 					}
                 };
 
-        return faces.stream().map(faceListToPolygon).
-                collect(Collectors.toList());
+                return faces.stream()
+                	    .map(faceListToPolygon)
+                	    .flatMap(List::stream)
+                	    .collect(Collectors.toList());
     }
 
     /* (non-Javadoc)
