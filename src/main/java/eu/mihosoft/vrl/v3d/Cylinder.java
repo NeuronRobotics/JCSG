@@ -234,37 +234,37 @@ public class Cylinder extends Primitive {
         for (int i = 0; i < numSlices; i++) {
             double t0 = i / (double) numSlices, t1 = (i + 1) / (double) numSlices;
             try {
-				polygons.add(new Polygon(Arrays.asList(
+				polygons.addAll( Polygon.fromVertex(Arrays.asList(
 				        startV,
 				        cylPoint(axisX, axisY, axisZ, ray, s, startRadius, 0, t0, -1),
 				        cylPoint(axisX, axisY, axisZ, ray, s, startRadius, 0, t1, -1)),
 				        properties
 				));
-			} catch (ColinearPointsException e1) {
+			} catch (Exception e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
             try {
-				polygons.add(new Polygon(Arrays.asList(
+				polygons.addAll( Polygon.fromVertex(Arrays.asList(
 				        cylPoint(axisX, axisY, axisZ, ray, s, startRadius, 0, t1, 0),
 				        cylPoint(axisX, axisY, axisZ, ray, s, startRadius, 0, t0, 0),
 				        cylPoint(axisX, axisY, axisZ, ray, s, endRadius, 1, t0, 0),
 				        cylPoint(axisX, axisY, axisZ, ray, s, endRadius, 1, t1, 0)),
 				        properties
 				));
-			} catch (ColinearPointsException e1) {
+			} catch (Exception e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
             try {
-				polygons.add(new Polygon(
+				polygons.addAll( Polygon.fromVertex(
 				        Arrays.asList(
 				                endV,
 				                cylPoint(axisX, axisY, axisZ, ray, s, endRadius, 1, t1, 1),
 				                cylPoint(axisX, axisY, axisZ, ray, s, endRadius, 1, t0, 1)),
 				        properties
 				));
-			} catch (ColinearPointsException e1) {
+			} catch (Exception e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
