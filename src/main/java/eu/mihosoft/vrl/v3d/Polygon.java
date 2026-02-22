@@ -143,6 +143,10 @@ public final class Polygon implements Serializable {
 		}
 		return PolygonUtil.triangulatePolygon(vertices,new PropertyStorage(), false, null,CSG.getDefaultColor());
 	}
+	public static List<Polygon> fromVertex(List<Vertex> vertices2) throws ColinearPointsException {
+		// TODO Auto-generated method stub
+		return PolygonUtil.triangulatePolygon(vertices2,new PropertyStorage(), false, null,CSG.getDefaultColor());
+	}
 //	/**
 //	 * Creates a polygon from the specified point list.
 //	 *
@@ -904,4 +908,6 @@ public final class Polygon implements Serializable {
 		plane = Plane.createFromPoints(vertices);
 		this.vertices = vertices;
 	}
+
+
 }
