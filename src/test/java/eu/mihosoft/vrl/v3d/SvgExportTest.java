@@ -61,10 +61,10 @@ public class SvgExportTest {
 		vertices2.add(new Vertex(new Vector3d(75, 75)));
 		vertices2.add(new Vertex(new Vector3d(50, 75)));
 
-		Polygon outline2 = new Polygon(vertices2);
-		Polygon outline = new Polygon(vertices);
-		polygons.add(outline2);
-		polygons.add(outline);
+		List<Polygon> outline2 =  Polygon.fromVertex(vertices2);
+		List<Polygon> outline = Polygon.fromVertex(vertices);
+		polygons.addAll(outline2);
+		polygons.addAll(outline);
 		
 		SVGExporter.export(polygons, new File("SVGExportTest2.svg"), false);
 
@@ -87,10 +87,10 @@ public class SvgExportTest {
 		vertices2.add(new Vertex(new Vector3d(75, 75)));
 		vertices2.add(new Vertex(new Vector3d(50, 75)));
 
-		Polygon outline2 = new Polygon(vertices2);
-		Polygon outline = new Polygon(vertices);
-		polygons.add(outline2);
-		polygons.add(outline);
+		List<Polygon> outline2 = Polygon.fromVertex(vertices2);
+		List<Polygon> outline = Polygon.fromVertex(vertices);
+		polygons.addAll(outline2);
+		polygons.addAll(outline);
 
 		SVGExporter.export(polygons, new File("SVGExportTest3.svg"), false);
 
