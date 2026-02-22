@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import eu.mihosoft.vrl.v3d.ColinearPointsException;
+import eu.mihosoft.vrl.v3d.NonFlatPolygonException;
 import eu.mihosoft.vrl.v3d.Plane;
 import eu.mihosoft.vrl.v3d.Polygon;
 import eu.mihosoft.vrl.v3d.Vector3d;
@@ -122,9 +123,12 @@ public class STLLoader {
 							}catch(NumberFormatException ex) {
 								pl=Plane.createFromPoints(vertices);
 							}
-							polygons.add(new Polygon(vertices, null, true, pl));
+							polygons.addAll( Polygon.get(vertices, null, true, pl));
 						} catch (ColinearPointsException e) {
 							System.out.println(e.getMessage()+ " STL Load Pruned "+vertices);
+						} catch (NonFlatPolygonException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
 						}
 						vertices.clear();
 					}
@@ -181,9 +185,12 @@ public class STLLoader {
 								System.out.println(" STL has bad Normal "+normal);
 								pl=Plane.createFromPoints(vertices);
 							}
-							polygons.add(new Polygon(vertices, null, true, pl));
+							polygons.addAll( Polygon.get(vertices, null, true, pl));
 						} catch (ColinearPointsException e) {
 							System.out.println(e.getMessage()+ " STL Load Pruned "+vertices);
+						} catch (NonFlatPolygonException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
 						}
 						vertices.clear();
 					}
