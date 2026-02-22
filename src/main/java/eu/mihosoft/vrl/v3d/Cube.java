@@ -146,8 +146,11 @@ public class Cube extends Primitive {
                 vertices.add(new Vertex(pos));
             }
             try {
-				polygons.add(new Polygon(vertices, properties));
+				polygons.addAll( Polygon.fromVertex(vertices, properties));
 			} catch (ColinearPointsException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (NonFlatPolygonException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
