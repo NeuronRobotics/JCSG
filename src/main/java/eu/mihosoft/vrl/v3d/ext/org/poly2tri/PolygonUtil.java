@@ -184,13 +184,11 @@ public class PolygonUtil {
 			modifiable.remove(vr);
 		if (modifiable.size() > 2) {
 			try {
-				Polygon polygon = new Polygon(modifiable, shared, allowDegenerate, p);
-				polygon.setColor(color);
-				return Arrays.asList(polygon);
+				return Polygon.get(modifiable, shared, true, p, color);
 			} catch (ColinearPointsException e) {
 				System.out.println(" Pruning polygon in repair " + vertices + " to " + modifiable);
 			} catch (NonFlatPolygonException e) {
-				return triangulatePolygon(modifiable, shared, allowDegenerate, p, color);
+				e.printStackTrace();
 			}
 		}
 		throw new ColinearPointsException("Fix failed!");
@@ -638,7 +636,10 @@ public class PolygonUtil {
 				result.addAll(Polygon.get(vertices, shared, false, p));
 			} catch (ColinearPointsException e) {
 				e.printStackTrace();
-			} 
+			} catch (NonFlatPolygonException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		} else
 			try {
 				makeTriangles(vertices, shared, allowDegenerate, p, cw, result, zplane, normalOfPlane, debug,
@@ -652,8 +653,8 @@ public class PolygonUtil {
 						result.add(repaired);
 					} else {
 						try {
-							makeTriangles(repaired.getVertices(),repaired.getStorage(),false,repaired.getPlane(), cw, result, zplane, normalOfPlane, debug, orientationInv, reorient,
-									c);
+							makeTriangles(repaired.getVertices(), repaired.getStorage(), false, repaired.getPlane(), cw,
+									result, zplane, normalOfPlane, debug, orientationInv, reorient, c);
 						} catch (Exception e) {
 							makeTrianglesInternal(repaired, cw, result, zplane, normalOfPlane, debug, orientationInv,
 									reorient, c);
@@ -729,12 +730,15 @@ public class PolygonUtil {
 						if (!Extrude.isCCW(vertices)) {
 							Collections.reverse(vertices);
 						}
-						Polygon one = new Polygon(vertices, concave.getStorage(), true, normal2.clone());
-						if (reorent) {
-							one = one.transform(orentationInv);
+						List<Polygon> onel = Polygon.get(vertices, concave.getStorage(), true, normal2.clone());
+						for (Polygon one : onel) {
+							if (reorent) {
+								one = one.transform(orentationInv);
+							}
+
+							one.setColor(color);
+							result.add(one);
 						}
-						one.setColor(color);
-						result.add(one);
 					} catch (ColinearPointsException ex) {
 						System.out.println(ex.getMessage() + " Triangulation Pruned point " + p2);
 					} catch (NonFlatPolygonException e) {
@@ -810,25 +814,26 @@ public class PolygonUtil {
 						if (!Extrude.isCCW(triPoints)) {
 							Collections.reverse(triPoints);
 						}
-						Polygon poly;
-						poly = new Polygon(triPoints, shared, true, p1);
+						List<Polygon> polyl;
+						polyl = Polygon.get(triPoints, shared, true, p1);
 						// poly = Extrude.toCCW(poly);
 						// poly.getPlane().setNormal(concave.getPlane().getNormal());
+						for (Polygon poly : polyl) {
+							if (debug) {
+								// Debug3dProvider.clearScreen();
+								// Debug3dProvider.addObject(concave);
+								Debug3dProvider.addObject(poly);
+							}
 
-						if (debug) {
-							// Debug3dProvider.clearScreen();
-							// Debug3dProvider.addObject(concave);
-							Debug3dProvider.addObject(poly);
+							if (reorent) {
+								poly = poly.transform(orentationInv);
+
+								// poly = checkForValidPolyOrentation(normal, poly);
+							}
+							// poly.plane.setNormal(normalOfPlane);
+							poly.setColor(color);
+							result.add(poly);
 						}
-
-						if (reorent) {
-							poly = poly.transform(orentationInv);
-
-							// poly = checkForValidPolyOrentation(normal, poly);
-						}
-						// poly.plane.setNormal(normalOfPlane);
-						poly.setColor(color);
-						result.add(poly);
 					} catch (ColinearPointsException ex) {
 						System.out.println(ex.getMessage() + " Pruned new triangle as colinear " + triPoints);
 					} catch (NonFlatPolygonException e1) {
