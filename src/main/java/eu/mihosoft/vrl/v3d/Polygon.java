@@ -134,7 +134,7 @@ public final class Polygon implements Serializable {
 	 * @param points the points that define the polygon
 	 * @return the decomposed concave polygon (list of convex polygons)
 	 */
-	public static List<Polygon> fromConcavePoints(Vector3d... points) throws ColinearPointsException  {
+	public static List<Polygon> fromVector3d(Vector3d... points) throws ColinearPointsException  {
 		List<Vertex> vertices = new ArrayList<>();
 		for (Vector3d p : points) {
 			Vector3d vec = p.clone();
@@ -187,7 +187,7 @@ public final class Polygon implements Serializable {
 	 * @param points the points that define the polygon
 	 * @return the decomposed concave polygon (list of convex polygons)
 	 */
-	public static List<Polygon> fromConcavePoints(List<Vector3d> points)throws ColinearPointsException,NonFlatPolygonException   {
+	public static List<Polygon> fromVector3d(List<Vector3d> points)throws ColinearPointsException,NonFlatPolygonException   {
 		List<Vertex> vertices = new ArrayList<>();
 		for (Vector3d p : points) {
 			Vector3d vec = p.clone();

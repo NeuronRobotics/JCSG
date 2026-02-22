@@ -666,7 +666,7 @@ public class SVGLoad {
 				// Vector3d(0, 0, 1),p.get(0)) , true);
 				List<Polygon> polys;
 				try {
-					polys = Polygon.fromConcavePoints(p);
+					polys = Polygon.fromVector3d(p);
 					for (Polygon poly : polys) {
 						PolygonUtil.triangulatePolygon(poly);
 						poly.setHole(hole);
