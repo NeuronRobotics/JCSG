@@ -635,12 +635,10 @@ public class PolygonUtil {
 
 		if (vertices.size() == 3) {
 			try {
-				result.add(new Polygon(vertices, shared, allowDegenerate, p));
+				result.addAll(Polygon.get(vertices, shared, false, p));
 			} catch (ColinearPointsException e) {
 				e.printStackTrace();
-			} catch (NonFlatPolygonException e) {
-				e.printStackTrace();
-			}
+			} 
 		} else
 			try {
 				makeTriangles(vertices, shared, allowDegenerate, p, cw, result, zplane, normalOfPlane, debug,
