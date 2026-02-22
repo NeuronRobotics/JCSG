@@ -74,8 +74,10 @@ public class Toroid extends Primitive {
 		}
 		Polygon poly;
 		try {
-			poly = new Polygon(vertices, properties);
+			poly =  Polygon.get(vertices, properties,true,null).get(0);
 		} catch (ColinearPointsException e) {
+			throw new RuntimeException(e);
+		} catch (NonFlatPolygonException e) {
 			throw new RuntimeException(e);
 		}
 		ArrayList<Polygon> slices = new ArrayList<Polygon>();
@@ -114,8 +116,11 @@ public class Toroid extends Primitive {
 				List<Vector3d> pPoints = Arrays.asList(bottomV2, topV2, topV1, bottomV1);
 	
 				try {
-					newPolygons.add(Polygon.fromPoints(pPoints, polygon1.getStorage()));
+					newPolygons.addAll(Polygon.fromConcavePoints(pPoints, polygon1.getStorage()));
 				} catch (ColinearPointsException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (NonFlatPolygonException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
