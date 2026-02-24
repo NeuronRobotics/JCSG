@@ -36,11 +36,15 @@ public class Edge {
 	 * @param p1 the p1
 	 * @param p2 the p2
 	 */
-	public Edge(Vertex p1, Vertex p2) {
+	public Edge(Vertex p1, Vertex p2) throws CoincidentPoint{
 		this.setP1(p1);
 		this.setP2(p2);
 
-		direction = p2.pos.minus(p1.pos).normalized();
+		Vector3d minus = p2.pos.minus(p1.pos);
+		if(minus.magnitude()<Plane.getEPSILON())
+			throw new CoincidentPoint();
+			
+		direction = minus.normalized();
 	}
 
 	/**
@@ -83,9 +87,14 @@ public class Edge {
 		List<Edge> result = new ArrayList<>();
 
 		for (int i = 0; i < poly.getVertices().size(); i++) {
-			Edge e = new Edge(poly.getVertices().get(i), poly.getVertices().get((i + 1) % poly.getVertices().size()));
-
-			result.add(e);
+			Edge e;
+			try {
+				e = new Edge(poly.getVertices().get(i), poly.getVertices().get((i + 1) % poly.getVertices().size()));
+				result.add(e);
+			} catch (CoincidentPoint ex) {
+				// TODO Auto-generated catch block
+				ex.printStackTrace();
+			}
 		}
 
 		return result;
