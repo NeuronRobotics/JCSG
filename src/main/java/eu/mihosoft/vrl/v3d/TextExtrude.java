@@ -148,6 +148,7 @@ public class TextExtrude {
 //		boolean b = CSG.isPreventNonManifoldTriangles();
 //		CSG.setPreventNonManifoldTriangles(false);
 		for (List<Vector3d> points : outlines) {
+			if(points.size()>2)
 			try {
 				boolean hole = Extrude.isCCWv3d(points);
 				CSG newLetter = Extrude.points(new Vector3d(0, 0, dir), points).movez(zOff);
