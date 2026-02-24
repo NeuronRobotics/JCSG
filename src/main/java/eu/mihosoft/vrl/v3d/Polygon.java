@@ -176,9 +176,11 @@ public final class Polygon implements Serializable {
 			back.add(new Polygon(vertices, shared, p).setColor(c));
 		} catch (NonFlatPolygonException e) {
 			if (fixAFlat)
-				return PolygonUtil.triangulatePolygon(vertices, shared, fixAFlat, p, c);
-			else
+				return PolygonUtil.triangulatePolygon(vertices, shared, fixAFlat, null, c);
+			else {
+				Debug3dProvider.addObject(vertices);
 				throw e;
+			}
 		}
 		return back;
 	}
@@ -813,7 +815,12 @@ public final class Polygon implements Serializable {
 			if (i2 == getVertices().size()) {
 				i2 = 0;
 			}
-			e.add(new Edge(getVertices().get(i1), getVertices().get(i2)));
+			try {
+				e.add(new Edge(getVertices().get(i1), getVertices().get(i2)));
+			} catch (CoincidentPoint e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 		}
 		return e;
 	}

@@ -19,9 +19,10 @@ public class EdgeIntersectionTest {
 
     /**
      * Closest point test.
+     * @throws CoincidentPoint 
      */
     @Test
-    public void closestPointTest() {
+    public void closestPointTest() throws CoincidentPoint {
 
         // closest point is e1p2
         createClosestPointTest(
@@ -52,9 +53,10 @@ public class EdgeIntersectionTest {
 
     /**
      * Intersection test.
+     * @throws CoincidentPoint 
      */
     @Test
-    public void intersectionTest() {
+    public void intersectionTest() throws CoincidentPoint {
         // closest point is e1p2 which does not exist on e2. thus, the expected
         // result is null
         createIntersectionTest(
@@ -91,11 +93,12 @@ public class EdgeIntersectionTest {
      * @param e2p1 the e2p1
      * @param e2p2 the e2p2
      * @param expectedPoint the expected point
+     * @throws CoincidentPoint 
      */
     private static void createIntersectionTest(
             Vector3d e1p1, Vector3d e1p2,
             Vector3d e2p1, Vector3d e2p2,
-            Vector3d expectedPoint) {
+            Vector3d expectedPoint) throws CoincidentPoint {
         Edge e1 = new Edge(
                 new Vertex(
                         e1p1),
@@ -132,11 +135,12 @@ public class EdgeIntersectionTest {
      * @param e2p1 the e2p1
      * @param e2p2 the e2p2
      * @param expectedPoint the expected point
+     * @throws CoincidentPoint 
      */
     private static void createClosestPointTest(
             Vector3d e1p1, Vector3d e1p2,
             Vector3d e2p1, Vector3d e2p2,
-            Vector3d expectedPoint) {
+            Vector3d expectedPoint) throws CoincidentPoint {
         Edge e1 = new Edge(
                 new Vertex(
                         e1p1),

@@ -34,6 +34,7 @@
 package eu.mihosoft.vrl.v3d.ext.org.poly2tri;
 
 import eu.mihosoft.vrl.v3d.CSG;
+import eu.mihosoft.vrl.v3d.CoincidentPoint;
 import eu.mihosoft.vrl.v3d.ColinearPointsException;
 import eu.mihosoft.vrl.v3d.Debug3dProvider;
 import eu.mihosoft.vrl.v3d.Edge;
@@ -95,12 +96,19 @@ public class PolygonUtil {
 				System.err.println("Duplicate Point! " + v1.get(i));
 		}
 		for (int i = 0; i < modifiable.size(); i++) {
-			Edge e = new Edge(modifiable.get(i), modifiable.get((i + 1) % modifiable.size()));
-			double l = e.length();
-			if (l < 0.001)
-				System.out.println("Length of edge is " + l);
-			// System.out.println(e);
-			edges.add(e);
+			Edge e;
+			try {
+				e = new Edge(modifiable.get(i), modifiable.get((i + 1) % modifiable.size()));
+				double l = e.length();
+				if (l < 0.001)
+					System.out.println("Length of edge is " + l);
+				// System.out.println(e);
+				edges.add(e);
+			} catch (CoincidentPoint ex) {
+				// TODO Auto-generated catch block
+				ex.printStackTrace();
+			}
+
 		}
 		ArrayList<Thread> threads = new ArrayList<Thread>();
 		int threadCount = 64;
@@ -184,7 +192,7 @@ public class PolygonUtil {
 			modifiable.remove(vr);
 		if (modifiable.size() > 2) {
 			try {
-				return Polygon.fromVertex(modifiable, shared, true, p, color);
+				return Polygon.fromVertex(modifiable, shared, false, p, color);
 			} catch (ColinearPointsException e) {
 				System.out.println(" Pruning polygon in repair " + vertices + " to " + modifiable);
 			} catch (NonFlatPolygonException e) {

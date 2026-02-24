@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import eu.mihosoft.vrl.v3d.CoincidentPoint;
 import eu.mihosoft.vrl.v3d.Edge;
 import eu.mihosoft.vrl.v3d.Extrude;
 import eu.mihosoft.vrl.v3d.Plane;
@@ -189,18 +190,21 @@ public class BezierPath {
 		int end = plInternal.size() - 1;
 		for (int i = 0; i < plInternal.size(); i++)
 			if (end > 0) {
-				if (Math.abs(plInternal.get(i).minus(eval).magnitude()) < Extrude.getMinimumDIstance()) {
+				Vector3d vector3d = plInternal.get(i);
+				Vector3d minus = vector3d.minus(eval);
+				double magnitude = minus.magnitude();
+				if (Math.abs(magnitude) < Extrude.getMinimumDIstance()) {
 					return false;
 				}
 			}
 		if (plInternal.size() > 1) {
 			try {
-			Edge e = new Edge(new Vertex(plInternal.get(end - 1)), new Vertex(plInternal.get(end)));
-			if (e.colinear(eval)) {
-				plInternal.set(end, eval);
-				return true;
-			}
-			}catch(NumberFormatException ex) {
+				Edge e = new Edge(new Vertex(plInternal.get(end - 1)), new Vertex(plInternal.get(end)));
+				if (e.colinear(eval)) {
+					plInternal.set(end, eval);
+					return true;
+				}
+			}catch (CoincidentPoint e1) {
 				return false;
 			}
 		}
