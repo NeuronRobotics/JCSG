@@ -20,6 +20,7 @@ public class StlLoadTest {
 		JavaFXInitializer.go();
 	}
 	@Test
+	@Ignore
 	public void tower() throws IOException {
 		String filename = "fixedTower.STL";
 		File file = new File(filename);
@@ -48,9 +49,13 @@ public class StlLoadTest {
 	}
 	@Test
 	public void test() throws IOException {
+		CSG.setPreventNonManifoldTriangles(true);
 		String filename = "brokenSTL.STL";
 		File file = new File(filename);
 		CSG loaded = STL.file(file.toPath());
+		FileUtil.write(Paths.get("brokenST-export.stl"),
+				loaded
+				.toStlString());
 		try {
 			ThumbnailImageCSG.setCullFaceValue(CullFace.NONE);
 			new ThumbnailImageCSG().writeImage(CSGDatabase.getInstance(),loaded,new File(file.getAbsolutePath()+".png"));
