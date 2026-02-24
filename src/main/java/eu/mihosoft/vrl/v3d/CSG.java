@@ -136,10 +136,10 @@ import javafx.scene.transform.Affine;
 
 @SuppressWarnings("restriction")
 public class CSG implements IuserAPI, Serializable {
-	transient private static final double POINTS_CONTACT_DISTANCE = 0.0001;
+	transient private static final double POINTS_CONTACT_DISTANCE = Plane.getEPSILON();//0.0001;
 	transient private static int MinPolygonsForOffloading = 200;
 	transient private static final long serialVersionUID = 4071874097772427063L;
-	transient private static IDebug3dProvider providerOf3d = null;
+	//transient private static IDebug3dProvider providerOf3d = null;
 	transient private static int numFacesInOffset = 15;
 	transient public static final int INDEX_OF_PARAMETRIC_DEFAULT = 0;
 	transient public static final int INDEX_OF_PARAMETRIC_LOWER = 1;
@@ -1723,8 +1723,6 @@ public class CSG implements IuserAPI, Serializable {
 					e.printStackTrace();
 				}
 			}
-		if (providerOf3d == null && Debug3dProvider.provider != null)
-			providerOf3d = Debug3dProvider.provider;
 		IDebug3dProvider start = Debug3dProvider.provider;
 		Debug3dProvider.setProvider(null);
 		// performTriangulation();
