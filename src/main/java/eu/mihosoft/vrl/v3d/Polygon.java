@@ -352,11 +352,11 @@ public final class Polygon implements Serializable {
 		this.getVertices().forEach((vertex) -> {
 			newVertices.add(vertex.clone());
 		});
-		// TODO figure out why this isnt working
+		
 		try {
-			// return new Polygon(newVertices, getStorage(), true,
-			// plane.clone()).setColor(getColor());
-			return new Polygon(newVertices, new PropertyStorage(), plane.clone()).setColor(getColor());
+			// TODO figure out why passing the plane isnt working
+			// return new Polygon(newVertices, getStorage(), true,plane.clone()).setColor(getColor());
+			return new Polygon(newVertices, new PropertyStorage(), null).setColor(getColor());
 		} catch (Exception ex) {
 			throw new RuntimeException(ex);
 		}

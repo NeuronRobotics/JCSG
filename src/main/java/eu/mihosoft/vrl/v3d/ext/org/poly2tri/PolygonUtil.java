@@ -654,7 +654,7 @@ public class PolygonUtil {
 				makeTriangles(vertices, shared, allowDegenerate, p, cw, result, zplane, normalOfPlane, debug,
 						orientationInv, reorient, c);
 			} catch (java.lang.IllegalStateException ex) {
-
+				ex.printStackTrace();
 				List<Polygon> repairedList = repairOverlappingEdges(vertices, shared, allowDegenerate, p, c);
 				for (Polygon repaired : repairedList) {
 					int end = repaired.getVertices().size();
