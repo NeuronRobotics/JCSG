@@ -600,9 +600,10 @@ public class PolygonUtil {
 	 * @param incoming the concave
 	 * @return the list
 	 * @throws ColinearPointsException
+	 * @throws NonFlatPolygonException 
 	 */
 
-	public static ArrayList<Polygon> triangulatePolygon(Polygon p) throws ColinearPointsException {
+	public static ArrayList<Polygon> triangulatePolygon(Polygon p) throws ColinearPointsException, NonFlatPolygonException {
 		ArrayList<Polygon> result = new ArrayList<>();
 		if (p == null)
 			return result;
@@ -621,7 +622,7 @@ public class PolygonUtil {
 	}
 
 	public static ArrayList<Polygon> triangulatePolygon(List<Vertex> vertices, PropertyStorage shared,
-			boolean allowDegenerate, Plane p, Color c) throws ColinearPointsException {
+			boolean allowDegenerate, Plane p, Color c) throws ColinearPointsException,NonFlatPolygonException {
 		if(p==null) {
 			p=Plane.createFromPoints(vertices);
 		}
@@ -647,10 +648,7 @@ public class PolygonUtil {
 				result.addAll(Polygon.fromVertex(vertices, shared, false, p));
 			} catch (ColinearPointsException e) {
 				e.printStackTrace();
-			} catch (NonFlatPolygonException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			} 
 		} else
 			try {
 				makeTriangles(vertices, shared, allowDegenerate, p, cw, result, zplane, normalOfPlane, debug,

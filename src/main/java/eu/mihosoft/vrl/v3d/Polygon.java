@@ -178,6 +178,7 @@ public final class Polygon implements Serializable {
 			if (fixAFlat)
 				return PolygonUtil.triangulatePolygon(vertices, shared, fixAFlat, null, c);
 			else {
+				e.printStackTrace();
 				Debug3dProvider.addObject(vertices);
 				throw e;
 			}
@@ -324,7 +325,7 @@ public final class Polygon implements Serializable {
 					continue;
 				}
 				if (corrected && vertices.size() == 3)
-					throw new NonFlatPolygonException("IMPOSSIBLE 3 point polygon is not flat?? "+Plane.createFromPoints(vertices));
+					throw new NonFlatPolygonException("IMPOSSIBLE 3 point polygon is not flat?? "+Plane.createFromPoints(vertices)+" "+vertices);
 				throw new NonFlatPolygonException("Failed because polygon is not flat");
 			}
 		}

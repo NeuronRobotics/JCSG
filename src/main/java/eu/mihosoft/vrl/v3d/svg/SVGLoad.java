@@ -761,6 +761,9 @@ public class SVGLoad {
 				} catch (ColinearPointsException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
+				} catch (NonFlatPolygonException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 
 			}

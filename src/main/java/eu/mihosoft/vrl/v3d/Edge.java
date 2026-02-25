@@ -929,7 +929,12 @@ public class Edge {
 			if (!holesOfPresult.isPresent()) {
 				result.add(p);
 			} else {
-				result.addAll(PolygonUtil.triangulatePolygon(p));
+				try {
+					result.addAll(PolygonUtil.triangulatePolygon(p));
+				} catch (ColinearPointsException | NonFlatPolygonException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
 

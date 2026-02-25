@@ -91,14 +91,14 @@ public class Extrude {
 
 			try {
 				return monotoneExtrude(dir, polygon1);
-			} catch (ColinearPointsException e) {
+			} catch (ColinearPointsException | NonFlatPolygonException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			return new Cube(10).toCSG().setColor(Color.PINK);
 		}
 
-		private CSG monotoneExtrude(Vector3d dir, Polygon polygon1) throws ColinearPointsException {
+		private CSG monotoneExtrude(Vector3d dir, Polygon polygon1) throws ColinearPointsException, NonFlatPolygonException {
 			ArrayList<Polygon> newPolygons = new ArrayList<>();
 			CSG extrude;
 			ArrayList<Polygon> triangulatePolygon = PolygonUtil.triangulatePolygon(polygon1);
@@ -580,7 +580,12 @@ public class Extrude {
 			throws ColinearPointsException {
 		Polygon offsetP = p.transformed(offset);
 		ArrayList<Polygon> newPolygons = new ArrayList<>();
-		newPolygons.addAll(PolygonUtil.triangulatePolygon(offsetP));
+		try {
+			newPolygons.addAll(PolygonUtil.triangulatePolygon(offsetP));
+		} catch (ColinearPointsException | NonFlatPolygonException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		Transform running = new Transform();
 		Polygon prev = offsetP.transformed(provider.get(0, steps));
 		for (int i = 0; i < steps; i++) {
@@ -598,8 +603,14 @@ public class Extrude {
 			}
 		}
 		Polygon polygon2 = prev.clone();
-		List<Polygon> topPolygons = PolygonUtil.triangulatePolygon(polygon2.flipped());
-		newPolygons.addAll(topPolygons);
+		List<Polygon> topPolygons;
+		try {
+			topPolygons = PolygonUtil.triangulatePolygon(polygon2.flipped());
+			newPolygons.addAll(topPolygons);
+		} catch (ColinearPointsException | NonFlatPolygonException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 		return CSG.fromPolygons(newPolygons);
 	}

@@ -2334,7 +2334,7 @@ public class CSG implements IuserAPI, Serializable {
 				for (Polygon poly : triangles) {
 					toAdd.add(poly);
 				}
-			} catch (ColinearPointsException e) {
+			} catch (ColinearPointsException | NonFlatPolygonException e) {
 				System.out.println(e.getMessage() + " Polygon pruned " + p);
 			}
 
@@ -3596,10 +3596,15 @@ public class CSG implements IuserAPI, Serializable {
 	 *         line as the bottom line of the text
 	 */
 	public static CSG textToSize(String text, double x, double y, double z) {
-		CSG startText = CSG.text(text, z);
-		double scalex = x / startText.getTotalX();
-		double scaley = y / startText.getTotalY();
-		return startText.scalex(scalex).scaley(scaley).toXMin();
+		try {
+			CSG startText = CSG.text(text, z);
+			double scalex = x / startText.getTotalX();
+			double scaley = y / startText.getTotalY();
+			return startText.scalex(scalex).scaley(scaley).toXMin();
+		}catch(Exception ex) {
+			ex.printStackTrace();
+			return new Cube(x,y,z).toCSG().setColor(Color.HOTPINK);
+		}
 	}
 
 	public boolean hasMassSet() {
