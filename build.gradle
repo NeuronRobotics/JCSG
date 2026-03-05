@@ -63,6 +63,7 @@ task sourcesJar(type: Jar) {
 repositories {
 	mavenCentral()
 	mavenLocal()
+	maven { url "https://clojars.org/repo" }
 }
 
 // javadoc is way too strict for my taste.
@@ -119,8 +120,11 @@ dependencies {
 	implementation 'com.aparapi:aparapi:3.0.2'
 	
 	//SSL for server
-implementation 'org.bouncycastle:bcprov-jdk18on:1.80'
-implementation 'org.bouncycastle:bcpkix-jdk18on:1.80'
+	implementation 'org.bouncycastle:bcprov-jdk18on:1.80'
+	implementation 'org.bouncycastle:bcpkix-jdk18on:1.80'
+	
+	//manifold 3d
+	implementation("com.github.madhephaestus:manifold3d:2.1.0")
 	
 }
 
