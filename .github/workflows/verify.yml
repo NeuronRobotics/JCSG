@@ -11,7 +11,7 @@ on:
       - '*'
 
 jobs:
-..build-linux-arm:
+  build-linux-arm:
     runs-on: ubuntu-24.04-arm
 
     steps:
