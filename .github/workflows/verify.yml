@@ -81,25 +81,13 @@ jobs:
       uses: actions/checkout@v2
       with:
          submodules: recursive
-
-    - name: List directory contents
-      run: pwd; ls -la
-
-    - name: After checkout, list directory contents
-      run: pwd; ls -la
-
-    - name: Pull a JavaFX JDK
-      run: wget https://cdn.azul.com/zulu/bin/zulu21.46.19-ca-fx-jdk21.0.9-macosx_x64.tar.gz
-
-    - name: After JDK download, list directory contents
-      run: pwd; ls -la
-
-    - name: Set Java
-      uses: actions/setup-java@v1
-      with:
-        java-version: 21
-        jdkFile: ./zulu21.46.19-ca-fx-jdk21.0.9-macosx_x64.tar.gz
-
+    - name: Install Java and Maven
+      run: |
+        brew install openjdk@21
+        export PATH="$(brew --prefix openjdk@21)/bin:$PATH"
+        echo "PATH=$(brew --prefix openjdk@21)/bin:$PATH" >> $GITHUB_ENV
+        brew install --ignore-dependencies maven
+        echo "JAVA_HOME=$(brew --prefix openjdk@21)" >> $GITHUB_ENV
     - name: Test with Gradle
       run: ./gradlew test
   build-linux-x86:
