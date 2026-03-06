@@ -62,17 +62,8 @@ jobs:
       with:
          submodules: recursive
 
-    - name: List directory contents
-      run: pwd; ls -la
-
-    - name: After checkout, list directory contents
-      run: pwd; ls -la
-
     - name: Pull a JavaFX JDK
       run: curl -O https://cdn.azul.com/zulu/bin/zulu21.46.19-ca-fx-jdk21.0.9-win_x64.zip
-
-    - name: After JDK download, list directory contents
-      run: pwd; ls -la
 
     - name: Set Java
       uses: actions/setup-java@v1
