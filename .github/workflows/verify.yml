@@ -83,11 +83,10 @@ jobs:
          submodules: recursive
     - name: Install Java and Maven
       run: |
-        brew install openjdk@21
-        export PATH="$(brew --prefix openjdk@21)/bin:$PATH"
-        echo "PATH=$(brew --prefix openjdk@21)/bin:$PATH" >> $GITHUB_ENV
-        brew install --ignore-dependencies maven
-        echo "JAVA_HOME=$(brew --prefix openjdk@21)" >> $GITHUB_ENV
+        wget https://cdn.azul.com/zulu/bin/zulu21.46.19-ca-fx-jdk21.0.9-macosx_aarch64.tar.gz
+        tar -xzf zulu21.46.19-ca-fx-jdk21.0.9-macosx_aarch64.tar.gz
+        echo "JAVA_HOME=$(pwd)/zulu21.46.19-ca-fx-jdk21.0.9-macosx_aarch64" >> $GITHUB_ENV
+        echo "PATH=$(pwd)/zulu21.46.19-ca-fx-jdk21.0.9-macosx_aarch64/bin:$PATH" >> $GITHUB_ENV
     - name: Test with Gradle
       run: ./gradlew test
   build-linux-x86:
