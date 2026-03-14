@@ -1,8 +1,5 @@
 package eu.mihosoft.vrl.v3d;
 
 public enum CSGRemoteOperation {
-	   UNION,
-	    DIFFERENCE,
-	    INTERSECT,
-	    TRIANGULATE, minkowskiHullShape,hull
+	UNION, DIFFERENCE, INTERSECT, TRIANGULATE, minkowskiHullShape, hull
 }

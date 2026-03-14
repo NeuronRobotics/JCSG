@@ -35,7 +35,6 @@ package eu.mihosoft.vrl.v3d;
 
 import java.io.Serializable;
 
-import javax.vecmath.Matrix3d;
 import javax.vecmath.Matrix4d;
 import javax.vecmath.Quat4d;
 
@@ -51,10 +50,10 @@ import javax.vecmath.Quat4d;
  *
  * Example:
  *
- * 
+ *
  * // t applies rotation and translation Transform t = new
  * Transform().rotX(45).translate(2,1,0);
- * 
+ *
  *
  * TODO: use quaternions for rotations.
  *
@@ -93,7 +92,8 @@ public class Transform implements Serializable {
 	/**
 	 * Constructor.
 	 *
-	 * @param m matrix
+	 * @param m
+	 *            matrix
 	 */
 	public Transform(Matrix4d m) {
 		this.m = m;
@@ -102,14 +102,15 @@ public class Transform implements Serializable {
 	/**
 	 * Applies rotation operation around the x axis to this transform.
 	 *
-	 * @param degrees degrees
+	 * @param degrees
+	 *            degrees
 	 * @return this transform
 	 */
 	public Transform rotX(double degrees) {
 		double radians = degrees * Math.PI * (1.0 / 180.0);
 		double cos = Math.cos(radians);
 		double sin = Math.sin(radians);
-		double elemenents[] = { 1, 0, 0, 0, 0, cos, sin, 0, 0, -sin, cos, 0, 0, 0, 0, 1 };
+		double elemenents[] = {1, 0, 0, 0, 0, cos, sin, 0, 0, -sin, cos, 0, 0, 0, 0, 1};
 		getInternalMatrix().mul(new Matrix4d(elemenents));
 		return this;
 	}
@@ -117,7 +118,8 @@ public class Transform implements Serializable {
 	/**
 	 * Applies rotation operation around the y axis to this transform.
 	 *
-	 * @param degrees degrees
+	 * @param degrees
+	 *            degrees
 	 *
 	 * @return this transform
 	 */
@@ -125,7 +127,7 @@ public class Transform implements Serializable {
 		double radians = degrees * Math.PI * (1.0 / 180.0);
 		double cos = Math.cos(radians);
 		double sin = Math.sin(radians);
-		double elemenents[] = { cos, 0, -sin, 0, 0, 1, 0, 0, sin, 0, cos, 0, 0, 0, 0, 1 };
+		double elemenents[] = {cos, 0, -sin, 0, 0, 1, 0, 0, sin, 0, cos, 0, 0, 0, 0, 1};
 		getInternalMatrix().mul(new Matrix4d(elemenents));
 		return this;
 	}
@@ -133,7 +135,8 @@ public class Transform implements Serializable {
 	/**
 	 * Applies rotation operation around the z axis to this transform.
 	 *
-	 * @param degrees degrees
+	 * @param degrees
+	 *            degrees
 	 *
 	 * @return this transform
 	 */
@@ -141,7 +144,7 @@ public class Transform implements Serializable {
 		double radians = degrees * Math.PI * (1.0 / 180.0);
 		double cos = Math.cos(radians);
 		double sin = Math.sin(radians);
-		double elemenents[] = { cos, sin, 0, 0, -sin, cos, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
+		double elemenents[] = {cos, sin, 0, 0, -sin, cos, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
 		getInternalMatrix().mul(new Matrix4d(elemenents));
 		return this;
 	}
@@ -149,9 +152,12 @@ public class Transform implements Serializable {
 	/**
 	 * Applies a rotation operation to this transform.
 	 *
-	 * @param x x axis rotation (degrees)
-	 * @param y y axis rotation (degrees)
-	 * @param z z axis rotation (degrees)
+	 * @param x
+	 *            x axis rotation (degrees)
+	 * @param y
+	 *            y axis rotation (degrees)
+	 * @param z
+	 *            z axis rotation (degrees)
 	 *
 	 * @return this transform
 	 */
@@ -162,7 +168,8 @@ public class Transform implements Serializable {
 	/**
 	 * Applies a rotation operation to this transform.
 	 *
-	 * @param vec axis rotation for x, y, z (degrees)
+	 * @param vec
+	 *            axis rotation for x, y, z (degrees)
 	 *
 	 * @return this transform
 	 */
@@ -175,7 +182,8 @@ public class Transform implements Serializable {
 	/**
 	 * Applies a translation operation to this transform.
 	 *
-	 * @param vec translation vector (x,y,z)
+	 * @param vec
+	 *            translation vector (x,y,z)
 	 *
 	 * @return this transform
 	 */
@@ -186,14 +194,17 @@ public class Transform implements Serializable {
 	/**
 	 * Applies a translation operation to this transform.
 	 *
-	 * @param x translation (x axis)
-	 * @param y translation (y axis)
-	 * @param z translation (z axis)
+	 * @param x
+	 *            translation (x axis)
+	 * @param y
+	 *            translation (y axis)
+	 * @param z
+	 *            translation (z axis)
 	 *
 	 * @return this transform
 	 */
 	public Transform translate(double x, double y, double z) {
-		double elemenents[] = { 1, 0, 0, x, 0, 1, 0, y, 0, 0, 1, z, 0, 0, 0, 1 };
+		double elemenents[] = {1, 0, 0, x, 0, 1, 0, y, 0, 0, 1, z, 0, 0, 0, 1};
 		getInternalMatrix().mul(new Matrix4d(elemenents));
 		return this;
 	}
@@ -201,12 +212,13 @@ public class Transform implements Serializable {
 	/**
 	 * Applies a translation operation to this transform.
 	 *
-	 * @param value translation (x axis)
+	 * @param value
+	 *            translation (x axis)
 	 *
 	 * @return this transform
 	 */
 	public Transform translateX(double value) {
-		double elemenents[] = { 1, 0, 0, value, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
+		double elemenents[] = {1, 0, 0, value, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
 		getInternalMatrix().mul(new Matrix4d(elemenents));
 		return this;
 	}
@@ -1025,7 +1037,7 @@ public class Transform implements Serializable {
 		 * System.out.println("t1="+t1[0]+" "+t1[1]+" "+t1[2]);
 		 * System.out.println("t1="+t1[3]+" "+t1[4]+" "+t1[5]);
 		 * System.out.println("t1="+t1[6]+" "+t1[7]+" "+t1[8]);
-		 * 
+		 *
 		 * System.out.println("t2 is \n" + t2);
 		 * System.out.println("t2="+t2[0]+" "+t2[1]+" "+t2[2]);
 		 * System.out.println("t2="+t2[3]+" "+t2[4]+" "+t2[5]);
@@ -1044,7 +1056,7 @@ public class Transform implements Serializable {
 		double[] mag = new double[3];
 		double[] rot = new double[9];
 
-// check for rotation information in the scales
+		// check for rotation information in the scales
 		if (scales[0] < 0.0) { // move the rotation info to rotation matrix
 			scales[0] = -scales[0];
 			t2[0] = -t2[0];
@@ -1066,7 +1078,7 @@ public class Transform implements Serializable {
 
 		mat_mul(t1, t2, rot);
 
-// check for equal scales case  and do not reorder
+		// check for equal scales case and do not reorder
 		if (almostEqual(Math.abs(scales[0]), Math.abs(scales[1]))
 				&& almostEqual(Math.abs(scales[1]), Math.abs(scales[2]))) {
 			for (i = 0; i < 9; i++) {
@@ -1280,8 +1292,9 @@ public class Transform implements Serializable {
 	/**
 	 * Performs an SVD normalization of q1 matrix in order to acquire the normalized
 	 * rotational component; the values are placed into the Quat4d parameter.
-	 * 
-	 * @param q1 the quaternion into which the rotation component is placed
+	 *
+	 * @param q1
+	 *            the quaternion into which the rotation component is placed
 	 */
 	public final void get(Quat4d q1) {
 		double[] tmp_rot = new double[9]; // scratch matrix
@@ -1332,51 +1345,52 @@ public class Transform implements Serializable {
 			}
 		}
 	}
-//	/**
-//	 * Performs an SVD normalization of q1 matrix in order to acquire the normalized
-//	 * rotational component; the values are placed into the Quat4d parameter.
-//	 * 
-//	 * @param q1 the quaternion into which the rotation component is placed
-//	 */
-//	public final void get(Quat4d q1) {
-//		double[] tmp_rot = new double[9]; // scratch matrix
-//		double[] tmp_scale = new double[3]; // scratch matrix
-//
-//		getScaleRotate(tmp_scale, tmp_rot);
-//
-//		double ww;
-//
-//		ww = 0.25 * (1.0 + tmp_rot[0] + tmp_rot[4] + tmp_rot[8]);
-//		if (!((ww < 0 ? -ww : ww) < 1.0e-30)) {
-//			q1.w = Math.sqrt(ww);
-//			ww = 0.25 / q1.w;
-//			q1.x = (tmp_rot[7] - tmp_rot[5]) * ww;
-//			q1.y = (tmp_rot[2] - tmp_rot[6]) * ww;
-//			q1.z = (tmp_rot[3] - tmp_rot[1]) * ww;
-//			return;
-//		}
-//
-//		q1.w = 0.0f;
-//		ww = -0.5 * (tmp_rot[4] + tmp_rot[8]);
-//		if (!((ww < 0 ? -ww : ww) < 1.0e-30)) {
-//			q1.x = Math.sqrt(ww);
-//			ww = 0.5 / q1.x;
-//			q1.y = tmp_rot[3] * ww;
-//			q1.z = tmp_rot[6] * ww;
-//			return;
-//		}
-//
-//		q1.x = 0.0;
-//		ww = 0.5 * (1.0 - tmp_rot[8]);
-//		if (!((ww < 0 ? -ww : ww) < 1.0e-30)) {
-//			q1.y = Math.sqrt(ww);
-//			q1.z = tmp_rot[7] / (2.0 * q1.y);
-//			return;
-//		}
-//
-//		q1.y = 0.0;
-//		q1.z = 1.0;
-//	}
+	// /**
+	// * Performs an SVD normalization of q1 matrix in order to acquire the
+	// normalized
+	// * rotational component; the values are placed into the Quat4d parameter.
+	// *
+	// * @param q1 the quaternion into which the rotation component is placed
+	// */
+	// public final void get(Quat4d q1) {
+	// double[] tmp_rot = new double[9]; // scratch matrix
+	// double[] tmp_scale = new double[3]; // scratch matrix
+	//
+	// getScaleRotate(tmp_scale, tmp_rot);
+	//
+	// double ww;
+	//
+	// ww = 0.25 * (1.0 + tmp_rot[0] + tmp_rot[4] + tmp_rot[8]);
+	// if (!((ww < 0 ? -ww : ww) < 1.0e-30)) {
+	// q1.w = Math.sqrt(ww);
+	// ww = 0.25 / q1.w;
+	// q1.x = (tmp_rot[7] - tmp_rot[5]) * ww;
+	// q1.y = (tmp_rot[2] - tmp_rot[6]) * ww;
+	// q1.z = (tmp_rot[3] - tmp_rot[1]) * ww;
+	// return;
+	// }
+	//
+	// q1.w = 0.0f;
+	// ww = -0.5 * (tmp_rot[4] + tmp_rot[8]);
+	// if (!((ww < 0 ? -ww : ww) < 1.0e-30)) {
+	// q1.x = Math.sqrt(ww);
+	// ww = 0.5 / q1.x;
+	// q1.y = tmp_rot[3] * ww;
+	// q1.z = tmp_rot[6] * ww;
+	// return;
+	// }
+	//
+	// q1.x = 0.0;
+	// ww = 0.5 * (1.0 - tmp_rot[8]);
+	// if (!((ww < 0 ? -ww : ww) < 1.0e-30)) {
+	// q1.y = Math.sqrt(ww);
+	// q1.z = tmp_rot[7] / (2.0 * q1.y);
+	// return;
+	// }
+	//
+	// q1.y = 0.0;
+	// q1.z = 1.0;
+	// }
 
 	public Quat4d getQuat() {
 		Quat4d q1 = new Quat4d();
@@ -1406,7 +1420,7 @@ public class Transform implements Serializable {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
@@ -1422,12 +1436,13 @@ public class Transform implements Serializable {
 	/**
 	 * Applies a translation operation to this transform.
 	 *
-	 * @param value translation (y axis)
+	 * @param value
+	 *            translation (y axis)
 	 *
 	 * @return this transform
 	 */
 	public Transform translateY(double value) {
-		double elemenents[] = { 1, 0, 0, 0, 0, 1, 0, value, 0, 0, 1, 0, 0, 0, 0, 1 };
+		double elemenents[] = {1, 0, 0, 0, 0, 1, 0, value, 0, 0, 1, 0, 0, 0, 0, 1};
 		getInternalMatrix().mul(new Matrix4d(elemenents));
 		return this;
 	}
@@ -1435,12 +1450,13 @@ public class Transform implements Serializable {
 	/**
 	 * Applies a translation operation to this transform.
 	 *
-	 * @param value translation (z axis)
+	 * @param value
+	 *            translation (z axis)
 	 *
 	 * @return this transform
 	 */
 	public Transform translateZ(double value) {
-		double elemenents[] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, value, 0, 0, 0, 1 };
+		double elemenents[] = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, value, 0, 0, 0, 1};
 		getInternalMatrix().mul(new Matrix4d(elemenents));
 		return this;
 	}
@@ -1448,7 +1464,8 @@ public class Transform implements Serializable {
 	/**
 	 * Applies a mirror operation to this transform.
 	 *
-	 * @param plane the plane that defines the mirror operation
+	 * @param plane
+	 *            the plane that defines the mirror operation
 	 *
 	 * @return this transform
 	 */
@@ -1461,9 +1478,9 @@ public class Transform implements Serializable {
 		double ny = plane.getNormal().y;
 		double nz = plane.getNormal().z;
 		double w = plane.getDist();
-		double elemenents[] = { (1.0 - 2.0 * nx * nx), (-2.0 * ny * nx), (-2.0 * nz * nx), 0, (-2.0 * nx * ny),
+		double elemenents[] = {(1.0 - 2.0 * nx * nx), (-2.0 * ny * nx), (-2.0 * nz * nx), 0, (-2.0 * nx * ny),
 				(1.0 - 2.0 * ny * ny), (-2.0 * nz * ny), 0, (-2.0 * nx * nz), (-2.0 * ny * nz), (1.0 - 2.0 * nz * nz),
-				0, (-2.0 * nx * w), (-2.0 * ny * w), (-2.0 * nz * w), 1 };
+				0, (-2.0 * nx * w), (-2.0 * ny * w), (-2.0 * nz * w), 1};
 		getInternalMatrix().mul(new Matrix4d(elemenents));
 		return this;
 	}
@@ -1471,7 +1488,8 @@ public class Transform implements Serializable {
 	/**
 	 * Applies a scale operation to this transform.
 	 *
-	 * @param vec vector that specifies scale (x,y,z)
+	 * @param vec
+	 *            vector that specifies scale (x,y,z)
 	 *
 	 * @return this transform
 	 */
@@ -1481,7 +1499,7 @@ public class Transform implements Serializable {
 			throw new IllegalArgumentException("scale by 0 not allowed!");
 		}
 
-		double elemenents[] = { vec.x, 0, 0, 0, 0, vec.y, 0, 0, 0, 0, vec.z, 0, 0, 0, 0, 1 };
+		double elemenents[] = {vec.x, 0, 0, 0, 0, vec.y, 0, 0, 0, 0, vec.z, 0, 0, 0, 0, 1};
 		getInternalMatrix().mul(new Matrix4d(elemenents));
 		return this;
 	}
@@ -1489,9 +1507,12 @@ public class Transform implements Serializable {
 	/**
 	 * Applies a scale operation to this transform.
 	 *
-	 * @param x x scale value
-	 * @param y y scale value
-	 * @param z z scale value
+	 * @param x
+	 *            x scale value
+	 * @param y
+	 *            y scale value
+	 * @param z
+	 *            z scale value
 	 *
 	 * @return this transform
 	 */
@@ -1501,7 +1522,7 @@ public class Transform implements Serializable {
 			throw new IllegalArgumentException("scale by 0 not allowed!");
 		}
 
-		double elemenents[] = { x, 0, 0, 0, 0, y, 0, 0, 0, 0, z, 0, 0, 0, 0, 1 };
+		double elemenents[] = {x, 0, 0, 0, 0, y, 0, 0, 0, 0, z, 0, 0, 0, 0, 1};
 		getInternalMatrix().mul(new Matrix4d(elemenents));
 		return this;
 	}
@@ -1509,7 +1530,8 @@ public class Transform implements Serializable {
 	/**
 	 * Applies a scale operation to this transform.
 	 *
-	 * @param s s scale value (x, y and z)
+	 * @param s
+	 *            s scale value (x, y and z)
 	 *
 	 * @return this transform
 	 */
@@ -1519,7 +1541,7 @@ public class Transform implements Serializable {
 			throw new IllegalArgumentException("scale by 0 not allowed!");
 		}
 
-		double elemenents[] = { s, 0, 0, 0, 0, s, 0, 0, 0, 0, s, 0, 0, 0, 0, 1 };
+		double elemenents[] = {s, 0, 0, 0, 0, s, 0, 0, 0, 0, s, 0, 0, 0, 0, 1};
 		getInternalMatrix().mul(new Matrix4d(elemenents));
 		return this;
 	}
@@ -1527,7 +1549,8 @@ public class Transform implements Serializable {
 	/**
 	 * Applies a scale operation (x axis) to this transform.
 	 *
-	 * @param s x scale value
+	 * @param s
+	 *            x scale value
 	 *
 	 * @return this transform
 	 */
@@ -1537,7 +1560,7 @@ public class Transform implements Serializable {
 			throw new IllegalArgumentException("scale by 0 not allowed!");
 		}
 
-		double elemenents[] = { s, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
+		double elemenents[] = {s, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
 		getInternalMatrix().mul(new Matrix4d(elemenents));
 		return this;
 	}
@@ -1545,7 +1568,8 @@ public class Transform implements Serializable {
 	/**
 	 * Applies a scale operation (y axis) to this transform.
 	 *
-	 * @param s y scale value
+	 * @param s
+	 *            y scale value
 	 *
 	 * @return this transform
 	 */
@@ -1555,7 +1579,7 @@ public class Transform implements Serializable {
 			throw new IllegalArgumentException("scale by 0 not allowed!");
 		}
 
-		double elemenents[] = { 1, 0, 0, 0, 0, s, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
+		double elemenents[] = {1, 0, 0, 0, 0, s, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
 		getInternalMatrix().mul(new Matrix4d(elemenents));
 		return this;
 	}
@@ -1563,7 +1587,8 @@ public class Transform implements Serializable {
 	/**
 	 * Applies a scale operation (z axis) to this transform.
 	 *
-	 * @param s z scale value
+	 * @param s
+	 *            z scale value
 	 *
 	 * @return this transform
 	 */
@@ -1573,7 +1598,7 @@ public class Transform implements Serializable {
 			throw new IllegalArgumentException("scale by 0 not allowed!");
 		}
 
-		double elemenents[] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, s, 0, 0, 0, 0, 1 };
+		double elemenents[] = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, s, 0, 0, 0, 0, 1};
 		getInternalMatrix().mul(new Matrix4d(elemenents));
 		return this;
 	}
@@ -1581,7 +1606,8 @@ public class Transform implements Serializable {
 	/**
 	 * Applies this transform to the specified vector.
 	 *
-	 * @param vec vector to transform
+	 * @param vec
+	 *            vector to transform
 	 *
 	 * @return the specified vector
 	 */
@@ -1602,8 +1628,10 @@ public class Transform implements Serializable {
 	/**
 	 * Applies this transform to the specified vector.
 	 *
-	 * @param vec    vector to transform
-	 * @param amount transform amount (0 = 0 %, 1 = 100%)
+	 * @param vec
+	 *            vector to transform
+	 * @param amount
+	 *            transform amount (0 = 0 %, 1 = 100%)
 	 *
 	 * @return the specified vector
 	 */
@@ -1686,7 +1714,8 @@ public class Transform implements Serializable {
 	/**
 	 * Applies the specified transform to this transform.
 	 *
-	 * @param t transform to apply
+	 * @param t
+	 *            transform to apply
 	 *
 	 * @return this transform
 	 */
@@ -1701,7 +1730,7 @@ public class Transform implements Serializable {
 
 	/**
 	 * Return a new transform that is inverted
-	 * 
+	 *
 	 * @return
 	 */
 	public Transform inverse() {
@@ -1714,7 +1743,7 @@ public class Transform implements Serializable {
 
 	/**
 	 * Apply an inversion to this transform
-	 * 
+	 *
 	 * @return
 	 */
 	public Transform invert() {
@@ -1742,7 +1771,8 @@ public class Transform implements Serializable {
 	/**
 	 * Movey.
 	 *
-	 * @param howFarToMove the how far to move
+	 * @param howFarToMove
+	 *            the how far to move
 	 * @return the csg
 	 */
 	// Helper/wrapper functions for movement
@@ -1753,7 +1783,8 @@ public class Transform implements Serializable {
 	/**
 	 * Movez.
 	 *
-	 * @param howFarToMove the how far to move
+	 * @param howFarToMove
+	 *            the how far to move
 	 * @return the csg
 	 */
 	public Transform movez(Number howFarToMove) {
@@ -1763,7 +1794,8 @@ public class Transform implements Serializable {
 	/**
 	 * Movex.
 	 *
-	 * @param howFarToMove the how far to move
+	 * @param howFarToMove
+	 *            the how far to move
 	 * @return the csg
 	 */
 	public Transform movex(Number howFarToMove) {
@@ -1773,7 +1805,7 @@ public class Transform implements Serializable {
 	/**
 	 * mirror about y axis.
 	 *
-	 * 
+	 *
 	 * @return the csg
 	 */
 	// Helper/wrapper functions for movement
@@ -1802,7 +1834,8 @@ public class Transform implements Serializable {
 	/**
 	 * Rotz.
 	 *
-	 * @param degreesToRotate the degrees to rotate
+	 * @param degreesToRotate
+	 *            the degrees to rotate
 	 * @return the csg
 	 */
 	// Rotation function, rotates the object
@@ -1813,7 +1846,8 @@ public class Transform implements Serializable {
 	/**
 	 * Roty.
 	 *
-	 * @param degreesToRotate the degrees to rotate
+	 * @param degreesToRotate
+	 *            the degrees to rotate
 	 * @return the csg
 	 */
 	public Transform roty(Number degreesToRotate) {
@@ -1823,7 +1857,8 @@ public class Transform implements Serializable {
 	/**
 	 * Rotx.
 	 *
-	 * @param degreesToRotate the degrees to rotate
+	 * @param degreesToRotate
+	 *            the degrees to rotate
 	 * @return the csg
 	 */
 	public Transform rotx(Number degreesToRotate) {

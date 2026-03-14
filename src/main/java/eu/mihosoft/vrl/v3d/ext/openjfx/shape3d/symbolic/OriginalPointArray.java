@@ -33,31 +33,34 @@ package eu.mihosoft.vrl.v3d.ext.openjfx.shape3d.symbolic;
 
 import eu.mihosoft.vrl.v3d.ext.openjfx.shape3d.PolygonMesh;
 
-
 //  Auto-generated Javadoc
 /**
  * The Class OriginalPointArray.
  */
 public class OriginalPointArray extends SymbolicPointArray {
-    
-    /** The mesh. */
-    PolygonMesh mesh;
 
-    /**
-     * Instantiates a new original point array.
-     *
-     * @param mesh the mesh
-     */
-    public OriginalPointArray(PolygonMesh mesh) {
-        super(new float[mesh.getPoints().size()]);
-        this.mesh = mesh;
-    }
+	/** The mesh. */
+	PolygonMesh mesh;
 
-    /* (non-Javadoc)
-     * @see eu.mihosoft.vrl.v3d.ext.openjfx.shape3d.symbolic.SymbolicPointArray#update()
-     */
-    @Override
-    public void update() {
-        mesh.getPoints().copyTo(0, data, 0, data.length);
-    }
+	/**
+	 * Instantiates a new original point array.
+	 *
+	 * @param mesh
+	 *            the mesh
+	 */
+	public OriginalPointArray(PolygonMesh mesh) {
+		super(new float[mesh.getPoints().size()]);
+		this.mesh = mesh;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see
+	 * eu.mihosoft.vrl.v3d.ext.openjfx.shape3d.symbolic.SymbolicPointArray#update()
+	 */
+	@Override
+	public void update() {
+		mesh.getPoints().copyTo(0, data, 0, data.length);
+	}
 }

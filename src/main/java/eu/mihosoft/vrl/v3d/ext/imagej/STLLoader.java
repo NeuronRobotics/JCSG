@@ -4,7 +4,7 @@ package eu.mihosoft.vrl.v3d.ext.imagej;
 /**
  * Fork of
  * https://github.com/fiji/fiji/blob/master/src-plugins/3D_Viewer/src/main/java/customnode/STLLoader.java
- * 
+ *
  * TODO: license unclear
  */
 
@@ -14,10 +14,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.List;
 
 import eu.mihosoft.vrl.v3d.ColinearPointsException;
 import eu.mihosoft.vrl.v3d.Plane;
@@ -26,7 +24,6 @@ import eu.mihosoft.vrl.v3d.Vector3d;
 import eu.mihosoft.vrl.v3d.Vertex;
 
 ;
-
 
 //  Auto-generated Javadoc
 /**
@@ -40,14 +37,14 @@ public class STLLoader {
 	public STLLoader() {
 	}
 
-
-
 	/**
 	 * Parses the.
 	 *
-	 * @param f the f
+	 * @param f
+	 *            the f
 	 * @return the array list
-	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
 	 */
 	public ArrayList<Polygon> parse(File f) throws IOException {
 		ArrayList<Polygon> polygons = new ArrayList<>();
@@ -61,7 +58,7 @@ public class STLLoader {
 			String[] words = line.trim().split("\\s+");
 			if (line.indexOf('\0') < 0 && words[0].equalsIgnoreCase("solid")) {
 				////// System.out.println("Looks like an ASCII STL");
-				parseAscii(f,polygons);
+				parseAscii(f, polygons);
 				br.close();
 				return polygons;
 			}
@@ -69,7 +66,7 @@ public class STLLoader {
 		} catch (java.lang.NullPointerException ex) {
 			ex.printStackTrace();
 		} // the split cna fail on binary stls
-		// Hypothesis 2: this is a binary STL
+			// Hypothesis 2: this is a binary STL
 		FileInputStream fs = new FileInputStream(f);
 
 		// bytes 80, 81, 82 and 83 form a little-endian int
@@ -81,7 +78,7 @@ public class STLLoader {
 				| (buffer[80] & 0xff));
 		if (((f.length() - 84) / 50) == triangles) {
 			////// System.out.println("Looks like a binary STL");
-			parseBinary(f,polygons, triangles);
+			parseBinary(f, polygons, triangles);
 			return polygons;
 		}
 		// System.out.println("File is not a valid STL");
@@ -92,11 +89,12 @@ public class STLLoader {
 	/**
 	 * Parses the ascii.
 	 *
-	 * @param f the f
+	 * @param f
+	 *            the f
 	 */
-	private void parseAscii(File f,ArrayList<Polygon> polygons) {
-		BufferedReader in=null;
-		String line="";
+	private void parseAscii(File f, ArrayList<Polygon> polygons) {
+		BufferedReader in = null;
+		String line = "";
 		try {
 			in = new BufferedReader(new FileReader(f));
 		} catch (FileNotFoundException e) {
@@ -105,7 +103,7 @@ public class STLLoader {
 		}
 		ArrayList<Vertex> vertices = new ArrayList<>();
 		try {
-			Vector3d normal = new Vector3d(0, 0,0);
+			Vector3d normal = new Vector3d(0, 0, 0);
 			while ((line = in.readLine()) != null) {
 				String[] numbers = line.trim().split("\\s+");
 				if (numbers[0].equals("vertex")) {
@@ -114,22 +112,22 @@ public class STLLoader {
 					double z = parseDouble(numbers[3]);
 					Vector3d vertex = new Vector3d(x, y, z);
 					vertices.add(new Vertex(vertex));
-					if(vertices.size()==3) {
+					if (vertices.size() == 3) {
 						try {
-							Plane pl=null;
+							Plane pl = null;
 							try {
 								pl = new Plane(normal, vertices);
-							}catch(NumberFormatException ex) {
-								pl=Plane.createFromPoints(vertices);
+							} catch (NumberFormatException ex) {
+								pl = Plane.createFromPoints(vertices);
 							}
 							polygons.add(new Polygon(vertices, null, true, pl));
 						} catch (ColinearPointsException e) {
-							System.out.println(e.getMessage()+ " STL Load Pruned "+vertices);
+							System.out.println(e.getMessage() + " STL Load Pruned " + vertices);
 						}
 						vertices.clear();
 					}
 				} else if (numbers[0].equals("facet") && numbers[1].equals("normal")) {
-					normal = new Vector3d(0, 0,0);
+					normal = new Vector3d(0, 0, 0);
 					normal.x = parseDouble(numbers[2]);
 					normal.y = parseDouble(numbers[3]);
 					normal.z = parseDouble(numbers[4]);
@@ -146,10 +144,11 @@ public class STLLoader {
 	/**
 	 * Parses the binary.
 	 *
-	 * @param f the f
-	 * @param polygons2 
+	 * @param f
+	 *            the f
+	 * @param polygons2
 	 */
-	private void parseBinary(File f, ArrayList<Polygon> polygons,int triangles) {
+	private void parseBinary(File f, ArrayList<Polygon> polygons, int triangles) {
 		try {
 			FileInputStream fis = new FileInputStream(f);
 			for (int h = 0; h < 84; h++) {
@@ -161,7 +160,7 @@ public class STLLoader {
 					tri[tb] = (byte) fis.read();
 				}
 				ArrayList<Vertex> vertices = new ArrayList<Vertex>();
-				Vector3d normal = new Vector3d(0, 0,0);
+				Vector3d normal = new Vector3d(0, 0, 0);
 				normal.x = leBytesToFloat(tri[0], tri[1], tri[2], tri[3]);
 				normal.y = leBytesToFloat(tri[4], tri[5], tri[6], tri[7]);
 				normal.z = leBytesToFloat(tri[8], tri[9], tri[10], tri[11]);
@@ -172,17 +171,17 @@ public class STLLoader {
 					double pz = leBytesToFloat(tri[j + 8], tri[j + 9], tri[j + 10], tri[j + 11]);
 					Vector3d p = new Vector3d(px, py, pz);
 					vertices.add(new Vertex(p));
-					if(vertices.size()==3) {
+					if (vertices.size() == 3) {
 						try {
-							Plane pl=null;
+							Plane pl = null;
 							try {
 								pl = new Plane(normal, vertices);
-							}catch(NumberFormatException ex) {
-								pl=Plane.createFromPoints(vertices);
+							} catch (NumberFormatException ex) {
+								pl = Plane.createFromPoints(vertices);
 							}
 							polygons.add(new Polygon(vertices, null, true, pl));
 						} catch (ColinearPointsException e) {
-							System.out.println(e.getMessage()+ " STL Load Pruned "+vertices);
+							System.out.println(e.getMessage() + " STL Load Pruned " + vertices);
 						}
 						vertices.clear();
 					}
@@ -191,23 +190,25 @@ public class STLLoader {
 			fis.close();
 		} catch (IOException e) {
 			e.printStackTrace();
-		}  
+		}
 	}
 
-//    private double parseFloat(String string) throws ParseException {
-//        //E+05 -> E05, e+05 -> E05
-//        string = string.replaceFirst("[eE]\\+", "E");
-//        //E-05 -> E-05, e-05 -> E-05
-//        string = string.replaceFirst("e\\-", "E-");
-//        return decimalFormat.parse(string).doubleValue();
-//    }
+	// private double parseFloat(String string) throws ParseException {
+	// //E+05 -> E05, e+05 -> E05
+	// string = string.replaceFirst("[eE]\\+", "E");
+	// //E-05 -> E-05, e-05 -> E-05
+	// string = string.replaceFirst("e\\-", "E-");
+	// return decimalFormat.parse(string).doubleValue();
+	// }
 
 	/**
 	 * Parses the double.
 	 *
-	 * @param string the string
+	 * @param string
+	 *            the string
 	 * @return the double
-	 * @throws ParseException the parse exception
+	 * @throws ParseException
+	 *             the parse exception
 	 */
 	private double parseDouble(String string) throws ParseException {
 
@@ -217,10 +218,14 @@ public class STLLoader {
 	/**
 	 * Le bytes to double.
 	 *
-	 * @param b0 the b0
-	 * @param b1 the b1
-	 * @param b2 the b2
-	 * @param b3 the b3
+	 * @param b0
+	 *            the b0
+	 * @param b1
+	 *            the b1
+	 * @param b2
+	 *            the b2
+	 * @param b3
+	 *            the b3
 	 * @return the double
 	 */
 	private double leBytesToFloat(byte b0, byte b1, byte b2, byte b3) {

@@ -1,10 +1,8 @@
 package eu.mihosoft.vrl.v3d;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -26,7 +24,7 @@ public class SliceTest {
 		// Construct a CSG from that Polygon List
 		CSG finished = CSG.fromPolygons(new ArrayList<>(polygons));
 
-		//System.out.println(finished.toStlString());
+		// System.out.println(finished.toStlString());
 	}
 
 	@Test
@@ -40,6 +38,6 @@ public class SliceTest {
 		// Construct a CSG from that Polygon List
 		CSG finished = CSG.fromPolygons(new ArrayList<>(polygons));
 
-		//System.out.println(finished.toStlString());
+		// System.out.println(finished.toStlString());
 	}
 }

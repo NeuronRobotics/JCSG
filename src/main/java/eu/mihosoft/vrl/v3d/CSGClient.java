@@ -1,10 +1,8 @@
 package eu.mihosoft.vrl.v3d;
 
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import javax.net.ssl.*;
 import java.io.*;
@@ -27,16 +25,16 @@ public class CSGClient {
 	private SSLSocketFactory factory;
 	private ArrayList<ICSGClientEvent> listeners = new ArrayList<>();
 	public void addListener(ICSGClientEvent e) {
-		if(listeners.contains(e))
+		if (listeners.contains(e))
 			return;
 		listeners.add(e);
 	}
 	public void removeListener(ICSGClientEvent e) {
-		if(!listeners.contains(e))
+		if (!listeners.contains(e))
 			return;
 		listeners.remove(e);
 	}
-	
+
 	public CSGClient(String hostname, int port, File f) throws Exception {
 		this.hostname = hostname;
 		this.port = port;
@@ -56,7 +54,7 @@ public class CSGClient {
 		SSLContext sslContext = SSLContext.getInstance("TLS");
 
 		// For development: trust all certificates (use proper truststore in production)
-		TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+		TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
 			public X509Certificate[] getAcceptedIssuers() {
 				return null;
 			}
@@ -66,32 +64,38 @@ public class CSGClient {
 
 			public void checkServerTrusted(X509Certificate[] certs, String authType) {
 			}
-		} };
+		}};
 		sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
 		factory = sslContext.getSocketFactory();
 	}
 
 	/**
 	 * Perform union operations on consecutive CSG pairs
-	 * 
-	 * @param csgList List of CSG objects to perform union on
+	 *
+	 * @param csgList
+	 *            List of CSG objects to perform union on
 	 * @return List of union results
-	 * @throws IOException           if communication error occurs
-	 * @throws CSGOperationException if server returns an error
+	 * @throws IOException
+	 *             if communication error occurs
+	 * @throws CSGOperationException
+	 *             if server returns an error
 	 */
 	public ArrayList<CSG> union(List<CSG> csgList) throws Exception {
 		return performOperation(csgList, CSGRemoteOperation.UNION);
 	}
-	public ArrayList<CSG> hull(List<Vector3d> points, PropertyStorage storage) throws Exception  {
-		return performOperation(new ArrayList<CSG>(), CSGRemoteOperation.hull,points,storage);
+	public ArrayList<CSG> hull(List<Vector3d> points, PropertyStorage storage) throws Exception {
+		return performOperation(new ArrayList<CSG>(), CSGRemoteOperation.hull, points, storage);
 	}
 	/**
 	 * Perform difference operations on consecutive CSG pairs
-	 * 
-	 * @param csgList List of CSG objects to perform difference on
+	 *
+	 * @param csgList
+	 *            List of CSG objects to perform difference on
 	 * @return List of difference results
-	 * @throws IOException           if communication error occurs
-	 * @throws CSGOperationException if server returns an error
+	 * @throws IOException
+	 *             if communication error occurs
+	 * @throws CSGOperationException
+	 *             if server returns an error
 	 */
 	public ArrayList<CSG> difference(ArrayList<CSG> csgList) throws Exception {
 		return performOperation(csgList, CSGRemoteOperation.DIFFERENCE);
@@ -99,11 +103,14 @@ public class CSGClient {
 
 	/**
 	 * Perform intersect operations on consecutive CSG pairs
-	 * 
-	 * @param csgList List of CSG objects to perform intersection on
+	 *
+	 * @param csgList
+	 *            List of CSG objects to perform intersection on
 	 * @return List of intersection results
-	 * @throws IOException           if communication error occurs
-	 * @throws CSGOperationException if server returns an error
+	 * @throws IOException
+	 *             if communication error occurs
+	 * @throws CSGOperationException
+	 *             if server returns an error
 	 */
 	public ArrayList<CSG> intersect(ArrayList<CSG> csgList) throws Exception {
 		return performOperation(csgList, CSGRemoteOperation.INTERSECT);
@@ -111,11 +118,14 @@ public class CSGClient {
 
 	/**
 	 * Perform minkowskiHullShape operations on consecutive CSG pairs
-	 * 
-	 * @param csgList List of CSG objects to perform minkowskiHullShape on
+	 *
+	 * @param csgList
+	 *            List of CSG objects to perform minkowskiHullShape on
 	 * @return List of intersection results
-	 * @throws IOException           if communication error occurs
-	 * @throws CSGOperationException if server returns an error
+	 * @throws IOException
+	 *             if communication error occurs
+	 * @throws CSGOperationException
+	 *             if server returns an error
 	 */
 	public ArrayList<CSG> minkowskiHullShape(ArrayList<CSG> csgList) throws Exception {
 		return performOperation(csgList, CSGRemoteOperation.minkowskiHullShape);
@@ -123,11 +133,14 @@ public class CSGClient {
 
 	/**
 	 * Perform triangulation on each CSG object
-	 * 
-	 * @param csgList List of CSG objects to triangulate
+	 *
+	 * @param csgList
+	 *            List of CSG objects to triangulate
 	 * @return List of triangulated CSG objects
-	 * @throws IOException           if communication error occurs
-	 * @throws CSGOperationException if server returns an error
+	 * @throws IOException
+	 *             if communication error occurs
+	 * @throws CSGOperationException
+	 *             if server returns an error
 	 */
 	public ArrayList<CSG> triangulate(ArrayList<CSG> csgList) throws Exception {
 		return performOperation(csgList, CSGRemoteOperation.TRIANGULATE);
@@ -135,13 +148,14 @@ public class CSGClient {
 	/**
 	 * Internal method to perform operations and handle request/response
 	 */
-	private ArrayList<CSG> performOperation(List<CSG> csgList, CSGRemoteOperation operation)throws Exception{
-		return performOperation(csgList,operation,null,null);
+	private ArrayList<CSG> performOperation(List<CSG> csgList, CSGRemoteOperation operation) throws Exception {
+		return performOperation(csgList, operation, null, null);
 	}
 	/**
 	 * Internal method to perform operations and handle request/response
 	 */
-	private ArrayList<CSG> performOperation(List<CSG> csgList, CSGRemoteOperation operation,List<Vector3d> points, PropertyStorage storage) throws Exception {
+	private ArrayList<CSG> performOperation(List<CSG> csgList, CSGRemoteOperation operation, List<Vector3d> points,
+			PropertyStorage storage) throws Exception {
 		if (javafx.application.Platform.isFxApplicationThread()) {
 			RuntimeException runtimeException = new RuntimeException("Network trafic can not run on UI thread");
 			runtimeException.printStackTrace();
@@ -154,11 +168,11 @@ public class CSGClient {
 			ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 			//
 			// Create and send request
-			
-			ArrayList <CSG> toSend  =  new ArrayList<CSG>();
-			for(CSG c:csgList) {
+
+			ArrayList<CSG> toSend = new ArrayList<CSG>();
+			for (CSG c : csgList) {
 				List<Polygon> polygons = c.getPolygons();
-				if(polygons.size()==0) {
+				if (polygons.size() == 0) {
 					Exception ex = new Exception("No Polygons In Incoming geometry here!");
 					ex.printStackTrace();
 					throw ex;
@@ -168,11 +182,11 @@ public class CSGClient {
 				toSend.add(tmp);
 			}
 
-			CSGRequest request = new CSGRequest(toSend, operation,points,storage);
-			for(ICSGClientEvent e:listeners) {
+			CSGRequest request = new CSGRequest(toSend, operation, points, storage);
+			for (ICSGClientEvent e : listeners) {
 				try {
 					e.toSend(request);
-				}catch(Throwable t) {
+				} catch (Throwable t) {
 					t.printStackTrace();
 				}
 			}
@@ -184,27 +198,28 @@ public class CSGClient {
 			// Receive response
 			CSGResponse response = (CSGResponse) ois.readObject();
 			socket.close();
-			for(ICSGClientEvent e:listeners) {
+			for (ICSGClientEvent e : listeners) {
 				try {
-					e.response(response,request);
-				}catch(Throwable t) {
+					e.response(response, request);
+				} catch (Throwable t) {
 					t.printStackTrace();
 				}
 			}
 			if (response.getState() != ServerActionState.SUCCESS)
 				throw new RuntimeException(response.getMessage());
 			// Return results as ArrayList
-			back=new ArrayList<CSG>();
-			for(CSG c:response.getCsgList()) {
-				if(c.getPolygons().size()==0) {
+			back = new ArrayList<CSG>();
+			for (CSG c : response.getCsgList()) {
+				if (c.getPolygons().size() == 0) {
 					System.out.println("Running Operation on server: " + hostname + " " + operation);
-					RuntimeException runtimeException = new RuntimeException("Network CSG op resulted in no polygons here ");
+					RuntimeException runtimeException = new RuntimeException(
+							"Network CSG op resulted in no polygons here ");
 					runtimeException.printStackTrace();
 					throw runtimeException;
 				}
 				CSG historySync = CSG.fromPolygons(c.getPolygons());
-				back.add( historySync);
-				for(CSG s:csgList) {
+				back.add(historySync);
+				for (CSG s : csgList) {
 					historySync.historySync(s);
 				}
 			}
@@ -235,11 +250,11 @@ public class CSGClient {
 
 	public static boolean isRunning() {
 		try {
-			if(javafx.application.Platform.isFxApplicationThread()) {
+			if (javafx.application.Platform.isFxApplicationThread()) {
 				new Exception("ERROR! CSG operation detected on UI thread, this is a BAD idea!");
 				return false;// do not run operation on UI thread
 			}
-		}catch(Exception ex) {
+		} catch (Exception ex) {
 			// can not be a UI thread if ui toolkit is not running
 		}
 		if (isServerCall())

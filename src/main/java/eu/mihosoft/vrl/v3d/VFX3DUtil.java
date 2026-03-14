@@ -25,15 +25,8 @@
 package eu.mihosoft.vrl.v3d;
 
 import javafx.event.EventHandler;
-import javafx.event.EventType;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.TriangleMesh;
-import javafx.scene.shape.MeshView;
-import javafx.scene.paint.PhongMaterial;
-import javafx.scene.shape.DrawMode;
-import javafx.scene.shape.CullFace;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.transform.Rotate;
@@ -46,81 +39,81 @@ import javafx.scene.transform.Rotate;
  */
 public class VFX3DUtil {
 
-    /**
-     * Instantiates a new VF x3 d util.
-     */
-    private VFX3DUtil() {
-        throw new AssertionError("don't instanciate me!");
-    }
+	/**
+	 * Instantiates a new VF x3 d util.
+	 */
+	private VFX3DUtil() {
+		throw new AssertionError("don't instanciate me!");
+	}
 
-  
+	/**
+	 * Adds rotation behavior to the specified node.
+	 *
+	 * @param n
+	 *            node
+	 * @param eventReceiver
+	 *            receiver of the event
+	 * @param btn
+	 *            mouse button that shall be used for this behavior
+	 */
+	public static void addMouseBehavior(Node n, Scene eventReceiver, MouseButton btn) {
+		eventReceiver.addEventHandler(MouseEvent.ANY, new MouseBehaviorImpl1(n, btn));
+	}
 
-    /**
-     * Adds rotation behavior to the specified node.
-     *
-     * @param n node
-     * @param eventReceiver receiver of the event
-     * @param btn mouse button that shall be used for this behavior
-     */
-    public static void addMouseBehavior(
-            Node n, Scene eventReceiver, MouseButton btn) {
-        eventReceiver.addEventHandler(MouseEvent.ANY,
-                new MouseBehaviorImpl1(n, btn));
-    }
-
-    /**
-     * Adds rotation behavior to the specified node.
-     *
-     * @param n node
-     * @param eventReceiver receiver of the event
-     * @param btn mouse button that shall be used for this behavior
-     */
-    public static void addMouseBehavior(
-            Node n, Node eventReceiver, MouseButton btn) {
-        eventReceiver.addEventHandler(MouseEvent.ANY,
-                new MouseBehaviorImpl1(n, btn));
-    }
+	/**
+	 * Adds rotation behavior to the specified node.
+	 *
+	 * @param n
+	 *            node
+	 * @param eventReceiver
+	 *            receiver of the event
+	 * @param btn
+	 *            mouse button that shall be used for this behavior
+	 */
+	public static void addMouseBehavior(Node n, Node eventReceiver, MouseButton btn) {
+		eventReceiver.addEventHandler(MouseEvent.ANY, new MouseBehaviorImpl1(n, btn));
+	}
 }
 
 // rotation behavior implementation
 class MouseBehaviorImpl1 implements EventHandler<MouseEvent> {
 
-    private double anchorAngleX;
-    private double anchorAngleY;
-    private double anchorX;
-    private double anchorY;
-    private final Rotate rotateX = new Rotate(0, 0, 0, 0, Rotate.X_AXIS);
-    private final Rotate rotateZ = new Rotate(0, 0, 0, 0, Rotate.Z_AXIS);
-    private MouseButton btn;
+	private double anchorAngleX;
+	private double anchorAngleY;
+	private double anchorX;
+	private double anchorY;
+	private final Rotate rotateX = new Rotate(0, 0, 0, 0, Rotate.X_AXIS);
+	private final Rotate rotateZ = new Rotate(0, 0, 0, 0, Rotate.Z_AXIS);
+	private MouseButton btn;
 
-    public MouseBehaviorImpl1(Node n, MouseButton btn) {
-        n.getTransforms().addAll(rotateX, rotateZ);
-        this.btn = btn;
+	public MouseBehaviorImpl1(Node n, MouseButton btn) {
+		n.getTransforms().addAll(rotateX, rotateZ);
+		this.btn = btn;
 
-        if (btn == null) {
-            this.btn = MouseButton.MIDDLE;
-        }
-    }
+		if (btn == null) {
+			this.btn = MouseButton.MIDDLE;
+		}
+	}
 
-    @Override
-    public void handle(MouseEvent t) {
-        if (!btn.equals(t.getButton())) {
-            return;
-        }
+	@Override
+	public void handle(MouseEvent t) {
+		if (!btn.equals(t.getButton())) {
+			return;
+		}
 
-        t.consume();
+		t.consume();
 
-        if (MouseEvent.MOUSE_PRESSED.equals(t.getEventType())) {
-            anchorX = t.getSceneX();
-            anchorY = t.getSceneY();
-            anchorAngleX = rotateX.getAngle();
-            anchorAngleY = rotateZ.getAngle();
-            t.consume();
-        } else if (MouseEvent.MOUSE_DRAGGED.equals(t.getEventType())) {
-            rotateZ.setAngle(anchorAngleY + (anchorX - t.getSceneX()) * 0.7);
-            rotateX.setAngle(anchorAngleX - (anchorY - t.getSceneY()) * 0.7);
+		if (MouseEvent.MOUSE_PRESSED.equals(t.getEventType())) {
+			anchorX = t.getSceneX();
+			anchorY = t.getSceneY();
+			anchorAngleX = rotateX.getAngle();
+			anchorAngleY = rotateZ.getAngle();
+			t.consume();
+		} else if (MouseEvent.MOUSE_DRAGGED.equals(t.getEventType())) {
+			rotateZ.setAngle(anchorAngleY + (anchorX - t.getSceneX()) * 0.7);
+			rotateX.setAngle(anchorAngleX - (anchorY - t.getSceneY()) * 0.7);
 
-        }
+		}
 
-    }
+	}
 }

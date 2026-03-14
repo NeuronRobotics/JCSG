@@ -8,61 +8,65 @@ package eu.mihosoft.vrl.v3d;
 //  Auto-generated Javadoc
 /**
  * Modifies along y axis.
- * 
+ *
  * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
  */
 public class YModifier implements WeightFunction {
 
-    /** The bounds. */
-    private Bounds bounds;
-    
-    /** The min. */
-    private double min = 0;
-    
-    /** The max. */
-    private double max = 1.0;
+	/** The bounds. */
+	private Bounds bounds;
 
-    /** The s per unit. */
-    private double sPerUnit;
-    
-    /** The centered. */
-    private boolean centered;
+	/** The min. */
+	private double min = 0;
 
-    /**
-     * Constructor.
-     */
-    public YModifier() {
-    }
+	/** The max. */
+	private double max = 1.0;
 
-    /**
-     * Constructor.
-     *
-     * @param centered defines whether to center origin at the csg location
-     */
-    public YModifier(boolean centered) {
-        this.centered = centered;
-    }
+	/** The s per unit. */
+	private double sPerUnit;
 
-    /* (non-Javadoc)
-     * @see eu.mihosoft.vrl.v3d.WeightFunction#eval(eu.mihosoft.vrl.v3d.Vector3d, eu.mihosoft.vrl.v3d.CSG)
-     */
-    @Override
-    public double eval(Vector3d pos, CSG csg) {
+	/** The centered. */
+	private boolean centered;
 
-        if (bounds == null) {
-            this.bounds = csg.getBounds();
-            sPerUnit = (max - min) / (bounds.getMax().y - bounds.getMin().y);
-        }
+	/**
+	 * Constructor.
+	 */
+	public YModifier() {
+	}
 
-        double s = sPerUnit * (pos.y - bounds.getMin().y);
+	/**
+	 * Constructor.
+	 *
+	 * @param centered
+	 *            defines whether to center origin at the csg location
+	 */
+	public YModifier(boolean centered) {
+		this.centered = centered;
+	}
 
-        if (centered) {
-            s = s - (max - min) / 2.0;
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see eu.mihosoft.vrl.v3d.WeightFunction#eval(eu.mihosoft.vrl.v3d.Vector3d,
+	 * eu.mihosoft.vrl.v3d.CSG)
+	 */
+	@Override
+	public double eval(Vector3d pos, CSG csg) {
 
-            s = Math.abs(s) * 2;
-        }
+		if (bounds == null) {
+			this.bounds = csg.getBounds();
+			sPerUnit = (max - min) / (bounds.getMax().y - bounds.getMin().y);
+		}
 
-        return s;
-    }
+		double s = sPerUnit * (pos.y - bounds.getMin().y);
+
+		if (centered) {
+			s = s - (max - min) / 2.0;
+
+			s = Math.abs(s) * 2;
+		}
+
+		return s;
+	}
 
 }

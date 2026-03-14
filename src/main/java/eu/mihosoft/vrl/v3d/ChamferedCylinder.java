@@ -17,10 +17,14 @@ public class ChamferedCylinder extends Primitive {
 	 * Constructor. Creates a new cuboid with center {@code [0,0,0]} and with the
 	 * specified dimensions.
 	 *
-	 * @param r             radius
-	 * @param h             height
-	 * @param chamferHeight the chamfer height
-	 * @param sides the number of slices the chamfered cylender should have
+	 * @param r
+	 *            radius
+	 * @param h
+	 *            height
+	 * @param chamferHeight
+	 *            the chamfer height
+	 * @param sides
+	 *            the number of slices the chamfered cylender should have
 	 */
 	public ChamferedCylinder(double r, double h, double chamferHeight, int sides) {
 		this.r = r;
@@ -33,9 +37,12 @@ public class ChamferedCylinder extends Primitive {
 	 * Constructor. Creates a new cuboid with center {@code [0,0,0]} and with the
 	 * specified dimensions.
 	 *
-	 * @param r             radius
-	 * @param h             height
-	 * @param chamferHeight the chamfer height
+	 * @param r
+	 *            radius
+	 * @param h
+	 *            height
+	 * @param chamferHeight
+	 *            the chamfer height
 	 */
 	public ChamferedCylinder(double r, double h, double chamferHeight) {
 		this(r, h, chamferHeight, 16);
@@ -43,7 +50,7 @@ public class ChamferedCylinder extends Primitive {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see eu.mihosoft.vrl.v3d.Primitive#toPolygons()
 	 */
 	@Override

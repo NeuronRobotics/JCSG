@@ -38,8 +38,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
-
 /**
  * Represents a plane in 3D space.
  *
@@ -52,7 +50,7 @@ public class Plane implements Serializable {
 	/**
 	 * EPSILON is the tolerance used by
 	 * {@link #splitPolygon(eu.mihosoft.vrl.v3d.Polygon, java.util.List, java.util.List, java.util.List, java.util.List) }
-	 * to decide if a point is on the plane. public static final double EPSILON 
+	 * to decide if a point is on the plane. public static final double EPSILON
 	 */
 
 	private static double EPSILON = 1.0e-8;
@@ -85,8 +83,10 @@ public class Plane implements Serializable {
 	 * Constructor. Creates a new plane defined by its normal vector and the
 	 * distance to the origin.
 	 *
-	 * @param normal plane normal
-	 * @param dist   distance from origin
+	 * @param normal
+	 *            plane normal
+	 * @param dist
+	 *            distance from origin
 	 */
 	public Plane(Vector3d normal, double dist) {
 		this.setNormal(normal.normalized());
@@ -96,9 +96,11 @@ public class Plane implements Serializable {
 	 * Constructor. Creates a new plane defined by its normal vector and the
 	 * distance to the origin.
 	 *
-	 * @param normal plane normal
-	 * @param dist   distance from origin
-	 * @throws ColinearPointsException 
+	 * @param normal
+	 *            plane normal
+	 * @param dist
+	 *            distance from origin
+	 * @throws ColinearPointsException
 	 */
 	public Plane(List<Vertex> vertices, Vector3d testNorm) throws ColinearPointsException {
 		Vector3d a = vertices.get(0).pos;
@@ -111,8 +113,10 @@ public class Plane implements Serializable {
 	 * Constructor. Creates a new plane defined by its normal vector and the
 	 * distance to the origin.
 	 *
-	 * @param normal plane normal
-	 * @param dist   distance from origin
+	 * @param normal
+	 *            plane normal
+	 * @param dist
+	 *            distance from origin
 	 */
 	public Plane(Vector3d normal, List<Vertex> vertices) {
 		this.setNormal(normal.normalized());
@@ -122,8 +126,10 @@ public class Plane implements Serializable {
 	 * Constructor. Creates a new plane defined by its normal vector and the
 	 * distance to the origin.
 	 *
-	 * @param normal plane normal
-	 * @param dist   distance from origin
+	 * @param normal
+	 *            plane normal
+	 * @param dist
+	 *            distance from origin
 	 */
 	public Plane(Vector3d normal, Vector3d vertice) {
 		this.setNormal(normal.normalized());
@@ -131,12 +137,15 @@ public class Plane implements Serializable {
 	}
 	/**
 	 * Creates a plane defined by the the specified points.
-	 * 
+	 *
 	 * @param vector3d
 	 *
-	 * @param a        first point
-	 * @param b        second point
-	 * @param c        third point
+	 * @param a
+	 *            first point
+	 * @param b
+	 *            second point
+	 * @param c
+	 *            third point
 	 * @return a plane
 	 */
 	public static Plane createFromPoints(List<Vertex> vertices) throws ColinearPointsException {
@@ -145,37 +154,40 @@ public class Plane implements Serializable {
 
 	/**
 	 * Creates a plane defined by the the specified points.
-	 * 
+	 *
 	 * @param vector3d
 	 *
-	 * @param a        first point
-	 * @param b        second point
-	 * @param c        third point
+	 * @param a
+	 *            first point
+	 * @param b
+	 *            second point
+	 * @param c
+	 *            third point
 	 * @return a plane
 	 */
 	public static Plane createFromPoints(List<Vertex> vertices, Vector3d testNorm) throws ColinearPointsException {
-		return new Plane(vertices,  testNorm);
+		return new Plane(vertices, testNorm);
 	}
 
-	public Vector3d computeNormal(List<Vertex> vertices) throws ColinearPointsException{
+	public Vector3d computeNormal(List<Vertex> vertices) throws ColinearPointsException {
 		return computeNormal(vertices, null);
 	}
 
 	public Vector3d computeNormal(List<Vertex> vertices, Vector3d testNorm) throws ColinearPointsException {
 
 		if (vertices == null || vertices.size() < 3) {
-			throw new ColinearPointsException("Can not find normal without at least 3 points "+vertices);
+			throw new ColinearPointsException("Can not find normal without at least 3 points " + vertices);
 		}
 		// First attempt: Newell's method
 		Vector3d normal = new Vector3d(0, 0, 0);
 		int n = vertices.size();
 		for (int i = 0; i < n; i++) {
-		    Vector3d current = vertices.get(i).pos;
-		    Vector3d next = vertices.get((i + 1) % n).pos;
-		    
-		    double d = (current.y - next.y) * (current.z + next.z);
-		    double e = (current.z - next.z) * (current.x + next.x);
-		    double e2 = (current.x - next.x) * (current.y + next.y);
+			Vector3d current = vertices.get(i).pos;
+			Vector3d next = vertices.get((i + 1) % n).pos;
+
+			double d = (current.y - next.y) * (current.z + next.z);
+			double e = (current.z - next.z) * (current.x + next.x);
+			double e2 = (current.x - next.x) * (current.y + next.y);
 			normal.x += d;
 			normal.y += e;
 			normal.z += e2;
@@ -183,14 +195,14 @@ public class Plane implements Serializable {
 		if (isValidNormal(normal)) {
 			return normal.normalized();
 		}
-		throw new ColinearPointsException("Failed to compute the normal! "+vertices);
+		throw new ColinearPointsException("Failed to compute the normal! " + vertices);
 	}
 	private boolean isValidNormal(Vector3d normal) {
-	    if (Double.isFinite(normal.x) && Double.isFinite(normal.y) && Double.isFinite(normal.z)) {
-	        setLengthSquared(normal.x*normal.x + normal.y*normal.y + normal.z*normal.z);
-	        return getLengthSquared() > 0;  // Compare squared values
-	    }
-	    return false;
+		if (Double.isFinite(normal.x) && Double.isFinite(normal.y) && Double.isFinite(normal.z)) {
+			setLengthSquared(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z);
+			return getLengthSquared() > 0; // Compare squared values
+		}
+		return false;
 	}
 
 	public boolean checkNormal(ArrayList<Vertex> vertex) {
@@ -198,28 +210,24 @@ public class Plane implements Serializable {
 		try {
 			p = Plane.createFromPoints(vertex, getNormal());
 		} catch (Exception ex) {
-			 //ex.printStackTrace();
+			// ex.printStackTrace();
 		}
 		if (p != null) {
 			Vector3d normal = p.getNormal();
 			Vector3d normal2 = getNormal();
-			double dot = 1-Math.abs(normal.dot(normal2));
+			double dot = 1 - Math.abs(normal.dot(normal2));
 			// check for actual misallignment
 			double d = Plane.getEPSILON();
-			if(dot<d)
+			if (dot < d)
 				return true;
 			double e3 = (normal.x) - (normal2.x);
 			double e4 = (normal.y) - (normal2.y);
 			double e5 = (normal.z) - (normal2.z);
-			if (e3 > d
-					|| e4 > d
-					|| e5 > d) {
+			if (e3 > d || e4 > d || e5 > d) {
 				double e = Math.abs(normal.x) - Math.abs(normal2.x);
 				double e2 = Math.abs(normal.y) - Math.abs(normal2.y);
 				double f = Math.abs(normal.z) - Math.abs(normal2.z);
-				if (e > d
-						|| e2 > d
-						|| f > d) {
+				if (e > d || e2 > d || f > d) {
 					return false;
 				}
 				return false;
@@ -227,7 +235,7 @@ public class Plane implements Serializable {
 		}
 		return true;
 	}
-	
+
 	public static Vector3d computeNormalCrossProduct(List<Vertex> verts) {
 		int n = verts.size();
 		if (n < 3)
@@ -237,11 +245,10 @@ public class Plane implements Serializable {
 		List<Vector3d> edges = new ArrayList<>();
 
 		for (int j = 0; j < n; j++) {
-			Vector3d e = verts.get((j+1)%n).pos.minus(verts.get(j).pos);
+			Vector3d e = verts.get((j + 1) % n).pos.minus(verts.get(j).pos);
 			edges.add(e);
-			
+
 		}
-		
 
 		// 2. Find pair with smallest |dot| / (|e1||e2|)
 		double bestScore = Double.POSITIVE_INFINITY;
@@ -282,97 +289,96 @@ public class Plane implements Serializable {
 		return normal;
 	}
 
-
-
-//	public static Vector3d computeNormal(List<Vertex> vertices) {
-//		if (vertices == null || vertices.size() < 3) {
-//			return new Vector3d(0, 0, 1); // Default normal for degenerate cases
-//		}
-//
-//		// First attempt: Newell's method
-//		Vector3d normal = new Vector3d(0, 0, 0);
-//		int n = vertices.size();
-//		Vector3d lastValid = null;
-//		Vector3d corner =  vertices.get(0).pos;
-//		for (int i = 0; i < n; i++) {
-//			Vector3d current = corner.minus( vertices.get(i).pos).times(PolygonUtil.triangleScale);
-//			Vector3d next = corner.minus( vertices.get((i + 1) % n).pos).times(PolygonUtil.triangleScale);
-//
-//			// Correct Newell's Method formulas
-//			normal.x += (current.y - next.y) * (current.z + next.z); // (y1-y2)(z1+z2)
-//			normal.y += (current.z - next.z) * (current.x + next.x); // (z1-z2)(x1+x2)
-//			normal.z += (current.x - next.x) * (current.y + next.y);
-//			if (i >= 2) {
-//				if(Math.abs(normal.magnitude())>0) {
-//					Vector3d normalized = normal.normalized();
-//					if (isValidNormal(normalized, 1-Plane.getEPSILON())) {
-//						lastValid = normalized;
-//					}
-//				}
-//			}
-//		}
-//		if(lastValid!=null)
-//			if (isValidNormal(lastValid, 1-Plane.getEPSILON())) {
-//				return lastValid.normalized();
-//			}
-//		throw new RuntimeException("Mesh has problems, can not work around it "+lastValid);
-//	}
-
-
+	// public static Vector3d computeNormal(List<Vertex> vertices) {
+	// if (vertices == null || vertices.size() < 3) {
+	// return new Vector3d(0, 0, 1); // Default normal for degenerate cases
+	// }
+	//
+	// // First attempt: Newell's method
+	// Vector3d normal = new Vector3d(0, 0, 0);
+	// int n = vertices.size();
+	// Vector3d lastValid = null;
+	// Vector3d corner = vertices.get(0).pos;
+	// for (int i = 0; i < n; i++) {
+	// Vector3d current = corner.minus(
+	// vertices.get(i).pos).times(PolygonUtil.triangleScale);
+	// Vector3d next = corner.minus( vertices.get((i + 1) %
+	// n).pos).times(PolygonUtil.triangleScale);
+	//
+	// // Correct Newell's Method formulas
+	// normal.x += (current.y - next.y) * (current.z + next.z); // (y1-y2)(z1+z2)
+	// normal.y += (current.z - next.z) * (current.x + next.x); // (z1-z2)(x1+x2)
+	// normal.z += (current.x - next.x) * (current.y + next.y);
+	// if (i >= 2) {
+	// if(Math.abs(normal.magnitude())>0) {
+	// Vector3d normalized = normal.normalized();
+	// if (isValidNormal(normalized, 1-Plane.getEPSILON())) {
+	// lastValid = normalized;
+	// }
+	// }
+	// }
+	// }
+	// if(lastValid!=null)
+	// if (isValidNormal(lastValid, 1-Plane.getEPSILON())) {
+	// return lastValid.normalized();
+	// }
+	// throw new RuntimeException("Mesh has problems, can not work around it
+	// "+lastValid);
+	// }
 
 	private static Vector3d multiplyMatrixVector(double[][] matrix, Vector3d vector) {
 		return new Vector3d(matrix[0][0] * vector.x + matrix[0][1] * vector.y + matrix[0][2] * vector.z,
 				matrix[1][0] * vector.x + matrix[1][1] * vector.y + matrix[1][2] * vector.z,
 				matrix[2][0] * vector.x + matrix[2][1] * vector.y + matrix[2][2] * vector.z);
 	}
-//	public static Vector3d computeNormal(List<Vertex> vertices) {
-//		Vector3d normal = new Vector3d(0, 0, 0);
-//		int n = vertices.size();
-//
-//		for (int i = 0; i < n; i++) {
-//			Vector3d current = vertices.get(i).pos;
-//			Vector3d next = vertices.get((i + 1) % n).pos;
-//
-//			normal.x += (current.y - next.y) * (current.z + next.z);
-//			normal.y += (current.z - next.z) * (current.x + next.x);
-//			normal.z += (current.x - next.x) * (current.y + next.y);
-//		}
-//
-//		Vector3d normalized = normal.normalized();
-//		// If Newell's method fails, try finding three non-collinear points
-//		double lengthSquared = normal.lengthSquared();
-//		double d = EPSILON * EPSILON;
-//		if (lengthSquared < d) { // Adjust this epsilon as needed
-//			for (int i = 0; i < n - 2; i++) {
-//				Vector3d a = vertices.get(i).pos;
-//				for (int j = i + 1; j < n - 1; j++) {
-//					Vector3d b = vertices.get(j).pos;
-//					for (int k = j + 1; k < n; k++) {
-//						Vector3d c = vertices.get(k).pos;
-//						normal = b.minus(a).cross(c.minus(a));
-//						lengthSquared = normal.lengthSquared();
-//						if (lengthSquared > d) { // Non-zero normal found
-//							return normal.normalized();
-//						}
-//					}
-//				}
-//			}
-//		}
-//
-//		// If all else fails, return a default normal (e.g., in the z direction)
-//		lengthSquared = normal.lengthSquared();
-//
-//		if (lengthSquared < Double.MIN_VALUE*10) {
-//			throw new NumberFormatException("This set of points is not a valid polygon");
-//		}
-//		if(normalized.lengthSquared()<EPSILON)
-//			throw new NumberFormatException("Invalid Normalized Values!");
-//		return normalized;
-//	}
+	// public static Vector3d computeNormal(List<Vertex> vertices) {
+	// Vector3d normal = new Vector3d(0, 0, 0);
+	// int n = vertices.size();
+	//
+	// for (int i = 0; i < n; i++) {
+	// Vector3d current = vertices.get(i).pos;
+	// Vector3d next = vertices.get((i + 1) % n).pos;
+	//
+	// normal.x += (current.y - next.y) * (current.z + next.z);
+	// normal.y += (current.z - next.z) * (current.x + next.x);
+	// normal.z += (current.x - next.x) * (current.y + next.y);
+	// }
+	//
+	// Vector3d normalized = normal.normalized();
+	// // If Newell's method fails, try finding three non-collinear points
+	// double lengthSquared = normal.lengthSquared();
+	// double d = EPSILON * EPSILON;
+	// if (lengthSquared < d) { // Adjust this epsilon as needed
+	// for (int i = 0; i < n - 2; i++) {
+	// Vector3d a = vertices.get(i).pos;
+	// for (int j = i + 1; j < n - 1; j++) {
+	// Vector3d b = vertices.get(j).pos;
+	// for (int k = j + 1; k < n; k++) {
+	// Vector3d c = vertices.get(k).pos;
+	// normal = b.minus(a).cross(c.minus(a));
+	// lengthSquared = normal.lengthSquared();
+	// if (lengthSquared > d) { // Non-zero normal found
+	// return normal.normalized();
+	// }
+	// }
+	// }
+	// }
+	// }
+	//
+	// // If all else fails, return a default normal (e.g., in the z direction)
+	// lengthSquared = normal.lengthSquared();
+	//
+	// if (lengthSquared < Double.MIN_VALUE*10) {
+	// throw new NumberFormatException("This set of points is not a valid polygon");
+	// }
+	// if(normalized.lengthSquared()<EPSILON)
+	// throw new NumberFormatException("Invalid Normalized Values!");
+	// return normalized;
+	// }
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see java.lang.Object#clone()
 	 */
 	@Override
@@ -411,11 +417,10 @@ public class Plane implements Serializable {
 	public void setNormal(Vector3d normal) {
 		if (Double.isFinite(normal.x) && Double.isFinite(normal.y) && Double.isFinite(normal.z)) {
 			if (Vector3d.ZERO.equals(normal)) {
-				throw new NumberFormatException(
-						"Normal is zero!");
+				throw new NumberFormatException("Normal is zero!");
 			}
 			this.normal = normal.normalized();
-		}else {
+		} else {
 
 			NumberFormatException numberFormatException = new NumberFormatException();
 			// numberFormatException.printStackTrace();
@@ -447,7 +452,7 @@ public class Plane implements Serializable {
 	}
 	@Override
 	public String toString() {
-		return "Normal"+normal+" distance "+dist;
+		return "Normal" + normal + " distance " + dist;
 	}
 
 	public static double getEPSILON_Point() {
@@ -458,11 +463,11 @@ public class Plane implements Serializable {
 		EPSILON_Point = ePSILON_Point;
 	}
 
-	public  double getLengthSquared() {
+	public double getLengthSquared() {
 		return lengthSquared;
 	}
 
-	public  void setLengthSquared(double lengthSquared) {
+	public void setLengthSquared(double lengthSquared) {
 		this.lengthSquared = lengthSquared;
 	}
 

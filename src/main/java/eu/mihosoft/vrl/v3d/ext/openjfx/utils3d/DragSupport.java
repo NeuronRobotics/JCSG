@@ -31,7 +31,6 @@
  */
 package eu.mihosoft.vrl.v3d.ext.openjfx.utils3d;
 
-
 import javafx.beans.property.Property;
 import javafx.event.EventHandler;
 import javafx.geometry.Orientation;
@@ -41,183 +40,207 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 
-
 //  Auto-generated Javadoc
 /**
  * Utility class that binds simple mouse gestures to number properties so that
  * their values can be controlled with mouse drag events.
  */
 public class DragSupport {
-    
-    /** The keyboard event handler. */
-    public EventHandler<KeyEvent> keyboardEventHandler;
-    
-    /** The mouse event handler. */
-    public EventHandler<MouseEvent> mouseEventHandler;
-    
-    /** The anchor. */
-    private Number anchor;
-    
-    /** The drag anchor. */
-    private double dragAnchor;
-    
-    /** The last mouse event. */
-    private MouseEvent lastMouseEvent;
-    
-    /** The target. */
-    private Scene target;
 
-    /**
-     * Creates DragSupport instance that attaches EventHandlers to the given scene 
-     * and responds to mouse and keyboard events in order to change given 
-     * property values according to mouse drag events of given orientation.
-     *
-     * @param target scene
-     * @param modifier null if no modifier needed
-     * @param orientation vertical or horizontal
-     * @param property number property to control
-     * @see #DragSupport(javafx.scene.Scene, javafx.scene.input.KeyCode, javafx.geometry.Orientation, javafx.beans.property.Property, double)
-     */
-    public DragSupport(Scene target, final KeyCode modifier, final Orientation orientation, final Property<Number> property) {
-        this(target, modifier, MouseButton.PRIMARY, orientation, property, 1);
-    }
-    
-    /**
-     * Instantiates a new drag support.
-     *
-     * @param target the target
-     * @param modifier the modifier
-     * @param mouseButton the mouse button
-     * @param orientation the orientation
-     * @param property the property
-     */
-    public DragSupport(Scene target, final KeyCode modifier, MouseButton mouseButton, final Orientation orientation, final Property<Number> property) {
-        this(target, modifier, mouseButton, orientation, property, 1);
-    }
+	/** The keyboard event handler. */
+	public EventHandler<KeyEvent> keyboardEventHandler;
 
-    /**
-     * Removes event handlers of this DragSupport instance from the target scene.
-     */
-    public void detach() {
-        target.removeEventHandler(MouseEvent.ANY, mouseEventHandler);
-        target.removeEventHandler(KeyEvent.ANY, keyboardEventHandler);
-    }
+	/** The mouse event handler. */
+	public EventHandler<MouseEvent> mouseEventHandler;
 
-    /**
-     * Creates DragSupport instance that attaches EventHandlers to the given scene 
-     * and responds to mouse and keyboard events in order to change given 
-     * property values according to mouse drag events of given orientation.
-     * Mouse movement amount is multiplied by given factor.
-     * @param target scene
-     * @param modifier null if no modifier needed
-     * @param orientation vertical or horizontal
-     * @param property number property to control
-     * @param factor multiplier for mouse movement amount
-     */
-    public DragSupport(Scene target, final KeyCode modifier, final Orientation orientation, final Property<Number> property, final double factor) {
-        this(target, modifier, MouseButton.PRIMARY, orientation, property, factor);
-    }
+	/** The anchor. */
+	private Number anchor;
 
-    /**
-     * Instantiates a new drag support.
-     *
-     * @param target the target
-     * @param modifier the modifier
-     * @param mouseButton the mouse button
-     * @param orientation the orientation
-     * @param property the property
-     * @param factor the factor
-     */
-    public DragSupport(Scene target, final KeyCode modifier, final MouseButton mouseButton, final Orientation orientation, final Property<Number> property, final double factor) {
-        this.target = target;
-        mouseEventHandler = t -> {
-            if (t.getEventType() != MouseEvent.MOUSE_ENTERED_TARGET
-                    && t.getEventType() != MouseEvent.MOUSE_EXITED_TARGET) {
-                lastMouseEvent = t;
-            }
-            if (t.getEventType() == MouseEvent.MOUSE_PRESSED) {
-                if (t.getButton() == mouseButton
-                        && isModifierCorrect(t, modifier)) {
-                    anchor = property.getValue();
-                    dragAnchor = getCoord(t, orientation);
-                    t.consume();
-                }
-            } else if (t.getEventType() == MouseEvent.MOUSE_DRAGGED) {
-                if (t.getButton() == mouseButton
-                        && isModifierCorrect(t, modifier)) {
-                    property.setValue(anchor.doubleValue()
-                            + (getCoord(t, orientation) - dragAnchor) * factor);
-                    t.consume();
-                }
-            }
-        };
-        keyboardEventHandler = t -> {
-            if (t.getEventType() == KeyEvent.KEY_PRESSED) {
-                if (t.getCode() == modifier) {
-                    anchor = property.getValue();
-                    if (lastMouseEvent != null) {
-                        dragAnchor = getCoord(lastMouseEvent, orientation);
-                    }
-                    t.consume();
-                }
-            } else if (t.getEventType() == KeyEvent.KEY_RELEASED) {
-                if (t.getCode() != modifier && isModifierCorrect(t, modifier)) {
-                    anchor = property.getValue();
-                    if (lastMouseEvent != null) {
-                        dragAnchor = getCoord(lastMouseEvent, orientation);
-                    }
-                    t.consume();
-                }
-            }
-        };
-        target.addEventHandler(MouseEvent.ANY, mouseEventHandler);
-        target.addEventHandler(KeyEvent.ANY, keyboardEventHandler);
-    }
+	/** The drag anchor. */
+	private double dragAnchor;
 
-    /**
-     * Checks if is modifier correct.
-     *
-     * @param t the t
-     * @param keyCode the key code
-     * @return true, if is modifier correct
-     */
-    private boolean isModifierCorrect(KeyEvent t, KeyCode keyCode) {
-        return (keyCode != KeyCode.ALT ^ t.isAltDown()) 
-                && (keyCode != KeyCode.CONTROL ^ t.isControlDown()) 
-                && (keyCode != KeyCode.SHIFT ^ t.isShiftDown()) 
-                && (keyCode != KeyCode.META ^ t.isMetaDown());
-    }
+	/** The last mouse event. */
+	private MouseEvent lastMouseEvent;
 
-    /**
-     * Checks if is modifier correct.
-     *
-     * @param t the t
-     * @param keyCode the key code
-     * @return true, if is modifier correct
-     */
-    private boolean isModifierCorrect(MouseEvent t, KeyCode keyCode) {
-        return (keyCode != KeyCode.ALT ^ t.isAltDown()) 
-                && (keyCode != KeyCode.CONTROL ^ t.isControlDown()) 
-                && (keyCode != KeyCode.SHIFT ^ t.isShiftDown()) 
-                && (keyCode != KeyCode.META ^ t.isMetaDown());
-    }
+	/** The target. */
+	private Scene target;
 
-    /**
-     * Gets the coord.
-     *
-     * @param t the t
-     * @param orientation the orientation
-     * @return the coord
-     */
-    private double getCoord(MouseEvent t, Orientation orientation) {
-        switch (orientation) {
-            case HORIZONTAL:
-                return t.getScreenX();
-            case VERTICAL:
-                return t.getScreenY();
-            default:
-                throw new IllegalArgumentException("This orientation is not supported: " + orientation);
-        }
-    }
-    
+	/**
+	 * Creates DragSupport instance that attaches EventHandlers to the given scene
+	 * and responds to mouse and keyboard events in order to change given property
+	 * values according to mouse drag events of given orientation.
+	 *
+	 * @param target
+	 *            scene
+	 * @param modifier
+	 *            null if no modifier needed
+	 * @param orientation
+	 *            vertical or horizontal
+	 * @param property
+	 *            number property to control
+	 * @see #DragSupport(javafx.scene.Scene, javafx.scene.input.KeyCode,
+	 *      javafx.geometry.Orientation, javafx.beans.property.Property, double)
+	 */
+	public DragSupport(Scene target, final KeyCode modifier, final Orientation orientation,
+			final Property<Number> property) {
+		this(target, modifier, MouseButton.PRIMARY, orientation, property, 1);
+	}
+
+	/**
+	 * Instantiates a new drag support.
+	 *
+	 * @param target
+	 *            the target
+	 * @param modifier
+	 *            the modifier
+	 * @param mouseButton
+	 *            the mouse button
+	 * @param orientation
+	 *            the orientation
+	 * @param property
+	 *            the property
+	 */
+	public DragSupport(Scene target, final KeyCode modifier, MouseButton mouseButton, final Orientation orientation,
+			final Property<Number> property) {
+		this(target, modifier, mouseButton, orientation, property, 1);
+	}
+
+	/**
+	 * Removes event handlers of this DragSupport instance from the target scene.
+	 */
+	public void detach() {
+		target.removeEventHandler(MouseEvent.ANY, mouseEventHandler);
+		target.removeEventHandler(KeyEvent.ANY, keyboardEventHandler);
+	}
+
+	/**
+	 * Creates DragSupport instance that attaches EventHandlers to the given scene
+	 * and responds to mouse and keyboard events in order to change given property
+	 * values according to mouse drag events of given orientation. Mouse movement
+	 * amount is multiplied by given factor.
+	 *
+	 * @param target
+	 *            scene
+	 * @param modifier
+	 *            null if no modifier needed
+	 * @param orientation
+	 *            vertical or horizontal
+	 * @param property
+	 *            number property to control
+	 * @param factor
+	 *            multiplier for mouse movement amount
+	 */
+	public DragSupport(Scene target, final KeyCode modifier, final Orientation orientation,
+			final Property<Number> property, final double factor) {
+		this(target, modifier, MouseButton.PRIMARY, orientation, property, factor);
+	}
+
+	/**
+	 * Instantiates a new drag support.
+	 *
+	 * @param target
+	 *            the target
+	 * @param modifier
+	 *            the modifier
+	 * @param mouseButton
+	 *            the mouse button
+	 * @param orientation
+	 *            the orientation
+	 * @param property
+	 *            the property
+	 * @param factor
+	 *            the factor
+	 */
+	public DragSupport(Scene target, final KeyCode modifier, final MouseButton mouseButton,
+			final Orientation orientation, final Property<Number> property, final double factor) {
+		this.target = target;
+		mouseEventHandler = t -> {
+			if (t.getEventType() != MouseEvent.MOUSE_ENTERED_TARGET
+					&& t.getEventType() != MouseEvent.MOUSE_EXITED_TARGET) {
+				lastMouseEvent = t;
+			}
+			if (t.getEventType() == MouseEvent.MOUSE_PRESSED) {
+				if (t.getButton() == mouseButton && isModifierCorrect(t, modifier)) {
+					anchor = property.getValue();
+					dragAnchor = getCoord(t, orientation);
+					t.consume();
+				}
+			} else if (t.getEventType() == MouseEvent.MOUSE_DRAGGED) {
+				if (t.getButton() == mouseButton && isModifierCorrect(t, modifier)) {
+					property.setValue(anchor.doubleValue() + (getCoord(t, orientation) - dragAnchor) * factor);
+					t.consume();
+				}
+			}
+		};
+		keyboardEventHandler = t -> {
+			if (t.getEventType() == KeyEvent.KEY_PRESSED) {
+				if (t.getCode() == modifier) {
+					anchor = property.getValue();
+					if (lastMouseEvent != null) {
+						dragAnchor = getCoord(lastMouseEvent, orientation);
+					}
+					t.consume();
+				}
+			} else if (t.getEventType() == KeyEvent.KEY_RELEASED) {
+				if (t.getCode() != modifier && isModifierCorrect(t, modifier)) {
+					anchor = property.getValue();
+					if (lastMouseEvent != null) {
+						dragAnchor = getCoord(lastMouseEvent, orientation);
+					}
+					t.consume();
+				}
+			}
+		};
+		target.addEventHandler(MouseEvent.ANY, mouseEventHandler);
+		target.addEventHandler(KeyEvent.ANY, keyboardEventHandler);
+	}
+
+	/**
+	 * Checks if is modifier correct.
+	 *
+	 * @param t
+	 *            the t
+	 * @param keyCode
+	 *            the key code
+	 * @return true, if is modifier correct
+	 */
+	private boolean isModifierCorrect(KeyEvent t, KeyCode keyCode) {
+		return (keyCode != KeyCode.ALT ^ t.isAltDown()) && (keyCode != KeyCode.CONTROL ^ t.isControlDown())
+				&& (keyCode != KeyCode.SHIFT ^ t.isShiftDown()) && (keyCode != KeyCode.META ^ t.isMetaDown());
+	}
+
+	/**
+	 * Checks if is modifier correct.
+	 *
+	 * @param t
+	 *            the t
+	 * @param keyCode
+	 *            the key code
+	 * @return true, if is modifier correct
+	 */
+	private boolean isModifierCorrect(MouseEvent t, KeyCode keyCode) {
+		return (keyCode != KeyCode.ALT ^ t.isAltDown()) && (keyCode != KeyCode.CONTROL ^ t.isControlDown())
+				&& (keyCode != KeyCode.SHIFT ^ t.isShiftDown()) && (keyCode != KeyCode.META ^ t.isMetaDown());
+	}
+
+	/**
+	 * Gets the coord.
+	 *
+	 * @param t
+	 *            the t
+	 * @param orientation
+	 *            the orientation
+	 * @return the coord
+	 */
+	private double getCoord(MouseEvent t, Orientation orientation) {
+		switch (orientation) {
+			case HORIZONTAL :
+				return t.getScreenX();
+			case VERTICAL :
+				return t.getScreenY();
+			default :
+				throw new IllegalArgumentException("This orientation is not supported: " + orientation);
+		}
+	}
+
 }

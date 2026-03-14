@@ -13,56 +13,60 @@ package eu.mihosoft.vrl.v3d;
  */
 public class ZModifier implements WeightFunction {
 
-    /** The bounds. */
-    private Bounds bounds;
-    
-    /** The min. */
-    private double min = 0;
-    
-    /** The max. */
-    private double max = 1.0;
+	/** The bounds. */
+	private Bounds bounds;
 
-    /** The s per unit. */
-    private double sPerUnit;
-    
-    /** The centered. */
-    private boolean centered;
+	/** The min. */
+	private double min = 0;
 
-    /**
-     * Constructor.
-     */
-    public ZModifier() {
-    }
+	/** The max. */
+	private double max = 1.0;
 
-    /**
-     * Constructor.
-     *
-     * @param centered defines whether to center origin at the csg location
-     */
-    public ZModifier(boolean centered) {
-        this.centered = centered;
-    }
+	/** The s per unit. */
+	private double sPerUnit;
 
-    /* (non-Javadoc)
-     * @see eu.mihosoft.vrl.v3d.WeightFunction#eval(eu.mihosoft.vrl.v3d.Vector3d, eu.mihosoft.vrl.v3d.CSG)
-     */
-    @Override
-    public double eval(Vector3d pos, CSG csg) {
+	/** The centered. */
+	private boolean centered;
 
-        if (bounds == null) {
-            this.bounds = csg.getBounds();
-            sPerUnit = (max - min) / (bounds.getMax().z - bounds.getMin().z);
-        }
+	/**
+	 * Constructor.
+	 */
+	public ZModifier() {
+	}
 
-        double s = sPerUnit * (pos.z - bounds.getMin().z);
+	/**
+	 * Constructor.
+	 *
+	 * @param centered
+	 *            defines whether to center origin at the csg location
+	 */
+	public ZModifier(boolean centered) {
+		this.centered = centered;
+	}
 
-        if (centered) {
-            s = s - (max - min) / 2.0;
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see eu.mihosoft.vrl.v3d.WeightFunction#eval(eu.mihosoft.vrl.v3d.Vector3d,
+	 * eu.mihosoft.vrl.v3d.CSG)
+	 */
+	@Override
+	public double eval(Vector3d pos, CSG csg) {
 
-            s = Math.abs(s) * 2;
-        }
+		if (bounds == null) {
+			this.bounds = csg.getBounds();
+			sPerUnit = (max - min) / (bounds.getMax().z - bounds.getMin().z);
+		}
 
-        return s;
-    }
+		double s = sPerUnit * (pos.z - bounds.getMin().z);
+
+		if (centered) {
+			s = s - (max - min) / 2.0;
+
+			s = Math.abs(s) * 2;
+		}
+
+		return s;
+	}
 
 }

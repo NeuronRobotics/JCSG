@@ -26,14 +26,12 @@
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of Michael Hoffer info@michaelhoffer.de.
- */ 
+ */
 
 package eu.mihosoft.vrl.v3d;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import eu.mihosoft.vrl.v3d.parametrics.Parameter;
 
 //  Auto-generated Javadoc
 /**
@@ -41,37 +39,37 @@ import eu.mihosoft.vrl.v3d.parametrics.Parameter;
  *
  * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
  */
-public abstract class Primitive implements ItoCSG{
-//	ArrayList<Parameter> parametrics=new ArrayList<>();
-    
+public abstract class Primitive implements ItoCSG {
+	// ArrayList<Parameter> parametrics=new ArrayList<>();
 
-    /**
-     * Returns the polygons that define this primitive.
-     *
-     *  Note:  this method computes the polygons each time this method is
-     * called. The polygons can be cached inside a {@link CSG} object.
-     *
-     * @return a list of polygons that define this primitive
-     */
-    public abstract List<Polygon> toPolygons();
+	/**
+	 * Returns the polygons that define this primitive.
+	 *
+	 * Note: this method computes the polygons each time this method is called. The
+	 * polygons can be cached inside a {@link CSG} object.
+	 *
+	 * @return a list of polygons that define this primitive
+	 */
+	public abstract List<Polygon> toPolygons();
 
-    /**
-     * Returns this primitive as {@link CSG}.
-     *
-     * @return this primitive as {@link CSG}
-     */
-    public   CSG toCSG() {
-    	CSG tmp = CSG.fromPolygons(getProperties(),new ArrayList<>(toPolygons()));
-//    	if(parametrics!=null)
-//    		for(Parameter p:parametrics)
-//    			tmp.setParameter(p);
-    	//tmp.triangulate();
-        return tmp;
-    }
-    
-    /**
-     * Returns the property storage of this primitive.
-     * @return the property storage of this primitive
-     */
-    public abstract PropertyStorage getProperties();
+	/**
+	 * Returns this primitive as {@link CSG}.
+	 *
+	 * @return this primitive as {@link CSG}
+	 */
+	public CSG toCSG() {
+		CSG tmp = CSG.fromPolygons(getProperties(), new ArrayList<>(toPolygons()));
+		// if(parametrics!=null)
+		// for(Parameter p:parametrics)
+		// tmp.setParameter(p);
+		// tmp.triangulate();
+		return tmp;
+	}
+
+	/**
+	 * Returns the property storage of this primitive.
+	 *
+	 * @return the property storage of this primitive
+	 */
+	public abstract PropertyStorage getProperties();
 }

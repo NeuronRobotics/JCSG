@@ -4,15 +4,15 @@ package eu.mihosoft.vrl.v3d.ext.quickhull3d;
 /**
  * Exception thrown when QuickHull3D encounters an internal error.
  */
-class InternalErrorException extends RuntimeException
-{
-	
+class InternalErrorException extends RuntimeException {
+
 	/**
 	 * Instantiates a new internal error exception.
 	 *
-	 * @param msg the msg
+	 * @param msg
+	 *            the msg
 	 */
-	public InternalErrorException (String msg)
-	 { super (msg);
-	 }
+	public InternalErrorException(String msg) {
+		super(msg);
+	}
 }

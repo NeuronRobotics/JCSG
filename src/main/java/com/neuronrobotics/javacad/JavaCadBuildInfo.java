@@ -79,7 +79,8 @@ public class JavaCadBuildInfo {
 	/**
 	 * Gets the tag.
 	 *
-	 * @param target the target
+	 * @param target
+	 *            the target
 	 * @return the tag
 	 */
 	private static String getTag(String target) {

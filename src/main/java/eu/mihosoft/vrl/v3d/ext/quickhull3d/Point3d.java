@@ -3,7 +3,7 @@
   * copy, modify and redistribute is granted, provided that this copyright
   * notice is retained and the author is given credit whenever appropriate.
   *
-  * This  software is distributed "as is", without any warranty, including 
+  * This  software is distributed "as is", without any warranty, including
   * any implied warranty of merchantability or fitness for a particular
   * use. The author assumes no responsibility for, and shall not be liable
   * for, any special, indirect, or consequential damages, or any damages
@@ -17,51 +17,50 @@ package eu.mihosoft.vrl.v3d.ext.quickhull3d;
 /**
  * A three-element spatial point.
  *
- * The only difference between a point and a vector is in the
- * the way it is transformed by an affine transformation. Since
- * the transform method is not included in this reduced
- * implementation for QuickHull3D, the difference is
+ * The only difference between a point and a vector is in the the way it is
+ * transformed by an affine transformation. Since the transform method is not
+ * included in this reduced implementation for QuickHull3D, the difference is
  * purely academic.
  *
  * @author John E. Lloyd, Fall 2004
  */
-public class Point3d extends Vector3d
-{
+public class Point3d extends Vector3d {
 	/**
 	 * Creates a Point3d and initializes it to zero.
 	 */
-	public Point3d ()
-	 {
-	 }
+	public Point3d() {
+	}
 
 	/**
 	 * Creates a Point3d by copying a vector.
 	 *
-	 * @param v vector to be copied
+	 * @param v
+	 *            vector to be copied
 	 */
-	public Point3d (Vector3d v)
-	 {
-	   set (v);
-	 }
+	public Point3d(Vector3d v) {
+		set(v);
+	}
 
 	/**
 	 * Creates a Point3d with the supplied element values.
 	 *
-	 * @param x first element
-	 * @param y second element
-	 * @param z third element
+	 * @param x
+	 *            first element
+	 * @param y
+	 *            second element
+	 * @param z
+	 *            third element
 	 */
-	public Point3d (double x, double y, double z)
-	 {
-	   set (x, y, z);
-	 }
+	public Point3d(double x, double y, double z) {
+		set(x, y, z);
+	}
 	@Override
 	public int hashCode() {
 		int offset = 1000;
-		long xHash = Math.round(x*offset);
-		long yHash = Math.round(y*offset);
-		long zHash = Math.round(z*offset);
-		long combined = xHash +yHash+zHash;
-		return (int)combined;
+		long xHash = Math.round(x * offset);
+		long yHash = Math.round(y * offset);
+		long zHash = Math.round(z * offset);
+		long combined = xHash + yHash + zHash;
+		return (int) combined;
 	}
 }

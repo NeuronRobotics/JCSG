@@ -10,9 +10,9 @@ public class CSGResponse implements Serializable {
 	private static final long serialVersionUID = 1L;
 	private List<CSG> csgList;
 	private CSGRemoteOperation operation;
-	private ServerActionState state=ServerActionState.SUCCESS;
-	private String message=null;
-	
+	private ServerActionState state = ServerActionState.SUCCESS;
+	private String message = null;
+
 	public CSGResponse() {
 		this.csgList = new ArrayList<>();
 		this.operation = CSGRemoteOperation.UNION;
@@ -50,17 +50,17 @@ public class CSGResponse implements Serializable {
 
 	public void setState(ServerActionState state) {
 		this.state = state;
-		if( message==null)
-			message=state.toString();
+		if (message == null)
+			message = state.toString();
 	}
 
 	public String getMessage() {
 		return message;
 	}
 	public void setMessage(Throwable t) {
-	    StringWriter sw = new StringWriter();
-	    PrintWriter pw = new PrintWriter(sw);
-	    t.printStackTrace(pw);
+		StringWriter sw = new StringWriter();
+		PrintWriter pw = new PrintWriter(sw);
+		t.printStackTrace(pw);
 		this.message = sw.toString();
 	}
 	public void setMessage(String message) {

@@ -41,41 +41,51 @@ import javafx.scene.Group;
  */
 public class ObjOrPolyObjImporter extends Importer {
 
-    /** The res. */
-    final Group res = new Group();
+	/** The res. */
+	final Group res = new Group();
 
-    /* (non-Javadoc)
-     * @see eu.mihosoft.vrl.v3d.ext.openjfx.importers.Importer#load(java.lang.String, boolean)
-     */
-    @Override
-    public void load(String fileUrl, boolean asPolygonMesh) throws IOException {
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see
+	 * eu.mihosoft.vrl.v3d.ext.openjfx.importers.Importer#load(java.lang.String,
+	 * boolean)
+	 */
+	@Override
+	public void load(String fileUrl, boolean asPolygonMesh) throws IOException {
 
-	if (asPolygonMesh) {
-	    PolyObjImporter reader = new PolyObjImporter(fileUrl);
-	    for (String mesh : reader.getMeshes()) {
-		res.getChildren().add(reader.buildPolygonMeshView(mesh));
-	    };
-	} else {
-	    ObjImporter reader = new ObjImporter(fileUrl);
-	    for (String mesh : reader.getMeshes()) {
-		res.getChildren().add(reader.buildMeshView(mesh));
-	    };
+		if (asPolygonMesh) {
+			PolyObjImporter reader = new PolyObjImporter(fileUrl);
+			for (String mesh : reader.getMeshes()) {
+				res.getChildren().add(reader.buildPolygonMeshView(mesh));
+			} ;
+		} else {
+			ObjImporter reader = new ObjImporter(fileUrl);
+			for (String mesh : reader.getMeshes()) {
+				res.getChildren().add(reader.buildMeshView(mesh));
+			} ;
+		}
 	}
-    }
 
-    /* (non-Javadoc)
-     * @see eu.mihosoft.vrl.v3d.ext.openjfx.importers.Importer#getRoot()
-     */
-    @Override
-    public Group getRoot() {
-	return res;
-    }
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see eu.mihosoft.vrl.v3d.ext.openjfx.importers.Importer#getRoot()
+	 */
+	@Override
+	public Group getRoot() {
+		return res;
+	}
 
-    /* (non-Javadoc)
-     * @see eu.mihosoft.vrl.v3d.ext.openjfx.importers.Importer#isSupported(java.lang.String)
-     */
-    @Override
-    public boolean isSupported(String extension) {
-	return extension != null && extension.equals("obj");
-    }
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see
+	 * eu.mihosoft.vrl.v3d.ext.openjfx.importers.Importer#isSupported(java.lang.
+	 * String)
+	 */
+	@Override
+	public boolean isSupported(String extension) {
+		return extension != null && extension.equals("obj");
+	}
 }

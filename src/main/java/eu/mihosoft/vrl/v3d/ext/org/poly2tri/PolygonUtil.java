@@ -44,7 +44,6 @@ import eu.mihosoft.vrl.v3d.Polygon;
 import eu.mihosoft.vrl.v3d.Transform;
 import eu.mihosoft.vrl.v3d.Vector3d;
 import eu.mihosoft.vrl.v3d.Vertex;
-import javafx.collections.ModifiableObservableListBase;
 import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
@@ -61,7 +60,6 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.triangulate.polygon.ConstrainedDelaunayTriangulator;
-
 
 //import earcut4j.Earcut;
 
@@ -123,8 +121,8 @@ public class PolygonUtil {
 								" Repairing intersecting polygon (Hint in Inkscape->Path->Simplify): found # "
 										+ toRemove.size(),
 								null);
-//							System.out.println(start+" Testing " +  + " of " +edges.size()+
-//									" found bad points# "+toRemove.size());
+						// System.out.println(start+" Testing " + + " of " +edges.size()+
+						// " found bad points# "+toRemove.size());
 					}
 					for (int j = 0; j < edges.size(); j++) {
 						if (i == j)
@@ -139,9 +137,9 @@ public class PolygonUtil {
 							for (; x < j; x++) {
 								toRemove.add(modifiable.get(x));
 							}
-//								System.out
-//										.println("Edges cross! " + cross.get() +
-//												" pruned "+(x-i));
+							// System.out
+							// .println("Edges cross! " + cross.get() +
+							// " pruned "+(x-i));
 						}
 						if (v != null) {
 							// System.out.println("\n\nFalse Boundary " + test + " \n " + test2);
@@ -195,9 +193,11 @@ public class PolygonUtil {
 
 	/**
 	 * Checks if two polygons overlap in 3D space.
-	 * 
-	 * @param polygon1 First polygon to check
-	 * @param polygon2 Second polygon to check
+	 *
+	 * @param polygon1
+	 *            First polygon to check
+	 * @param polygon2
+	 *            Second polygon to check
 	 * @return true if the polygons overlap, false otherwise
 	 */
 	public static boolean doPolygonsOverlap(Polygon polygon1, Polygon polygon2) {
@@ -308,13 +308,13 @@ public class PolygonUtil {
 	 */
 	private static double[] getNonDominantCoordinates(Vector3d v, int dominantAxis) {
 		switch (dominantAxis) {
-		case 0: // X dominant, return Y,Z
-			return new double[] { v.y, v.z };
-		case 1: // Y dominant, return X,Z
-			return new double[] { v.x, v.z };
-		case 2: // Z dominant, return X,Y
-		default:
-			return new double[] { v.x, v.y };
+			case 0 : // X dominant, return Y,Z
+				return new double[]{v.y, v.z};
+			case 1 : // Y dominant, return X,Z
+				return new double[]{v.x, v.z};
+			case 2 : // Z dominant, return X,Y
+			default :
+				return new double[]{v.x, v.y};
 		}
 	}
 
@@ -473,41 +473,44 @@ public class PolygonUtil {
 		throw new AssertionError("Don't instantiate me!", null);
 	}
 
-//	/**
-//	 * Converts a CSG polygon to a poly2tri polygon (including holes).
-//	 *
-//	 * @param polygon the polygon to convert
-//	 * @return a CSG polygon to a poly2tri polygon (including holes)
-//	 */
-//	public static eu.mihosoft.vrl.v3d.ext.org.poly2tri.Polygon fromCSGPolygon(eu.mihosoft.vrl.v3d.Polygon polygon) {
-//
-//		// convert polygon
-//		List<PolygonPoint> points = new ArrayList<>();
-//		for (Vertex v : polygon.vertices) {
-//			PolygonPoint vp = new PolygonPoint(v.pos.x, v.pos.y, v.pos.z);
-//			points.add(vp);
-//		}
-//
-//		eu.mihosoft.vrl.v3d.ext.org.poly2tri.Polygon result = new eu.mihosoft.vrl.v3d.ext.org.poly2tri.Polygon(points);
-//
-//		// convert holes
-//		Optional<List<eu.mihosoft.vrl.v3d.Polygon>> holesOfPresult = polygon.getStorage()
-//				.getValue(eu.mihosoft.vrl.v3d.Edge.KEY_POLYGON_HOLES);
-//		if (holesOfPresult.isPresent()) {
-//			List<eu.mihosoft.vrl.v3d.Polygon> holesOfP = holesOfPresult.get();
-//
-//			holesOfP.stream().forEach((hP) -> {
-//				result.addHole(fromCSGPolygon(hP));
-//			});
-//		}
-//
-//		return result;
-//	}
+	// /**
+	// * Converts a CSG polygon to a poly2tri polygon (including holes).
+	// *
+	// * @param polygon the polygon to convert
+	// * @return a CSG polygon to a poly2tri polygon (including holes)
+	// */
+	// public static eu.mihosoft.vrl.v3d.ext.org.poly2tri.Polygon
+	// fromCSGPolygon(eu.mihosoft.vrl.v3d.Polygon polygon) {
+	//
+	// // convert polygon
+	// List<PolygonPoint> points = new ArrayList<>();
+	// for (Vertex v : polygon.vertices) {
+	// PolygonPoint vp = new PolygonPoint(v.pos.x, v.pos.y, v.pos.z);
+	// points.add(vp);
+	// }
+	//
+	// eu.mihosoft.vrl.v3d.ext.org.poly2tri.Polygon result = new
+	// eu.mihosoft.vrl.v3d.ext.org.poly2tri.Polygon(points);
+	//
+	// // convert holes
+	// Optional<List<eu.mihosoft.vrl.v3d.Polygon>> holesOfPresult =
+	// polygon.getStorage()
+	// .getValue(eu.mihosoft.vrl.v3d.Edge.KEY_POLYGON_HOLES);
+	// if (holesOfPresult.isPresent()) {
+	// List<eu.mihosoft.vrl.v3d.Polygon> holesOfP = holesOfPresult.get();
+	//
+	// holesOfP.stream().forEach((hP) -> {
+	// result.addHole(fromCSGPolygon(hP));
+	// });
+	// }
+	//
+	// return result;
+	// }
 
 	/**
 	 * Calculates a quaternion-based transform that rotates `from` vector to align
 	 * with (0,0,1).
-	 * 
+	 *
 	 * @throws ColinearPointsException
 	 */
 	public static Transform calculateNormalTransform(Polygon concave) throws ColinearPointsException {
@@ -532,54 +535,55 @@ public class PolygonUtil {
 		if (dotX < -1.0 + Plane.getEPSILON()) {
 			return new Transform().rotY(-90);
 		}
-//		if (dotY > 1.0 - Plane.getEPSILON()) {
-//			return new Transform().rotX(90);
-//		}
-//		if (dotY < -1.0 + Plane.getEPSILON()) {
-//			return new Transform().rotX(-90);
-//		}
+		// if (dotY > 1.0 - Plane.getEPSILON()) {
+		// return new Transform().rotX(90);
+		// }
+		// if (dotY < -1.0 + Plane.getEPSILON()) {
+		// return new Transform().rotX(-90);
+		// }
 		double aboutZ = Math.toDegrees(Math.atan2(u.y, u.x));
-		if(Double.isNaN(aboutZ))
+		if (Double.isNaN(aboutZ))
 			throw new ColinearPointsException("Failed to creat a rotation angle");
 		Transform transform1 = new Transform().rotZ(aboutZ);
 		Vector3d u2 = u.transformed(transform1);
 		Transform transform;
 		double aboutY = Math.toDegrees(Math.atan2(u2.x, u2.z));
-		if(Double.isNaN(aboutY))
+		if (Double.isNaN(aboutY))
 			throw new ColinearPointsException("Failed to creat a rotation angle");
-		
+
 		Transform rotY = new Transform().rotY(aboutY);
 		transform = rotY.copy().apply(transform1);
-	
-		
+
 		Vector3d u3 = u.transformed(transform).normalized();
 
 		Polygon test = concave.transformed(transform);
 		Vector3d normal = test.plane.getNormal();
 		double abs = Math.abs(normal.z);
 		if (1 - abs > 0.1) {
-			System.out.println("Error with " + test+" normal "+normal);
+			System.out.println("Error with " + test + " normal " + normal);
 			// Plane p = Plane.createFromPoints(test.getVertices());
-			 new ColinearPointsException("Failed to reorent the polygon for processing! z off by "+abs+" "+normal).printStackTrace();
+			new ColinearPointsException("Failed to reorent the polygon for processing! z off by " + abs + " " + normal)
+					.printStackTrace();
 		}
-		
+
 		Matrix4d rotation = transform.getInternalMatrix();
 		Quat4d q1 = transform.getQuat();
 		javax.vecmath.Vector3d t1 = new javax.vecmath.Vector3d();
 		rotation.get(t1);
 		List<Double> asList = Arrays.asList(t1.x, t1.y, t1.z, q1.w, q1.x, q1.y, q1.z);
-		for(Double d:asList){
-			if(Double.isInfinite(d)||Double.isNaN(d))
+		for (Double d : asList) {
+			if (Double.isInfinite(d) || Double.isNaN(d))
 				throw new ColinearPointsException("Failed to produce a matrix ");
 		}
-		
+
 		return transform;
 	}
 
 	/**
 	 * Concave to convex.
 	 *
-	 * @param incoming the concave
+	 * @param incoming
+	 *            the concave
 	 * @return the list
 	 * @throws ColinearPointsException
 	 */
@@ -604,20 +608,21 @@ public class PolygonUtil {
 		}
 
 		boolean cw = false;
-//		if(!Extrude.isCCW(tmp)) {
-//			ArrayList<Vertex> v =new ArrayList<Vertex>(tmp.getVertices());
-//			Collections.reverse(v);
-//			tmp = new Polygon(v, tmp.getStorage(), false, null);
-//		}
+		// if(!Extrude.isCCW(tmp)) {
+		// ArrayList<Vertex> v =new ArrayList<Vertex>(tmp.getVertices());
+		// Collections.reverse(v);
+		// tmp = new Polygon(v, tmp.getStorage(), false, null);
+		// }
 		Polygon concave = tmp;
 		double zplane = concave.getVertices().get(0).pos.z;
-//		for (Vector3d v : concave.getPoints()) {
-//			double abs = Math.abs(zplane - v.z);
-//			if (abs > 0.1) {
-//				new RuntimeException("Failed to triangulate, points must be coplainer, delta: " + abs)
-//						.printStackTrace();
-//			}
-//		}
+		// for (Vector3d v : concave.getPoints()) {
+		// double abs = Math.abs(zplane - v.z);
+		// if (abs > 0.1) {
+		// new RuntimeException("Failed to triangulate, points must be coplainer, delta:
+		// " + abs)
+		// .printStackTrace();
+		// }
+		// }
 		try {
 			if (concave.size() == 3) {
 				result.add(concave);
@@ -639,7 +644,7 @@ public class PolygonUtil {
 							incoming.getColor());
 				}
 			}
-			
+
 			if (reorient) {
 				repaired = repaired.transform(orientationInv);
 			}
@@ -655,92 +660,99 @@ public class PolygonUtil {
 		return getRepair().repairOverlappingEdges(concave);
 	}
 
-//	private static void fourPointSpecialCase(Polygon concave, boolean cw, List<Polygon> result, double zplane,
-//			Vector3d normal, boolean debug, Transform orentationInv, boolean reorent, Color color)  {
-//		List<Vector3d> points = concave.getPoints();
-//		int size = points.size();
-//		for (int i = 0; i < size; i++) {
-//			// Get first two points to establish a direction vector
-//			Vector3d p1 = points.get(i);
-//			Vector3d p2 = points.get((i + 1) % size);
-//
-//			// Calculate the direction vector between first two points
-//			Vector3d direction = p1.minus(p2);
-//			// Normalize the direction vector
-//			double length = direction.length();
-//			double ep = Plane.getEPSILON();
-//			if (length < ep) { // If points are effectively identical
-//				continue;
-//			}
-//			direction.normalize();
-//			Vector3d p3 = points.get((i + 2) % size);
-//
-//			// Calculate cross product
-//			Vector3d cross = direction.cross(p1.minus(p3));
-//			// Calculate magnitude of cross product
-//			double magnitude = Math.abs(cross.length());
-//
-//			// If magnitude is not close to zero, points are not collinear
-//			if (magnitude > ep) {
-//
-//				Plane normal2 = concave.plane;
-//				try {
-//					Polygon one = new Polygon(
-//							new ArrayList<Vertex>(Arrays.asList(new Vertex(p1), new Vertex(p2), new Vertex(p3))),
-//							concave.getStorage(), true, normal2);
-//					if (reorent) {
-//						one = one.transform(orentationInv);
-//					}
-//					one.setColor(color);
-//					result.add(one);
-//				} catch (ColinearPointsException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
-//				try {
-//					Polygon two = new Polygon(
-//							new ArrayList<Vertex>(Arrays.asList(new Vertex(points.get((i + 3) % size)),
-//									new Vertex(points.get((i + 4) % size)), new Vertex(points.get((i + 5) % size)))),
-//							concave.getStorage(), true, normal2);
-//					if (reorent) {
-//						two = two.transform(orentationInv);
-//					}
-//					two.setColor(color);
-//					result.add(two);
-//				} catch (ColinearPointsException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
-//	
-//
-//				return;
-//			}
-//		}
-//
-//	}
+	// private static void fourPointSpecialCase(Polygon concave, boolean cw,
+	// List<Polygon> result, double zplane,
+	// Vector3d normal, boolean debug, Transform orentationInv, boolean reorent,
+	// Color color) {
+	// List<Vector3d> points = concave.getPoints();
+	// int size = points.size();
+	// for (int i = 0; i < size; i++) {
+	// // Get first two points to establish a direction vector
+	// Vector3d p1 = points.get(i);
+	// Vector3d p2 = points.get((i + 1) % size);
+	//
+	// // Calculate the direction vector between first two points
+	// Vector3d direction = p1.minus(p2);
+	// // Normalize the direction vector
+	// double length = direction.length();
+	// double ep = Plane.getEPSILON();
+	// if (length < ep) { // If points are effectively identical
+	// continue;
+	// }
+	// direction.normalize();
+	// Vector3d p3 = points.get((i + 2) % size);
+	//
+	// // Calculate cross product
+	// Vector3d cross = direction.cross(p1.minus(p3));
+	// // Calculate magnitude of cross product
+	// double magnitude = Math.abs(cross.length());
+	//
+	// // If magnitude is not close to zero, points are not collinear
+	// if (magnitude > ep) {
+	//
+	// Plane normal2 = concave.plane;
+	// try {
+	// Polygon one = new Polygon(
+	// new ArrayList<Vertex>(Arrays.asList(new Vertex(p1), new Vertex(p2), new
+	// Vertex(p3))),
+	// concave.getStorage(), true, normal2);
+	// if (reorent) {
+	// one = one.transform(orentationInv);
+	// }
+	// one.setColor(color);
+	// result.add(one);
+	// } catch (ColinearPointsException e) {
+	// // TODO Auto-generated catch block
+	// e.printStackTrace();
+	// }
+	// try {
+	// Polygon two = new Polygon(
+	// new ArrayList<Vertex>(Arrays.asList(new Vertex(points.get((i + 3) % size)),
+	// new Vertex(points.get((i + 4) % size)), new Vertex(points.get((i + 5) %
+	// size)))),
+	// concave.getStorage(), true, normal2);
+	// if (reorent) {
+	// two = two.transform(orentationInv);
+	// }
+	// two.setColor(color);
+	// result.add(two);
+	// } catch (ColinearPointsException e) {
+	// // TODO Auto-generated catch block
+	// e.printStackTrace();
+	// }
+	//
+	//
+	// return;
+	// }
+	// }
+	//
+	// }
 
 	private static void makeTrianglesInternal(Polygon concave, boolean cw, List<Polygon> result, double zplane,
 			Vector3d normal, boolean debug, Transform orentationInv, boolean reorent, Color color)
 			throws ColinearPointsException {
 		ArrayList<Vector3d> points = new ArrayList<>(concave.getPoints());
 		double z = concave.getVertices().get(0).pos.z;
-//		for (Vector3d v : points) {
-//			if (Math.abs(z - v.z) > 0.1) {
-//				throw new ColinearPointsException("Failed to triangulate, points must be coplainer");
-//			}
-//		}
+		// for (Vector3d v : points) {
+		// if (Math.abs(z - v.z) > 0.1) {
+		// throw new ColinearPointsException("Failed to triangulate, points must be
+		// coplainer");
+		// }
+		// }
 		while (points.size() > 0) {
 			int size = points.size();
 			for (int i = 0; i < size; i++) {
 				// Get first two points to establish a direction vector
 				Vector3d p1 = points.get(i);
 				Vector3d p2 = points.get((i + 1) % size);
-//				if (Math.abs(z - p1.z) > 0.1) {
-//					throw new ColinearPointsException("Failed to triangulate, points must be coplainer");
-//				}
-//				if (Math.abs(z - p2.z) > 0.1) {
-//					throw new ColinearPointsException("Failed to triangulate, points must be coplainer");
-//				}
+				// if (Math.abs(z - p1.z) > 0.1) {
+				// throw new ColinearPointsException("Failed to triangulate, points must be
+				// coplainer");
+				// }
+				// if (Math.abs(z - p2.z) > 0.1) {
+				// throw new ColinearPointsException("Failed to triangulate, points must be
+				// coplainer");
+				// }
 				// Calculate the direction vector between first two points
 				Vector3d direction = p1.minus(p2);
 				// Normalize the direction vector
@@ -753,7 +765,7 @@ public class PolygonUtil {
 				Vector3d p3 = points.get((i + 2) % size);
 				double abs = Math.abs(z - p3.z);
 				if (abs > 0.1) {
-					 new RuntimeException("Failed to triangulate, points must be coplainer").printStackTrace();
+					new RuntimeException("Failed to triangulate, points must be coplainer").printStackTrace();
 				}
 
 				// Calculate cross product
@@ -792,7 +804,8 @@ public class PolygonUtil {
 			}
 			if (size == points.size()) {
 				if (result.size() == 0)
-					throw new ColinearPointsException("Triangulation Internal Error! All remaining points are colinear!");
+					throw new ColinearPointsException(
+							"Triangulation Internal Error! All remaining points are colinear!");
 				return;
 			}
 		}
@@ -829,9 +842,9 @@ public class PolygonUtil {
 				Vertex e = null;// new Vertex(pos);
 				for (int x = 0; x < toTri.getVertices().size(); x++) {
 					Vector3d test = toTri.getVertices().get(x).pos;
-					double diffX = Math.abs( test.x-pos.x);
-					double diffY = Math.abs(test.y-pos.y);
-					if (diffY<Plane.getEPSILON() && diffX<Plane.getEPSILON()) {
+					double diffX = Math.abs(test.x - pos.x);
+					double diffY = Math.abs(test.y - pos.y);
+					if (diffY < Plane.getEPSILON() && diffX < Plane.getEPSILON()) {
 						e = toTri.getVertices().get(x).clone();
 						break;
 					}
@@ -839,7 +852,7 @@ public class PolygonUtil {
 				if (e == null) {
 					throw new RuntimeException("Failed to find point! " + pos + " missing from " + toTri);
 				}
-				if(!triPoints.contains(e))
+				if (!triPoints.contains(e))
 					triPoints.add(e);
 
 				if (counter == 2) {

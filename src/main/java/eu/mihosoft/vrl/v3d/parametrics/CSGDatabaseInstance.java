@@ -101,7 +101,7 @@ public class CSGDatabaseInstance {
 		IParametric function = getMapOfparametrics(instance).get(key);
 		if (function != null) {
 			CSG setManipulator = function.change(instance, key, new Long((long) (newValue * 1000)));
-			if(setManipulator.hasManipulator())
+			if (setManipulator.hasManipulator())
 				try {
 					setManipulator.setManipulator(instance.getManipulator());
 				} catch (MissingManipulatorException e) {
@@ -145,15 +145,15 @@ public class CSGDatabaseInstance {
 		return ret;
 	}
 
-//	public void clear() {
-//
-//		getDatabase();
-//		// synchronized(database){
-//		database.clear();
-//		// }
-//		parameterListeners.clear();
-//		saveDatabase();
-//	}
+	// public void clear() {
+	//
+	// getDatabase();
+	// // synchronized(database){
+	// database.clear();
+	// // }
+	// parameterListeners.clear();
+	// saveDatabase();
+	// }
 
 	public void addParameterListener(String key, IParameterChanged l) {
 		CopyOnWriteArrayList<IParameterChanged> list = getParamListeners(key);
@@ -254,7 +254,7 @@ public class CSGDatabaseInstance {
 						value.setInstance(this);
 						set(k, value);
 					}
-				//saveDatabase();
+				// saveDatabase();
 			} catch (Exception e) {
 				// System.out.println(f.getAbsolutePath());
 				e.printStackTrace();
@@ -275,8 +275,7 @@ public class CSGDatabaseInstance {
 
 	public void saveDatabase() throws Exception {
 		if (database == null || database.size() == 0) {
-			new Exception("Can not save an empty database! to " + getDbFile().getAbsolutePath()).printStackTrace();
-			;
+			new Exception("Can not save an empty database! to " + getDbFile().getAbsolutePath()).printStackTrace();;
 			return;
 		}
 		String writeOut = getDataBaseString();

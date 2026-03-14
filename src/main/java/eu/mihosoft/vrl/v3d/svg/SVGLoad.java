@@ -40,9 +40,7 @@ import eu.mihosoft.vrl.v3d.CSG;
 import eu.mihosoft.vrl.v3d.ColinearPointsException;
 import eu.mihosoft.vrl.v3d.Edge;
 import eu.mihosoft.vrl.v3d.Extrude;
-import eu.mihosoft.vrl.v3d.Plane;
 import eu.mihosoft.vrl.v3d.Polygon;
-import eu.mihosoft.vrl.v3d.PropertyStorage;
 import eu.mihosoft.vrl.v3d.Transform;
 import eu.mihosoft.vrl.v3d.Vector3d;
 import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
@@ -60,10 +58,10 @@ public class SVGLoad {
 	private HashMap<String, List<Polygon>> polygonByLayers = null;
 	private HashMap<String, ArrayList<CSG>> csgByLayers = new HashMap<String, ArrayList<CSG>>();
 	private HashMap<Polygon, Color> colors = new HashMap<>();
-//	private ArrayList<CSG> sections = null;
-//	private ArrayList<CSG> holes = null;
-//
-//	private List<Polygon> polygons = null;
+	// private ArrayList<CSG> sections = null;
+	// private ArrayList<CSG> holes = null;
+	//
+	// private List<Polygon> polygons = null;
 	private ISVGLoadProgress progress = null;
 	private double thickness;
 	private boolean negativeThickness = false;
@@ -71,15 +69,15 @@ public class SVGLoad {
 	private double width = 0;
 	private Double scale = null;
 	private HashMap<String, Double> units = new HashMap<>();
-//	static {
-//		units.put("mm", (1/SVGExporter.Scale));
-//		units.put("px", 1.0);
-//		units.put("cm", units.get("mm")/10.0);
-//		units.put("in", units.get("mm")/25.4);
-//		units.put("ft", units.get("in")/12.0);
-//		units.put("m", units.get("mm")/1000.0);
-//
-//	}
+	// static {
+	// units.put("mm", (1/SVGExporter.Scale));
+	// units.put("px", 1.0);
+	// units.put("cm", units.get("mm")/10.0);
+	// units.put("in", units.get("mm")/25.4);
+	// units.put("ft", units.get("in")/12.0);
+	// units.put("m", units.get("mm")/1000.0);
+	//
+	// }
 
 	private double toPx(String value) {
 
@@ -151,8 +149,9 @@ public class SVGLoad {
 		 * Use to create an instance of a class that can parse an SVG path element to
 		 * produce MetaPost code.
 		 *
-		 * @param pathNode The path node containing a "d" attribute (output as MetaPost
-		 *                 code).
+		 * @param pathNode
+		 *            The path node containing a "d" attribute (output as MetaPost
+		 *            code).
 		 */
 		public MetaPostPath2(Node pathNode) {
 			setPathNode(pathNode);
@@ -160,7 +159,7 @@ public class SVGLoad {
 
 		/**
 		 * Converts this object's SVG path to a MetaPost draw statement.
-		 * 
+		 *
 		 * @return A string that represents the MetaPost code for a path element.
 		 */
 		public String toCode() {
@@ -178,7 +177,7 @@ public class SVGLoad {
 
 			for (int i = 0; i < pathObjects; i++) {
 				SVGItem item = (SVGItem) pathList.getItem(i);
-				String itemLine = String.format(Locale.US,"%s%n", item.getValueAsString());
+				String itemLine = String.format(Locale.US, "%s%n", item.getValueAsString());
 				sb += itemLine;
 			}
 
@@ -187,9 +186,10 @@ public class SVGLoad {
 
 		/**
 		 * Typecasts the given pathNode to an SVGOMPathElement for later analysis.
-		 * 
-		 * @param pathNode The path element that contains curves, lines, and other SVG
-		 *                 instructions.
+		 *
+		 * @param pathNode
+		 *            The path element that contains curves, lines, and other SVG
+		 *            instructions.
 		 */
 		private void setPathNode(Node pathNode) {
 			this.pathElement = (SVGOMPathElement) pathNode;
@@ -198,7 +198,7 @@ public class SVGLoad {
 		/**
 		 * Returns an SVG document element that contains path instructions (usually for
 		 * drawing on a canvas).
-		 * 
+		 *
 		 * @return An object that contains a list of items representing pen movements.
 		 */
 		private SVGOMPathElement getPathElement() {
@@ -209,8 +209,10 @@ public class SVGLoad {
 	/**
 	 * Creates an SVG Document given a URI.
 	 *
-	 * @param uri Path to the file.
-	 * @throws Exception Something went wrong parsing the SVG file.
+	 * @param uri
+	 *            Path to the file.
+	 * @throws Exception
+	 *             Something went wrong parsing the SVG file.
 	 */
 	public SVGLoad(URI uri) throws IOException {
 		setSVGDocument(createSVGDocument(uri));
@@ -219,8 +221,10 @@ public class SVGLoad {
 	/**
 	 * Creates an SVG Document given a URI.
 	 *
-	 * @param f Path to the file.
-	 * @throws Exception Something went wrong parsing the SVG file.
+	 * @param f
+	 *            Path to the file.
+	 * @throws Exception
+	 *             Something went wrong parsing the SVG file.
 	 */
 	public SVGLoad(File f) throws IOException {
 		setSVGDocument(createSVGDocument(f.toURI()));
@@ -229,8 +233,10 @@ public class SVGLoad {
 	/**
 	 * Creates an SVG Document String of SVG data.
 	 *
-	 * @param data Contents of an svg file
-	 * @throws Exception Something went wrong parsing the SVG file.
+	 * @param data
+	 *            Contents of an svg file
+	 * @throws Exception
+	 *             Something went wrong parsing the SVG file.
 	 */
 	public SVGLoad(String data) throws IOException {
 		File tmpsvg = new File(System.getProperty("java.io.tmpdir") + "/" + Math.random());
@@ -251,8 +257,9 @@ public class SVGLoad {
 	/**
 	 * This function will create a list of polygons that can be exported back to an
 	 * SVG
-	 * 
-	 * @param f the file containing the SVG data
+	 *
+	 * @param f
+	 *            the file containing the SVG data
 	 * @return
 	 * @throws IOException
 	 */
@@ -273,9 +280,10 @@ public class SVGLoad {
 		return getPolygonByLayers();
 	}
 
-//	public static ArrayList<CSG> extrude(File f, double thickness) throws IOException {
-//		return new SVGLoad(f.toURI()).extrude(thickness);
-//	}
+	// public static ArrayList<CSG> extrude(File f, double thickness) throws
+	// IOException {
+	// return new SVGLoad(f.toURI()).extrude(thickness);
+	// }
 
 	public static ArrayList<CSG> extrude(URI uri, double thickness) throws IOException {
 
@@ -293,9 +301,9 @@ public class SVGLoad {
 			double viewH = Double.parseDouble(viewbox.split(" ")[3]);
 			try {
 				NamedNodeMap all = documentElement.getAttributes();
-//			for(int i=0;i<all.getLength();i++) {
-//				System.err.println("Attribute found "+all.item(i).getNodeName());
-//			}
+				// for(int i=0;i<all.getLength();i++) {
+				// System.err.println("Attribute found "+all.item(i).getNodeName());
+				// }
 				String hval = documentElement.getAttribute("height");
 				String wval = documentElement.getAttribute("width");
 
@@ -417,7 +425,7 @@ public class SVGLoad {
 			double d = toPx(transformValues[3]);
 			double e = toPx(transformValues[4]);
 			double f = toPx(transformValues[5]);
-			double elemenents[] = { a, c, 0, e, b, d, 0, f, 0, 0, 1, 0, 0, 0, 0, 1 };
+			double elemenents[] = {a, c, 0, e, b, d, 0, f, 0, 0, 1, 0, 0, 0, 0, 1};
 			newFrame.apply(new Transform(new Matrix4d(elemenents)));
 
 		}
@@ -443,20 +451,21 @@ public class SVGLoad {
 			}
 			try {
 				if (SVGOMPathElement.class.isInstance(pathNode)) {
-//						NamedNodeMap attribs = pathNode.getAttributes();
-//						for(int i=0;i<attribs.getLength();i++) {
-//							Node n = attribs.item(i);
-//							String namespaceURI = n.getNamespaceURI();
-//							String nodeName = n.getNodeName();
-//							System.out.print("\nName "+nodeName+" namespace "+namespaceURI);
-//							try {
-//								System.out.print(" value "+attribs.getNamedItemNS(namespaceURI, nodeName).getNodeValue());
-//							}catch(Exception ex) {
-//								
-//							}
-//							//com.neuronrobotics.sdk.common.Log.error("");
-//							
-//						}
+					// NamedNodeMap attribs = pathNode.getAttributes();
+					// for(int i=0;i<attribs.getLength();i++) {
+					// Node n = attribs.item(i);
+					// String namespaceURI = n.getNamespaceURI();
+					// String nodeName = n.getNodeName();
+					// System.out.print("\nName "+nodeName+" namespace "+namespaceURI);
+					// try {
+					// System.out.print(" value "+attribs.getNamedItemNS(namespaceURI,
+					// nodeName).getNodeValue());
+					// }catch(Exception ex) {
+					//
+					// }
+					// //com.neuronrobotics.sdk.common.Log.error("");
+					//
+					// }
 					Color c = null;
 					//// com.neuronrobotics.sdk.common.Log.error("Layer "+encapsulatingLayer);
 					try {
@@ -546,7 +555,7 @@ public class SVGLoad {
 
 					for (int i = 0; i < pathObjects; i++) {
 						SVGItem item = (SVGItem) pathList.getItem(i);
-						String itemLine = String.format(Locale.US,"%s%n", item.getValueAsString());
+						String itemLine = String.format(Locale.US, "%s%n", item.getValueAsString());
 						if (sb == null) {
 							sb = "M " + itemLine;
 						}
@@ -594,13 +603,13 @@ public class SVGLoad {
 			// println "Single path found"
 
 			// setHolePolarity(true);
-//			try {
+			// try {
 			loadSingle(code, startingFrame, encapsulatingLayer, c);
-//			} catch (Exception ex) {
-//				//com.neuronrobotics.sdk.common.Log.error("Polygon failed to load!");
-//				ex.printStackTrace();
-//				// BowlerStudio.printStackTrace(ex);
-//			}
+			// } catch (Exception ex) {
+			// //com.neuronrobotics.sdk.common.Log.error("Polygon failed to load!");
+			// ex.printStackTrace();
+			// // BowlerStudio.printStackTrace(ex);
+			// }
 		} else {
 
 			// setHolePolarity(false);
@@ -780,7 +789,8 @@ public class SVGLoad {
 	 * initialization is also required to extract information from the SVG path
 	 * elements.
 	 *
-	 * @param document The document that contains SVG content.
+	 * @param document
+	 *            The document that contains SVG content.
 	 */
 	public void setSVGDocument(Document document) {
 		initSVGDOM(document);
@@ -789,7 +799,7 @@ public class SVGLoad {
 
 	/**
 	 * Returns the SVG document parsed upon instantiating this class.
-	 * 
+	 *
 	 * @return A valid, parsed, non-null SVG document instance.
 	 */
 	public Document getSVGDocument() {
@@ -799,8 +809,9 @@ public class SVGLoad {
 	/**
 	 * Enhance the SVG DOM for the given document to provide CSS- and SVG-specific
 	 * DOM interfaces.
-	 * 
-	 * @param document The document to enhance.
+	 *
+	 * @param document
+	 *            The document to enhance.
 	 * @link http://wiki.apache.org/xmlgraphics-batik/BootSvgAndCssDom
 	 */
 	private void initSVGDOM(Document document) {
@@ -815,10 +826,12 @@ public class SVGLoad {
 
 	/**
 	 * Use the SAXSVGDocumentFactory to parse the given URI into a DOM.
-	 * 
-	 * @param uri The path to the SVG file to read.
+	 *
+	 * @param uri
+	 *            The path to the SVG file to read.
 	 * @return A Document instance that represents the SVG file.
-	 * @throws Exception The file could not be read.
+	 * @throws Exception
+	 *             The file could not be read.
 	 */
 	private Document createSVGDocument(URI uri) throws IOException {
 		String parser = XMLResourceDescriptor.getXMLParserClassName();

@@ -58,97 +58,101 @@ public class BezierPath {
 			}
 			double x, y;
 			switch (curCmd) {
-			case 'M':
-				x = nextFloat(tokens);
-				y = nextFloat(tokens);
-				path.movetoAbs(x, y);
-				setThePoint(new Vector3d(x, y, 0));
-				curCmd = 'L';
-				break;
-			case 'm':
-				x = nextFloat(tokens);
-				y = nextFloat(tokens);
-				path.movetoRel(x, y);
-				setThePoint(new Vector3d(x, y, 0));
-				curCmd = 'l';
-				break;
-			case 'L':
-				path.linetoAbs(nextFloat(tokens), nextFloat(tokens));
-				setThePoint(path.bezierSegs.get(path.bezierSegs.size() - 1).eval(1));
-				break;
-			case 'l':
-				path.linetoRel(nextFloat(tokens), nextFloat(tokens));
-				setThePoint(path.bezierSegs.get(path.bezierSegs.size() - 1).eval(1));
-				break;
-			case 'H':
-				path.linetoHorizontalAbs(nextFloat(tokens));
+				case 'M' :
+					x = nextFloat(tokens);
+					y = nextFloat(tokens);
+					path.movetoAbs(x, y);
+					setThePoint(new Vector3d(x, y, 0));
+					curCmd = 'L';
+					break;
+				case 'm' :
+					x = nextFloat(tokens);
+					y = nextFloat(tokens);
+					path.movetoRel(x, y);
+					setThePoint(new Vector3d(x, y, 0));
+					curCmd = 'l';
+					break;
+				case 'L' :
+					path.linetoAbs(nextFloat(tokens), nextFloat(tokens));
+					setThePoint(path.bezierSegs.get(path.bezierSegs.size() - 1).eval(1));
+					break;
+				case 'l' :
+					path.linetoRel(nextFloat(tokens), nextFloat(tokens));
+					setThePoint(path.bezierSegs.get(path.bezierSegs.size() - 1).eval(1));
+					break;
+				case 'H' :
+					path.linetoHorizontalAbs(nextFloat(tokens));
 
-				setThePoint(path.bezierSegs.get(path.bezierSegs.size() - 1).eval(1));
+					setThePoint(path.bezierSegs.get(path.bezierSegs.size() - 1).eval(1));
 
-				break;
-			case 'h':
-				path.linetoHorizontalRel(nextFloat(tokens));
+					break;
+				case 'h' :
+					path.linetoHorizontalRel(nextFloat(tokens));
 
-				setThePoint(path.bezierSegs.get(path.bezierSegs.size() - 1).eval(1));
+					setThePoint(path.bezierSegs.get(path.bezierSegs.size() - 1).eval(1));
 
-				break;
-			case 'V':
-				path.linetoVerticalAbs(nextFloat(tokens));
+					break;
+				case 'V' :
+					path.linetoVerticalAbs(nextFloat(tokens));
 
-				setThePoint(path.bezierSegs.get(path.bezierSegs.size() - 1).eval(1));
+					setThePoint(path.bezierSegs.get(path.bezierSegs.size() - 1).eval(1));
 
-				break;
-			case 'v':
-				path.linetoVerticalAbs(nextFloat(tokens));
-				setThePoint(path.bezierSegs.get(path.bezierSegs.size() - 1).eval(1));
-				break;
-			case 'A':
-			case 'a':
-				break;
-			case 'Q':
-				path.curvetoQuadraticAbs(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens), nextFloat(tokens));
-				expandPath();
-				break;
-			case 'q':
-				path.curvetoQuadraticAbs(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens), nextFloat(tokens));
-				expandPath();
-				break;
-			case 'T':
-				path.curvetoQuadraticSmoothAbs(nextFloat(tokens), nextFloat(tokens));
-				expandPath();
-				break;
-			case 't':
-				path.curvetoQuadraticSmoothRel(nextFloat(tokens), nextFloat(tokens));
-				expandPath();
-				break;
-			case 'C':
-				path.curvetoCubicAbs(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens), nextFloat(tokens),
-						nextFloat(tokens), nextFloat(tokens));
-				expandPath();
-				break;
-			case 'c':
-				path.curvetoCubicRel(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens), nextFloat(tokens),
-						nextFloat(tokens), nextFloat(tokens));
-				expandPath();
-				break;
-			case 'S':
-				path.curvetoCubicSmoothAbs(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens), nextFloat(tokens));
-				expandPath();
-				break;
-			case 's':
-				path.curvetoCubicSmoothRel(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens), nextFloat(tokens));
-				expandPath();
-				break;
-			case 'Z':
-			case 'z':
-				path.closePath();
-				// pointList.add(path.bezierSegs.get(path.bezierSegs.size() - 1).eval(1));
-				break;
-			case '/':
-				// comment line
-				break;
-			default:
-				throw new RuntimeException("Invalid path element");
+					break;
+				case 'v' :
+					path.linetoVerticalAbs(nextFloat(tokens));
+					setThePoint(path.bezierSegs.get(path.bezierSegs.size() - 1).eval(1));
+					break;
+				case 'A' :
+				case 'a' :
+					break;
+				case 'Q' :
+					path.curvetoQuadraticAbs(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens),
+							nextFloat(tokens));
+					expandPath();
+					break;
+				case 'q' :
+					path.curvetoQuadraticAbs(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens),
+							nextFloat(tokens));
+					expandPath();
+					break;
+				case 'T' :
+					path.curvetoQuadraticSmoothAbs(nextFloat(tokens), nextFloat(tokens));
+					expandPath();
+					break;
+				case 't' :
+					path.curvetoQuadraticSmoothRel(nextFloat(tokens), nextFloat(tokens));
+					expandPath();
+					break;
+				case 'C' :
+					path.curvetoCubicAbs(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens), nextFloat(tokens),
+							nextFloat(tokens), nextFloat(tokens));
+					expandPath();
+					break;
+				case 'c' :
+					path.curvetoCubicRel(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens), nextFloat(tokens),
+							nextFloat(tokens), nextFloat(tokens));
+					expandPath();
+					break;
+				case 'S' :
+					path.curvetoCubicSmoothAbs(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens),
+							nextFloat(tokens));
+					expandPath();
+					break;
+				case 's' :
+					path.curvetoCubicSmoothRel(nextFloat(tokens), nextFloat(tokens), nextFloat(tokens),
+							nextFloat(tokens));
+					expandPath();
+					break;
+				case 'Z' :
+				case 'z' :
+					path.closePath();
+					// pointList.add(path.bezierSegs.get(path.bezierSegs.size() - 1).eval(1));
+					break;
+				case '/' :
+					// comment line
+					break;
+				default :
+					throw new RuntimeException("Invalid path element");
 			}
 		}
 	}
@@ -167,7 +171,7 @@ public class BezierPath {
 		double magnitude = start.minus(end).magnitude();
 		if (magnitude < Plane.getEPSILON())
 			return 1;
-		double dpoints = magnitude /1.25;
+		double dpoints = magnitude / 1.25;
 		if (dpoints < 1)
 			dpoints = 1;
 		double increment = 1.0 / dpoints;
@@ -176,7 +180,7 @@ public class BezierPath {
 			increment = min;
 		if (increment > MaximumInterpolationStep)
 			increment = MaximumInterpolationStep;
-//		System.out.println("Path with inc "+points);
+		// System.out.println("Path with inc "+points);
 		return increment;
 	}
 
@@ -214,10 +218,10 @@ public class BezierPath {
 	 */
 	public Vector3d eval(double interp) {
 		Vector3d point = new Vector3d(0, 0);// = new Vector3d();
-//		if (interp < 0.001)
-//			interp = (double ) 0.001;
-//		if (interp > 0.9999)
-//			interp = (double ) 0.9999;
+		// if (interp < 0.001)
+		// interp = (double ) 0.001;
+		// if (interp > 0.9999)
+		// interp = (double ) 0.9999;
 
 		double curLength = path.curveLength * interp;
 		for (Iterator<Bezier> it = path.bezierSegs.iterator(); it.hasNext();) {

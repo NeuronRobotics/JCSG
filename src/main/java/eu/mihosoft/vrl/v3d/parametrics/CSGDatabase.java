@@ -1,74 +1,69 @@
 package eu.mihosoft.vrl.v3d.parametrics;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.HashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-
-
-import eu.mihosoft.vrl.v3d.CSG;
 
 public class CSGDatabase {
-	private static CSGDatabaseInstance instance ;
-//	public static void set(String key, Parameter value) {
-//		getInstance().set(key, value);
-//	}
-//
-//	public static Parameter get(String key) {
-//		return getInstance().get(key);
-//	}
-//
-//	public static void clear() {
-//		getInstance().clear();
-//	}
-//
-//	public static void addParameterListener(String key, IParameterChanged l) {
-//		getInstance().addParameterListener(key, l);
-//	}
-//
-//	public static void clearParameterListeners(String key) {
-//		getInstance().clearParameterListeners(key);
-//	}
-//
-//	public static void removeParameterListener(String key, IParameterChanged l) {
-//		getInstance().removeParameterListener(key, l);
-//	}
-//
-//	public static CopyOnWriteArrayList<IParameterChanged> getParamListeners(String key) {
-//		return getInstance().getParamListeners(key);
-//	}
-//
-//	public static void delete(String key) {
-//		getInstance().delete(key);
-//	}
-//
-//	public static void loadDatabaseFromFile(File f) {
-//		 getInstance().loadDatabaseFromFile(f);
-//	}
-//
-//	public static String getDataBaseString() {
-//		return getInstance().getDataBaseString();
-//	}
-//
-//	public static void saveDatabase() {
-//		getInstance().saveDatabase();
-//	}
-//
-//
-//	public static File getDbFile() {
-//		return getInstance().getDbFile();
-//	}
-//
-//	public static void reLoadDbFile() {
-//		getInstance().reLoadDbFile();
-//	}
+	private static CSGDatabaseInstance instance;
+	// public static void set(String key, Parameter value) {
+	// getInstance().set(key, value);
+	// }
+	//
+	// public static Parameter get(String key) {
+	// return getInstance().get(key);
+	// }
+	//
+	// public static void clear() {
+	// getInstance().clear();
+	// }
+	//
+	// public static void addParameterListener(String key, IParameterChanged l) {
+	// getInstance().addParameterListener(key, l);
+	// }
+	//
+	// public static void clearParameterListeners(String key) {
+	// getInstance().clearParameterListeners(key);
+	// }
+	//
+	// public static void removeParameterListener(String key, IParameterChanged l) {
+	// getInstance().removeParameterListener(key, l);
+	// }
+	//
+	// public static CopyOnWriteArrayList<IParameterChanged>
+	// getParamListeners(String key) {
+	// return getInstance().getParamListeners(key);
+	// }
+	//
+	// public static void delete(String key) {
+	// getInstance().delete(key);
+	// }
+	//
+	// public static void loadDatabaseFromFile(File f) {
+	// getInstance().loadDatabaseFromFile(f);
+	// }
+	//
+	// public static String getDataBaseString() {
+	// return getInstance().getDataBaseString();
+	// }
+	//
+	// public static void saveDatabase() {
+	// getInstance().saveDatabase();
+	// }
+	//
+	//
+	// public static File getDbFile() {
+	// return getInstance().getDbFile();
+	// }
+	//
+	// public static void reLoadDbFile() {
+	// getInstance().reLoadDbFile();
+	// }
 
 	public static CSGDatabaseInstance getInstance() {
-		//new Exception("Depricated database access!").printStackTrace();
-		if(instance==null) {
+		// new Exception("Depricated database access!").printStackTrace();
+		if (instance == null) {
 			try {
-				instance = new CSGDatabaseInstance( Files.createTempFile("CSGDatabase", ".json").toFile());
+				instance = new CSGDatabaseInstance(Files.createTempFile("CSGDatabase", ".json").toFile());
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
@@ -77,7 +72,7 @@ public class CSGDatabase {
 		return instance;
 	}
 	public static void setInstance(CSGDatabaseInstance instance) {
-		System.out.println("\n\nCSG Instance Set here to "+instance.getDbFile().getAbsolutePath()+"\n\n");
+		System.out.println("\n\nCSG Instance Set here to " + instance.getDbFile().getAbsolutePath() + "\n\n");
 		CSGDatabase.instance = instance;
 	}
 }

@@ -1,9 +1,7 @@
 package eu.mihosoft.vrl.v3d;
 
 import java.math.BigInteger;
-import java.net.ServerSocket;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -45,39 +43,39 @@ public class CSGServer {
 	public CSGServer(int port, File APIKEYS) throws IOException {
 		this.port = port;
 		this.threadPool = Executors.newCachedThreadPool();
-		
+
 		if (APIKEYS == null) {
 			throw new NullPointerException("API Key file can not be null");
 		}
-		if(APIKEYS.exists())
+		if (APIKEYS.exists())
 			lines = Files.readAllLines(APIKEYS.toPath()).toArray(new String[0]);
-		if(lines!=null) {
-			System.out.println("Starting server with "+lines.length+" keys from "+APIKEYS.getAbsolutePath());
-		}else {
-			System.err.println("NO API KEYFILE Provided: "+APIKEYS.getAbsolutePath());
+		if (lines != null) {
+			System.out.println("Starting server with " + lines.length + " keys from " + APIKEYS.getAbsolutePath());
+		} else {
+			System.err.println("NO API KEYFILE Provided: " + APIKEYS.getAbsolutePath());
 		}
 	}
 	public void addListener(ICSGServerEvent e) {
-		if(listeners.contains(e))
+		if (listeners.contains(e))
 			return;
 		listeners.add(e);
 	}
 	public void removeListener(ICSGServerEvent e) {
-		if(!listeners.contains(e))
+		if (!listeners.contains(e))
 			return;
 		listeners.remove(e);
 	}
-	
+
 	private void fireStart() {
-		for(ICSGServerEvent e:listeners) {
+		for (ICSGServerEvent e : listeners) {
 			try {
 				e.starting();
-			}catch(Throwable t) {
+			} catch (Throwable t) {
 				t.printStackTrace();
 			}
 		}
 	}
-	
+
 	public static void ensureKeystoreExists(String keystorePath, String keystorePassword, String alias,
 			String commonName) {
 		File keystoreFile = new File(keystorePath);
@@ -97,7 +95,7 @@ public class CSGServer {
 		}
 	}
 
-// Alternative implementation using Bouncy Castle (if available)
+	// Alternative implementation using Bouncy Castle (if available)
 	private static void generateKeystoreWithBouncyCastle(String keystorePath, String keystorePassword, String alias,
 			String commonName) throws Exception {
 
@@ -114,7 +112,7 @@ public class CSGServer {
 		KeyStore keyStore = KeyStore.getInstance("JKS");
 		keyStore.load(null, null); // Initialize empty keystore
 
-		Certificate[] certificateChain = { certificate };
+		Certificate[] certificateChain = {certificate};
 		keyStore.setKeyEntry(alias, keyPair.getPrivate(), keystorePassword.toCharArray(), certificateChain);
 
 		// Save keystore to file
@@ -136,8 +134,8 @@ public class CSGServer {
 		Date notAfter = Date.from(now.plus(365, ChronoUnit.DAYS));
 
 		// Create X.500 distinguished name
-		String distinguishedName = String.format(Locale.US,"CN=%s,OU=Auto-Generated,O=Development,L=Unknown,ST=Unknown,C=US",
-				commonName);
+		String distinguishedName = String.format(Locale.US,
+				"CN=%s,OU=Auto-Generated,O=Development,L=Unknown,ST=Unknown,C=US", commonName);
 		org.bouncycastle.asn1.x500.X500Name x500Name = new org.bouncycastle.asn1.x500.X500Name(distinguishedName);
 
 		// Generate serial number
@@ -180,7 +178,7 @@ public class CSGServer {
 		}));
 		// Load the keystore
 		KeyStore keyStore = KeyStore.getInstance("JKS");
-		String path = getDirectory().getAbsolutePath()+"/"+KEYSTORE_PATH;
+		String path = getDirectory().getAbsolutePath() + "/" + KEYSTORE_PATH;
 		ensureKeystoreExists(path, KEYSTORE_NAME, "server", "localhost");
 		keyStore.load(new FileInputStream(path), KEYSTORE_NAME.toCharArray());
 
@@ -206,7 +204,7 @@ public class CSGServer {
 			try {
 				fireStart();
 				SSLSocket clientSocket = (SSLSocket) serverSocket2.accept();
-				threadPool.execute(new CSGServerHandler(clientSocket,lines,listeners));
+				threadPool.execute(new CSGServerHandler(clientSocket, lines, listeners));
 			} catch (IOException e) {
 				if (isRunning()) {
 					System.err.println("Error accepting client connection: " + e.getMessage());

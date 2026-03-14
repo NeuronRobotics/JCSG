@@ -9,16 +9,19 @@ package eu.mihosoft.vrl.v3d;
 //  Auto-generated Javadoc
 /**
  * Weight function.
- * 
+ *
  * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
  */
 @FunctionalInterface
 public interface WeightFunction {
-    /**
-     * Evaluates the function at the specified location.
-     * @param v location
-     * @param csg csg
-     * @return the weight of the specified position
-     */
-    public double eval(Vector3d v, CSG csg);
+	/**
+	 * Evaluates the function at the specified location.
+	 *
+	 * @param v
+	 *            location
+	 * @param csg
+	 *            csg
+	 * @return the weight of the specified position
+	 */
+	public double eval(Vector3d v, CSG csg);
 }
