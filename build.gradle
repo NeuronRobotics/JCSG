@@ -6,7 +6,10 @@ plugins {
 	id 'signing'
 	//id 'io.codearte.nexus-staging' version '0.30.0'
 }
-
+java {
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
+}
 File buildDir = file(".");
 Properties props = new Properties()
 props.load(new FileInputStream(buildDir.getAbsolutePath()+"/src/main/resources/com/neuronrobotics/javacad/build.properties"))
@@ -14,41 +17,7 @@ group = "com.neuronrobotics"
 archivesBaseName = "JavaCad"
 version = props."app.version"
 
-// BEGIN AI SLOP
 
-//nexusStaging {
-//	serverUrl = "https://oss.sonatype.org/service/local/"
-//	username = System.getenv("MAVEN_USERNAME")
-//	password = System.getenv("MAVEN_PASSWORD")
-//	packageGroup = "com.neuronrobotics" // Replace with your actual package group
-//}
-
-//task closeAndReleaseSeparately {
-//	dependsOn tasks.releaseRepository
-//}
-
-//tasks.releaseRepository.dependsOn tasks.closeRepository
-//tasks.closeRepository.dependsOn tasks.getStagingProfile
-
-// Optional: Add this if you want to see more information during the execution
-//tasks.getStagingProfile.logging.level = LogLevel.INFO
-//tasks.closeRepository.logging.level = LogLevel.INFO
-//tasks.releaseRepository.logging.level = LogLevel.INFO
-
-//tasks.getStagingProfile.doFirst {
-//	println "Executing getStagingProfile task"
-//}
-
-//tasks.closeRepository.doFirst {
-//	println "Executing closeRepository task"
-//}
-//
-//tasks.releaseRepository.doFirst {
-//	println "Executing releaseRepository task"
-//}
-
-// END AI SLOP
-sourceCompatibility = '1.8'
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
 //apply from: 'http://gradle-plugins.mihosoft.eu/latest/vlicenseheader.gradle'
@@ -124,7 +93,7 @@ dependencies {
 	implementation 'org.bouncycastle:bcpkix-jdk18on:1.80'
 	
 	//manifold 3d
-	implementation("com.github.madhephaestus:manifold3d:3.0.7")
+	implementation("com.github.madhephaestus:manifold3d:3.2.1")
 	
 }
 
@@ -134,7 +103,17 @@ ext {
 	buildTime = new java.text.SimpleDateFormat('HH:mm:ss.SSSZ').format(buildTimeAndDate)
 }
 
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs += ['--enable-preview']
+}
 
+tasks.withType(Test).configureEach {
+    jvmArgs '--enable-preview'
+}
+
+tasks.withType(JavaExec).configureEach {
+    jvmArgs '--enable-preview'
+}
 test {
 	testLogging {
 		// Show which test is running
