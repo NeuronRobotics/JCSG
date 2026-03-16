@@ -49,7 +49,7 @@ public class STLLoader {
 	 *             Signals that an I/O exception has occurred.
 	 */
 	public ArrayList<Polygon> parse(File f) throws IOException {
-		if(CSG.getDefaultOptionType()==OptType.Manifold3d) {
+		if (CSG.getDefaultOptionType() == OptType.Manifold3d) {
 			new RuntimeException("Manifold3d STL import not implemented yet").printStackTrace();
 		}
 		ArrayList<Polygon> polygons = new ArrayList<>();

@@ -42,7 +42,6 @@ import eu.mihosoft.vrl.v3d.parametrics.LengthParameter;
 import eu.mihosoft.vrl.v3d.parametrics.Parameter;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.time.Duration;
@@ -195,7 +194,7 @@ public class CSG implements IuserAPI, Serializable {
 
 	private int pointsAdded;
 	private String uniqueId = UUID.randomUUID().toString();
-	private static ManifoldBindings manifold=null;
+	private static ManifoldBindings manifold = null;
 
 	/**
 	 * Instantiates a new csg.
@@ -890,15 +889,15 @@ public class CSG implements IuserAPI, Serializable {
 		// triangulate();
 		// csg.triangulate();
 		switch (getOptType()) {
-		case CSG_BOUND:
-			return _unionCSGBoundsOpt(csg).historySync(this).historySync(csg);
-		case POLYGON_BOUND:
-			return _unionPolygonBoundsOpt(csg).historySync(this).historySync(csg);
-		case Manifold3d:
-			new RuntimeException("Not implemented yet").printStackTrace();
-		default:
-			// return _unionIntersectOpt(csg);
-			return _unionNoOpt(csg).historySync(this).historySync(csg);
+			case CSG_BOUND :
+				return _unionCSGBoundsOpt(csg).historySync(this).historySync(csg);
+			case POLYGON_BOUND :
+				return _unionPolygonBoundsOpt(csg).historySync(this).historySync(csg);
+			case Manifold3d :
+				new RuntimeException("Not implemented yet").printStackTrace();
+			default :
+				// return _unionIntersectOpt(csg);
+				return _unionNoOpt(csg).historySync(this).historySync(csg);
 
 		}
 	}
@@ -1416,14 +1415,14 @@ public class CSG implements IuserAPI, Serializable {
 			// polygons
 			if (this.getPolygons().size() > 0 && csg.getPolygons().size() > 0) {
 				switch (getOptType()) {
-				case CSG_BOUND:
-					return _differenceCSGBoundsOpt(csg).historySync(this).historySync(csg);
-				case POLYGON_BOUND:
-					return _differencePolygonBoundsOpt(csg).historySync(this).historySync(csg);
-				case Manifold3d:
-					new RuntimeException("Not implemented yet").printStackTrace();
-				default:
-					return _differenceNoOpt(csg).historySync(this).historySync(csg);
+					case CSG_BOUND :
+						return _differenceCSGBoundsOpt(csg).historySync(this).historySync(csg);
+					case POLYGON_BOUND :
+						return _differencePolygonBoundsOpt(csg).historySync(this).historySync(csg);
+					case Manifold3d :
+						new RuntimeException("Not implemented yet").printStackTrace();
+					default :
+						return _differenceNoOpt(csg).historySync(this).historySync(csg);
 
 				}
 			} else
@@ -1438,16 +1437,16 @@ public class CSG implements IuserAPI, Serializable {
 
 				if (intersectingParts.getPolygons().size() > 0) {
 					switch (getOptType()) {
-					case CSG_BOUND:
-						return _differenceCSGBoundsOpt(intersectingParts).historySync(this)
-								.historySync(intersectingParts);
-					case POLYGON_BOUND:
-						return _differencePolygonBoundsOpt(intersectingParts).historySync(this)
-								.historySync(intersectingParts);
-					case Manifold3d:
-						new RuntimeException("Not implemented yet").printStackTrace();
-					default:
-						return _differenceNoOpt(intersectingParts).historySync(this).historySync(intersectingParts);
+						case CSG_BOUND :
+							return _differenceCSGBoundsOpt(intersectingParts).historySync(this)
+									.historySync(intersectingParts);
+						case POLYGON_BOUND :
+							return _differencePolygonBoundsOpt(intersectingParts).historySync(this)
+									.historySync(intersectingParts);
+						case Manifold3d :
+							new RuntimeException("Not implemented yet").printStackTrace();
+						default :
+							return _differenceNoOpt(intersectingParts).historySync(this).historySync(intersectingParts);
 					}
 				} else
 					return this;
@@ -1594,10 +1593,10 @@ public class CSG implements IuserAPI, Serializable {
 			ex.printStackTrace();
 			return CSG.fromPolygons(new ArrayList<Polygon>()).historySync(this).historySync(csg);
 		}
-		if(defaultOptType==OptType.Manifold3d) {
+		if (defaultOptType == OptType.Manifold3d) {
 			new RuntimeException("Manifold3d not implemented here").printStackTrace();
 		}
-		
+
 		Node a;
 		try {
 			a = new Node(this.clone().getPolygons(), this.getPolygons().get(0).getPlane());
@@ -1719,19 +1718,19 @@ public class CSG implements IuserAPI, Serializable {
 		toStlString(sb);
 		return sb.toString();
 	}
-	
+
 	public CSG to3mf(File target) {
-		if(defaultOptType == OptType.Manifold3d) {
+		if (defaultOptType == OptType.Manifold3d) {
 			new RuntimeException("Manifold3d 3mf export not implemented yet").printStackTrace();
-		}else {
+		} else {
 			throw new RuntimeException("Non-Manifold3d 3mf export not implemented yet");
 		}
 		return this;
 	}
-	public static  CSG loadFrom3mf(File target) {
-		if(defaultOptType == OptType.Manifold3d) {
+	public static CSG loadFrom3mf(File target) {
+		if (defaultOptType == OptType.Manifold3d) {
 			new RuntimeException("Manifold3d 3mf export not implemented yet").printStackTrace();
-		}else {
+		} else {
 			throw new RuntimeException("Non-Manifold3d 3mf export not implemented yet");
 		}
 		return null;
@@ -1745,7 +1744,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return the specified string builder
 	 */
 	public StringBuilder toStlString(StringBuilder sb) {
-		if(defaultOptType == OptType.Manifold3d) {
+		if (defaultOptType == OptType.Manifold3d) {
 			new RuntimeException("Manifold3d STL export not implemented yet").printStackTrace();
 		}
 		triangulate(false);
@@ -2804,11 +2803,11 @@ public class CSG implements IuserAPI, Serializable {
 	 *            the optType to set
 	 */
 	public static void setDefaultOptType(OptType optType) {
-		if(optType == OptType.Manifold3d) {
+		if (optType == OptType.Manifold3d) {
 			try {
 				manifold = new ManifoldBindings();
 				Slice.setSliceEngine(new ISlice() {
-					
+
 					@Override
 					public List<Polygon> slice(CSG incoming, Transform slicePlane, double normalInsetDistance)
 							throws ColinearPointsException {
@@ -2819,7 +2818,7 @@ public class CSG implements IuserAPI, Serializable {
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-				optType=defaultOptType;
+				optType = defaultOptType;
 			}
 		}
 		defaultOptType = optType;
@@ -2860,7 +2859,7 @@ public class CSG implements IuserAPI, Serializable {
 
 		/** The polygon bound. */
 		POLYGON_BOUND,
-		
+
 		Manifold3d,
 
 		/** The none. */
