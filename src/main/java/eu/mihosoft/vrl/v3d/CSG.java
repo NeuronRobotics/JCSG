@@ -1682,6 +1682,9 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return the specified string builder
 	 */
 	public StringBuilder toStlString(StringBuilder sb) {
+		if(defaultOptType == OptType.Manifold3d) {
+			new RuntimeException("Manifold3d STL export not implemented yet").printStackTrace();
+		}
 		triangulate(false);
 		try {
 			sb.append("solid v3d.csg\n");

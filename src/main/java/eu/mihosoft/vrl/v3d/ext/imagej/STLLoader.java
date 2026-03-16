@@ -19,6 +19,8 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
+import eu.mihosoft.vrl.v3d.CSG;
+import eu.mihosoft.vrl.v3d.CSG.OptType;
 import eu.mihosoft.vrl.v3d.ColinearPointsException;
 import eu.mihosoft.vrl.v3d.Plane;
 import eu.mihosoft.vrl.v3d.Polygon;
@@ -50,6 +52,9 @@ public class STLLoader {
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	public ArrayList<Polygon> parse(File f) throws IOException {
+		if(CSG.getDefaultOptionType()==OptType.Manifold3d) {
+			new RuntimeException("Manifold3d STL import not implemented yet").printStackTrace();
+		}
 		ArrayList<Polygon> polygons = new ArrayList<>();
 
 		// determine if this is a binary or ASCII STL
