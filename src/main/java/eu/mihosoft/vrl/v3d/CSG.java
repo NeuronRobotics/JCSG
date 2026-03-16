@@ -870,6 +870,8 @@ public class CSG implements IuserAPI, Serializable {
 			return _unionCSGBoundsOpt(csg).historySync(this).historySync(csg);
 		case POLYGON_BOUND:
 			return _unionPolygonBoundsOpt(csg).historySync(this).historySync(csg);
+		case Manifold3d:
+			new RuntimeException("Not implemented yet").printStackTrace();
 		default:
 			// return _unionIntersectOpt(csg);
 			return _unionNoOpt(csg).historySync(this).historySync(csg);
@@ -1381,13 +1383,15 @@ public class CSG implements IuserAPI, Serializable {
 					return _differenceCSGBoundsOpt(csg).historySync(this).historySync(csg);
 				case POLYGON_BOUND:
 					return _differencePolygonBoundsOpt(csg).historySync(this).historySync(csg);
+				case Manifold3d:
+					new RuntimeException("Not implemented yet").printStackTrace();
 				default:
 					return _differenceNoOpt(csg).historySync(this).historySync(csg);
 				}
 			} else
 				return this;
 		} catch (Exception ex) {
-			// ex.printStackTrace();
+			ex.printStackTrace();
 			try {
 				// com.neuronrobotics.sdk.common.Log.error("CSG difference failed, performing
 				// workaround");
@@ -1402,6 +1406,8 @@ public class CSG implements IuserAPI, Serializable {
 					case POLYGON_BOUND:
 						return _differencePolygonBoundsOpt(intersectingParts).historySync(this)
 								.historySync(intersectingParts);
+					case Manifold3d:
+						new RuntimeException("Not implemented yet").printStackTrace();
 					default:
 						return _differenceNoOpt(intersectingParts).historySync(this).historySync(intersectingParts);
 					}
@@ -2720,6 +2726,15 @@ public class CSG implements IuserAPI, Serializable {
 		if(optType == OptType.Manifold3d) {
 			try {
 				manifold = new ManifoldBindings();
+				Slice.setSliceEngine(new ISlice() {
+					
+					@Override
+					public List<Polygon> slice(CSG incoming, Transform slicePlane, double normalInsetDistance)
+							throws ColinearPointsException {
+						new RuntimeException("Manifold3d not implemented yet").printStackTrace();
+						return new ArrayList<Polygon>();
+					}
+				});
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -4150,6 +4165,11 @@ public class CSG implements IuserAPI, Serializable {
 
 	public String getUniqueId() {
 		return uniqueId;
+	}
+
+	public static OptType getDefaultOptionType() {
+		// TODO Auto-generated method stub
+		return defaultOptType;
 	}
 
 }
