@@ -11,7 +11,18 @@ import eu.mihosoft.vrl.v3d.CSG.OptType;
 public class Manifold3d_test {
 	@Test
 	public void loadTest() throws Throwable {
-		CSG.setDefaultOptType(OptType.Manifold3d);
-		
+		OptType og = CSG.getDefaultOptionType();
+
+		try {
+			CSG.setDefaultOptType(OptType.Manifold3d);
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			// Set back to default to complete test and not disrupt other tests
+			CSG.setDefaultOptType(og);
+			throw t;
+		}
+		// Set back to default to complete test and not disrupt other tests
+		CSG.setDefaultOptType(og);
 	}
 }
