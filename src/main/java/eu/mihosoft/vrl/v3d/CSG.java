@@ -1548,13 +1548,16 @@ public class CSG implements IuserAPI, Serializable {
 					e.printStackTrace();
 				}
 			}
-//		triangulate();
-//		csg.triangulate();
+		
 		if (getPolygons().size() == 0 || csg.getPolygons().size() == 0) {
 			Exception ex = new Exception("Error! Intersection is invalid when one CSG has no polygons!");
 			ex.printStackTrace();
 			return CSG.fromPolygons(new ArrayList<Polygon>()).historySync(this).historySync(csg);
 		}
+		if(defaultOptType==OptType.Manifold3d) {
+			new RuntimeException("Manifold3d not implemented here").printStackTrace();
+		}
+		
 		Node a;
 		try {
 			a = new Node(this.clone().getPolygons(), this.getPolygons().get(0).getPlane());
