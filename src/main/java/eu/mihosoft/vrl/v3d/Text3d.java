@@ -38,79 +38,82 @@ import java.util.List;
 
 import javafx.scene.text.Font;
 /**
- * 3d text primitive. 
- * 
+ * 3d text primitive.
+ *
  * @author Michael Hoffer info@michaelhoffer.de
  */
 public class Text3d extends Primitive {
 
-    private final PropertyStorage properties = new PropertyStorage();
-    private final ArrayList<CSG> letters = new ArrayList<CSG>();
-    /**
-     * Constructor.
-     * 
-     * @param text text
-     */
-    public Text3d(String text) {
-        this(text, "Arial", 12, 1.0);
-    }
+	private final PropertyStorage properties = new PropertyStorage();
+	private final ArrayList<CSG> letters = new ArrayList<CSG>();
+	/**
+	 * Constructor.
+	 *
+	 * @param text
+	 *            text
+	 */
+	public Text3d(String text) {
+		this(text, "Arial", 12, 1.0);
+	}
 
-    /**
-     * Constructor.
-     * 
-     * @param text text
-     * @param depth text depth (z thickness)
-     */
-    public Text3d(String text, double depth) {
-        this(text, "Arial", 12, depth);
-    }
+	/**
+	 * Constructor.
+	 *
+	 * @param text
+	 *            text
+	 * @param depth
+	 *            text depth (z thickness)
+	 */
+	public Text3d(String text, double depth) {
+		this(text, "Arial", 12, depth);
+	}
 
-    /**
-     * Constructor. 
-     * 
-     * @param text text
-     * @param fontName font name, e.g., "Arial"
-     * @param fontSize font size
-     * @param depth text depth (z thickness)
-     */
-    public Text3d(String text, String fontName, double fontSize, double depth) {
+	/**
+	 * Constructor.
+	 *
+	 * @param text
+	 *            text
+	 * @param fontName
+	 *            font name, e.g., "Arial"
+	 * @param fontSize
+	 *            font size
+	 * @param depth
+	 *            text depth (z thickness)
+	 */
+	public Text3d(String text, String fontName, double fontSize, double depth) {
 
-    	Font font = new Font(fontName,  (int) fontSize);
-    	if(!font.getName().toLowerCase().contains(fontName.toLowerCase())) {
-    		String options = "";
-    		for(String name : javafx.scene.text.Font.getFontNames() ) {
-    			options+=name+"\n";
-    		}
-    		new Exception(options).printStackTrace();
-    	}
-    	ArrayList<CSG> tmp = TextExtrude.text( depth,  text,  font);
-    	letters.clear();
-    	for (int i=0;i<tmp.size();i++){
-    		letters.add( tmp.get(i)
-    				.rotx(180)
-    				.toZMin()
-    				);
-    	}
-    	
-    	
-    }
+		Font font = new Font(fontName, (int) fontSize);
+		if (!font.getName().toLowerCase().contains(fontName.toLowerCase())) {
+			String options = "";
+			for (String name : javafx.scene.text.Font.getFontNames()) {
+				options += name + "\n";
+			}
+			new Exception(options).printStackTrace();
+		}
+		ArrayList<CSG> tmp = TextExtrude.text(depth, text, font);
+		letters.clear();
+		for (int i = 0; i < tmp.size(); i++) {
+			letters.add(tmp.get(i).rotx(180).toZMin());
+		}
 
-    @Override
-    public List<Polygon> toPolygons() {
-    	List<Polygon> poly =new ArrayList<Polygon>();
-    	for(CSG c:letters) {
-    		poly.addAll(c.getPolygons());
-    	}
-    	return poly;
-    }
+	}
 
-    @Override
-    public PropertyStorage getProperties() {
-        return properties;
-    }
+	@Override
+	public List<Polygon> toPolygons() {
+		List<Polygon> poly = new ArrayList<Polygon>();
+		for (CSG c : letters) {
+			poly.addAll(c.getPolygons());
+		}
+		return poly;
+	}
 
-    public Text3d noCenter() {
-        return this;
-    }
+	@Override
+	public PropertyStorage getProperties() {
+		return properties;
+	}
+
+	public Text3d noCenter() {
+		return this;
+	}
 
 }

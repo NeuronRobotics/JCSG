@@ -17,152 +17,121 @@ import org.junit.Test;
  */
 public class EdgeIntersectionTest {
 
-    /**
-     * Closest point test.
-     */
-    @Test
-    public void closestPointTest() {
+	/**
+	 * Closest point test.
+	 */
+	@Test
+	public void closestPointTest() {
 
-        // closest point is e1p2
-        createClosestPointTest(
-                new Vector3d(1, 2, 3), /*e1p2*/ new Vector3d(4, 5, 6),
-                new Vector3d(4, 5, 7), new Vector3d(0, 1, 7),
-                new Vector3d(4, 5, 6));
+		// closest point is e1p2
+		createClosestPointTest(new Vector3d(1, 2, 3), /* e1p2 */ new Vector3d(4, 5, 6), new Vector3d(4, 5, 7),
+				new Vector3d(0, 1, 7), new Vector3d(4, 5, 6));
 
-        // parallel edges (result=null)
-        createClosestPointTest(
-                new Vector3d(1, 1, -1), new Vector3d(1, 1, 1),
-                new Vector3d(2, 2, -3), new Vector3d(2, 2, 4),
-                null);
-        createClosestPointTest(
-                new Vector3d(1, 3, -1), new Vector3d(1, 4, 2),
-                new Vector3d(1 + 10, 3, -1), new Vector3d(1 + 10, 4, 2),
-                null);
-        createClosestPointTest(
-                new Vector3d(3, 6, -1), new Vector3d(10, 7, 1),
-                new Vector3d(3, 6, -1 + 3), new Vector3d(10, 7, 1 + 3),
-                null);
+		// parallel edges (result=null)
+		createClosestPointTest(new Vector3d(1, 1, -1), new Vector3d(1, 1, 1), new Vector3d(2, 2, -3),
+				new Vector3d(2, 2, 4), null);
+		createClosestPointTest(new Vector3d(1, 3, -1), new Vector3d(1, 4, 2), new Vector3d(1 + 10, 3, -1),
+				new Vector3d(1 + 10, 4, 2), null);
+		createClosestPointTest(new Vector3d(3, 6, -1), new Vector3d(10, 7, 1), new Vector3d(3, 6, -1 + 3),
+				new Vector3d(10, 7, 1 + 3), null);
 
-        // result is exactly in the middle of e1 and e2
-//        createClosestPointTest(
-//                new Vector3d(5, 4, 2), /*e1p2*/ new Vector3d(3, 2, 11),
-//                new Vector3d(5, 2, 11), /*e1p2*/ new Vector3d(3, 4, 2),
-//                new Vector3d(4, 3, 6.5));
-    }
+		// result is exactly in the middle of e1 and e2
+		// createClosestPointTest(
+		// new Vector3d(5, 4, 2), /*e1p2*/ new Vector3d(3, 2, 11),
+		// new Vector3d(5, 2, 11), /*e1p2*/ new Vector3d(3, 4, 2),
+		// new Vector3d(4, 3, 6.5));
+	}
 
-    /**
-     * Intersection test.
-     */
-    @Test
-    public void intersectionTest() {
-        // closest point is e1p2 which does not exist on e2. thus, the expected
-        // result is null
-        createIntersectionTest(
-                new Vector3d(1, 2, 3), /*e1p2*/ new Vector3d(4, 5, 6),
-                new Vector3d(4, 5, 7), new Vector3d(0, 1, 7),
-                null);
+	/**
+	 * Intersection test.
+	 */
+	@Test
+	public void intersectionTest() {
+		// closest point is e1p2 which does not exist on e2. thus, the expected
+		// result is null
+		createIntersectionTest(new Vector3d(1, 2, 3), /* e1p2 */ new Vector3d(4, 5, 6), new Vector3d(4, 5, 7),
+				new Vector3d(0, 1, 7), null);
 
-        // parallel edges (result=null)
-        createIntersectionTest(
-                new Vector3d(1, 1, -1), new Vector3d(1, 1, 1),
-                new Vector3d(2, 2, -3), new Vector3d(2, 2, 4),
-                null);
-        createIntersectionTest(
-                new Vector3d(1, 3, -1), new Vector3d(1, 4, 2),
-                new Vector3d(1 + 10, 3, -1), new Vector3d(1 + 10, 4, 2),
-                null);
-        createIntersectionTest(
-                new Vector3d(3, 6, -1), new Vector3d(10, 7, 1),
-                new Vector3d(3, 6, -1 + 3), new Vector3d(10, 7, 1 + 3),
-                null);
+		// parallel edges (result=null)
+		createIntersectionTest(new Vector3d(1, 1, -1), new Vector3d(1, 1, 1), new Vector3d(2, 2, -3),
+				new Vector3d(2, 2, 4), null);
+		createIntersectionTest(new Vector3d(1, 3, -1), new Vector3d(1, 4, 2), new Vector3d(1 + 10, 3, -1),
+				new Vector3d(1 + 10, 4, 2), null);
+		createIntersectionTest(new Vector3d(3, 6, -1), new Vector3d(10, 7, 1), new Vector3d(3, 6, -1 + 3),
+				new Vector3d(10, 7, 1 + 3), null);
 
-        // result is exactly in the middle of e1 and e2
-//        createIntersectionTest(
-//                new Vector3d(5, 4, 2), /*e1p2*/ new Vector3d(3, 2, 11),
-//                new Vector3d(5, 2, 11), /*e1p2*/ new Vector3d(3, 4, 2),
-//                new Vector3d(4, 3, 6.5));
-    }
+		// result is exactly in the middle of e1 and e2
+		// createIntersectionTest(
+		// new Vector3d(5, 4, 2), /*e1p2*/ new Vector3d(3, 2, 11),
+		// new Vector3d(5, 2, 11), /*e1p2*/ new Vector3d(3, 4, 2),
+		// new Vector3d(4, 3, 6.5));
+	}
 
-    /**
-     * Creates the intersection test.
-     *
-     * @param e1p1 the e1p1
-     * @param e1p2 the e1p2
-     * @param e2p1 the e2p1
-     * @param e2p2 the e2p2
-     * @param expectedPoint the expected point
-     */
-    private static void createIntersectionTest(
-            Vector3d e1p1, Vector3d e1p2,
-            Vector3d e2p1, Vector3d e2p2,
-            Vector3d expectedPoint) {
-        Edge e1 = new Edge(
-                new Vertex(
-                        e1p1),
-                new Vertex(
-                        e1p2));
+	/**
+	 * Creates the intersection test.
+	 *
+	 * @param e1p1
+	 *            the e1p1
+	 * @param e1p2
+	 *            the e1p2
+	 * @param e2p1
+	 *            the e2p1
+	 * @param e2p2
+	 *            the e2p2
+	 * @param expectedPoint
+	 *            the expected point
+	 */
+	private static void createIntersectionTest(Vector3d e1p1, Vector3d e1p2, Vector3d e2p1, Vector3d e2p2,
+			Vector3d expectedPoint) {
+		Edge e1 = new Edge(new Vertex(e1p1), new Vertex(e1p2));
 
-        Edge e2 = new Edge(
-                new Vertex(
-                        e2p1),
-                new Vertex(
-                        e2p2));
+		Edge e2 = new Edge(new Vertex(e2p1), new Vertex(e2p2));
 
-        Optional<Vector3d> closestPointResult = e1.getIntersection(e2);
+		Optional<Vector3d> closestPointResult = e1.getIntersection(e2);
 
-        if (expectedPoint != null) {
-            assertTrue("Intersection point must exist",
-                    closestPointResult.isPresent());
+		if (expectedPoint != null) {
+			assertTrue("Intersection point must exist", closestPointResult.isPresent());
 
-            Vector3d closestPoint = closestPointResult.get();
+			Vector3d closestPoint = closestPointResult.get();
 
-            assertTrue("Intersection point " + expectedPoint + ", got "
-                    + closestPoint, expectedPoint.equals(closestPoint));
-        } else {
-            assertFalse("Intersection point must not exist : "
-                    + closestPointResult, closestPointResult.isPresent());
-        }
-    }
+			assertTrue("Intersection point " + expectedPoint + ", got " + closestPoint,
+					expectedPoint.equals(closestPoint));
+		} else {
+			assertFalse("Intersection point must not exist : " + closestPointResult, closestPointResult.isPresent());
+		}
+	}
 
-    /**
-     * Creates the closest point test.
-     *
-     * @param e1p1 the e1p1
-     * @param e1p2 the e1p2
-     * @param e2p1 the e2p1
-     * @param e2p2 the e2p2
-     * @param expectedPoint the expected point
-     */
-    private static void createClosestPointTest(
-            Vector3d e1p1, Vector3d e1p2,
-            Vector3d e2p1, Vector3d e2p2,
-            Vector3d expectedPoint) {
-        Edge e1 = new Edge(
-                new Vertex(
-                        e1p1),
-                new Vertex(
-                        e1p2));
+	/**
+	 * Creates the closest point test.
+	 *
+	 * @param e1p1
+	 *            the e1p1
+	 * @param e1p2
+	 *            the e1p2
+	 * @param e2p1
+	 *            the e2p1
+	 * @param e2p2
+	 *            the e2p2
+	 * @param expectedPoint
+	 *            the expected point
+	 */
+	private static void createClosestPointTest(Vector3d e1p1, Vector3d e1p2, Vector3d e2p1, Vector3d e2p2,
+			Vector3d expectedPoint) {
+		Edge e1 = new Edge(new Vertex(e1p1), new Vertex(e1p2));
 
-        Edge e2 = new Edge(
-                new Vertex(
-                        e2p1),
-                new Vertex(
-                        e2p2));
+		Edge e2 = new Edge(new Vertex(e2p1), new Vertex(e2p2));
 
-        Optional<Vector3d> closestPointResult = e1.getClosestPoint(e2);
+		Optional<Vector3d> closestPointResult = e1.getClosestPoint(e2);
 
-        if (expectedPoint != null) {
-            assertTrue("Closest point must exist",
-                    closestPointResult.isPresent());
+		if (expectedPoint != null) {
+			assertTrue("Closest point must exist", closestPointResult.isPresent());
 
-            Vector3d closestPoint = closestPointResult.get();
+			Vector3d closestPoint = closestPointResult.get();
 
-            assertTrue("Expected point " + expectedPoint + ", got "
-                    + closestPoint, expectedPoint.equals(closestPoint));
-        } else {
-            assertFalse("Closest point must not exist : "
-                    + closestPointResult, closestPointResult.isPresent());
-        }
-    }
+			assertTrue("Expected point " + expectedPoint + ", got " + closestPoint, expectedPoint.equals(closestPoint));
+		} else {
+			assertFalse("Closest point must not exist : " + closestPointResult, closestPointResult.isPresent());
+		}
+	}
 
 }

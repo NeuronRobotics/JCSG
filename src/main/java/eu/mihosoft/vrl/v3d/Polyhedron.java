@@ -19,73 +19,78 @@ import java.util.stream.Collectors;
  */
 public class Polyhedron extends Primitive {
 
-    /** The properties. */
-    private final PropertyStorage properties = new PropertyStorage();
+	/** The properties. */
+	private final PropertyStorage properties = new PropertyStorage();
 
-    /** The points. */
-    private final List<Vector3d> points = new ArrayList<>();
-    
-    /** The faces. */
-    private final List<List<Integer>> faces = new ArrayList<>();
+	/** The points. */
+	private final List<Vector3d> points = new ArrayList<>();
 
-    /**
-     * Constructor. Creates a polyhedron defined by a list of points and a list
-     * of faces.
-     *
-     * @param points points ({@link Vector3d} list)
-     * @param faces list of faces (list of point index lists)
-     */
-    public Polyhedron(List<Vector3d> points, List<List<Integer>> faces) {
-        this.points.addAll(points);
-        this.faces.addAll(faces);
-    }
+	/** The faces. */
+	private final List<List<Integer>> faces = new ArrayList<>();
 
-    /**
-     * Constructor. Creates a polyhedron defined by a list of points and a list
-     * of faces.
-     *
-     * @param points points ({@link Vector3d} array)
-     * @param faces list of faces (array of point index arrays)
-     */
-    public Polyhedron(Vector3d[] points, Integer[][] faces) {
-        this.points.addAll(Arrays.asList(points));
+	/**
+	 * Constructor. Creates a polyhedron defined by a list of points and a list of
+	 * faces.
+	 *
+	 * @param points
+	 *            points ({@link Vector3d} list)
+	 * @param faces
+	 *            list of faces (list of point index lists)
+	 */
+	public Polyhedron(List<Vector3d> points, List<List<Integer>> faces) {
+		this.points.addAll(points);
+		this.faces.addAll(faces);
+	}
 
-        for (Integer[] list : faces) {
-            this.faces.add(Arrays.asList(list));
-        }
+	/**
+	 * Constructor. Creates a polyhedron defined by a list of points and a list of
+	 * faces.
+	 *
+	 * @param points
+	 *            points ({@link Vector3d} array)
+	 * @param faces
+	 *            list of faces (array of point index arrays)
+	 */
+	public Polyhedron(Vector3d[] points, Integer[][] faces) {
+		this.points.addAll(Arrays.asList(points));
 
-    }
+		for (Integer[] list : faces) {
+			this.faces.add(Arrays.asList(list));
+		}
 
-    /* (non-Javadoc)
-     * @see eu.mihosoft.vrl.v3d.Primitive#toPolygons()
-     */
-    @Override
-    public List<Polygon> toPolygons() {
+	}
 
-        Function<Integer, Vector3d> indexToPoint = (Integer i) -> {
-            return points.get(i).clone();
-        };
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see eu.mihosoft.vrl.v3d.Primitive#toPolygons()
+	 */
+	@Override
+	public List<Polygon> toPolygons() {
 
-        Function<List<Integer>, Polygon> faceListToPolygon
-                = (List<Integer> faceList) -> {
-                    try {
-						return Polygon.fromPoints(faceList.stream().map(indexToPoint).
-						        collect(Collectors.toList()), properties);
-					} catch (ColinearPointsException e) {
-						throw new RuntimeException(e);
-					}
-                };
+		Function<Integer, Vector3d> indexToPoint = (Integer i) -> {
+			return points.get(i).clone();
+		};
 
-        return faces.stream().map(faceListToPolygon).
-                collect(Collectors.toList());
-    }
+		Function<List<Integer>, Polygon> faceListToPolygon = (List<Integer> faceList) -> {
+			try {
+				return Polygon.fromPoints(faceList.stream().map(indexToPoint).collect(Collectors.toList()), properties);
+			} catch (ColinearPointsException e) {
+				throw new RuntimeException(e);
+			}
+		};
 
-    /* (non-Javadoc)
-     * @see eu.mihosoft.vrl.v3d.Primitive#getProperties()
-     */
-    @Override
-    public PropertyStorage getProperties() {
-        return properties;
-    }
+		return faces.stream().map(faceListToPolygon).collect(Collectors.toList());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see eu.mihosoft.vrl.v3d.Primitive#getProperties()
+	 */
+	@Override
+	public PropertyStorage getProperties() {
+		return properties;
+	}
 
 }

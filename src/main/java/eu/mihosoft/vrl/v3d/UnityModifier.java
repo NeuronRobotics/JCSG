@@ -13,18 +13,21 @@ package eu.mihosoft.vrl.v3d;
  */
 public class UnityModifier implements WeightFunction {
 
-    /**
-     * Constructor.
-     */
-    public UnityModifier() {
-    }
+	/**
+	 * Constructor.
+	 */
+	public UnityModifier() {
+	}
 
-    /* (non-Javadoc)
-     * @see eu.mihosoft.vrl.v3d.WeightFunction#eval(eu.mihosoft.vrl.v3d.Vector3d, eu.mihosoft.vrl.v3d.CSG)
-     */
-    @Override
-    public double eval(Vector3d pos, CSG csg) {
-        return 1.0;
-    }
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see eu.mihosoft.vrl.v3d.WeightFunction#eval(eu.mihosoft.vrl.v3d.Vector3d,
+	 * eu.mihosoft.vrl.v3d.CSG)
+	 */
+	@Override
+	public double eval(Vector3d pos, CSG csg) {
+		return 1.0;
+	}
 
 }

@@ -42,186 +42,203 @@ import java.util.Objects;
  * primitives like {@link Cube} can return a smooth vertex normal, but
  * {@link #normal} is not used anywhere else.
  */
-public class Vertex  implements Serializable{
+public class Vertex implements Serializable {
 
-    private static final long serialVersionUID = -7172279269995785347L;
+	private static final long serialVersionUID = -7172279269995785347L;
 
 	/**
-     * Vertex position.
-     */
-    public Vector3d pos;
-    
-    /** The weight. */
-    private double weight = 1.0;
+	 * Vertex position.
+	 */
+	public Vector3d pos;
 
-    /**
-     * Constructor. Creates a vertex.
-     *
-     * @param pos position
-     * @param normal normal
-     */
-    public Vertex(Vector3d pos) {
-        this.pos = pos;
-    }
+	/** The weight. */
+	private double weight = 1.0;
 
-    
-        /**
-     * Constructor. Creates a vertex.
-     *
-     * @param pos position
-     * @param normal normal
-     * @param weight weight
-     */
-    private Vertex(Vector3d pos,  double weight) {
-        this.pos = pos;
-        this.weight = weight;
-    }
+	/**
+	 * Constructor. Creates a vertex.
+	 *
+	 * @param pos
+	 *            position
+	 * @param normal
+	 *            normal
+	 */
+	public Vertex(Vector3d pos) {
+		this.pos = pos;
+	}
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#clone()
-     */
-    @Override
-    public Vertex clone() {
-        return new Vertex(pos.clone(), weight);
-    }
+	/**
+	 * Constructor. Creates a vertex.
+	 *
+	 * @param pos
+	 *            position
+	 * @param normal
+	 *            normal
+	 * @param weight
+	 *            weight
+	 */
+	private Vertex(Vector3d pos, double weight) {
+		this.pos = pos;
+		this.weight = weight;
+	}
 
-    /**
-     * Create a new vertex between this vertex and the specified vertex by
-     * linearly interpolating all properties using a parameter t.
-     *
-     * @param other vertex
-     * @param t interpolation parameter
-     * @return a new vertex between this and the specified vertex
-     */
-    public Vertex interpolate(Vertex other, double t) {
-        return new Vertex(pos.lerp(other.pos, t));
-    }
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see java.lang.Object#clone()
+	 */
+	@Override
+	public Vertex clone() {
+		return new Vertex(pos.clone(), weight);
+	}
 
-    /**
-     * Returns this vertex in STL string format.
-     *
-     * @return this vertex in STL string format
-     */
-    public String toStlString() {
-        return "vertex " + this.pos.toStlString();
-    }
+	/**
+	 * Create a new vertex between this vertex and the specified vertex by linearly
+	 * interpolating all properties using a parameter t.
+	 *
+	 * @param other
+	 *            vertex
+	 * @param t
+	 *            interpolation parameter
+	 * @return a new vertex between this and the specified vertex
+	 */
+	public Vertex interpolate(Vertex other, double t) {
+		return new Vertex(pos.lerp(other.pos, t));
+	}
 
-    /**
-     * Returns this vertex in STL string format.
-     *
-     * @param sb string builder
-     * @return the specified string builder
-     */
-    public StringBuilder toStlString(StringBuilder sb) {
-        sb.append("vertex ");
-        return this.pos.toStlString(sb);
-    }
+	/**
+	 * Returns this vertex in STL string format.
+	 *
+	 * @return this vertex in STL string format
+	 */
+	public String toStlString() {
+		return "vertex " + this.pos.toStlString();
+	}
 
-    /**
-     * Returns this vertex in OBJ string format.
-     *
-     * @param sb string builder
-     * @return the specified string builder
-     */
-    public StringBuilder toObjString(StringBuilder sb) {
-        sb.append("v ");
-        return this.pos.toObjString(sb).append("\n");
-    }
+	/**
+	 * Returns this vertex in STL string format.
+	 *
+	 * @param sb
+	 *            string builder
+	 * @return the specified string builder
+	 */
+	public StringBuilder toStlString(StringBuilder sb) {
+		sb.append("vertex ");
+		return this.pos.toStlString(sb);
+	}
 
-    /**
-     * Returns this vertex in OBJ string format.
-     *
-     * @return this vertex in OBJ string format
-     */
-    public String toObjString() {
-        return toObjString(new StringBuilder()).toString();
-    }
+	/**
+	 * Returns this vertex in OBJ string format.
+	 *
+	 * @param sb
+	 *            string builder
+	 * @return the specified string builder
+	 */
+	public StringBuilder toObjString(StringBuilder sb) {
+		sb.append("v ");
+		return this.pos.toObjString(sb).append("\n");
+	}
 
-    /**
-     * Applies the specified transform to this vertex.
-     *
-     * @param transform the transform to apply
-     * @return this vertex
-     */
-    public Vertex transform(Transform transform) {
-        pos = pos.transform(transform, weight);
-        return this;
-    }
+	/**
+	 * Returns this vertex in OBJ string format.
+	 *
+	 * @return this vertex in OBJ string format
+	 */
+	public String toObjString() {
+		return toObjString(new StringBuilder()).toString();
+	}
 
-    /**
-     * Applies the specified transform to a copy of this vertex.
-     *
-     * @param transform the transform to apply
-     * @return a copy of this transform
-     */
-    public Vertex transformed(Transform transform) {
-        return clone().transform(transform);
-    }
+	/**
+	 * Applies the specified transform to this vertex.
+	 *
+	 * @param transform
+	 *            the transform to apply
+	 * @return this vertex
+	 */
+	public Vertex transform(Transform transform) {
+		pos = pos.transform(transform, weight);
+		return this;
+	}
 
-    /**
-     * Gets the weight.
-     *
-     * @return the weight
-     */
-    public double getWeight() {
-        return weight;
-    }
+	/**
+	 * Applies the specified transform to a copy of this vertex.
+	 *
+	 * @param transform
+	 *            the transform to apply
+	 * @return a copy of this transform
+	 */
+	public Vertex transformed(Transform transform) {
+		return clone().transform(transform);
+	}
 
-    /**
-     * Sets the weight.
-     *
-     * @param weight the weight to set
-     */
-    public void setWeight(double weight) {
-        this.weight = weight;
-    }
+	/**
+	 * Gets the weight.
+	 *
+	 * @return the weight
+	 */
+	public double getWeight() {
+		return weight;
+	}
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#hashCode()
-     */
-    @Override
-    public int hashCode() {
-        int hash = 7;
-        hash = 53 * hash + Objects.hashCode(this.pos);
-        return hash;
-    }
+	/**
+	 * Sets the weight.
+	 *
+	 * @param weight
+	 *            the weight to set
+	 */
+	public void setWeight(double weight) {
+		this.weight = weight;
+	}
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final Vertex other = (Vertex) obj;
-        if (!this.pos.test(other.pos,Plane.EPSILON_Point)) {
-            return false;
-        }
-        return true;
-    }
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		int hash = 7;
+		hash = 53 * hash + Objects.hashCode(this.pos);
+		return hash;
+	}
 
-  /* (non-Javadoc)
-   * @see java.lang.Object#toString()
-   */
-  @Override
-    public String toString() {
-        return pos.toString();
-    }
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		final Vertex other = (Vertex) obj;
+		if (!this.pos.test(other.pos, Plane.EPSILON_Point)) {
+			return false;
+		}
+		return true;
+	}
 
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return pos.toString();
+	}
 
-public double getX() {
-	return pos.x;
-}
-public double getY() {
-	return pos.y;
-}
-public double getZ() {
-	return pos.z;
-}
-    
-    
+	public double getX() {
+		return pos.x;
+	}
+	public double getY() {
+		return pos.y;
+	}
+	public double getZ() {
+		return pos.z;
+	}
+
 }

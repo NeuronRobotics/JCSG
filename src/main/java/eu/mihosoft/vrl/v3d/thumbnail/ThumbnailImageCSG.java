@@ -28,14 +28,13 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.Transform;
 import javafx.scene.transform.Rotate;
-import javafx.geometry.Rectangle2D;
 
 public class ThumbnailImageCSG {
 	private static CullFace cullFaceValue = CullFace.BACK;
 	private static int ImageSize = 1000;
 	private WritableImage img;
 
-	public  Bounds getSellectedBounds(List<CSG> incoming) {
+	public Bounds getSellectedBounds(List<CSG> incoming) {
 		Vector3d min = null;
 		Vector3d max = null;
 		for (CSG c : incoming) {
@@ -121,11 +120,11 @@ public class ThumbnailImageCSG {
 		double maxDimension = Math.max(totalx, Math.max(totaly, totalz));
 		double cameraDistance = (maxDimension / Math.tan(Math.toRadians(camera.getFieldOfView() / 2))) * 0.8;
 
-//		TransformNR camoffset = new TransformNR(xOffset, yOffset, 0);
-//		TransformNR camDist = new TransformNR(0, 0, -cameraDistance);
-//		TransformNR rot = new TransformNR(new RotationNR(-150, 45, 0));
-//		
-//		Affine af = TransformFactory.nrToAffine(camoffset.times(rot.times(camDist)));
+		// TransformNR camoffset = new TransformNR(xOffset, yOffset, 0);
+		// TransformNR camDist = new TransformNR(0, 0, -cameraDistance);
+		// TransformNR rot = new TransformNR(new RotationNR(-150, 45, 0));
+		//
+		// Affine af = TransformFactory.nrToAffine(camoffset.times(rot.times(camDist)));
 		Affine camDist = new Affine();
 		camDist.setTz(-cameraDistance);
 		Rotate rot1 = new Rotate(45, Rotate.Z_AXIS);

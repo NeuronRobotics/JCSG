@@ -11,14 +11,12 @@ import java.util.List;
 import org.junit.Test;
 
 import eu.mihosoft.vrl.v3d.svg.SVGLoad;
-import javafx.scene.text.Font;
 
 public class sweepTest {
 
 	@Test
 	public void test() throws IOException, ColinearPointsException {
 
-		
 		File svg = new File("Test.SVG");
 		if (!svg.exists())
 			throw new RuntimeException("Test file missing!" + svg.getAbsolutePath());
@@ -31,7 +29,7 @@ public class sweepTest {
 		int steps = (int) (30 * d);
 		double angle = sweepTot / steps;
 
-		double z = 0* d / steps;
+		double z = 0 * d / steps;
 		double radius = 0;
 		if (angle < 0)
 			angle = -angle;
@@ -40,12 +38,11 @@ public class sweepTest {
 		Transform increment = new Transform().rotY(-angle).movey(z);
 		Transform radiusT = new Transform().movex(radius);
 		Polygon transformedP = p.transformed(centerandAllignedPolygon);
-		ITransformProvider pr = (unit,domain)->{
-			return new Transform().movex(sprl*unit*d);
+		ITransformProvider pr = (unit, domain) -> {
+			return new Transform().movex(sprl * unit * d);
 		};
-		CSG text= Extrude.sweep(transformedP, increment, radiusT, steps,pr).rotx(-90);
-		FileUtil.write(Paths.get("exampleSweep.stl"),
-				text.toStlString());
+		CSG text = Extrude.sweep(transformedP, increment, radiusT, steps, pr).rotx(-90);
+		FileUtil.write(Paths.get("exampleSweep.stl"), text.toStlString());
 	}
 
 }

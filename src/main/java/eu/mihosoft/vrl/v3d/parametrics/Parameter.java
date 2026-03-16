@@ -7,30 +7,31 @@ import com.google.gson.annotations.Expose;
 
 public class Parameter {
 	@Expose(serialize = true, deserialize = true)
-	private String name=null;
+	private String name = null;
 	@Expose(serialize = true, deserialize = true)
-	private final ArrayList<String> options=new ArrayList<String>();
+	private final ArrayList<String> options = new ArrayList<String>();
 	@Expose(serialize = true, deserialize = true)
-	private Long value=null;
+	private Long value = null;
 	@Expose(serialize = true, deserialize = true)
-	private String strValue=null;
+	private String strValue = null;
 	@Expose(serialize = false, deserialize = false)
 	private CSGDatabaseInstance instance;
-	
+
 	@Override
 	public String toString() {
-		return name+" "+value+" "+strValue;
+		return name + " " + value + " " + strValue;
 	}
-	
-	//public Parameter(){}
-	public Parameter(CSGDatabaseInstance instance){
-		this.setInstance(instance);}
-	
-	protected void setup(String key,Long defaultValue,ArrayList<String> options){
+
+	// public Parameter(){}
+	public Parameter(CSGDatabaseInstance instance) {
+		this.setInstance(instance);
+	}
+
+	protected void setup(String key, Long defaultValue, ArrayList<String> options) {
 		this.name = key;
-		if(getInstance().get(name)==null)
+		if (getInstance().get(name) == null)
 			setValue(defaultValue);
-		else{
+		else {
 			setValue(getInstance().get(name).getValue());
 		}
 		getInstance().addParameterListener(name, new IParameterChanged() {
@@ -39,16 +40,16 @@ public class Parameter {
 				value = p.getValue();// if another instance of parameter with this key changes value
 			}
 		});
-		for(String o:options){
+		for (String o : options) {
 			this.options.add(o);
 		}
 		getInstance().set(key, this);
 	}
-	protected void setup(String key,String defaultValue,ArrayList<String> options){
+	protected void setup(String key, String defaultValue, ArrayList<String> options) {
 		this.name = key;
-		if(getInstance().get(name)==null)
+		if (getInstance().get(name) == null)
 			this.strValue = defaultValue;
-		else{
+		else {
 			this.strValue = getInstance().get(name).getStrValue();
 		}
 		getInstance().addParameterListener(name, new IParameterChanged() {
@@ -57,7 +58,7 @@ public class Parameter {
 				strValue = p.getStrValue();// if another instance of parameter with this key changes value
 			}
 		});
-		for(String o:options){
+		for (String o : options) {
 			this.options.add(o);
 		}
 		getInstance().set(key, this);
@@ -65,18 +66,18 @@ public class Parameter {
 	public String getName() {
 		return name;
 	}
-	
-	public void setValue(Long newVal){
-		if(value!=newVal){
-			value=newVal;
+
+	public void setValue(Long newVal) {
+		if (value != newVal) {
+			value = newVal;
 			CopyOnWriteArrayList<IParameterChanged> listeners = getInstance().getParamListeners(name);
-			for(int i=0;i<listeners.size();i++){
-			  IParameterChanged l=listeners.get(i);
+			for (int i = 0; i < listeners.size(); i++) {
+				IParameterChanged l = listeners.get(i);
 				l.parameterChanged(name, this);
 			}
 		}
 	}
-	
+
 	public Long getValue() {
 		return value;
 	}
@@ -89,29 +90,28 @@ public class Parameter {
 	}
 
 	public void setStrValue(String newValue) {
-		if(!strValue.contentEquals(newValue)){
+		if (!strValue.contentEquals(newValue)) {
 			strValue = newValue;
 			CopyOnWriteArrayList<IParameterChanged> listeners = getInstance().getParamListeners(name);
-			for(IParameterChanged l:listeners){
+			for (IParameterChanged l : listeners) {
 				l.parameterChanged(name, this);
 			}
 		}
-		
-	}
-	
 
-	public void setMM(double newVal){
-		setValue(new Long((long)(newVal*1000.0)));
 	}
-	public void setMicrons(long newVal){
+
+	public void setMM(double newVal) {
+		setValue(new Long((long) (newVal * 1000.0)));
+	}
+	public void setMicrons(long newVal) {
 		setValue(new Long(newVal));
 	}
-	
-	public double getMM(){
-		return (Double.parseDouble(getValue().toString()))/1000.0;
+
+	public double getMM() {
+		return (Double.parseDouble(getValue().toString())) / 1000.0;
 	}
-	public double getMicrons(){
-		return (Long)getValue();
+	public double getMicrons() {
+		return (Long) getValue();
 	}
 	public CSGDatabaseInstance getInstance() {
 		return instance;
@@ -119,6 +119,5 @@ public class Parameter {
 	public void setInstance(CSGDatabaseInstance instance) {
 		this.instance = instance;
 	}
-	
 
 }

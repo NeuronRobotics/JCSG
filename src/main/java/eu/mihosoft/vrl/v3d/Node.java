@@ -33,7 +33,6 @@
  */
 package eu.mihosoft.vrl.v3d;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -41,12 +40,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.aparapi.Kernel;
-import com.aparapi.device.Device;
-import com.aparapi.device.OpenCLDevice;
-import com.aparapi.internal.kernel.KernelManager;
-
-import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
-import javafx.scene.paint.Color;
 
 //  Auto-generated Javadoc
 /**
@@ -57,7 +50,7 @@ import javafx.scene.paint.Color;
  * no distinction between internal and leaf nodes.
  */
 public final class Node {
-	//private static final int LIMIT_FOR_GPU = 5000;
+	// private static final int LIMIT_FOR_GPU = 5000;
 	public static final int COPLANAR = 0;
 	public static final int FRONT = 1;
 	public static final int BACK = 2;
@@ -88,29 +81,31 @@ public final class Node {
 	/**
 	 * Constructor.
 	 *
-	 * Creates a Binary Space Partition (BSP) node consisting of the specified polygons.
+	 * Creates a Binary Space Partition (BSP) node consisting of the specified
+	 * polygons.
 	 *
-	 * @param polygons polygons
+	 * @param polygons
+	 *            polygons
 	 * @throws Exception
 	 */
-	public Node(ArrayList<Polygon> polygons,Plane p) throws Exception {
-		myNodePlane=p.clone();
+	public Node(ArrayList<Polygon> polygons, Plane p) throws Exception {
+		myNodePlane = p.clone();
 		this.polygons = new ArrayList<>();
 		if (polygons != null) {
 			this.build(polygons);
 		}
 	}
 
-//	/**
-//	 * Constructor. Creates a node without polygons.
-//	 */
+	// /**
+	// * Constructor. Creates a node without polygons.
+	// */
 	private Node(Plane p) throws Exception {
-		this(null,p);
+		this(null, p);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see java.lang.Object#clone()
 	 */
 	@Override
@@ -118,13 +113,13 @@ public final class Node {
 		Node node;
 		try {
 			node = new Node(this.getThisNodePlane().clone());
-//			node.setPlane(this.getPlane() == null ? null : this.getPlane().clone());
+			// node.setPlane(this.getPlane() == null ? null : this.getPlane().clone());
 			node.front = this.front == null ? null : this.front.clone();
 			node.back = this.back == null ? null : this.back.clone();
-//	        node.polygons = new ArrayList<>();
-//	        polygons.parallelStream().forEach((Polygon p) -> {
-//	            node.polygons.add(p.clone());
-//	        });
+			// node.polygons = new ArrayList<>();
+			// polygons.parallelStream().forEach((Polygon p) -> {
+			// node.polygons.add(p.clone());
+			// });
 
 			Stream<Polygon> polygonStream;
 
@@ -137,7 +132,7 @@ public final class Node {
 
 			return node;
 		} catch (Exception e) {
-			//  Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		throw new RuntimeException("Failed to clone");
@@ -159,15 +154,17 @@ public final class Node {
 			polygon.flip();
 		});
 
-//		if (this.getPlane() == null && !polygons.isEmpty()) {
-//			this.setPlane(polygons.get(0).getPlane().clone());
-//		} else if (this.getPlane() == null && polygons.isEmpty()) {
-//
-//			// com.neuronrobotics.sdk.common.Log.error("Please fix me! I don't know what to
-//			// do?");
-//			throw new RuntimeException("Please fix me! Plane = " + getPlane() + " and polygons are empty");
-//			// return;
-//		}
+		// if (this.getPlane() == null && !polygons.isEmpty()) {
+		// this.setPlane(polygons.get(0).getPlane().clone());
+		// } else if (this.getPlane() == null && polygons.isEmpty()) {
+		//
+		// // com.neuronrobotics.sdk.common.Log.error("Please fix me! I don't know what
+		// to
+		// // do?");
+		// throw new RuntimeException("Please fix me! Plane = " + getPlane() + " and
+		// polygons are empty");
+		// // return;
+		// }
 
 		this.getThisNodePlane().flip();
 
@@ -181,58 +178,61 @@ public final class Node {
 		this.front = this.back;
 		this.back = temp;
 	}
-//	public void invert() {
-//	    // Use ArrayList as a stack to track nodes to process
-//	    ArrayList<Node> stack = new ArrayList<>();
-//	    stack.add(this);
-//	    
-//	    while (!stack.isEmpty()) {
-//	        // Pop the last node from our stack
-//	        Node current = stack.remove(stack.size() - 1);
-//	        
-//	        // Process polygons for current node
-//	        Stream<Polygon> polygonStream;
-//	        if (current.polygons.size() > 200) {
-//	            polygonStream = current.polygons.parallelStream();
-//	        } else {
-//	            polygonStream = current.polygons.stream();
-//	        }
-//	        
-//	        polygonStream.forEach((polygon) -> {
-//	            polygon.flip();
-//	        });
-//	        
-//	        // Handle plane logic
-//	        if (current.getPlane() == null && !current.polygons.isEmpty()) {
-//	            current.setPlane(current.polygons.get(0).getPlane().clone());
-//	        } else if (current.getPlane() == null && current.polygons.isEmpty()) {
-//	            throw new RuntimeException("Please fix me! Plane = " + current.plane + " and polygons are empty");
-//	        }
-//	        
-//	        current.getPlane().flip();
-//	        
-//	        // Add child nodes to stack for processing (if they exist)
-//	        // Note: We add them in reverse order so they're processed in the same order as the recursive version
-//	        if (current.back != null) {
-//	            stack.add(current.back);
-//	        }
-//	        if (current.front != null) {
-//	            stack.add(current.front);
-//	        }
-//	        
-//	        // Swap front and back
-//	        Node temp = current.front;
-//	        current.front = current.back;
-//	        current.back = temp;
-//	    }
-//	}
+	// public void invert() {
+	// // Use ArrayList as a stack to track nodes to process
+	// ArrayList<Node> stack = new ArrayList<>();
+	// stack.add(this);
+	//
+	// while (!stack.isEmpty()) {
+	// // Pop the last node from our stack
+	// Node current = stack.remove(stack.size() - 1);
+	//
+	// // Process polygons for current node
+	// Stream<Polygon> polygonStream;
+	// if (current.polygons.size() > 200) {
+	// polygonStream = current.polygons.parallelStream();
+	// } else {
+	// polygonStream = current.polygons.stream();
+	// }
+	//
+	// polygonStream.forEach((polygon) -> {
+	// polygon.flip();
+	// });
+	//
+	// // Handle plane logic
+	// if (current.getPlane() == null && !current.polygons.isEmpty()) {
+	// current.setPlane(current.polygons.get(0).getPlane().clone());
+	// } else if (current.getPlane() == null && current.polygons.isEmpty()) {
+	// throw new RuntimeException("Please fix me! Plane = " + current.plane + " and
+	// polygons are empty");
+	// }
+	//
+	// current.getPlane().flip();
+	//
+	// // Add child nodes to stack for processing (if they exist)
+	// // Note: We add them in reverse order so they're processed in the same order
+	// as the recursive version
+	// if (current.back != null) {
+	// stack.add(current.back);
+	// }
+	// if (current.front != null) {
+	// stack.add(current.front);
+	// }
+	//
+	// // Swap front and back
+	// Node temp = current.front;
+	// current.front = current.back;
+	// current.back = temp;
+	// }
+	// }
 	/**
 	 * Recursively removes all polygons in the {@link polygons} list that are
 	 * contained within this BSP tree.
 	 *
 	 * Note: polygons are splitted if necessary.
 	 *
-	 * @param polygons the polygons to clip
+	 * @param polygons
+	 *            the polygons to clip
 	 *
 	 * @return the cliped list of polygons
 	 * @throws Exception
@@ -253,7 +253,7 @@ public final class Node {
 		if (this.back != null) {
 			backP = this.back.clipPolygons(backP);
 		} else {
-			backP=new ArrayList<Polygon>(0);
+			backP = new ArrayList<Polygon>(0);
 		}
 		frontP.addAll(backP);
 		return frontP;
@@ -301,12 +301,12 @@ public final class Node {
 
 	private static boolean addPoint(List<Vertex> f, Vertex v) {
 		if (f.size() > 0) {
-//			if (Math.abs(v.pos.distance(f.get(0).pos)) < Plane.getEPSILON()) {
-//				return false;
-//			}
-//			if (Math.abs(v.pos.distance(f.get(f.size() - 1).pos)) < Plane.getEPSILON()) {
-//				return false;
-//			}
+			// if (Math.abs(v.pos.distance(f.get(0).pos)) < Plane.getEPSILON()) {
+			// return false;
+			// }
+			// if (Math.abs(v.pos.distance(f.get(f.size() - 1).pos)) < Plane.getEPSILON()) {
+			// return false;
+			// }
 		}
 		return f.add(v);
 	}
@@ -319,16 +319,15 @@ public final class Node {
 		if (f.size() < 3)
 			return;
 		try {
-			if(!Extrude.isCCW(f, polygon.getPlane().getNormal())) {
+			if (!Extrude.isCCW(f, polygon.getPlane().getNormal())) {
 				Collections.reverse(f);
 			}
-			Polygon fpoly = new Polygon(f, polygon.getStorage(), true, polygon.getPlane())
-					.setColor(polygon.getColor());
+			Polygon fpoly = new Polygon(f, polygon.getStorage(), true, polygon.getPlane()).setColor(polygon.getColor());
 			if (!test)
-				l.add(fpoly);	
-		}catch(ColinearPointsException ex) {
-			//ex.printStackTrace();
-			System.err.println(ex.getMessage()+" Pruned Collinear polygon "+f );
+				l.add(fpoly);
+		} catch (ColinearPointsException ex) {
+			// ex.printStackTrace();
+			System.err.println(ex.getMessage() + " Pruned Collinear polygon " + f);
 		}
 	}
 	public static String getOsName() {
@@ -336,8 +335,7 @@ public final class Node {
 	}
 	public static boolean isWindows() {
 		// //com.neuronrobotics.sdk.common.Log.error("OS name: "+getOsName());
-		return getOsName().toLowerCase().startsWith("windows")
-				|| getOsName().toLowerCase().startsWith("microsoft")
+		return getOsName().toLowerCase().startsWith("windows") || getOsName().toLowerCase().startsWith("microsoft")
 				|| getOsName().toLowerCase().startsWith("ms");
 	}
 	/**
@@ -348,77 +346,82 @@ public final class Node {
 	 * plane. Polygons in front or back of this plane go into either {@code front}
 	 * or {@code back}.
 	 *
-	 * @param polygon       polygon to split
-	 * @param coplanarFront "coplanar front" polygons
-	 * @param coplanarBack  "coplanar back" polygons
-	 * @param front         front polygons
-	 * @param back          back polgons
+	 * @param polygon
+	 *            polygon to split
+	 * @param coplanarFront
+	 *            "coplanar front" polygons
+	 * @param coplanarBack
+	 *            "coplanar back" polygons
+	 * @param front
+	 *            front polygons
+	 * @param back
+	 *            back polgons
 	 * @throws Exception
 	 */
-	public void splitPolygon(ArrayList<Polygon> polygons, List<Polygon> cf, List<Polygon> cb,
-			List<Polygon> f, List<Polygon> b) throws Exception {
-//		if (polygons.size() > LIMIT_FOR_GPU && !isWindows()) {
-//			splitPolygonGPU(polygons, cf, cb, f, b);
-//			return;
-//		}
+	public void splitPolygon(ArrayList<Polygon> polygons, List<Polygon> cf, List<Polygon> cb, List<Polygon> f,
+			List<Polygon> b) throws Exception {
+		// if (polygons.size() > LIMIT_FOR_GPU && !isWindows()) {
+		// splitPolygonGPU(polygons, cf, cb, f, b);
+		// return;
+		// }
 		splitPolygonOriginal(polygons, cf, cb, f, b);
 
-//		List<Polygon> cf1 = new ArrayList<Polygon>();
-//		List<Polygon> cb1= new ArrayList<Polygon>();
-//		List<Polygon> f1= new ArrayList<Polygon>();
-//		List<Polygon> b1= new ArrayList<Polygon>();
-//		List<Polygon> cf2= new ArrayList<Polygon>();
-//		List<Polygon> cb2= new ArrayList<Polygon>();
-//		List<Polygon> f2= new ArrayList<Polygon>(); 
-//		List<Polygon> b2= new ArrayList<Polygon>();
-//		splitPolygonOriginal(polygons, cf2, cb2, f2, b2);
-//		splitPolygonGPU(polygons, cf1, cb1, f1, b1);
-//
-//		if(cf1.size()!=cf2.size()
-//				||cb1.size()!=cb2.size()
-//				|| f1.size()!=f2.size()
-//				||b1.size()!=b2.size()) {
-//			throw new RuntimeException("Node split mismathch");
-//		}
-//		for (int i = 0; i < cf1.size(); i++) {
-//			Polygon p1 = cf1.get(i);
-//			Polygon p2 = cf2.get(i);
-//			if(p1.size()!=p2.size())
-//				throw new RuntimeException("Node slit mismathch, polygon size mismatch");
-//
-//		}
-//		for (int i = 0; i < cb1.size(); i++) {
-//			Polygon p1 = cb1.get(i);
-//			Polygon p2 = cb2.get(i);
-//			if(p1.size()!=p2.size())
-//				throw new RuntimeException("Node slit mismathch, polygon size mismatch");
-//
-//		}
-//		for (int i = 0; i < f1.size(); i++) {
-//			Polygon p1 = f1.get(i);
-//			Polygon p2 = f2.get(i);
-//			if(p1.size()!=p2.size())
-//				throw new RuntimeException("Node slit mismathch, polygon size mismatch");
-//
-//		}		
-//		for (int i = 0; i < b1.size(); i++) {
-//			Polygon p1 = b1.get(i);
-//			Polygon p2 = b2.get(i);
-//			if(p1.size()!=p2.size())
-//				throw new RuntimeException("Node slit mismathch, polygon size mismatch");
-//
-//		}
-//		f.addAll(f1);
-//		b.addAll(b1);
-//		cb.addAll(cb1);
-//		cf.addAll(cf1);
+		// List<Polygon> cf1 = new ArrayList<Polygon>();
+		// List<Polygon> cb1= new ArrayList<Polygon>();
+		// List<Polygon> f1= new ArrayList<Polygon>();
+		// List<Polygon> b1= new ArrayList<Polygon>();
+		// List<Polygon> cf2= new ArrayList<Polygon>();
+		// List<Polygon> cb2= new ArrayList<Polygon>();
+		// List<Polygon> f2= new ArrayList<Polygon>();
+		// List<Polygon> b2= new ArrayList<Polygon>();
+		// splitPolygonOriginal(polygons, cf2, cb2, f2, b2);
+		// splitPolygonGPU(polygons, cf1, cb1, f1, b1);
+		//
+		// if(cf1.size()!=cf2.size()
+		// ||cb1.size()!=cb2.size()
+		// || f1.size()!=f2.size()
+		// ||b1.size()!=b2.size()) {
+		// throw new RuntimeException("Node split mismathch");
+		// }
+		// for (int i = 0; i < cf1.size(); i++) {
+		// Polygon p1 = cf1.get(i);
+		// Polygon p2 = cf2.get(i);
+		// if(p1.size()!=p2.size())
+		// throw new RuntimeException("Node slit mismathch, polygon size mismatch");
+		//
+		// }
+		// for (int i = 0; i < cb1.size(); i++) {
+		// Polygon p1 = cb1.get(i);
+		// Polygon p2 = cb2.get(i);
+		// if(p1.size()!=p2.size())
+		// throw new RuntimeException("Node slit mismathch, polygon size mismatch");
+		//
+		// }
+		// for (int i = 0; i < f1.size(); i++) {
+		// Polygon p1 = f1.get(i);
+		// Polygon p2 = f2.get(i);
+		// if(p1.size()!=p2.size())
+		// throw new RuntimeException("Node slit mismathch, polygon size mismatch");
+		//
+		// }
+		// for (int i = 0; i < b1.size(); i++) {
+		// Polygon p1 = b1.get(i);
+		// Polygon p2 = b2.get(i);
+		// if(p1.size()!=p2.size())
+		// throw new RuntimeException("Node slit mismathch, polygon size mismatch");
+		//
+		// }
+		// f.addAll(f1);
+		// b.addAll(b1);
+		// cb.addAll(cb1);
+		// cf.addAll(cf1);
 	}
 
 	/**
 	 * An attempt to make part of the CSG stack GPu accelerated
-	 * 
+	 *
 	 * this is worth exploring in the future
-	 * 
+	 *
 	 * @param polygons
 	 * @param coplanarFront
 	 * @param coplanarBack
@@ -519,12 +522,13 @@ public final class Node {
 
 		double epsilon = Plane.getEPSILON();
 
-		int chunkSize =5000;
+		int chunkSize = 5000;
 		int loops = polygonNumber / chunkSize;
 		if (loops < 0)
 			loops = 1;
-		
-		//System.out.println("\n\nStarting Kernel "+polygonNumber+" polygons in "+loops+" loops ");
+
+		// System.out.println("\n\nStarting Kernel "+polygonNumber+" polygons in
+		// "+loops+" loops ");
 		Kernel splitPolygonsKernel = new Kernel() {
 
 			int size(int polygonIndex, int[] mypolygonSize) {
@@ -605,19 +609,20 @@ public final class Node {
 					t = (d / dotMinus);
 				else
 					return -1;
-				if(t<0||t>1)
+				if (t < 0 || t > 1)
 					return -1;
 
 				// Fixed point interpolation: lerp = vi + (vj - vi) * t
 				double sx = diff_x * t;
 				double sy = diff_y * t;
 				double sz = diff_z * t;
-				
+
 				double lerp_x = (xvi + sx);
 				double lerp_y = (yvi + sy);
 				double lerp_z = (zvi + sz);
 
-//				new Vertex(new Vector3d(lerp_x , lerp_y , lerp_z ), polygons.get(polygonIndex).plane.getNormal());
+				// new Vertex(new Vector3d(lerp_x , lerp_y , lerp_z ),
+				// polygons.get(polygonIndex).plane.getNormal());
 
 				int pointInPolygon = mypolygonSize[polygonIndex];
 				incrementSize(polygonIndex, mypolygonStartIndex, mypolygonSize);
@@ -675,78 +680,78 @@ public final class Node {
 				// search for the epsilon values of the incoming plane
 				double negEpsilon = -epsilon;
 				double posEpsilon = epsilon;
-//				for (int i = 0; i < size(polygonIndex, polygonSize); i++) {
-//					double t = polygonPointDistance(polygonIndex, i);
-//					if (t > posEpsilon) {
-//						posEpsilon = (float) (t + epsilon);
-//					}
-//					if (t < negEpsilon) {
-//						negEpsilon = (float) (t - epsilon);
-//					}
-//				}
+				// for (int i = 0; i < size(polygonIndex, polygonSize); i++) {
+				// double t = polygonPointDistance(polygonIndex, i);
+				// if (t > posEpsilon) {
+				// posEpsilon = (float) (t + epsilon);
+				// }
+				// if (t < negEpsilon) {
+				// negEpsilon = (float) (t - epsilon);
+				// }
+				// }
 				int polygonType = COPLANAR;;
-//				boolean someF =false;
-//				boolean someB=false;
+				// boolean someF =false;
+				// boolean someB=false;
 				for (int i = 0; i < size(polygonIndex, polygonSize); i++) {
 					double t = planePointDistance(polygonIndex, i);
 					int type = (t < negEpsilon) ? BACK : (t > posEpsilon) ? FRONT : COPLANAR;
 					types[i + polygonIndex * maxPolygonSize] = type;
 					polygonType |= type;
-//					if(type==BACK)
-//						someB=true;
-//					if(type==FRONT)
-//						someF=true;
+					// if(type==BACK)
+					// someB=true;
+					// if(type==FRONT)
+					// someF=true;
 				}
-//				polygonType=COPLANAR;
-//				if(someF && (!someB) ) {
-//					polygonType=FRONT;
-//				}
-//				if((!someF) && (someB) ) {
-//					polygonType=BACK;
-//				}
-//				if((someF) && (someB) ) {
-//					polygonType=SPANNING;
-//				}
+				// polygonType=COPLANAR;
+				// if(someF && (!someB) ) {
+				// polygonType=FRONT;
+				// }
+				// if((!someF) && (someB) ) {
+				// polygonType=BACK;
+				// }
+				// if((someF) && (someB) ) {
+				// polygonType=SPANNING;
+				// }
 
-//				List<Polygon> cf2= new ArrayList<Polygon>();
-//				List<Polygon> cb2= new ArrayList<Polygon>();
-//				List<Polygon> f2= new ArrayList<Polygon>(); 
-//				List<Polygon> b2= new ArrayList<Polygon>();
-//				splitSinglePolygon(polygons.get(polygonIndex), cf2, cb2, f2, b2);
+				// List<Polygon> cf2= new ArrayList<Polygon>();
+				// List<Polygon> cb2= new ArrayList<Polygon>();
+				// List<Polygon> f2= new ArrayList<Polygon>();
+				// List<Polygon> b2= new ArrayList<Polygon>();
+				// splitSinglePolygon(polygons.get(polygonIndex), cf2, cb2, f2, b2);
 				if (polygonType == COPLANAR) {
 					isCopy[polygonIndex] = true;
 					if (planeDotPolygonNormal(polygonIndex) > 0) {
-//						if(cf2.size()!=1) {
-//							memoryError[polygonIndex] = true;
-//							return;
-//						}
+						// if(cf2.size()!=1) {
+						// memoryError[polygonIndex] = true;
+						// return;
+						// }
 						copy(polygonIndex, coplanarFrontStartIndex, coplanarFrontSize);
 					} else {
-//						if(cb2.size()!=1) {
-//							memoryError[polygonIndex] = true;
-//							return;
-//						}
+						// if(cb2.size()!=1) {
+						// memoryError[polygonIndex] = true;
+						// return;
+						// }
 						copy(polygonIndex, coplanarBackStartIndex, coplanarBackSize);
 					}
 				} else if (polygonType == FRONT) {
-//					if(f2.size()!=1) {
-//						memoryError[polygonIndex] = true;
-//						return;
-//					}
+					// if(f2.size()!=1) {
+					// memoryError[polygonIndex] = true;
+					// return;
+					// }
 					isCopy[polygonIndex] = true;
 					copy(polygonIndex, frontStartIndex, frontSize);
 				} else if (polygonType == BACK) {
-//					if(b2.size()!=1) {
-//						memoryError[polygonIndex] = true;
-//						return;
-//					}
+					// if(b2.size()!=1) {
+					// memoryError[polygonIndex] = true;
+					// return;
+					// }
 					isCopy[polygonIndex] = true;
 					copy(polygonIndex, backStartIndex, backSize);
 				} else if (polygonType == SPANNING) {
-//					if(b2.size()!=1 && f2.size()!=1) {
-//						memoryError[polygonIndex] = true;
-//						return;
-//					}
+					// if(b2.size()!=1 && f2.size()!=1) {
+					// memoryError[polygonIndex] = true;
+					// return;
+					// }
 					isCopy[polygonIndex] = false;
 
 					int size = size(polygonIndex, polygonSize);
@@ -775,7 +780,7 @@ public final class Node {
 						if (ti != FRONT) {
 							writeIncrementPoint(polygonIndex, sourctPointIndex, backStartIndex, backSize);
 						}
-						if ((ti|tj)==SPANNING) {
+						if ((ti | tj) == SPANNING) {
 							int newPointIndex = interpolate(polygonIndex, i, j, frontStartIndex, frontSize);
 							if (newPointIndex > 0) {
 								writeIncrementPoint(polygonIndex, newPointIndex, backStartIndex, backSize);
@@ -784,38 +789,40 @@ public final class Node {
 						if (memoryError[polygonIndex])
 							return;
 						int fsize = frontSize[polygonIndex];
-						int bsize =  backSize[polygonIndex];
+						int bsize = backSize[polygonIndex];
 						if (fsize > (polygonMax) || bsize > (polygonMax)) {
 							memoryError[polygonIndex] = true;
 							return;
 						}
 					}
-//					ArrayList<Polygon> testF=new ArrayList<Polygon>();
-//					ArrayList<Polygon> testB=new ArrayList<Polygon>();
-//
-//					int size23 = frontSize[polygonIndex];
-//					int polygonBase = frontStartIndex[polygonIndex];
-//					testAddPolygon(testF, orderedPoints, polygonPointX, polygonPointY, polygonPointZ, polygons.get(polygonIndex), polygonBase, size23,
-//							false);
-//					int size22 = backSize[polygonIndex];
-//					int polygonBase2 = backStartIndex[polygonIndex];
-//					
-//					testAddPolygon(testB, orderedPoints, polygonPointX, polygonPointY, polygonPointZ, polygons.get(polygonIndex), polygonBase2, size22,
-//							false);
-//					if(testF.size()!=f2.size()||testB.size()!=b2.size()) {
-//						memoryError[polygonIndex] = true;
-//						return;
-//					}
-//					if(testB.size()>0)
-//					if(testB.get(0).size()!=b2.get(0).size()) {
-//						memoryError[polygonIndex] = true;
-//						return;
-//					}
-//					if(testF.size()>0)
-//					if(testF.get(0).size()!=f2.get(0).size()) {
-//						memoryError[polygonIndex] = true;
-//						return;
-//					}
+					// ArrayList<Polygon> testF=new ArrayList<Polygon>();
+					// ArrayList<Polygon> testB=new ArrayList<Polygon>();
+					//
+					// int size23 = frontSize[polygonIndex];
+					// int polygonBase = frontStartIndex[polygonIndex];
+					// testAddPolygon(testF, orderedPoints, polygonPointX, polygonPointY,
+					// polygonPointZ, polygons.get(polygonIndex), polygonBase, size23,
+					// false);
+					// int size22 = backSize[polygonIndex];
+					// int polygonBase2 = backStartIndex[polygonIndex];
+					//
+					// testAddPolygon(testB, orderedPoints, polygonPointX, polygonPointY,
+					// polygonPointZ, polygons.get(polygonIndex), polygonBase2, size22,
+					// false);
+					// if(testF.size()!=f2.size()||testB.size()!=b2.size()) {
+					// memoryError[polygonIndex] = true;
+					// return;
+					// }
+					// if(testB.size()>0)
+					// if(testB.get(0).size()!=b2.get(0).size()) {
+					// memoryError[polygonIndex] = true;
+					// return;
+					// }
+					// if(testF.size()>0)
+					// if(testF.get(0).size()!=f2.get(0).size()) {
+					// memoryError[polygonIndex] = true;
+					// return;
+					// }
 				} else {
 					memoryError[polygonIndex] = true;
 					return;
@@ -827,15 +834,15 @@ public final class Node {
 					memoryError[polygonIndex] = true;
 					return;
 				}
-				
+
 			}
 			@Override
 			public void run() {
 				int pi = getGlobalId() * chunkSize;
 				int end = pi + chunkSize;
-				if(end>polygonNumber)
-					end=polygonNumber;
-				//System.out.println("#"+getGlobalId()+" Start "+pi+" to "+end);
+				if (end > polygonNumber)
+					end = polygonNumber;
+				// System.out.println("#"+getGlobalId()+" Start "+pi+" to "+end);
 				for (int polygonIndex = pi; (polygonIndex < end); polygonIndex++) {
 					if (memoryError[polygonIndex])
 						return;
@@ -843,27 +850,27 @@ public final class Node {
 				} // outer for loop of all polygons
 			}// run
 		};
-		if(!GPUTest) {
+		if (!GPUTest) {
 			try {
 				splitPolygonsKernel.compile(splitPolygonsKernel.getTargetDevice());
-			}catch(Exception ex) {
-				System.err.println("GPU missing feature "+ex.getMessage());
-				GPUTest=true;
+			} catch (Exception ex) {
+				System.err.println("GPU missing feature " + ex.getMessage());
+				GPUTest = true;
 			}
 		}
-		if(GPUTest)
+		if (GPUTest)
 			splitPolygonsKernel.setExecutionMode(Kernel.EXECUTION_MODE.JTP); // Java Thread Pool
 
-		CSG.gpuRun(loops+3, splitPolygonsKernel, null, "split ", () -> {
+		CSG.gpuRun(loops + 3, splitPolygonsKernel, null, "split ", () -> {
 			return false;
 		}, 1, 1);
-		
+
 		for (int k = 0; k < polygonNumber; k++)
 			if (memoryError[k])
 				throw new RuntimeException("Memory error here!");
 
 		// Collect the polygon data into the return structures
-		//int copies = 0;
+		// int copies = 0;
 		for (int k = 0; k < polygonNumber; k++) {
 			copyDataIntoPolygon(polygons, coplanarFront, coplanarBack, front, back, orderedPoints,
 					coplanarFrontStartIndex, coplanarFrontSize, coplanarBackStartIndex, coplanarBackSize,
@@ -904,177 +911,187 @@ public final class Node {
 	 * plane. Polygons in front or back of this plane go into either {@code front}
 	 * or {@code back}.
 	 *
-	 * @param polygon       polygon to split
-	 * @param coplanarFront "coplanar front" polygons
-	 * @param coplanarBack  "coplanar back" polygons
-	 * @param front         front polygons
-	 * @param back          back polgons
+	 * @param polygon
+	 *            polygon to split
+	 * @param coplanarFront
+	 *            "coplanar front" polygons
+	 * @param coplanarBack
+	 *            "coplanar back" polygons
+	 * @param front
+	 *            front polygons
+	 * @param back
+	 *            back polgons
 	 */
 	public void splitPolygonOriginal(List<Polygon> polygons, List<Polygon> coplanarFront, List<Polygon> coplanarBack,
 			List<Polygon> front, List<Polygon> back) {
 
 		for (int k = 0; k < polygons.size(); k++) {
 			Polygon polygon = polygons.get(k);
-			splitSinglePolygon(polygon,coplanarFront, coplanarBack, front, back);
+			splitSinglePolygon(polygon, coplanarFront, coplanarBack, front, back);
 		}
-		if(Debug3dProvider.isProviderAvailible()) {
-//			Debug3dProvider.clearScreen();
-//			Debug3dProvider.addObject(polygons.get(0).getVertices().get(0));
-//			Debug3dProvider.addObject(front.stream().map(polygon -> polygon.setColor(Color.RED)).collect(Collectors.toList()));
-//			List<Polygon> collect = back.stream().map(polygon -> polygon.setColor(Color.WHITE)).collect(Collectors.toList());
-//			Debug3dProvider.addObject(collect);
-//			Debug3dProvider.addObject(coplanarBack.stream().map(polygon -> polygon.setColor(Color.YELLOW)).collect(Collectors.toList()));
-//			Debug3dProvider.addObject(coplanarFront.stream().map(polygon -> polygon.setColor(Color.GREEN)).collect(Collectors.toList()));
-//			Debug3dProvider.clearScreen();
+		if (Debug3dProvider.isProviderAvailible()) {
+			// Debug3dProvider.clearScreen();
+			// Debug3dProvider.addObject(polygons.get(0).getVertices().get(0));
+			// Debug3dProvider.addObject(front.stream().map(polygon ->
+			// polygon.setColor(Color.RED)).collect(Collectors.toList()));
+			// List<Polygon> collect = back.stream().map(polygon ->
+			// polygon.setColor(Color.WHITE)).collect(Collectors.toList());
+			// Debug3dProvider.addObject(collect);
+			// Debug3dProvider.addObject(coplanarBack.stream().map(polygon ->
+			// polygon.setColor(Color.YELLOW)).collect(Collectors.toList()));
+			// Debug3dProvider.addObject(coplanarFront.stream().map(polygon ->
+			// polygon.setColor(Color.GREEN)).collect(Collectors.toList()));
+			// Debug3dProvider.clearScreen();
 		}
 	}
 
-	private void splitSinglePolygon(Polygon polygon,List<Polygon> coplanarFront, List<Polygon> coplanarBack, List<Polygon> front,
-			List<Polygon> back) {
+	private void splitSinglePolygon(Polygon polygon, List<Polygon> coplanarFront, List<Polygon> coplanarBack,
+			List<Polygon> front, List<Polygon> back) {
 		// search for the epsilon values of the incoming plane
 		double negEpsilon = -Plane.getEPSILON();
 		double posEpsilon = Plane.getEPSILON();
 		int size = polygon.getVertices().size();
 		Vector3d normal = polygon.getPlane().getNormal();
-			for (int i = 0; i < size; i++) {
-				Vector3d pos = polygon.getVertices().get(i).pos;
-				double dot = normal.dot(pos);
-				double t = dot
-						- polygon.getPlane().getDist();
-				if(Math.abs(t)>0.01) {
-					throw new RuntimeException("A plane epsilon of "+t+" is impossible");
-				}
-				if (t > posEpsilon) {
-					// com.neuronrobotics.sdk.common.Log.error("Non flat polygon, increasing
-					// positive epsilon "+t);
-					posEpsilon = t;
-				}
-				if (t < negEpsilon) {
-					// com.neuronrobotics.sdk.common.Log.error("Non flat polygon, decreasing
-					// negative epsilon "+t);
-					negEpsilon = t;
-				}
-			}
-		int polygonType = 0;
-		List<Integer> types = new ArrayList<>();
-//			boolean someF =false;
-//			boolean someB=false;
-
-		//double distP = polygon.getPlane().getDist();
 		for (int i = 0; i < size; i++) {
 			Vector3d pos = polygon.getVertices().get(i).pos;
-//				double dot = normal.dot(pos);
-//				double ep = Math.abs( dot-distP);// this is this points distance from its plane
+			double dot = normal.dot(pos);
+			double t = dot - polygon.getPlane().getDist();
+			if (Math.abs(t) > 0.01) {
+				throw new RuntimeException("A plane epsilon of " + t + " is impossible");
+			}
+			if (t > posEpsilon) {
+				// com.neuronrobotics.sdk.common.Log.error("Non flat polygon, increasing
+				// positive epsilon "+t);
+				posEpsilon = t;
+			}
+			if (t < negEpsilon) {
+				// com.neuronrobotics.sdk.common.Log.error("Non flat polygon, decreasing
+				// negative epsilon "+t);
+				negEpsilon = t;
+			}
+		}
+		int polygonType = 0;
+		List<Integer> types = new ArrayList<>();
+		// boolean someF =false;
+		// boolean someB=false;
+
+		// double distP = polygon.getPlane().getDist();
+		for (int i = 0; i < size; i++) {
+			Vector3d pos = polygon.getVertices().get(i).pos;
+			// double dot = normal.dot(pos);
+			// double ep = Math.abs( dot-distP);// this is this points distance from its
+			// plane
 			double t = getThisNodePlane().getNormal().dot(pos) - getThisNodePlane().getDist();
 			int type = (t < negEpsilon) ? BACK : (t > posEpsilon) ? FRONT : COPLANAR;
 			types.add(type);
-			polygonType = polygonType|type;
+			polygonType = polygonType | type;
 
-//				if(type==BACK)
-//					someB=true;
-//				if(type==FRONT)
-//					someF=true;
+			// if(type==BACK)
+			// someB=true;
+			// if(type==FRONT)
+			// someF=true;
 		}
-//			polygonType=COPLANAR;
-//			if(someF && (!someB) ) {
-//				polygonType=FRONT;
-//			}
-//			if((!someF) && (someB) ) {
-//				polygonType=BACK;
-//			}
-//			if((someF) && (someB) ) {
-//				polygonType=SPANNING;
-//			}
+		// polygonType=COPLANAR;
+		// if(someF && (!someB) ) {
+		// polygonType=FRONT;
+		// }
+		// if((!someF) && (someB) ) {
+		// polygonType=BACK;
+		// }
+		// if((someF) && (someB) ) {
+		// polygonType=SPANNING;
+		// }
 		// Put the polygon in the correct list, splitting it when necessary.
 		switch (polygonType) {
-		case COPLANAR:
-			double cp = getThisNodePlane().getNormal().dot(normal);
-			(cp > 0 ? coplanarFront : coplanarBack).add(polygon);
-			break;
-		case FRONT:
-			front.add(polygon);
-			break;
-		case BACK:
-			back.add(polygon);
-			break;
-		case SPANNING:
-			List<Vertex> f = new ArrayList<>(size);
-			List<Vertex> b = new ArrayList<>(size);
-			for (int i = 0; i < size; i++) {
-				int j = (i + 1) % size;
-				int ti = types.get(i);
-				int tj = types.get(j);
-				Vertex vi = polygon.getVertices().get(i);
-				Vertex vj = polygon.getVertices().get(j);
-				if (ti != BACK) {
-					addPoint(f, vi);
-					// f.add(vi);
-				}
-				if (ti != FRONT) {
-					addPoint(b, (ti != BACK ? vi.clone() : vi));
-				}
-				if ((ti|tj) == SPANNING) {
-					double planeDot = this.getThisNodePlane().getNormal().dot(vi.pos);
-					double planeNormalDistance = this.getThisNodePlane().getDist();
-
-					double d = planeNormalDistance - planeDot;
-
-					// Extract the vector components
-					double xvi = vi.pos.x;
-					double yvi = vi.pos.y;
-					double zvi = vi.pos.z;
-
-					double xvj = vj.pos.x;
-					double yvj = vj.pos.y;
-					double zvj = vj.pos.z;
-
-					// Compute the difference vector (vj - vi)
-					double diff_x = xvj - xvi;
-					double diff_y = yvj - yvi;
-					double diff_z = zvj - zvi;
-
-					// Assuming plane.getNormal() returns a Vector3d or similar with x, y, z fields
-					double planeNormalX = getThisNodePlane().getNormal().x;
-					double planeNormalY = getThisNodePlane().getNormal().y;
-					double planeNormalZ = getThisNodePlane().getNormal().z;
-
-					// Compute dot product
-					double dotMinus = (planeNormalX * diff_x) + (planeNormalY * diff_y) + (planeNormalZ * diff_z);
-
-					// Compute scalar t
-					// Paralell case where one point is slightly infront by the same amount that the
-					// other is slightly behind. when summed, they make a point that is exactly on
-					// the plane
-					// therefor the intersection point is halfway between i and j
-					double t = (d / dotMinus);
-					if (!Double.isFinite(t) || t < 0 || t > 1.0) {
-					    continue;
+			case COPLANAR :
+				double cp = getThisNodePlane().getNormal().dot(normal);
+				(cp > 0 ? coplanarFront : coplanarBack).add(polygon);
+				break;
+			case FRONT :
+				front.add(polygon);
+				break;
+			case BACK :
+				back.add(polygon);
+				break;
+			case SPANNING :
+				List<Vertex> f = new ArrayList<>(size);
+				List<Vertex> b = new ArrayList<>(size);
+				for (int i = 0; i < size; i++) {
+					int j = (i + 1) % size;
+					int ti = types.get(i);
+					int tj = types.get(j);
+					Vertex vi = polygon.getVertices().get(i);
+					Vertex vj = polygon.getVertices().get(j);
+					if (ti != BACK) {
+						addPoint(f, vi);
+						// f.add(vi);
 					}
+					if (ti != FRONT) {
+						addPoint(b, (ti != BACK ? vi.clone() : vi));
+					}
+					if ((ti | tj) == SPANNING) {
+						double planeDot = this.getThisNodePlane().getNormal().dot(vi.pos);
+						double planeNormalDistance = this.getThisNodePlane().getDist();
 
-					// Scale difference vector by tOld
-					double sx = diff_x * t;
-					double sy = diff_y * t;
-					double sz = diff_z * t;
+						double d = planeNormalDistance - planeDot;
 
-					// Compute interpolated point intrp = vi + scaled vector
-					double lerp_x = xvi + sx;
-					double lerp_y = yvi + sy;
-					double lerp_z = zvi + sz;
-					Vector3d intrp = new Vector3d(lerp_x, lerp_y, lerp_z);
-//						double distPoly = polygon.getPlane().getDist();
-//						double dotNP = normal.dot(intrp);
-//						double tnp = dotNP- distPoly;
-//						if(Math.abs(tnp)>Plane.getEPSILON()) {
-//							throw new RuntimeException("New point doesnt lie on the plane of the split polygon!");
-//						}else {
+						// Extract the vector components
+						double xvi = vi.pos.x;
+						double yvi = vi.pos.y;
+						double zvi = vi.pos.z;
+
+						double xvj = vj.pos.x;
+						double yvj = vj.pos.y;
+						double zvj = vj.pos.z;
+
+						// Compute the difference vector (vj - vi)
+						double diff_x = xvj - xvi;
+						double diff_y = yvj - yvi;
+						double diff_z = zvj - zvi;
+
+						// Assuming plane.getNormal() returns a Vector3d or similar with x, y, z fields
+						double planeNormalX = getThisNodePlane().getNormal().x;
+						double planeNormalY = getThisNodePlane().getNormal().y;
+						double planeNormalZ = getThisNodePlane().getNormal().z;
+
+						// Compute dot product
+						double dotMinus = (planeNormalX * diff_x) + (planeNormalY * diff_y) + (planeNormalZ * diff_z);
+
+						// Compute scalar t
+						// Paralell case where one point is slightly infront by the same amount that the
+						// other is slightly behind. when summed, they make a point that is exactly on
+						// the plane
+						// therefor the intersection point is halfway between i and j
+						double t = (d / dotMinus);
+						if (!Double.isFinite(t) || t < 0 || t > 1.0) {
+							continue;
+						}
+
+						// Scale difference vector by tOld
+						double sx = diff_x * t;
+						double sy = diff_y * t;
+						double sz = diff_z * t;
+
+						// Compute interpolated point intrp = vi + scaled vector
+						double lerp_x = xvi + sx;
+						double lerp_y = yvi + sy;
+						double lerp_z = zvi + sz;
+						Vector3d intrp = new Vector3d(lerp_x, lerp_y, lerp_z);
+						// double distPoly = polygon.getPlane().getDist();
+						// double dotNP = normal.dot(intrp);
+						// double tnp = dotNP- distPoly;
+						// if(Math.abs(tnp)>Plane.getEPSILON()) {
+						// throw new RuntimeException("New point doesnt lie on the plane of the split
+						// polygon!");
+						// }else {
 						addPoint(f, new Vertex(intrp));
 						addPoint(b, new Vertex(intrp.clone()));
-					//}
+						// }
+					}
 				}
-			}
-			add(front, f, polygon);
-			add(back, b, polygon);
-			break;
+				add(front, f, polygon);
+				add(back, b, polygon);
+				break;
 		}
 	}
 
@@ -1086,7 +1103,8 @@ public final class Node {
 	 *
 	 * Note: polygons are split if necessary.
 	 *
-	 * @param bsp bsp that shall be used for clipping
+	 * @param bsp
+	 *            bsp that shall be used for clipping
 	 * @throws Exception
 	 */
 	public void clipTo(Node bsp) throws Exception {
@@ -1108,10 +1126,10 @@ public final class Node {
 		ArrayList<Polygon> localPolygons = new ArrayList<>(this.polygons);
 		if (this.front != null) {
 			localPolygons.addAll(this.front.allPolygons());
-//            polygons = Utils.concat(polygons, this.front.allPolygons());
+			// polygons = Utils.concat(polygons, this.front.allPolygons());
 		}
 		if (this.back != null) {
-//            polygons = Utils.concat(polygons, this.back.allPolygons());
+			// polygons = Utils.concat(polygons, this.back.allPolygons());
 			localPolygons.addAll(this.back.allPolygons());
 		}
 
@@ -1124,12 +1142,13 @@ public final class Node {
 	 * nodes there. Each set of polygons is partitioned using the first polygon (no
 	 * heuristic is used to pick a good split).
 	 *
-	 * @param polygons polygons used to build the BSP
+	 * @param polygons
+	 *            polygons used to build the BSP
 	 * @throws Exception
 	 */
 	public final void build(ArrayList<Polygon> polygons) throws Exception {
 		long size = count;
-		build(polygons, 0, ((long)polygons.size())*size);
+		build(polygons, 0, ((long) polygons.size()) * size);
 	}
 
 	/**
@@ -1138,47 +1157,49 @@ public final class Node {
 	 * nodes there. Each set of polygons is partitioned using the first polygon (no
 	 * heuristic is used to pick a good split).
 	 *
-	 * @param polygons polygons used to build the BSP
+	 * @param polygons
+	 *            polygons used to build the BSP
 	 * @throws Exception
 	 */
 	public final long build(ArrayList<Polygon> polygons, long depth, long maxDepth) throws Exception {
-		if (depth > maxDepth && maxDepth>0) {
-			new RuntimeException("Impossible Node depth " + depth + " with " + polygons.size() + " remaining max = "+maxDepth ).printStackTrace();
+		if (depth > maxDepth && maxDepth > 0) {
+			new RuntimeException(
+					"Impossible Node depth " + depth + " with " + polygons.size() + " remaining max = " + maxDepth)
+					.printStackTrace();
 		}
 
-		
 		if (polygons.isEmpty()) {
 
 			return 0;
 		}
 
-//		if (this.getPlane() == null) {
-//			this.setPlane(polygons.get(0).getPlane());
-//		}
+		// if (this.getPlane() == null) {
+		// this.setPlane(polygons.get(0).getPlane());
+		// }
 		// this.polygons.add(polygons.get(0));
 
 		ArrayList<Polygon> frontP = new ArrayList<>();
 		ArrayList<Polygon> backP = new ArrayList<>();
 
 		// parellel version does not work here
-		 List<Polygon> coplanarFront=this.polygons;
-		 List<Polygon> coplanarBack=this.polygons;
+		List<Polygon> coplanarFront = this.polygons;
+		List<Polygon> coplanarBack = this.polygons;
 		splitPolygon(polygons, coplanarFront, coplanarBack, frontP, backP);
-//		if(this.polygons.size()==0) {
-//			throw new RuntimeException("Binary Spacial Partitioning Tree step failed!");
-//		}
+		// if(this.polygons.size()==0) {
+		// throw new RuntimeException("Binary Spacial Partitioning Tree step failed!");
+		// }
 
 		if (frontP.size() > 0) {
 			if (this.front == null) {
 				this.front = new Node(frontP.get(0).getPlane());
 			}
-			count+=this.front.build(frontP, depth + 1, maxDepth);
+			count += this.front.build(frontP, depth + 1, maxDepth);
 		}
 		if (backP.size() > 0) {
 			if (this.back == null) {
 				this.back = new Node(backP.get(0).getPlane());
 			}
-			count+=this.back.build(backP, depth + 1, maxDepth);
+			count += this.back.build(backP, depth + 1, maxDepth);
 		}
 		return count;
 	}
@@ -1187,9 +1208,9 @@ public final class Node {
 		return myNodePlane;
 	}
 
-//	public void setPlane(Plane plane) {
-//		if (plane == null)
-//			throw new RuntimeException("Plane can not be null!");
-//		this.myNodePlane = plane.clone();
-//	}
+	// public void setPlane(Plane plane) {
+	// if (plane == null)
+	// throw new RuntimeException("Plane can not be null!");
+	// this.myNodePlane = plane.clone();
+	// }
 }

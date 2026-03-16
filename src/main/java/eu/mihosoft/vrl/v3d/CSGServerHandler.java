@@ -3,7 +3,6 @@ package eu.mihosoft.vrl.v3d;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +19,7 @@ class CSGServerHandler implements Runnable {
 
 	private ServerActionState state;
 
-	public CSGServerHandler(SSLSocket socket, String[] lines,ArrayList<ICSGServerEvent> listeners ) {
+	public CSGServerHandler(SSLSocket socket, String[] lines, ArrayList<ICSGServerEvent> listeners) {
 		this.clientSocket = socket;
 		APIKEY = lines;
 		this.listeners = listeners;
@@ -36,10 +35,10 @@ class CSGServerHandler implements Runnable {
 
 			// Read the CSG request
 			CSGRequest request = (CSGRequest) ois.readObject();
-			for(ICSGServerEvent e:listeners) {
+			for (ICSGServerEvent e : listeners) {
 				try {
-					e.gotRequest(request.getOperation(),this);
-				}catch(Throwable t) {
+					e.gotRequest(request.getOperation(), this);
+				} catch (Throwable t) {
 					t.printStackTrace();
 				}
 			}
@@ -87,7 +86,7 @@ class CSGServerHandler implements Runnable {
 	}
 
 	private void close() {
-		//System.out.println("Closing Handler socket");
+		// System.out.println("Closing Handler socket");
 		try {
 			if (!clientSocket.isClosed()) {
 				clientSocket.close();
@@ -95,10 +94,10 @@ class CSGServerHandler implements Runnable {
 		} catch (IOException e) {
 			System.err.println("Error closing client socket: " + e.getMessage());
 		}
-		for(ICSGServerEvent e:listeners) {
+		for (ICSGServerEvent e : listeners) {
 			try {
-				e.finishedOp(state,this);
-			}catch(Throwable t) {
+				e.finishedOp(state, this);
+			} catch (Throwable t) {
 				t.printStackTrace();
 			}
 		}
@@ -109,48 +108,48 @@ class CSGServerHandler implements Runnable {
 		CSGClient.setServerCall(true);
 		try {
 			List<CSG> csgList = request.getCsgList();
-			
+
 			switch (request.getOperation()) {
-			case DIFFERENCE:
-				CSG first = csgList.remove(0);
-				if (csgList.size() == 1) {
-					back.add(first.difference(csgList.get(0)));
-				} else
-					back.add(first.difference(csgList));
-				break;
-			case INTERSECT:
-				CSG f = csgList.remove(0);
-				back.add(f.intersect(csgList));
-				break;
-			case TRIANGULATE:
-				CSG.setPreventNonManifoldTriangles(true);
-				for (CSG c : csgList)
-					back.add(c.triangulate(true));
-				break;
-			case UNION:
-				try {
-					
-					if (csgList.size() == 2) {
-						CSG csg = csgList.get(0);
-						CSG csg2 = csgList.get(1);
-						back.add(csg.union(csg2));
+				case DIFFERENCE :
+					CSG first = csgList.remove(0);
+					if (csgList.size() == 1) {
+						back.add(first.difference(csgList.get(0)));
 					} else
-						back.add(CSG.unionAll(csgList));
+						back.add(first.difference(csgList));
 					break;
-				} catch (Throwable tr) {
-					tr.printStackTrace();
-					throw tr;
-				}
-			case minkowskiHullShape:
-				CSG m1 = csgList.remove(0);
-				CSG t = csgList.remove(0);
-				back.addAll(m1.minkowskiHullShape(t));
-				break;
-			case hull:
-				back.add(HullUtil.hull(request.getPoints(), request.getStorage()));
-				break;
-			default:
-				throw new RuntimeException("No Such Operation " + request.getOperation());
+				case INTERSECT :
+					CSG f = csgList.remove(0);
+					back.add(f.intersect(csgList));
+					break;
+				case TRIANGULATE :
+					CSG.setPreventNonManifoldTriangles(true);
+					for (CSG c : csgList)
+						back.add(c.triangulate(true));
+					break;
+				case UNION :
+					try {
+
+						if (csgList.size() == 2) {
+							CSG csg = csgList.get(0);
+							CSG csg2 = csgList.get(1);
+							back.add(csg.union(csg2));
+						} else
+							back.add(CSG.unionAll(csgList));
+						break;
+					} catch (Throwable tr) {
+						tr.printStackTrace();
+						throw tr;
+					}
+				case minkowskiHullShape :
+					CSG m1 = csgList.remove(0);
+					CSG t = csgList.remove(0);
+					back.addAll(m1.minkowskiHullShape(t));
+					break;
+				case hull :
+					back.add(HullUtil.hull(request.getPoints(), request.getStorage()));
+					break;
+				default :
+					throw new RuntimeException("No Such Operation " + request.getOperation());
 			}
 		} catch (Throwable t) {
 			CSGClient.setServerCall(false);

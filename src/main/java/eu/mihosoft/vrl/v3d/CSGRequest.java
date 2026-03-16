@@ -17,7 +17,7 @@ public class CSGRequest implements Serializable {
 		this.operation = CSGRemoteOperation.UNION;
 	}
 
-	public CSGRequest(List<CSG> csgList, CSGRemoteOperation operation,List<Vector3d> points, PropertyStorage storage) {
+	public CSGRequest(List<CSG> csgList, CSGRemoteOperation operation, List<Vector3d> points, PropertyStorage storage) {
 		this.setPoints(points);
 		this.setStorage(storage);
 		this.csgList = csgList != null ? new ArrayList<>(csgList) : new ArrayList<>();

@@ -28,22 +28,21 @@ public class StlLoadTest {
 		CSG loaded = STL.file(file.toPath());
 		System.out.println("differencing STL");
 
-		CSG diff=loaded.difference(new Cube(250).toCSG());
-		
+		CSG diff = loaded.difference(new Cube(250).toCSG());
+
 		CSG.setPreventNonManifoldTriangles(false);
 		System.out.println("exporting STL");
 
-		FileUtil.write(Paths.get("fixedTower-export.stl"),
-				diff
-				.toStlString());
+		FileUtil.write(Paths.get("fixedTower-export.stl"), diff.toStlString());
 		try {
 			ThumbnailImageCSG.setCullFaceValue(CullFace.NONE);
-			new ThumbnailImageCSG().writeImage(CSGDatabase.getInstance(),loaded,new File(file.getAbsolutePath()+".png"));
+			new ThumbnailImageCSG().writeImage(CSGDatabase.getInstance(), loaded,
+					new File(file.getAbsolutePath() + ".png"));
 		} catch (Exception e) {
 			// Auto-generated catch block
 			e.printStackTrace();
 		}
-		if(loaded.getPolygons().size()/2>diff.getPolygons().size()) {
+		if (loaded.getPolygons().size() / 2 > diff.getPolygons().size()) {
 			fail("Failed perform difference without losing information!");
 		}
 	}
@@ -54,7 +53,8 @@ public class StlLoadTest {
 		CSG loaded = STL.file(file.toPath());
 		try {
 			ThumbnailImageCSG.setCullFaceValue(CullFace.NONE);
-			new ThumbnailImageCSG().writeImage(CSGDatabase.getInstance(),loaded,new File(file.getAbsolutePath()+".png"));
+			new ThumbnailImageCSG().writeImage(CSGDatabase.getInstance(), loaded,
+					new File(file.getAbsolutePath() + ".png"));
 		} catch (Exception e) {
 			// Auto-generated catch block
 			e.printStackTrace();

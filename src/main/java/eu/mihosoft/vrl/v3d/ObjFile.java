@@ -20,106 +20,109 @@ import java.nio.file.Paths;
  */
 public final class ObjFile {
 
-    /** The obj. */
-    private String obj;
-    
-    /** The mtl. */
-    private final String mtl;
-    
-    /** The obj stream. */
-    private InputStream objStream;
-    
-    /** The mtl stream. */
-    private InputStream mtlStream;
+	/** The obj. */
+	private String obj;
 
-    /** The Constant MTL_NAME. */
-    static final String MTL_NAME = "$JCSG_MTL_NAME$";
+	/** The mtl. */
+	private final String mtl;
 
-    /**
-     * Instantiates a new obj file.
-     *
-     * @param obj the obj
-     * @param mtl the mtl
-     */
-    ObjFile(String obj, String mtl) {
-        this.obj = obj;
-        this.mtl = mtl;
-    }
+	/** The obj stream. */
+	private InputStream objStream;
 
-    /**
-     * To files.
-     *
-     * @param p the p
-     * @throws IOException Signals that an I/O exception has occurred.
-     */
-    public void toFiles(Path p) throws IOException {
+	/** The mtl stream. */
+	private InputStream mtlStream;
 
-        Path parent = p.getParent();
+	/** The Constant MTL_NAME. */
+	static final String MTL_NAME = "$JCSG_MTL_NAME$";
 
-        String fileName = p.getFileName().toString();
+	/**
+	 * Instantiates a new obj file.
+	 *
+	 * @param obj
+	 *            the obj
+	 * @param mtl
+	 *            the mtl
+	 */
+	ObjFile(String obj, String mtl) {
+		this.obj = obj;
+		this.mtl = mtl;
+	}
 
-        if (fileName.toLowerCase().endsWith(".obj")
-                || fileName.toLowerCase().endsWith(".mtl")) {
-            fileName = fileName.substring(0, fileName.length() - 4);
-        }
+	/**
+	 * To files.
+	 *
+	 * @param p
+	 *            the p
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
+	public void toFiles(Path p) throws IOException {
 
-        String objName = fileName + ".obj";
-        String mtlName = fileName + ".mtl";
+		Path parent = p.getParent();
 
-        obj = obj.replace(MTL_NAME, mtlName);
-        objStream = null;
+		String fileName = p.getFileName().toString();
 
-        if (parent == null) {
-            FileUtil.write(Paths.get(objName), obj);
-            FileUtil.write(Paths.get(mtlName), mtl);
-        } else {
-            FileUtil.write(Paths.get(parent.toString(), objName), obj);
-            FileUtil.write(Paths.get(parent.toString(), mtlName), mtl);
-        }
+		if (fileName.toLowerCase().endsWith(".obj") || fileName.toLowerCase().endsWith(".mtl")) {
+			fileName = fileName.substring(0, fileName.length() - 4);
+		}
 
-    }
+		String objName = fileName + ".obj";
+		String mtlName = fileName + ".mtl";
 
-    /**
-     * Gets the obj.
-     *
-     * @return the obj
-     */
-    public String getObj() {
-        return this.obj;
-    }
+		obj = obj.replace(MTL_NAME, mtlName);
+		objStream = null;
 
-    /**
-     * Gets the mtl.
-     *
-     * @return the mtl
-     */
-    public String getMtl() {
-        return this.mtl;
-    }
-    
-    /**
-     * Gets the obj stream.
-     *
-     * @return the obj stream
-     */
-    public InputStream getObjStream() {
-        if (objStream == null) {
-           objStream = new ByteArrayInputStream(obj.getBytes(StandardCharsets.UTF_8));
-        }
-        
-        return objStream;
-    }
-    
-    /**
-     * Gets the mtl stream.
-     *
-     * @return the mtl stream
-     */
-    public InputStream getMtlStream() {
-        if (mtlStream == null) {
-           mtlStream = new ByteArrayInputStream(mtl.getBytes(StandardCharsets.UTF_8));
-        }
-        
-        return mtlStream;
-    }
+		if (parent == null) {
+			FileUtil.write(Paths.get(objName), obj);
+			FileUtil.write(Paths.get(mtlName), mtl);
+		} else {
+			FileUtil.write(Paths.get(parent.toString(), objName), obj);
+			FileUtil.write(Paths.get(parent.toString(), mtlName), mtl);
+		}
+
+	}
+
+	/**
+	 * Gets the obj.
+	 *
+	 * @return the obj
+	 */
+	public String getObj() {
+		return this.obj;
+	}
+
+	/**
+	 * Gets the mtl.
+	 *
+	 * @return the mtl
+	 */
+	public String getMtl() {
+		return this.mtl;
+	}
+
+	/**
+	 * Gets the obj stream.
+	 *
+	 * @return the obj stream
+	 */
+	public InputStream getObjStream() {
+		if (objStream == null) {
+			objStream = new ByteArrayInputStream(obj.getBytes(StandardCharsets.UTF_8));
+		}
+
+		return objStream;
+	}
+
+	/**
+	 * Gets the mtl stream.
+	 *
+	 * @return the mtl stream
+	 */
+	public InputStream getMtlStream() {
+		if (mtlStream == null) {
+			mtlStream = new ByteArrayInputStream(mtl.getBytes(StandardCharsets.UTF_8));
+		}
+
+		return mtlStream;
+	}
 }

@@ -26,7 +26,7 @@
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of Michael Hoffer info@michaelhoffer.de.
- */ 
+ */
 
 package eu.mihosoft.vrl.v3d;
 
@@ -40,42 +40,47 @@ import java.nio.file.StandardOpenOption;
 //  Auto-generated Javadoc
 /**
  * File util class.
- * 
+ *
  * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
  */
 public class FileUtil {
 
-    /**
-     * Instantiates a new file util.
-     */
-    private FileUtil() {
-        throw new AssertionError("Don't instantiate me", null);
-    }
+	/**
+	 * Instantiates a new file util.
+	 */
+	private FileUtil() {
+		throw new AssertionError("Don't instantiate me", null);
+	}
 
-    /**
-     * Writes the specified string to a file.
-     *
-     * @param p file destination (existing files will be overwritten)
-     * @param s string to save
-     * 
-     * @throws IOException if writing to file fails
-     */
-    public static void write(Path p, String s) throws IOException {
-        try (BufferedWriter writer = Files.newBufferedWriter(p, Charset.forName("UTF-8"),
-                StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-            writer.write(s, 0, s.length());
-        }
-    }
+	/**
+	 * Writes the specified string to a file.
+	 *
+	 * @param p
+	 *            file destination (existing files will be overwritten)
+	 * @param s
+	 *            string to save
+	 *
+	 * @throws IOException
+	 *             if writing to file fails
+	 */
+	public static void write(Path p, String s) throws IOException {
+		try (BufferedWriter writer = Files.newBufferedWriter(p, Charset.forName("UTF-8"), StandardOpenOption.CREATE,
+				StandardOpenOption.TRUNCATE_EXISTING)) {
+			writer.write(s, 0, s.length());
+		}
+	}
 
-    /**
-     * Reads the specified file to a string.
-     *
-     * @param p file to read
-     * @return the content of the file
-     * 
-     * @throws IOException if reading from file failed
-     */
-    public static String read(Path p) throws IOException {
-        return new String(Files.readAllBytes(p), Charset.forName("UTF-8"));
-    }
+	/**
+	 * Reads the specified file to a string.
+	 *
+	 * @param p
+	 *            file to read
+	 * @return the content of the file
+	 *
+	 * @throws IOException
+	 *             if reading from file failed
+	 */
+	public static String read(Path p) throws IOException {
+		return new String(Files.readAllBytes(p), Charset.forName("UTF-8"));
+	}
 }

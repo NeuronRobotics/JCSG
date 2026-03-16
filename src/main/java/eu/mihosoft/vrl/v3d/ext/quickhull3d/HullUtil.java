@@ -13,7 +13,6 @@ import eu.mihosoft.vrl.v3d.Vector3d;
 import eu.mihosoft.vrl.v3d.Polygon;
 import eu.mihosoft.vrl.v3d.PropertyStorage;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -49,7 +48,8 @@ public class HullUtil {
 
 			return hull(plist, new PropertyStorage());
 		}
-		throw new RuntimeException("Objects in list are of unknown type: " + points.get(0).getClass().getName()+"\r\nExpected CSG or Vector3d ");
+		throw new RuntimeException("Objects in list are of unknown type: " + points.get(0).getClass().getName()
+				+ "\r\nExpected CSG or Vector3d ");
 	}
 
 	/**
@@ -62,16 +62,16 @@ public class HullUtil {
 	 * @return the csg
 	 */
 	public static CSG hull(List<Vector3d> points, PropertyStorage storage) {
-			if (CSGClient.isRunning()) {
-				try {
-					CSG csg = CSGClient.getClient().hull(points,new PropertyStorage()).get(0);
-					csg.setStorage(storage);
-					return csg;
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+		if (CSGClient.isRunning()) {
+			try {
+				CSG csg = CSGClient.getClient().hull(points, new PropertyStorage()).get(0);
+				csg.setStorage(storage);
+				return csg;
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
+		}
 		if(CSG.getDefaultOptionType()==OptType.Manifold3d) {
 			new RuntimeException("Not implemented yet").printStackTrace();
 		}

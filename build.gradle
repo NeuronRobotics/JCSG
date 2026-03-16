@@ -4,7 +4,17 @@ plugins {
 	id 'java'
 	id 'maven-publish'
 	id 'signing'
-	//id 'io.codearte.nexus-staging' version '0.30.0'
+	id 'com.diffplug.spotless' version '6.25.0'
+}
+spotless {
+	java {
+		// Eclipse formatter with your config file
+        eclipse()  // Uses Eclipse's built-in default profile — no XML needed!		
+		// Optional but recommended additions:
+		removeUnusedImports()
+		trimTrailingWhitespace()
+		endWithNewline()
+	}
 }
 java {
 	sourceCompatibility = JavaVersion.VERSION_21
@@ -115,6 +125,7 @@ tasks.withType(JavaExec).configureEach {
     jvmArgs '--enable-preview'
 }
 test {
+	dependsOn 'spotlessCheck'
 	testLogging {
 		// Show which test is running
 		events "passed", "skipped", "failed", "standardOut", "standardError"

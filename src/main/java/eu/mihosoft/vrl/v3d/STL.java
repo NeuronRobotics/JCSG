@@ -27,7 +27,7 @@
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of Michael Hoffer info@michaelhoffer.de.
- */ 
+ */
 
 package eu.mihosoft.vrl.v3d;
 
@@ -43,42 +43,44 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-
-import javax.vecmath.Point3f;
 
 //  Auto-generated Javadoc
 /**
  * Loads a CSG from stl.
- * 
+ *
  * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
  */
 public class STL {
-	
-	/**
-	 * Loads a CSG from stl.
-	 *
-	 * @param path file path
-	 * @return CSG
-	 * @throws IOException if loading failed
-	 * @throws URISyntaxException the URI syntax exception
-	 */
-    public static CSG file(URL path) throws IOException, URISyntaxException {
-    	final URI uri =path.toURI();
-    	Map<String, String> env = new HashMap<>(); 
-    	env.put("create", "true");
-    	FileSystem zipfs = FileSystems.newFileSystem(uri, env);
-    	Path myFolderPath = Paths.get(uri);
-        return file(myFolderPath);
-    }
 
 	/**
 	 * Loads a CSG from stl.
-	 * 
-	 * @param path file path
+	 *
+	 * @param path
+	 *            file path
 	 * @return CSG
-	 * @throws IOException if loading failed
+	 * @throws IOException
+	 *             if loading failed
+	 * @throws URISyntaxException
+	 *             the URI syntax exception
+	 */
+	public static CSG file(URL path) throws IOException, URISyntaxException {
+		final URI uri = path.toURI();
+		Map<String, String> env = new HashMap<>();
+		env.put("create", "true");
+		FileSystem zipfs = FileSystems.newFileSystem(uri, env);
+		Path myFolderPath = Paths.get(uri);
+		return file(myFolderPath);
+	}
+
+	/**
+	 * Loads a CSG from stl.
+	 *
+	 * @param path
+	 *            file path
+	 * @return CSG
+	 * @throws IOException
+	 *             if loading failed
 	 */
 	public static CSG file(Path path) throws IOException {
 		STLLoader loader = new STLLoader();

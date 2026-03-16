@@ -33,8 +33,10 @@ public class Edge {
 	/**
 	 * Instantiates a new edge.
 	 *
-	 * @param p1 the p1
-	 * @param p2 the p2
+	 * @param p1
+	 *            the p1
+	 * @param p2
+	 *            the p2
 	 */
 	public Edge(Vertex p1, Vertex p2) {
 		this.setP1(p1);
@@ -52,12 +54,12 @@ public class Edge {
 		return p1;
 	}
 
-//    /**
-//     * @param p1 the p1 to set
-//     */
-//    public void setP1(Vertex p1) {
-//        this.p1 = p1;
-//    }
+	// /**
+	// * @param p1 the p1 to set
+	// */
+	// public void setP1(Vertex p1) {
+	// this.p1 = p1;
+	// }
 	/**
 	 * Gets the p2.
 	 *
@@ -67,18 +69,19 @@ public class Edge {
 		return p2;
 	}
 
-//    /**
-//     * @param p2 the p2 to set
-//     */
-//    public void setP2(Vertex p2) {
-//        this.p2 = p2;
+	// /**
+	// * @param p2 the p2 to set
+	// */
+	// public void setP2(Vertex p2) {
+	// this.p2 = p2;
 	/**
 	 * From polygon.
 	 *
-	 * @param poly the poly
+	 * @param poly
+	 *            the poly
 	 * @return the list
 	 */
-//    }
+	// }
 	public static List<Edge> fromPolygon(Polygon poly) {
 		List<Edge> result = new ArrayList<>();
 
@@ -94,7 +97,8 @@ public class Edge {
 	/**
 	 * To vertices.
 	 *
-	 * @param edges the edges
+	 * @param edges
+	 *            the edges
 	 * @return the list
 	 */
 	public static List<Vertex> toVertices(List<Edge> edges) {
@@ -104,7 +108,8 @@ public class Edge {
 	/**
 	 * To points.
 	 *
-	 * @param edges the edges
+	 * @param edges
+	 *            the edges
 	 * @return the list
 	 */
 	public static List<Vector3d> toPoints(List<Edge> edges) {
@@ -114,30 +119,34 @@ public class Edge {
 	/**
 	 * To polygon.
 	 *
-	 * @param points the points
-	 * @param plane  the plane
+	 * @param points
+	 *            the points
+	 * @param plane
+	 *            the plane
 	 * @return the polygon
 	 */
-	public static Polygon toPolygon(List<Vector3d> points, Plane plane) throws ColinearPointsException{
+	public static Polygon toPolygon(List<Vector3d> points, Plane plane) throws ColinearPointsException {
 
-//        List<Vector3d> points = edges.stream().().map(e -> e.p1.pos).
-//                collect(Collectors.toList());
+		// List<Vector3d> points = edges.stream().().map(e -> e.p1.pos).
+		// collect(Collectors.toList());
 		Polygon p = Polygon.fromPoints(points);
 
-//        // we try to detect wrong orientation by comparing normals
-//        if (p.plane.normal.angle(plane.normal) > 0.1) {
-//            p.flip();
-//        }
+		// // we try to detect wrong orientation by comparing normals
+		// if (p.plane.normal.angle(plane.normal) > 0.1) {
+		// p.flip();
+		// }
 		return p;
 	}
 
 	/**
 	 * To polygons.
 	 *
-	 * @param boundaryEdges the boundary edges
-	 * @param plane         the plane
+	 * @param boundaryEdges
+	 *            the boundary edges
+	 * @param plane
+	 *            the plane
 	 * @return the list
-	 * @throws ColinearPointsException 
+	 * @throws ColinearPointsException
 	 */
 	public static List<Polygon> toPolygons(List<Edge> boundaryEdges, Plane plane) throws ColinearPointsException {
 
@@ -155,12 +164,12 @@ public class Edge {
 					.indexOf(boundaryEdges.stream().filter(e -> finalEdge.p2.equals(e.p1)).findFirst().get());
 
 			if (used[nextEdgeIndex]) {
-//                //com.neuronrobotics.sdk.common.Log.error("nexIndex: " + nextEdgeIndex);
+				// //com.neuronrobotics.sdk.common.Log.error("nexIndex: " + nextEdgeIndex);
 				break;
 			}
-//            System.out.print("edge: " + edge.p2.pos);
+			// System.out.print("edge: " + edge.p2.pos);
 			edge = boundaryEdges.get(nextEdgeIndex);
-//            //com.neuronrobotics.sdk.common.Log.error("-> edge: " + edge.p1.pos);
+			// //com.neuronrobotics.sdk.common.Log.error("-> edge: " + edge.p1.pos);
 			used[nextEdgeIndex] = true;
 		}
 
@@ -177,7 +186,8 @@ public class Edge {
 	/**
 	 * The Class Node.
 	 *
-	 * @param <T> the generic type
+	 * @param <T>
+	 *            the generic type
 	 */
 	private static class Node<T> {
 
@@ -199,8 +209,10 @@ public class Edge {
 		/**
 		 * Instantiates a new node.
 		 *
-		 * @param index the index
-		 * @param value the value
+		 * @param index
+		 *            the index
+		 * @param value
+		 *            the value
 		 */
 		public Node(int index, T value) {
 			this.index = index;
@@ -210,8 +222,10 @@ public class Edge {
 		/**
 		 * Adds the child.
 		 *
-		 * @param index the index
-		 * @param value the value
+		 * @param index
+		 *            the index
+		 * @param value
+		 *            the value
 		 */
 		public void addChild(int index, T value) {
 			children.add(new Node(index, value));
@@ -255,7 +269,7 @@ public class Edge {
 
 		/*
 		 * (non-Javadoc)
-		 * 
+		 *
 		 * @see java.lang.Object#hashCode()
 		 */
 		@Override
@@ -267,7 +281,7 @@ public class Edge {
 
 		/*
 		 * (non-Javadoc)
-		 * 
+		 *
 		 * @see java.lang.Object#equals(java.lang.Object)
 		 */
 		@Override
@@ -315,7 +329,8 @@ public class Edge {
 		/**
 		 * Sets the checks if is hole.
 		 *
-		 * @param isHole the isHole to set
+		 * @param isHole
+		 *            the isHole to set
 		 */
 		public void setIsHole(boolean isHole) {
 			this.isHole = isHole;
@@ -329,7 +344,8 @@ public class Edge {
 	/**
 	 * Boundary paths with holes.
 	 *
-	 * @param boundaryPaths the boundary paths
+	 * @param boundaryPaths
+	 *            the boundary paths
 	 * @return the list
 	 */
 	public static List<Polygon> boundaryPathsWithHoles(List<Polygon> boundaryPaths) {
@@ -400,10 +416,11 @@ public class Edge {
 	/**
 	 * Returns a list of all boundary paths.
 	 *
-	 * @param boundaryEdges boundary edges (all paths must be closed)
+	 * @param boundaryEdges
+	 *            boundary edges (all paths must be closed)
 	 * @return the list
 	 */
-	public static List<Polygon> boundaryPaths(List<Edge> boundaryEdges) throws ColinearPointsException{
+	public static List<Polygon> boundaryPaths(List<Edge> boundaryEdges) throws ColinearPointsException {
 		List<Polygon> result = new ArrayList<>();
 
 		boolean[] used = new boolean[boundaryEdges.size()];
@@ -421,14 +438,14 @@ public class Edge {
 
 				boundaryPath.add(finalEdge.p1.pos);
 
-//                System.out.print("edge: " + edge.p2.pos);
+				// System.out.print("edge: " + edge.p2.pos);
 
 				Optional<Edge> nextEdgeResult = boundaryEdges.stream().filter(e -> finalEdge.p2.equals(e.p1))
 						.findFirst();
 
 				if (!nextEdgeResult.isPresent()) {
-//                    //com.neuronrobotics.sdk.common.Log.error("ERROR: unclosed path:"
-//                            + " no edge found with " + finalEdge.p2);
+					// //com.neuronrobotics.sdk.common.Log.error("ERROR: unclosed path:"
+					// + " no edge found with " + finalEdge.p2);
 					break;
 				}
 
@@ -441,7 +458,7 @@ public class Edge {
 				}
 
 				edge = nextEdge;
-//                //com.neuronrobotics.sdk.common.Log.error("-> edge: " + edge.p1.pos);
+				// //com.neuronrobotics.sdk.common.Log.error("-> edge: " + edge.p1.pos);
 				used[nextEdgeIndex] = true;
 			}
 
@@ -458,8 +475,8 @@ public class Edge {
 			}
 
 		}
-//
-//        //com.neuronrobotics.sdk.common.Log.error("paths: " + result.size());
+		//
+		// //com.neuronrobotics.sdk.common.Log.error("paths: " + result.size());
 
 		return result;
 	}
@@ -467,7 +484,8 @@ public class Edge {
 	/**
 	 * Returns the next unused index as specified in the given boolean array.
 	 *
-	 * @param usage the usage array
+	 * @param usage
+	 *            the usage array
 	 * @return the next unused index or a value &lt; 0 if all indices are used
 	 */
 	private static int nextUnused(boolean[] usage) {
@@ -483,10 +501,12 @@ public class Edge {
 	/**
 	 * _to polygons.
 	 *
-	 * @param boundaryEdges the boundary edges
-	 * @param plane         the plane
+	 * @param boundaryEdges
+	 *            the boundary edges
+	 * @param plane
+	 *            the plane
 	 * @return the list
-	 * @throws ColinearPointsException 
+	 * @throws ColinearPointsException
 	 */
 	public static List<Polygon> _toPolygons(List<Edge> boundaryEdges, Plane plane) throws ColinearPointsException {
 
@@ -504,12 +524,12 @@ public class Edge {
 					.indexOf(boundaryEdges.stream().filter(e -> finalEdge.p2.equals(e.p1)).findFirst().get());
 
 			if (used[nextEdgeIndex]) {
-//                //com.neuronrobotics.sdk.common.Log.error("nexIndex: " + nextEdgeIndex);
+				// //com.neuronrobotics.sdk.common.Log.error("nexIndex: " + nextEdgeIndex);
 				break;
 			}
-//            System.out.print("edge: " + edge.p2.pos);
+			// System.out.print("edge: " + edge.p2.pos);
 			edge = boundaryEdges.get(nextEdgeIndex);
-//            //com.neuronrobotics.sdk.common.Log.error("-> edge: " + edge.p1.pos);
+			// //com.neuronrobotics.sdk.common.Log.error("-> edge: " + edge.p1.pos);
 			used[nextEdgeIndex] = true;
 		}
 
@@ -526,20 +546,18 @@ public class Edge {
 	/**
 	 * Determines whether the specified point is colinear
 	 *
-	 * @param p point to check
+	 * @param p
+	 *            point to check
 	 * @return <code>true</code> if the specified point lies on this line segment;
 	 *         <code>false</code> otherwise
 	 */
 	public boolean colinear(Vector3d p) {
 		return colinear(p, Plane.getEPSILON_Point());
 	}
-	
+
 	public boolean colinear(Edge p) {
 		return colinear(p.getP1().pos, Plane.getEPSILON_Point()) && colinear(p.getP2().pos, Plane.getEPSILON_Point());
 	}
-	
-	
-	
 
 	public boolean colinear(Vector3d p, double TOL) {
 
@@ -570,78 +588,80 @@ public class Edge {
 	/**
 	 * Determines whether the specified point lies on this edge.
 	 *
-	 * @param p   point to check
-	 * @param TOL tolerance
+	 * @param p
+	 *            point to check
+	 * @param TOL
+	 *            tolerance
 	 * @return <code>true</code> if the specified point lies on this line segment;
 	 *         <code>false</code> otherwise
 	 */
 	public boolean contains(Vector3d p, double TOL) {
-	    // Extract coordinates once for better performance
-	    double pointX = p.x;
-	    double pointY = p.y;
-	    double pointZ = p.z;
-	    
-	    double edge1X = this.p1.pos.x;
-	    double edge1Y = this.p1.pos.y;
-	    double edge1Z = this.p1.pos.z;
-	    
-	    double edge2X = this.p2.pos.x;
-	    double edge2Y = this.p2.pos.y;
-	    double edge2Z = this.p2.pos.z;
-	    
-	    // Calculate vector components for edge and point-to-edge1 vectors
-	    double vEdgeX = edge2X - edge1X;
-	    double vEdgeY = edge2Y - edge1Y;
-	    double vEdgeZ = edge2Z - edge1Z;
-	    
-	    double vToPointX = pointX - edge1X;
-	    double vToPointY = pointY - edge1Y;
-	    double vToPointZ = pointZ - edge1Z;
-	    
-	    // Calculate squared edge length (avoid sqrt until necessary)
-	    double edgeLengthSq = vEdgeX * vEdgeX + vEdgeY * vEdgeY + vEdgeZ * vEdgeZ;
-	    
-	    // Handle degenerate edge case (zero or near-zero length)
-	    if (edgeLengthSq < TOL * TOL) {
-	        // For a zero-length edge, check if point is at the edge position
-	        double distanceToPointSq = 
-	            vToPointX * vToPointX + 
-	            vToPointY * vToPointY + 
-	            vToPointZ * vToPointZ;
-	        
-	        return distanceToPointSq < TOL * TOL;
-	    }
-	    
-	    // Calculate cross product for collinearity check
-	    double crossX = vToPointY * vEdgeZ - vToPointZ * vEdgeY;
-	    double crossY = vToPointZ * vEdgeX - vToPointX * vEdgeZ;
-	    double crossZ = vToPointX * vEdgeY - vToPointY * vEdgeX;
-	    
-	    // Calculate squared magnitude of cross product
-	    double crossMagnitudeSq = crossX * crossX + crossY * crossY + crossZ * crossZ;
-	    
-	    // Normalize by the squared length of the edge to make tolerance scale-independent
-	    double normalizedCrossMagnitudeSq = crossMagnitudeSq / edgeLengthSq;
-	    
-	    // Check collinearity - if not collinear, return false
-	    if (normalizedCrossMagnitudeSq > TOL * TOL) {
-	        return false;
-	    }
-	    
-	    // Check if the point is within the bounds of the edge using dot product
-	    double dotProduct = vEdgeX * vToPointX + vEdgeY * vToPointY + vEdgeZ * vToPointZ;
-	    
-	    // t represents how far along the edge the closest point to p is (projected position)
-	    double t = dotProduct / edgeLengthSq;
-	    
-	    // If 0 ≤ t ≤ 1, the point is within the bounds of the edge
-	    return t > 0 && t < 1;
+		// Extract coordinates once for better performance
+		double pointX = p.x;
+		double pointY = p.y;
+		double pointZ = p.z;
+
+		double edge1X = this.p1.pos.x;
+		double edge1Y = this.p1.pos.y;
+		double edge1Z = this.p1.pos.z;
+
+		double edge2X = this.p2.pos.x;
+		double edge2Y = this.p2.pos.y;
+		double edge2Z = this.p2.pos.z;
+
+		// Calculate vector components for edge and point-to-edge1 vectors
+		double vEdgeX = edge2X - edge1X;
+		double vEdgeY = edge2Y - edge1Y;
+		double vEdgeZ = edge2Z - edge1Z;
+
+		double vToPointX = pointX - edge1X;
+		double vToPointY = pointY - edge1Y;
+		double vToPointZ = pointZ - edge1Z;
+
+		// Calculate squared edge length (avoid sqrt until necessary)
+		double edgeLengthSq = vEdgeX * vEdgeX + vEdgeY * vEdgeY + vEdgeZ * vEdgeZ;
+
+		// Handle degenerate edge case (zero or near-zero length)
+		if (edgeLengthSq < TOL * TOL) {
+			// For a zero-length edge, check if point is at the edge position
+			double distanceToPointSq = vToPointX * vToPointX + vToPointY * vToPointY + vToPointZ * vToPointZ;
+
+			return distanceToPointSq < TOL * TOL;
+		}
+
+		// Calculate cross product for collinearity check
+		double crossX = vToPointY * vEdgeZ - vToPointZ * vEdgeY;
+		double crossY = vToPointZ * vEdgeX - vToPointX * vEdgeZ;
+		double crossZ = vToPointX * vEdgeY - vToPointY * vEdgeX;
+
+		// Calculate squared magnitude of cross product
+		double crossMagnitudeSq = crossX * crossX + crossY * crossY + crossZ * crossZ;
+
+		// Normalize by the squared length of the edge to make tolerance
+		// scale-independent
+		double normalizedCrossMagnitudeSq = crossMagnitudeSq / edgeLengthSq;
+
+		// Check collinearity - if not collinear, return false
+		if (normalizedCrossMagnitudeSq > TOL * TOL) {
+			return false;
+		}
+
+		// Check if the point is within the bounds of the edge using dot product
+		double dotProduct = vEdgeX * vToPointX + vEdgeY * vToPointY + vEdgeZ * vToPointZ;
+
+		// t represents how far along the edge the closest point to p is (projected
+		// position)
+		double t = dotProduct / edgeLengthSq;
+
+		// If 0 ≤ t ≤ 1, the point is within the bounds of the edge
+		return t > 0 && t < 1;
 	}
 
 	/**
 	 * Determines whether the specified point lies on tthis edge.
 	 *
-	 * @param p point to check
+	 * @param p
+	 *            point to check
 	 * @return <code>true</code> if the specified point lies on this line segment;
 	 *         <code>false</code> otherwise
 	 */
@@ -651,7 +671,7 @@ public class Edge {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -664,7 +684,7 @@ public class Edge {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -699,7 +719,7 @@ public class Edge {
 
 	@Override
 	public String toString() {
-		return "[[" + p1.toString() + "]" + ", [" + p2.toString()+ "]]";
+		return "[[" + p1.toString() + "]" + ", [" + p2.toString() + "]]";
 	}
 
 	/**
@@ -716,7 +736,8 @@ public class Edge {
 	 *
 	 * NOTE: returns an empty optional if the edges are parallel
 	 *
-	 * @param e the edge to check
+	 * @param e
+	 *            the edge to check
 	 * @return the the point of this edge that is closest to the specified edge
 	 */
 	public Optional<Vector3d> getClosestPoint(Edge e) {
@@ -766,7 +787,8 @@ public class Edge {
 	 * NOTE: returns an empty optional if the edges are parallel or if the
 	 * intersection point is not inside the specified edge segment
 	 *
-	 * @param e edge to intersect
+	 * @param e
+	 *            edge to intersect
 	 * @return the intersection point between this edge and the specified edge
 	 */
 	public Optional<Vector3d> getIntersection(Edge e) {
@@ -787,10 +809,10 @@ public class Edge {
 		}
 	}
 	/**
-	 * REturn the crossing point
-	 * if they share points, then its not crossing
-	 * if the do not touch, they are not crossing
-	 * if the intersection is not contained withing the lines, they are not crossing
+	 * REturn the crossing point if they share points, then its not crossing if the
+	 * do not touch, they are not crossing if the intersection is not contained
+	 * withing the lines, they are not crossing
+	 *
 	 * @param e
 	 * @return
 	 */
@@ -799,8 +821,8 @@ public class Edge {
 			getCommonPoint(e);
 			// if a common point exists, they are not crossed
 			return Optional.empty();
-		}catch(Exception ex) {
-			//check the common point now
+		} catch (Exception ex) {
+			// check the common point now
 		}
 		return getIntersection(e);
 	}
@@ -808,9 +830,10 @@ public class Edge {
 	/**
 	 * Boundary polygons.
 	 *
-	 * @param csg the csg
+	 * @param csg
+	 *            the csg
 	 * @return the list
-	 * @throws ColinearPointsException 
+	 * @throws ColinearPointsException
 	 */
 	public static List<Polygon> boundaryPolygons(CSG csg) throws ColinearPointsException {
 		List<Polygon> result = new ArrayList<>();
@@ -825,7 +848,8 @@ public class Edge {
 	/**
 	 * Boundary edges of plane group.
 	 *
-	 * @param planeGroup the plane group
+	 * @param planeGroup
+	 *            the plane group
 	 * @return the list
 	 */
 	public static List<Edge> boundaryEdgesOfPlaneGroup(List<Polygon> planeGroup) {
@@ -872,23 +896,25 @@ public class Edge {
 			bndEdgeStream = potentialBoundaryEdges.stream();
 		}
 
-		List<Edge> realBndEdges = bndEdgeStream
-				.filter(be -> edges.stream().filter(e -> falseBoundaryEdgeSharedWithOtherEdge(be, e)!=null).count() == 0)
+		List<Edge> realBndEdges = bndEdgeStream.filter(
+				be -> edges.stream().filter(e -> falseBoundaryEdgeSharedWithOtherEdge(be, e) != null).count() == 0)
 				.collect(Collectors.toList());
 
 		//
-//        //com.neuronrobotics.sdk.common.Log.error("#bnd-edges: " + realBndEdges.size()
-//                + ",#edges: " + edges.size()
-//                + ", #del-bnd-edges: " + (boundaryEdges.size() - realBndEdges.size()));
+		// //com.neuronrobotics.sdk.common.Log.error("#bnd-edges: " +
+		// realBndEdges.size()
+		// + ",#edges: " + edges.size()
+		// + ", #del-bnd-edges: " + (boundaryEdges.size() - realBndEdges.size()));
 		return realBndEdges;
 	}
 
 	/**
 	 * Boundary polygons of plane group.
 	 *
-	 * @param planeGroup the plane group
+	 * @param planeGroup
+	 *            the plane group
 	 * @return the list
-	 * @throws ColinearPointsException 
+	 * @throws ColinearPointsException
 	 */
 	private static List<Polygon> boundaryPolygonsOfPlaneGroup(List<Polygon> planeGroup) throws ColinearPointsException {
 
@@ -919,16 +945,16 @@ public class Edge {
 		boolean test1 = e.getP1().pos.test(fbe.getP1().pos);
 		boolean test3 = e.getP1().pos.test(fbe.getP2().pos);
 		boolean sharedEndPointsp1 = test1 || test3;
-				
+
 		boolean test = e.getP2().pos.test(fbe.getP1().pos);
 		boolean test2 = e.getP2().pos.test(fbe.getP2().pos);
-		boolean sharedP2= test || test2;
+		boolean sharedP2 = test || test2;
 
 		boolean containsP2 = fbe.contains(e.getP2().pos);
 		boolean containsP1 = fbe.contains(e.getP1().pos);
 
-		if(sharedEndPointsp1 && sharedP2) {
-			//System.out.println("Edge Contains point!");
+		if (sharedEndPointsp1 && sharedP2) {
+			// System.out.println("Edge Contains point!");
 		}
 		if ((sharedP2) && containsP1) {
 			return e.getP2();
@@ -938,20 +964,21 @@ public class Edge {
 		}
 		return null;
 	}
-//
-//	/** Distance from point r to the infinite line through a → b */
-//	private static double distancePointToLine(Vector3d r, Vector3d a, Vector3d b) {
-//		Vector3d ab = b.minus(a);
-//		Vector3d ar = r.minus(a);
-//		Vector3d cross = ab.cross(ar);
-//	    return cross.length() / ab.length();
-//	}
-
+	//
+	// /** Distance from point r to the infinite line through a → b */
+	// private static double distancePointToLine(Vector3d r, Vector3d a, Vector3d b)
+	// {
+	// Vector3d ab = b.minus(a);
+	// Vector3d ar = r.minus(a);
+	// Vector3d cross = ab.cross(ar);
+	// return cross.length() / ab.length();
+	// }
 
 	/**
 	 * Search plane groups.
 	 *
-	 * @param polygons the polygons
+	 * @param polygons
+	 *            the polygons
 	 * @return the list
 	 */
 	private static List<List<Polygon>> searchPlaneGroups(List<Polygon> polygons) {
@@ -983,7 +1010,8 @@ public class Edge {
 
 				double angle = nOuter.angle(nInner);
 
-//                //com.neuronrobotics.sdk.common.Log.error("angle: " + angle + " between " + pOuterI+" -> " + pInnerI);
+				// //com.neuronrobotics.sdk.common.Log.error("angle: " + angle + " between " +
+				// pOuterI+" -> " + pInnerI);
 				if (angle < 0.01 /* && abs(pOuter.plane.dist - pInner.plane.dist) < 0.1 */) {
 					otherPolysInPlane.add(pInner);
 					used[pInnerI] = true;
@@ -1011,30 +1039,30 @@ public class Edge {
 	public void setP2(Vertex p2) {
 		this.p2 = p2;
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param test2
 	 * @return the point the edges have in common
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	public Vertex getCommonPoint(Edge test2) throws Exception {
-		if(p1.pos.test(test2.getP1().pos) || p1.pos.test(test2.getP2().pos))
+		if (p1.pos.test(test2.getP1().pos) || p1.pos.test(test2.getP2().pos))
 			return p1;
-		if(p2.pos.test(test2.getP1().pos) || p2.pos.test(test2.getP2().pos))
+		if (p2.pos.test(test2.getP1().pos) || p2.pos.test(test2.getP2().pos))
 			return p2;
 		throw new Exception("Threse edges do not touch");
 	}
 	/**
-	 * 
+	 *
 	 * @param test2
 	 * @return the point the edges have in common
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	public Vertex getOppisitePoint(Vertex test) throws Exception {
-		if(p1.pos.test(test.pos))
+		if (p1.pos.test(test.pos))
 			return p2;
-		if(p2.pos.test(test.pos))
+		if (p2.pos.test(test.pos))
 			return p1;
 		throw new Exception("Threse edges do not touch");
 	}

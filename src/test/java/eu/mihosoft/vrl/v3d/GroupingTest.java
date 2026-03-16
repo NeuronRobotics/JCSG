@@ -15,20 +15,20 @@ public class GroupingTest {
 		c.addGroupMembership(groupID);
 		c.setName("MyName");
 		c.addIsGroupResult(groupID);
-		CSG copy = c.clone().syncProperties(CSGDatabase.getInstance(),c).setName(c.getName());
+		CSG copy = c.clone().syncProperties(CSGDatabase.getInstance(), c).setName(c.getName());
 		copy.removeGroupMembership(groupID);
 		copy.removeIsGroupResult(groupID);
-		
-		if(copy.isInGroup())
+
+		if (copy.isInGroup())
 			fail("Copy should not be in a group");
-		if(!c.isInGroup())
+		if (!c.isInGroup())
 			fail("Original should  be in a group");
-		
-		if(copy.isGroupResult())
+
+		if (copy.isGroupResult())
 			fail("Copy should not be in a group");
-		if(!c.isGroupResult())
+		if (!c.isGroupResult())
 			fail("Original should  be in a group");
-		
+
 	}
 
 }

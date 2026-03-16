@@ -36,9 +36,6 @@ package eu.mihosoft.vrl.v3d;
 import java.util.ArrayList;
 import java.util.List;
 
-import eu.mihosoft.vrl.v3d.parametrics.LengthParameter;
-import eu.mihosoft.vrl.v3d.parametrics.Parameter;
-
 //  Auto-generated Javadoc
 /**
  * An axis-aligned solid cuboid defined by {@code center} and
@@ -48,181 +45,187 @@ import eu.mihosoft.vrl.v3d.parametrics.Parameter;
  */
 public class Cube extends Primitive {
 
-    /**
-     * Center of this cube.
-     */
-    private Vector3d center;
-    /**
-     * Cube dimensions.
-     */
-    private Vector3d dimensions;
+	/**
+	 * Center of this cube.
+	 */
+	private Vector3d center;
+	/**
+	 * Cube dimensions.
+	 */
+	private Vector3d dimensions;
 
-    /** The centered. */
-    private boolean centered = true;
+	/** The centered. */
+	private boolean centered = true;
 
-    /** The properties. */
-    private final PropertyStorage properties = new PropertyStorage();
-    /**
-     * Constructor. Creates a new cube with center {@code [0,0,0]} and
-     * dimensions {@code [1,1,1]}.
-     */
-    public Cube() {
-        center = new Vector3d(0, 0, 0);
-        dimensions = new Vector3d(1, 1, 1);
-    }
+	/** The properties. */
+	private final PropertyStorage properties = new PropertyStorage();
+	/**
+	 * Constructor. Creates a new cube with center {@code [0,0,0]} and dimensions
+	 * {@code [1,1,1]}.
+	 */
+	public Cube() {
+		center = new Vector3d(0, 0, 0);
+		dimensions = new Vector3d(1, 1, 1);
+	}
 
-    /**
-     * Constructor. Creates a new cube with center {@code [0,0,0]} and
-     * dimensions {@code [size,size,size]}.
-     *
-     * @param size size
-     */
-    public Cube(double size) {
-        center = new Vector3d(0, 0, 0);
-        dimensions = new Vector3d(size, size, size);
-    }
+	/**
+	 * Constructor. Creates a new cube with center {@code [0,0,0]} and dimensions
+	 * {@code [size,size,size]}.
+	 *
+	 * @param size
+	 *            size
+	 */
+	public Cube(double size) {
+		center = new Vector3d(0, 0, 0);
+		dimensions = new Vector3d(size, size, size);
+	}
 
-    /**
-     * Constructor. Creates a new cuboid with the specified center and
-     * dimensions.
-     *
-     * @param center center of the cuboid
-     * @param dimensions cube dimensions
-     */
-    public Cube(Vector3d center, Vector3d dimensions) {
-        this.center = center;
-        this.dimensions = dimensions;
-    }
+	/**
+	 * Constructor. Creates a new cuboid with the specified center and dimensions.
+	 *
+	 * @param center
+	 *            center of the cuboid
+	 * @param dimensions
+	 *            cube dimensions
+	 */
+	public Cube(Vector3d center, Vector3d dimensions) {
+		this.center = center;
+		this.dimensions = dimensions;
+	}
 
-    /**
-     * Constructor. Creates a new cuboid with center {@code [0,0,0]} and with
-     * the specified dimensions.
-     *
-     * @param w width
-     * @param h height
-     * @param d depth
-     */
-    public Cube(double w, double h, double d) {
-        this(Vector3d.ZERO, new Vector3d(w, h, d));
-    }
-//    public Cube(LengthParameter w, LengthParameter h, LengthParameter d) {
-//        this(Vector3d.ZERO, new Vector3d(w.getMM(), h.getMM(), d.getMM()));
-////        parametrics.add(w);
-////        parametrics.add(h);
-////        parametrics.add(d);
-//    }
-//    public Cube(LengthParameter size) {
-//        this(size,size,size);
-//    }
-    /* (non-Javadoc)
-     * @see eu.mihosoft.vrl.v3d.Primitive#toPolygons()
-     */
-    @Override
-    public List<Polygon> toPolygons() {
-    	if(dimensions.x<=0)
-    		throw new NumberFormatException("X can not be negative");
-    	if(dimensions.y<=0)
-    		throw new NumberFormatException("Y can not be negative");
-    	if(dimensions.z<=0)
-    		throw new NumberFormatException("Z can not be negative");
-        int[][][] a = {
-            // position     // normal
-            {{0, 4, 6, 2}, {-1, 0, 0}},
-            {{1, 3, 7, 5}, {+1, 0, 0}},
-            {{0, 1, 5, 4}, {0, -1, 0}},
-            {{2, 6, 7, 3}, {0, +1, 0}},
-            {{0, 2, 3, 1}, {0, 0, -1}},
-            {{4, 5, 7, 6}, {0, 0, +1}}
-        };
-        List<Polygon> polygons = new ArrayList<>();
-        for (int[][] info : a) {
-            List<Vertex> vertices = new ArrayList<>();
-            for (int i : info[0]) {
-                Vector3d pos = new Vector3d(
-                        center.x + dimensions.x * (1 * Math.min(1, i & 1) - 0.5),
-                        center.y + dimensions.y * (1 * Math.min(1, i & 2) - 0.5),
-                        center.z + dimensions.z * (1 * Math.min(1, i & 4) - 0.5)
-                );
-                vertices.add(new Vertex(pos));
-            }
-            try {
+	/**
+	 * Constructor. Creates a new cuboid with center {@code [0,0,0]} and with the
+	 * specified dimensions.
+	 *
+	 * @param w
+	 *            width
+	 * @param h
+	 *            height
+	 * @param d
+	 *            depth
+	 */
+	public Cube(double w, double h, double d) {
+		this(Vector3d.ZERO, new Vector3d(w, h, d));
+	}
+	// public Cube(LengthParameter w, LengthParameter h, LengthParameter d) {
+	// this(Vector3d.ZERO, new Vector3d(w.getMM(), h.getMM(), d.getMM()));
+	//// parametrics.add(w);
+	//// parametrics.add(h);
+	//// parametrics.add(d);
+	// }
+	// public Cube(LengthParameter size) {
+	// this(size,size,size);
+	// }
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see eu.mihosoft.vrl.v3d.Primitive#toPolygons()
+	 */
+	@Override
+	public List<Polygon> toPolygons() {
+		if (dimensions.x <= 0)
+			throw new NumberFormatException("X can not be negative");
+		if (dimensions.y <= 0)
+			throw new NumberFormatException("Y can not be negative");
+		if (dimensions.z <= 0)
+			throw new NumberFormatException("Z can not be negative");
+		int[][][] a = {
+				// position // normal
+				{{0, 4, 6, 2}, {-1, 0, 0}}, {{1, 3, 7, 5}, {+1, 0, 0}}, {{0, 1, 5, 4}, {0, -1, 0}},
+				{{2, 6, 7, 3}, {0, +1, 0}}, {{0, 2, 3, 1}, {0, 0, -1}}, {{4, 5, 7, 6}, {0, 0, +1}}};
+		List<Polygon> polygons = new ArrayList<>();
+		for (int[][] info : a) {
+			List<Vertex> vertices = new ArrayList<>();
+			for (int i : info[0]) {
+				Vector3d pos = new Vector3d(center.x + dimensions.x * (1 * Math.min(1, i & 1) - 0.5),
+						center.y + dimensions.y * (1 * Math.min(1, i & 2) - 0.5),
+						center.z + dimensions.z * (1 * Math.min(1, i & 4) - 0.5));
+				vertices.add(new Vertex(pos));
+			}
+			try {
 				polygons.add(new Polygon(vertices, properties));
 			} catch (ColinearPointsException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-        }
+		}
 
-        if (!centered) {
+		if (!centered) {
 
-            Transform centerTransform = Transform.unity().translate(dimensions.x / 2.0, dimensions.y / 2.0, dimensions.z / 2.0);
+			Transform centerTransform = Transform.unity().translate(dimensions.x / 2.0, dimensions.y / 2.0,
+					dimensions.z / 2.0);
 
-            for (Polygon p : polygons) {
-                try {
+			for (Polygon p : polygons) {
+				try {
 					p.transform(centerTransform);
 				} catch (ColinearPointsException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-            }
-        }
+			}
+		}
 
-        return polygons;
-    }
+		return polygons;
+	}
 
-    /**
-     * Gets the center.
-     *
-     * @return the center
-     */
-    public Vector3d getCenter() {
-        return center;
-    }
+	/**
+	 * Gets the center.
+	 *
+	 * @return the center
+	 */
+	public Vector3d getCenter() {
+		return center;
+	}
 
-    /**
-     * Sets the center.
-     *
-     * @param center the center to set
-     */
-    public Cube setCenter(Vector3d center) {
-        this.center = center;
-        return this;
-    }
+	/**
+	 * Sets the center.
+	 *
+	 * @param center
+	 *            the center to set
+	 */
+	public Cube setCenter(Vector3d center) {
+		this.center = center;
+		return this;
+	}
 
-    /**
-     * Gets the dimensions.
-     *
-     * @return the dimensions
-     */
-    public Vector3d getDimensions() {
-        return dimensions;
-    }
+	/**
+	 * Gets the dimensions.
+	 *
+	 * @return the dimensions
+	 */
+	public Vector3d getDimensions() {
+		return dimensions;
+	}
 
-    /**
-     * Sets the dimensions.
-     *
-     * @param dimensions the dimensions to set
-     */
-    public Cube setDimensions(Vector3d dimensions) {
-        this.dimensions = dimensions;
-        return this;
-    }
+	/**
+	 * Sets the dimensions.
+	 *
+	 * @param dimensions
+	 *            the dimensions to set
+	 */
+	public Cube setDimensions(Vector3d dimensions) {
+		this.dimensions = dimensions;
+		return this;
+	}
 
-    /* (non-Javadoc)
-     * @see eu.mihosoft.vrl.v3d.Primitive#getProperties()
-     */
-    @Override
-    public PropertyStorage getProperties() {
-        return properties;
-    }
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see eu.mihosoft.vrl.v3d.Primitive#getProperties()
+	 */
+	@Override
+	public PropertyStorage getProperties() {
+		return properties;
+	}
 
-    /**
-     * Defines that this cube will not be centered.
-     * @return this cube
-     */
-    public Cube noCenter() {
-        centered = false;
-        return this;
-    }
+	/**
+	 * Defines that this cube will not be centered.
+	 *
+	 * @return this cube
+	 */
+	public Cube noCenter() {
+		centered = false;
+		return this;
+	}
 
 }

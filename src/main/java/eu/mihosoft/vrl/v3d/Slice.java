@@ -1,13 +1,11 @@
 package eu.mihosoft.vrl.v3d;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import javafx.scene.image.WritableImage;
 import java.util.HashMap;
-import eu.mihosoft.vrl.v3d.CSG;
 import javafx.application.Platform;
 //import javafx.embed.swing.JFXPanel;
 import javafx.geometry.Insets;
@@ -20,7 +18,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.MeshView;
 import javafx.scene.transform.Scale;
-import javafx.stage.Stage;
 import javafx.scene.image.PixelReader;
 
 public class Slice {
@@ -43,9 +40,9 @@ public class Slice {
 			boolean ratioOrentation = slicePart.getTotalX() > slicePart.getTotalY();
 			if (ratioOrentation)
 				ratio = slicePart.getTotalX() / slicePart.getTotalY();
-			ratio = 1 / ratio;
-			;
-			double mySize = slicePart.getTotalX() > slicePart.getTotalY() ? slicePart.getTotalX()
+			ratio = 1 / ratio;;
+			double mySize = slicePart.getTotalX() > slicePart.getTotalY()
+					? slicePart.getTotalX()
 					: slicePart.getTotalY();
 			List<Polygon> polys = slicePart.getPolygons();
 			double size = sizeinPixelSpace * (mySize / 200) * (polys.size() / 300);
@@ -111,11 +108,11 @@ public class Slice {
 
 			// println "Find boundries "
 
-			return new Object[] { obj_img, scaleX, xOffset - imageOffsetMotion, scaleY, yOffset - imageOffsetMotion,
-					imageOffsetMotion, imageOffset };
+			return new Object[]{obj_img, scaleX, xOffset - imageOffsetMotion, scaleY, yOffset - imageOffsetMotion,
+					imageOffsetMotion, imageOffset};
 		}
 		int[] toPixels(double absX, double absY, double xOff, double yOff, double scaleX, double scaleY) {
-			return new int[] { (int) ((absX - xOff) / scaleX), (int) ((absY - yOff) / scaleY) };
+			return new int[]{(int) ((absX - xOff) / scaleX), (int) ((absY - yOff) / scaleY)};
 		}
 
 		boolean pixelBlack(double absX, double absY, WritableImage obj_img) {
@@ -146,7 +143,7 @@ public class Slice {
 		/**
 		 * An interface for slicking CSG objects into lists of points that can be
 		 * extruded back out
-		 * 
+		 *
 		 * @param incoming
 		 *            Incoming CSG to be sliced
 		 * @param slicePlane
@@ -154,38 +151,34 @@ public class Slice {
 		 * @param normalInsetDistance
 		 *            Inset for sliced output
 		 * @return A set of polygons ining the sliced shape
-		 * @throws ColinearPointsException 
+		 * @throws ColinearPointsException
 		 */
-		public List<Polygon> slice(CSG incoming, Transform slicePlane, double normalInsetDistance) throws ColinearPointsException {
+		public List<Polygon> slice(CSG incoming, Transform slicePlane, double normalInsetDistance)
+				throws ColinearPointsException {
 			if (Thread.interrupted()) {
 				return null;
 			}
 			long startTime = System.currentTimeMillis();
 			// if(display)BowlerStudioController.getBowlerStudio().getJfx3dmanager().clearUserNode()
 			List<Polygon> rawPolygons = new ArrayList<>();
-			CSG finalPart = incoming.transformed(slicePlane.inverse()
-					).toolOffset(normalInsetDistance);
-			double sliceThick= 0.00001;
-			if(finalPart.getTotalZ()<sliceThick)
-				throw new RuntimeException("Too thin to slice! "+sliceThick+" mm minimum");
-			if(finalPart.getMaxZ()<sliceThick) {
-				finalPart=finalPart.toZMax().movez(sliceThick);
+			CSG finalPart = incoming.transformed(slicePlane.inverse()).toolOffset(normalInsetDistance);
+			double sliceThick = 0.00001;
+			if (finalPart.getTotalZ() < sliceThick)
+				throw new RuntimeException("Too thin to slice! " + sliceThick + " mm minimum");
+			if (finalPart.getMaxZ() < sliceThick) {
+				finalPart = finalPart.toZMax().movez(sliceThick);
 			}
-			if(finalPart.getMinZ()>sliceThick) {
-				finalPart=finalPart.toZMin();
+			if (finalPart.getMinZ() > sliceThick) {
+				finalPart = finalPart.toZMin();
 			}
 			// Actual slice plane
 			CSG planeCSG = finalPart.getBoundingBox().toZMin();
-			planeCSG = planeCSG
-					.intersect(planeCSG
-							.toZMax()
-							.movez(sliceThick)
-							);
+			planeCSG = planeCSG.intersect(planeCSG.toZMax().movez(sliceThick));
 			// Loop over each polygon in the slice of the incoming CSG
 			// Add the polygon to the final slice if it lies entirely in the z plane
 			// println "Preparing CSG slice"
 			CSG slicePart = finalPart
-					
+
 					.intersect(planeCSG);
 			for (Polygon p : slicePart.getPolygons()) {
 				if (Slice.isPolygonAtZero(p)) {
@@ -315,7 +308,8 @@ public class Slice {
 			usedPixels.clear();
 			// if(display)BowlerStudioController.getBowlerStudio().getJfx3dmanager().clearUserNode()
 			// BowlerStudioController.getBowlerStudio() .addObject(polys, new File("."));
-			//com.neuronrobotics.sdk.common.Log.error("Slice took: " + (((double) (System.currentTimeMillis() - startTime)) / 1000.0) + " seconds");
+			// com.neuronrobotics.sdk.common.Log.error("Slice took: " + (((double)
+			// (System.currentTimeMillis() - startTime)) / 1000.0) + " seconds");
 			return polys;
 		}
 
@@ -339,23 +333,23 @@ public class Slice {
 				for (double i = 0; i < 360 + inc; i += inc) {
 					int x = (int) Math.round(Math.cos(Math.toRadians(i)) * searchSize);
 					int y = (int) Math.round(Math.sin(Math.toRadians(i)) * searchSize);
-					locations.add(new int[] { pixStart[0] + x, pixStart[1] + y });
+					locations.add(new int[]{pixStart[0] + x, pixStart[1] + y});
 				}
 			} else {
 
 				// arrange the pixels in the data array based on a CCW search
 				for (int i = (int) -searchSize; i < searchSize + 1; i++) {
-					locations.add(new int[] { (int) (pixStart[0] + searchSize), pixStart[1] + i });
+					locations.add(new int[]{(int) (pixStart[0] + searchSize), pixStart[1] + i});
 				}
 				// after the firat loop, leave off the first index to avoid duplicates
 				for (int i = (int) (searchSize - 1); i > -searchSize - 1; i--) {
-					locations.add(new int[] { pixStart[0] + i, (int) (pixStart[1] + searchSize) });
+					locations.add(new int[]{pixStart[0] + i, (int) (pixStart[1] + searchSize)});
 				}
 				for (int i = (int) (searchSize - 1); i > -searchSize - 1; i--) {
-					locations.add(new int[] { (int) (pixStart[0] - searchSize), pixStart[1] + i });
+					locations.add(new int[]{(int) (pixStart[0] - searchSize), pixStart[1] + i});
 				}
 				for (int i = (int) (-searchSize + 1); i < searchSize + 1; i++) {
-					locations.add(new int[] { pixStart[0] + i, (int) (pixStart[1] - searchSize) });
+					locations.add(new int[]{pixStart[0] + i, (int) (pixStart[1] - searchSize)});
 				}
 
 			}
@@ -391,7 +385,7 @@ public class Slice {
 				if (w && b && useMe) {
 					usedPixels.add(self);
 					// edge detected doing a ccw rotation search
-					return new Object[] { self, i };
+					return new Object[]{self, i};
 				} else {
 					// if(display)showPoints([self],1,javafx.scene.paint.Color.WHITE) ;
 				}
@@ -462,20 +456,21 @@ public class Slice {
 		return vertex.getZ() < SLICE_UPPER_BOUND && vertex.getZ() > SLICE_LOWER_BOUND;
 	}
 
-	public static List<Polygon> slice(CSG incoming, Transform slicePlane, double normalInsetDistance) throws ColinearPointsException {
+	public static List<Polygon> slice(CSG incoming, Transform slicePlane, double normalInsetDistance)
+			throws ColinearPointsException {
 		try {
-			if(DefaultSliceImp.class.isInstance(sliceEngine)) {
+			if (DefaultSliceImp.class.isInstance(sliceEngine)) {
 				// avoid concurrecy issues
 				try {
 					return sanatize(new DefaultSliceImp().slice(incoming, slicePlane, normalInsetDistance));
-				}catch(IllegalStateException e) {
+				} catch (IllegalStateException e) {
 					JavaFXInitializer.go();
-					
+
 					return sanatize(new DefaultSliceImp().slice(incoming, slicePlane, normalInsetDistance));
 				}
 			}
 			return sanatize(getSliceEngine().slice(incoming, slicePlane, normalInsetDistance));
-		}catch(Throwable e) {
+		} catch (Throwable e) {
 			return sanatize(incoming.getPolygons());
 		}
 	}
@@ -497,10 +492,10 @@ public class Slice {
 	}
 
 	public static List<Polygon> slice(CSG incoming) throws ColinearPointsException {
-		return slice(incoming, new Transform(),0);
+		return slice(incoming, new Transform(), 0);
 	}
 	public static List<Polygon> slice(CSG incoming, double normalInsetDistance) throws ColinearPointsException {
-		return slice(incoming, new Transform(),normalInsetDistance);
+		return slice(incoming, new Transform(), normalInsetDistance);
 	}
 	public static ISlice getSliceEngine() {
 		return sliceEngine;
@@ -513,9 +508,9 @@ public class Slice {
 	public static int getMaxRes() {
 		return maxRes;
 	}
-	
+
 	public static void setNumFacesInOffset(int numFacesInOffset) {
-		CSG.setNumFacesInOffset( numFacesInOffset);
+		CSG.setNumFacesInOffset(numFacesInOffset);
 	}
 	public static void setMaxRes(int mr) {
 		maxRes = mr;

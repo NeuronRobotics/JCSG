@@ -36,8 +36,6 @@ package eu.mihosoft.vrl.v3d;
 import java.util.ArrayList;
 import java.util.List;
 
-import eu.mihosoft.vrl.v3d.parametrics.LengthParameter;
-
 //  Auto-generated Javadoc
 /**
  * A solid sphere.
@@ -49,244 +47,254 @@ import eu.mihosoft.vrl.v3d.parametrics.LengthParameter;
  */
 public class Sphere extends Primitive {
 
-    private static final int NUM_SLICES = 16;
+	private static final int NUM_SLICES = 16;
 
 	private static final int NUM_STACKS = 8;
 
 	/** The center. */
-    private Vector3d center;
-    
-    /** The radius. */
-    private double radius;
-    
-    /** The num slices. */
-    private int numSlices;
-    
-    /** The num stacks. */
-    private int numStacks;
+	private Vector3d center;
 
-    /** The properties. */
-    private final PropertyStorage properties = new PropertyStorage();
+	/** The radius. */
+	private double radius;
 
-    /**
-     * Constructor. Creates a sphere with radius 1, 16 slices and 8 stacks and
-     * center [0,0,0].
-     *
-     */
-    public Sphere() {
-        init();
-    }
+	/** The num slices. */
+	private int numSlices;
 
-    /**
-     * Constructor. Creates a sphere with the specified radius, 16 slices and 8
-     * stacks and center [0,0,0].
-     *
-     * @param radius sphare radius
-     */
-    public Sphere(double radius) {
-        init();
-        this.radius = radius;
-    }
-//    public Cube(LengthParameter w, LengthParameter h, LengthParameter d) {
-//        this(Vector3d.ZERO, new Vector3d(w.getMM(), h.getMM(), d.getMM()));
-//
-//    }
-//    public Sphere(LengthParameter size) {
-//    	this(size.getMM());
-//    	parametrics.add(size);
-//    }
-//    public Sphere(LengthParameter size, int numSlices, int numStacks) {
-//    	this(size.getMM(),  numSlices,  numStacks);
-//    	parametrics.add(size);
-//    }
-    /**
-     * Constructor. Creates a sphere with the specified radius, number of slices
-     * and stacks.
-     *
-     * @param radius sphare radius
-     * @param numSlices number of slices
-     * @param numStacks number of stacks
-     */
-    public Sphere(double radius, int numSlices, int numStacks) {
-        init();
-        this.radius = radius;
-        this.setNumSlices(numSlices);
-        this.setNumStacks(numStacks);
-    }
+	/** The num stacks. */
+	private int numStacks;
 
-    /**
-     * Constructor. Creates a sphere with the specified center, radius, number
-     * of slices and stacks.
-     *
-     * @param center center of the sphere
-     * @param radius sphere radius
-     * @param numSlices number of slices
-     * @param numStacks number of stacks
-     */
-    public Sphere(Vector3d center, double radius, int numSlices, int numStacks) {
-        this.center = center;
-        this.radius = radius;
-        this.setNumSlices(numSlices);
-        this.setNumStacks(numStacks);
-    }
+	/** The properties. */
+	private final PropertyStorage properties = new PropertyStorage();
 
-    /**
-     * Inits the.
-     */
-    private void init() {
-        center = new Vector3d(0, 0, 0);
-        radius = 1;
-        setNumSlices(NUM_SLICES);
-        setNumStacks(NUM_STACKS);
-    }
+	/**
+	 * Constructor. Creates a sphere with radius 1, 16 slices and 8 stacks and
+	 * center [0,0,0].
+	 *
+	 */
+	public Sphere() {
+		init();
+	}
 
-    /**
-     * Sphere vertex.
-     *
-     * @param c the c
-     * @param r the r
-     * @param theta the theta
-     * @param phi the phi
-     * @return the vertex
-     */
-    private Vertex sphereVertex(Vector3d c, double r, double theta, double phi) {
-        theta *= Math.PI * 2;
-        phi *= Math.PI;
-        Vector3d dir = new Vector3d(
-                Math.cos(theta) * Math.sin(phi),
-                Math.cos(phi),
-                Math.sin(theta) * Math.sin(phi)
-        );
-        return new Vertex(c.plus(dir.times(r)));
-    }
+	/**
+	 * Constructor. Creates a sphere with the specified radius, 16 slices and 8
+	 * stacks and center [0,0,0].
+	 *
+	 * @param radius
+	 *            sphare radius
+	 */
+	public Sphere(double radius) {
+		init();
+		this.radius = radius;
+	}
+	// public Cube(LengthParameter w, LengthParameter h, LengthParameter d) {
+	// this(Vector3d.ZERO, new Vector3d(w.getMM(), h.getMM(), d.getMM()));
+	//
+	// }
+	// public Sphere(LengthParameter size) {
+	// this(size.getMM());
+	// parametrics.add(size);
+	// }
+	// public Sphere(LengthParameter size, int numSlices, int numStacks) {
+	// this(size.getMM(), numSlices, numStacks);
+	// parametrics.add(size);
+	// }
+	/**
+	 * Constructor. Creates a sphere with the specified radius, number of slices and
+	 * stacks.
+	 *
+	 * @param radius
+	 *            sphare radius
+	 * @param numSlices
+	 *            number of slices
+	 * @param numStacks
+	 *            number of stacks
+	 */
+	public Sphere(double radius, int numSlices, int numStacks) {
+		init();
+		this.radius = radius;
+		this.setNumSlices(numSlices);
+		this.setNumStacks(numStacks);
+	}
 
-    /* (non-Javadoc)
-     * @see eu.mihosoft.vrl.v3d.Primitive#toPolygons()
-     */
-    @Override
-    public List<Polygon> toPolygons() {
-  	  if(radius<=0)
-	  		throw new NumberFormatException("radius can not be negative");
-        List<Polygon> polygons = new ArrayList<>();
+	/**
+	 * Constructor. Creates a sphere with the specified center, radius, number of
+	 * slices and stacks.
+	 *
+	 * @param center
+	 *            center of the sphere
+	 * @param radius
+	 *            sphere radius
+	 * @param numSlices
+	 *            number of slices
+	 * @param numStacks
+	 *            number of stacks
+	 */
+	public Sphere(Vector3d center, double radius, int numSlices, int numStacks) {
+		this.center = center;
+		this.radius = radius;
+		this.setNumSlices(numSlices);
+		this.setNumStacks(numStacks);
+	}
 
-        for (int i = 0; i < getNumSlices(); i++) {
-            for (int j = 0; j < getNumStacks(); j++) {
-                final List<Vertex> vertices = new ArrayList<>();
+	/**
+	 * Inits the.
+	 */
+	private void init() {
+		center = new Vector3d(0, 0, 0);
+		radius = 1;
+		setNumSlices(NUM_SLICES);
+		setNumStacks(NUM_STACKS);
+	}
 
-                vertices.add(
-                        sphereVertex(center, radius, i / (double) getNumSlices(),
-                                j / (double) getNumStacks())
-                );
-                if (j > 0) {
-                    vertices.add(
-                            sphereVertex(center, radius, (i + 1) / (double) getNumSlices(),
-                                    j / (double) getNumStacks())
-                    );
-                }
-                if (j < getNumStacks() - 1) {
-                    vertices.add(
-                            sphereVertex(center, radius, (i + 1) / (double) getNumSlices(),
-                                    (j + 1) / (double) getNumStacks())
-                    );
-                }
-                vertices.add(
-                        sphereVertex(center, radius, i / (double) getNumSlices(),
-                                (j + 1) / (double) getNumStacks())
-                );
-                try {
+	/**
+	 * Sphere vertex.
+	 *
+	 * @param c
+	 *            the c
+	 * @param r
+	 *            the r
+	 * @param theta
+	 *            the theta
+	 * @param phi
+	 *            the phi
+	 * @return the vertex
+	 */
+	private Vertex sphereVertex(Vector3d c, double r, double theta, double phi) {
+		theta *= Math.PI * 2;
+		phi *= Math.PI;
+		Vector3d dir = new Vector3d(Math.cos(theta) * Math.sin(phi), Math.cos(phi), Math.sin(theta) * Math.sin(phi));
+		return new Vertex(c.plus(dir.times(r)));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see eu.mihosoft.vrl.v3d.Primitive#toPolygons()
+	 */
+	@Override
+	public List<Polygon> toPolygons() {
+		if (radius <= 0)
+			throw new NumberFormatException("radius can not be negative");
+		List<Polygon> polygons = new ArrayList<>();
+
+		for (int i = 0; i < getNumSlices(); i++) {
+			for (int j = 0; j < getNumStacks(); j++) {
+				final List<Vertex> vertices = new ArrayList<>();
+
+				vertices.add(sphereVertex(center, radius, i / (double) getNumSlices(), j / (double) getNumStacks()));
+				if (j > 0) {
+					vertices.add(sphereVertex(center, radius, (i + 1) / (double) getNumSlices(),
+							j / (double) getNumStacks()));
+				}
+				if (j < getNumStacks() - 1) {
+					vertices.add(sphereVertex(center, radius, (i + 1) / (double) getNumSlices(),
+							(j + 1) / (double) getNumStacks()));
+				}
+				vertices.add(
+						sphereVertex(center, radius, i / (double) getNumSlices(), (j + 1) / (double) getNumStacks()));
+				try {
 					polygons.add(new Polygon(vertices, getProperties()));
 				} catch (ColinearPointsException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-            }
-        }
-        return polygons;
-    }
+			}
+		}
+		return polygons;
+	}
 
-    /**
-     * Gets the center.
-     *
-     * @return the center
-     */
-    public Vector3d getCenter() {
-        return center;
-    }
+	/**
+	 * Gets the center.
+	 *
+	 * @return the center
+	 */
+	public Vector3d getCenter() {
+		return center;
+	}
 
-    /**
-     * Sets the center.
-     *
-     * @param center the center to set
-     */
-    public Sphere setCenter(Vector3d center) {
-        this.center = center;
-        return this;
-    }
+	/**
+	 * Sets the center.
+	 *
+	 * @param center
+	 *            the center to set
+	 */
+	public Sphere setCenter(Vector3d center) {
+		this.center = center;
+		return this;
+	}
 
-    /**
-     * Gets the radius.
-     *
-     * @return the radius
-     */
-    public double getRadius() {
-        return radius;
-    }
+	/**
+	 * Gets the radius.
+	 *
+	 * @return the radius
+	 */
+	public double getRadius() {
+		return radius;
+	}
 
-    /**
-     * Sets the radius.
-     *
-     * @param radius the radius to set
-     */
-    public Sphere setRadius(double radius) {
-        this.radius = radius;return this;
-    }
+	/**
+	 * Sets the radius.
+	 *
+	 * @param radius
+	 *            the radius to set
+	 */
+	public Sphere setRadius(double radius) {
+		this.radius = radius;
+		return this;
+	}
 
-    /**
-     * Gets the num slices.
-     *
-     * @return the numSlices
-     */
-    public int getNumSlices() {
-        return numSlices;
-    }
+	/**
+	 * Gets the num slices.
+	 *
+	 * @return the numSlices
+	 */
+	public int getNumSlices() {
+		return numSlices;
+	}
 
-    /**
-     * Sets the num slices.
-     *
-     * @param numSlices the numSlices to set
-     */
-    public Sphere setNumSlices(int numSlices) {
-    	if(numSlices>(NUM_SLICES*4))
-    		System.out.println("Very large sphere! this may crash!");
-        this.numSlices = numSlices;return this;
-    }
+	/**
+	 * Sets the num slices.
+	 *
+	 * @param numSlices
+	 *            the numSlices to set
+	 */
+	public Sphere setNumSlices(int numSlices) {
+		if (numSlices > (NUM_SLICES * 4))
+			System.out.println("Very large sphere! this may crash!");
+		this.numSlices = numSlices;
+		return this;
+	}
 
-    /**
-     * Gets the num stacks.
-     *
-     * @return the numStacks
-     */
-    public int getNumStacks() {
-        return numStacks;
-    }
+	/**
+	 * Gets the num stacks.
+	 *
+	 * @return the numStacks
+	 */
+	public int getNumStacks() {
+		return numStacks;
+	}
 
-    /**
-     * Sets the num stacks.
-     *
-     * @param numStacks the numStacks to set
-     */
-    public Sphere setNumStacks(int numStacks) {
-    	if(numStacks>(NUM_STACKS*4))
-    		System.out.println("Very large sphere! this may crash!");
-        this.numStacks = numStacks;return this;
-    }
+	/**
+	 * Sets the num stacks.
+	 *
+	 * @param numStacks
+	 *            the numStacks to set
+	 */
+	public Sphere setNumStacks(int numStacks) {
+		if (numStacks > (NUM_STACKS * 4))
+			System.out.println("Very large sphere! this may crash!");
+		this.numStacks = numStacks;
+		return this;
+	}
 
-    /* (non-Javadoc)
-     * @see eu.mihosoft.vrl.v3d.Primitive#getProperties()
-     */
-    @Override
-    public PropertyStorage getProperties() {
-        return properties;
-    }
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see eu.mihosoft.vrl.v3d.Primitive#getProperties()
+	 */
+	@Override
+	public PropertyStorage getProperties() {
+		return properties;
+	}
 
 }

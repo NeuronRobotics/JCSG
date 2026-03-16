@@ -48,170 +48,172 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Material;
 import javafx.scene.paint.PhongMaterial;
 
-
 //  Auto-generated Javadoc
 /** Reader for OBJ file MTL material files. */
 public class MtlReader {
 
-    /** The base url. */
-    private String baseUrl;
+	/** The base url. */
+	private String baseUrl;
 
-    /**
-     * Instantiates a new mtl reader.
-     *
-     * @param filename the filename
-     * @param parentUrl the parent url
-     */
-    public MtlReader(String filename, String parentUrl) {
-        baseUrl = parentUrl.substring(0,parentUrl.lastIndexOf('/')+1);
-        String fileUrl = baseUrl + filename;
-        try {
-            URL mtlUrl = new URL(fileUrl);
-            log("Reading material from filename = " + mtlUrl);
-            read(mtlUrl.openStream());
-        } catch (FileNotFoundException ex) {
-           // com.neuronrobotics.sdk.common.Log.error("No material file found for obj. ["+fileUrl+"]");
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-    }
-    
-    /**
-     * Instantiates a new mtl reader.
-     *
-     * @param stream the stream
-     */
-    public MtlReader(InputStream stream) {
+	/**
+	 * Instantiates a new mtl reader.
+	 *
+	 * @param filename
+	 *            the filename
+	 * @param parentUrl
+	 *            the parent url
+	 */
+	public MtlReader(String filename, String parentUrl) {
+		baseUrl = parentUrl.substring(0, parentUrl.lastIndexOf('/') + 1);
+		String fileUrl = baseUrl + filename;
+		try {
+			URL mtlUrl = new URL(fileUrl);
+			log("Reading material from filename = " + mtlUrl);
+			read(mtlUrl.openStream());
+		} catch (FileNotFoundException ex) {
+			// com.neuronrobotics.sdk.common.Log.error("No material file found for obj.
+			// ["+fileUrl+"]");
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+	}
 
-        try {
-            log("Reading material from stream");
-            read(stream);
-        } catch (FileNotFoundException ex) {
-            //com.neuronrobotics.sdk.common.Log.error("No material file found for obj. [stream]");
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-    }
+	/**
+	 * Instantiates a new mtl reader.
+	 *
+	 * @param stream
+	 *            the stream
+	 */
+	public MtlReader(InputStream stream) {
 
-    /** The materials. */
-    private Map<String, Material> materials = new HashMap<>();
-    
-    /** The material. */
-    private PhongMaterial material = new PhongMaterial();
-    
-    /** The modified. */
-    private boolean modified = false;
+		try {
+			log("Reading material from stream");
+			read(stream);
+		} catch (FileNotFoundException ex) {
+			// com.neuronrobotics.sdk.common.Log.error("No material file found for obj.
+			// [stream]");
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+	}
 
-    /**
-     * Read.
-     *
-     * @param inputStream the input stream
-     * @throws IOException Signals that an I/O exception has occurred.
-     */
-    private void read(InputStream inputStream) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
-        String line;
-        String name = "default";
-        while ((line = br.readLine()) != null) {
-            try {
-                if (line.isEmpty() || line.startsWith("#")) {
-                    // comments and empty lines are ignored
-                } else if (line.startsWith("newmtl ")) {
-                    addMaterial(name);
-                    name = line.substring("newmtl ".length());
-                } else if (line.startsWith("Kd ")) {
-                    material.setDiffuseColor(readColor(line.substring(3)));
-                    modified = true;
-                } else if (line.startsWith("Ks ")) {
-                    material.setSpecularColor(readColor(line.substring(3)));
-                    modified = true;
-                } else if (line.startsWith("Ns ")) {
-                    material.setSpecularPower(Double.parseDouble(line.substring(3)));
-                    modified = true;
-                } else if (line.startsWith("map_Kd ")) {
-                    material.setDiffuseColor(Color.WHITE);
-                    material.setDiffuseMap(loadImage(line.substring("map_Kd ".length())));
-//                    material.setSelfIlluminationMap(loadImage(line.substring("map_Kd ".length())));
-//                    material.setSpecularColor(Color.WHITE);
-                    modified = true;
-                    //            } else if (line.startsWith("illum ")) {
-                    //                int illumNo = Integer.parseInt(line.substring("illum ".length()));
-                    /*
-                        0	 Color on and Ambient off 
-                        1	 Color on and Ambient on 
-                        2	 Highlight on 
-                        3	 Reflection on and Ray trace on 
-                        4	 Transparency: Glass on 
-                             Reflection: Ray trace on 
-                        5	 Reflection: Fresnel on and Ray trace on 
-                        6	 Transparency: Refraction on 
-                             Reflection: Fresnel off and Ray trace on 
-                        7	 Transparency: Refraction on 
-                             Reflection: Fresnel on and Ray trace on 
-                        8	 Reflection on and Ray trace off 
-                        9	 Transparency: Glass on 
-                             Reflection: Ray trace off 
-                        10	 Casts shadows onto invisible surfaces 
-                     */
-                } else {
-                    log("material line ignored for " + name + ": " + line);
-                }
-            } catch (Exception ex) {
-                Logger.getLogger(MtlReader.class.getName()).log(Level.SEVERE, "Failed to parse line:" + line, ex);
-            }
-        }
-        addMaterial(name);
-    }
+	/** The materials. */
+	private Map<String, Material> materials = new HashMap<>();
 
-    /**
-     * Adds the material.
-     *
-     * @param name the name
-     */
-    private void addMaterial(String name) {
-        if (modified) {
-            if (!materials.containsKey(name)) {
-                materials.put(name, material);
-            } else {
-                log("This material is already added. Ignoring " + name);
-            }
-            material = new PhongMaterial(Color.WHITE);
-        }
-    }
+	/** The material. */
+	private PhongMaterial material = new PhongMaterial();
 
-    /**
-     * Read color.
-     *
-     * @param line the line
-     * @return the color
-     */
-    private Color readColor(String line) {
-        String[] split = line.trim().split(" +");
-        float red = Float.parseFloat(split[0]);
-        float green = Float.parseFloat(split[1]);
-        float blue = Float.parseFloat(split[2]);
-        return Color.color(red, green, blue);
-    }
+	/** The modified. */
+	private boolean modified = false;
 
-    /**
-     * Load image.
-     *
-     * @param filename the filename
-     * @return the image
-     */
-    private Image loadImage(String filename) {
-        filename = baseUrl + filename;
-        log("Loading image from " + filename);
-        Image image = new Image(filename);
-        return new Image(filename);
-    }
+	/**
+	 * Read.
+	 *
+	 * @param inputStream
+	 *            the input stream
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
+	private void read(InputStream inputStream) throws IOException {
+		BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+		String line;
+		String name = "default";
+		while ((line = br.readLine()) != null) {
+			try {
+				if (line.isEmpty() || line.startsWith("#")) {
+					// comments and empty lines are ignored
+				} else if (line.startsWith("newmtl ")) {
+					addMaterial(name);
+					name = line.substring("newmtl ".length());
+				} else if (line.startsWith("Kd ")) {
+					material.setDiffuseColor(readColor(line.substring(3)));
+					modified = true;
+				} else if (line.startsWith("Ks ")) {
+					material.setSpecularColor(readColor(line.substring(3)));
+					modified = true;
+				} else if (line.startsWith("Ns ")) {
+					material.setSpecularPower(Double.parseDouble(line.substring(3)));
+					modified = true;
+				} else if (line.startsWith("map_Kd ")) {
+					material.setDiffuseColor(Color.WHITE);
+					material.setDiffuseMap(loadImage(line.substring("map_Kd ".length())));
+					// material.setSelfIlluminationMap(loadImage(line.substring("map_Kd
+					// ".length())));
+					// material.setSpecularColor(Color.WHITE);
+					modified = true;
+					// } else if (line.startsWith("illum ")) {
+					// int illumNo = Integer.parseInt(line.substring("illum ".length()));
+					/*
+					 * 0 Color on and Ambient off 1 Color on and Ambient on 2 Highlight on 3
+					 * Reflection on and Ray trace on 4 Transparency: Glass on Reflection: Ray trace
+					 * on 5 Reflection: Fresnel on and Ray trace on 6 Transparency: Refraction on
+					 * Reflection: Fresnel off and Ray trace on 7 Transparency: Refraction on
+					 * Reflection: Fresnel on and Ray trace on 8 Reflection on and Ray trace off 9
+					 * Transparency: Glass on Reflection: Ray trace off 10 Casts shadows onto
+					 * invisible surfaces
+					 */
+				} else {
+					log("material line ignored for " + name + ": " + line);
+				}
+			} catch (Exception ex) {
+				Logger.getLogger(MtlReader.class.getName()).log(Level.SEVERE, "Failed to parse line:" + line, ex);
+			}
+		}
+		addMaterial(name);
+	}
 
-    /**
-     * Gets the materials.
-     *
-     * @return the materials
-     */
-    public Map<String, Material> getMaterials() {
-        return Collections.unmodifiableMap(materials);
-    }
+	/**
+	 * Adds the material.
+	 *
+	 * @param name
+	 *            the name
+	 */
+	private void addMaterial(String name) {
+		if (modified) {
+			if (!materials.containsKey(name)) {
+				materials.put(name, material);
+			} else {
+				log("This material is already added. Ignoring " + name);
+			}
+			material = new PhongMaterial(Color.WHITE);
+		}
+	}
+
+	/**
+	 * Read color.
+	 *
+	 * @param line
+	 *            the line
+	 * @return the color
+	 */
+	private Color readColor(String line) {
+		String[] split = line.trim().split(" +");
+		float red = Float.parseFloat(split[0]);
+		float green = Float.parseFloat(split[1]);
+		float blue = Float.parseFloat(split[2]);
+		return Color.color(red, green, blue);
+	}
+
+	/**
+	 * Load image.
+	 *
+	 * @param filename
+	 *            the filename
+	 * @return the image
+	 */
+	private Image loadImage(String filename) {
+		filename = baseUrl + filename;
+		log("Loading image from " + filename);
+		Image image = new Image(filename);
+		return new Image(filename);
+	}
+
+	/**
+	 * Gets the materials.
+	 *
+	 * @return the materials
+	 */
+	public Map<String, Material> getMaterials() {
+		return Collections.unmodifiableMap(materials);
+	}
 }

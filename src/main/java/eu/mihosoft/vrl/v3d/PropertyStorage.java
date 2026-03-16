@@ -35,9 +35,7 @@ package eu.mihosoft.vrl.v3d;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -49,92 +47,96 @@ import javafx.scene.paint.Color;
  *
  * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
  */
-public class PropertyStorage implements Serializable{
+public class PropertyStorage implements Serializable {
 
-    private static final long serialVersionUID = 1460815261025940141L;
+	private static final long serialVersionUID = 1460815261025940141L;
 
 	/** The map. */
-    private final ConcurrentHashMap<String, Object> map = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<String, Object> map = new ConcurrentHashMap<>();
 
-    /** The Constant colors. */
-    private static final Color[] colors = {
-        Color.RED, Color.YELLOW, Color.GREEN, Color.BLUE, Color.MAGENTA,
-        Color.WHITE, Color.BLACK, Color.GRAY, Color.ORANGE};
+	/** The Constant colors. */
+	private static final Color[] colors = {Color.RED, Color.YELLOW, Color.GREEN, Color.BLUE, Color.MAGENTA, Color.WHITE,
+			Color.BLACK, Color.GRAY, Color.ORANGE};
 
-    /**
-     * Constructor. Creates a new property storage.
-     */
-    public PropertyStorage() {
-    }
+	/**
+	 * Constructor. Creates a new property storage.
+	 */
+	public PropertyStorage() {
+	}
 
-    /**
-     * Sets a property. Existing properties are overwritten.
-     *
-     * @param key key
-     * @param property property
-     */
-    public void set(String key, Object property) {
-        map.put(key, property);
-    }
+	/**
+	 * Sets a property. Existing properties are overwritten.
+	 *
+	 * @param key
+	 *            key
+	 * @param property
+	 *            property
+	 */
+	public void set(String key, Object property) {
+		map.put(key, property);
+	}
 
-    /**
-     * Returns a property.
-     *
-     * @param <T> property type
-     * @param key key
-     * @return the property; an empty {@link java.util.Optional} will be
-     * returned if the property does not exist or the type does not match
-     */
-    public <T> Optional<T> getValue(String key) {
+	/**
+	 * Returns a property.
+	 *
+	 * @param <T>
+	 *            property type
+	 * @param key
+	 *            key
+	 * @return the property; an empty {@link java.util.Optional} will be returned if
+	 *         the property does not exist or the type does not match
+	 */
+	public <T> Optional<T> getValue(String key) {
 
-        Object value = map.get(key);
+		Object value = map.get(key);
 
-        try {
-            return Optional.ofNullable((T) value);
-        } catch (ClassCastException ex) {
-            return Optional.empty();
-        }
-    }
+		try {
+			return Optional.ofNullable((T) value);
+		} catch (ClassCastException ex) {
+			return Optional.empty();
+		}
+	}
 
-    /**
-     * Deletes the requested property if present. Does nothing otherwise.
-     *
-     * @param key key
-     */
-    public void delete(String key) {
-        map.remove(key);
-    }
+	/**
+	 * Deletes the requested property if present. Does nothing otherwise.
+	 *
+	 * @param key
+	 *            key
+	 */
+	public void delete(String key) {
+		map.remove(key);
+	}
 
-    /**
-     * Indicates whether this storage contains the requested property.
-     *
-     * @param key key
-     * @return {@code true} if this storage contains the requested property;
-     * {@code false}
-     */
-    public boolean contains(String key) {
-        return map.containsKey(key);
-    }
+	/**
+	 * Indicates whether this storage contains the requested property.
+	 *
+	 * @param key
+	 *            key
+	 * @return {@code true} if this storage contains the requested property;
+	 *         {@code false}
+	 */
+	public boolean contains(String key) {
+		return map.containsKey(key);
+	}
 
-
-    public Set<String> getKeys(){
-    	return map.keySet();
-    }
-    public void syncProperties(PropertyStorage dying) {
-    	for(String o:dying.map.keySet()) {
-    		Object property = dying.map.get(o);
-    		if(HashSet.class.isInstance(property)) {
-    			HashSet<String> clonedSet =  new HashSet<String>();
-    			clonedSet.addAll((HashSet<String>)property);
-    			property=clonedSet;	
-    		}
-    		if(ArrayList.class.isInstance(property)) {
-    			Object clonedSet =  map.get(o);
-    			ArrayList<String> newList = clonedSet==null?new ArrayList<String>():(ArrayList<String>)clonedSet;
-    			newList.addAll((ArrayList<String>)property);
-    			property=newList;	
-    		}
-			set(o,property);
-    	}
-    }
+	public Set<String> getKeys() {
+		return map.keySet();
+	}
+	public void syncProperties(PropertyStorage dying) {
+		for (String o : dying.map.keySet()) {
+			Object property = dying.map.get(o);
+			if (HashSet.class.isInstance(property)) {
+				HashSet<String> clonedSet = new HashSet<String>();
+				clonedSet.addAll((HashSet<String>) property);
+				property = clonedSet;
+			}
+			if (ArrayList.class.isInstance(property)) {
+				Object clonedSet = map.get(o);
+				ArrayList<String> newList = clonedSet == null ? new ArrayList<String>() : (ArrayList<String>) clonedSet;
+				newList.addAll((ArrayList<String>) property);
+				property = newList;
+			}
+			set(o, property);
+		}
+	}
 }

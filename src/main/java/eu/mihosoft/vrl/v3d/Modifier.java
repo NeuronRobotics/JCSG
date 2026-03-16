@@ -13,41 +13,44 @@ package eu.mihosoft.vrl.v3d;
  * @author Michael Hoffer &lt;info@michaelhoffer.de&gt;
  */
 final class Modifier {
-    
-    /** The function. */
-    private final WeightFunction function;
 
-    /**
-     * Instantiates a new modifier.
-     *
-     * @param function the function
-     */
-    public Modifier(WeightFunction function) {
-       this.function = function;
-    }
-    
-    /**
-     * Modify.
-     *
-     * @param csg the csg
-     */
-    void modify(CSG csg) {
-        for(Polygon p : csg.getPolygons()) {
-            for(Vertex v : p.getVertices()) {
-                v.setWeight(function.eval(v.pos, csg));
-            }
-        }
-    }
-    
-    /**
-     * Modified.
-     *
-     * @param csg the csg
-     * @return the csg
-     */
-    CSG modified(CSG csg) {
-        CSG result = csg.clone();
-        modify(result);
-        return result;
-    }
+	/** The function. */
+	private final WeightFunction function;
+
+	/**
+	 * Instantiates a new modifier.
+	 *
+	 * @param function
+	 *            the function
+	 */
+	public Modifier(WeightFunction function) {
+		this.function = function;
+	}
+
+	/**
+	 * Modify.
+	 *
+	 * @param csg
+	 *            the csg
+	 */
+	void modify(CSG csg) {
+		for (Polygon p : csg.getPolygons()) {
+			for (Vertex v : p.getVertices()) {
+				v.setWeight(function.eval(v.pos, csg));
+			}
+		}
+	}
+
+	/**
+	 * Modified.
+	 *
+	 * @param csg
+	 *            the csg
+	 * @return the csg
+	 */
+	CSG modified(CSG csg) {
+		CSG result = csg.clone();
+		modify(result);
+		return result;
+	}
 }

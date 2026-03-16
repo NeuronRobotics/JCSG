@@ -6,7 +6,7 @@ import java.util.List;
 import javafx.scene.shape.TriangleMesh;
 
 public class CSGtoJavafx {
-	
+
 	public static MeshContainer meshFromPolygon(Polygon... poly) {
 		return meshFromPolygon(Arrays.asList(poly));
 	}
@@ -56,7 +56,7 @@ public class CSGtoJavafx {
 
 					mesh.getPoints().addAll((float) firstVertex.pos.x, (float) firstVertex.pos.y,
 							(float) firstVertex.pos.z);
-					
+
 					mesh.getTexCoords().addAll(0); // texture (not covered)
 					mesh.getTexCoords().addAll(0);
 

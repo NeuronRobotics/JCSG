@@ -1,10 +1,8 @@
 package eu.mihosoft.vrl.v3d;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
-import javafx.scene.shape.ClosePath;
 import javafx.scene.shape.CubicCurveTo;
 import javafx.scene.shape.LineTo;
 import javafx.scene.shape.MoveTo;
@@ -16,22 +14,16 @@ import javafx.scene.shape.Shape;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import com.piro.bezier.BezierPath;
 
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.Path;
 import javafx.scene.shape.PathElement;
 import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.LineTo;
 import javafx.scene.shape.CubicCurveTo;
 import javafx.scene.shape.QuadCurveTo;
-import javafx.scene.shape.ClosePath;
 import javafx.scene.text.Text;
-import eu.mihosoft.vrl.v3d.Vector3d;
 import java.util.*;
 
 //  Auto-generated Javadoc
@@ -143,29 +135,29 @@ public class TextExtrude {
 
 		// Convert Text to Path
 		Path subtract = (Path) (Shape.subtract(textNode, new Rectangle(0, 0)));
-		List<List<Vector3d>> outlines = extractOutlines(subtract,font.getSize());
+		List<List<Vector3d>> outlines = extractOutlines(subtract, font.getSize());
 		double zOff = 0;
-//		boolean b = CSG.isPreventNonManifoldTriangles();
-//		CSG.setPreventNonManifoldTriangles(false);
+		// boolean b = CSG.isPreventNonManifoldTriangles();
+		// CSG.setPreventNonManifoldTriangles(false);
 		for (List<Vector3d> points : outlines) {
 			try {
 				boolean hole = Extrude.isCCWv3d(points);
 				CSG newLetter = Extrude.points(new Vector3d(0, 0, dir), points).movez(zOff);
-				//newLetter.triangulate();
+				// newLetter.triangulate();
 				if (!hole)
 					sections.add(newLetter);
 				else {
 					newLetter.setIsHole(true);
 					holes.add(newLetter);
 				}
-			}catch(ColinearPointsException e) {
+			} catch (ColinearPointsException e) {
 				e.printStackTrace();
 			}
 		}
-//		CSG.setPreventNonManifoldTriangles(b);
-//		// Convert Path elements into lists of points defining the perimeter
-//		// (exterior or interior)
-//		subtract.getElements().forEach(this::getPoints);
+		// CSG.setPreventNonManifoldTriangles(b);
+		// // Convert Path elements into lists of points defining the perimeter
+		// // (exterior or interior)
+		// subtract.getElements().forEach(this::getPoints);
 
 		for (int i = 0; i < sections.size(); i++) {
 			sections.get(i).setIsHole(false);
@@ -187,9 +179,12 @@ public class TextExtrude {
 	 * Extrudes the specified path (convex or concave polygon without holes or
 	 * intersections, specified in CCW) into the specified direction.
 	 *
-	 * @param dir  direction of extrusion
-	 * @param text text
-	 * @param font font configuration of the text
+	 * @param dir
+	 *            direction of extrusion
+	 * @param text
+	 *            text
+	 * @param font
+	 *            font configuration of the text
 	 *
 	 * @return a CSG object that consists of the extruded polygon
 	 */
@@ -210,24 +205,26 @@ public class TextExtrude {
 				.map(LineSegment::getOrigen).collect(Collectors.toList());
 	}
 
-// Below is AI slop
-	//private static final double POINT_EPSILON = 0.0001; // Distance threshold for considering points equal
+	// Below is AI slop
+	// private static final double POINT_EPSILON = 0.0001; // Distance threshold for
+	// considering points equal
 
 	/**
 	 * Converts a JavaFX Text object into a list of cleaned vector lists
 	 * representing the outlines
-	 * @param fontSize 
+	 *
+	 * @param fontSize
 	 */
 	public static List<List<Vector3d>> extractOutlines(Path text, double fontSize) {
 		List<List<Vector3d>> rawOutlines = extractRawOutlines(text);
-//		List<List<Vector3d>> cleanedOutlines = new ArrayList<>();
-//
-//		for (List<Vector3d> outline : rawOutlines) {
-//			List<Vector3d> cleaned = cleanOutline(outline,fontSize);
-//			if (cleaned.size() >= 3) { // Only keep outlines with at least 3 points
-//				cleanedOutlines.add(cleaned);
-//			}
-//		}
+		// List<List<Vector3d>> cleanedOutlines = new ArrayList<>();
+		//
+		// for (List<Vector3d> outline : rawOutlines) {
+		// List<Vector3d> cleaned = cleanOutline(outline,fontSize);
+		// if (cleaned.size() >= 3) { // Only keep outlines with at least 3 points
+		// cleanedOutlines.add(cleaned);
+		// }
+		// }
 
 		return rawOutlines;
 	}
@@ -239,51 +236,49 @@ public class TextExtrude {
 		List<List<Vector3d>> allOutlines = new ArrayList<>();
 
 		StringBuilder pathBuilder = new StringBuilder();
-		//List<Vector3d> currentPath = new ArrayList<>();
+		// List<Vector3d> currentPath = new ArrayList<>();
 
 		for (PathElement element : textPath.getElements()) {
-		    if (element instanceof MoveTo) {
-		        // If we have a current path, process it with BezierPath
-		        if (pathBuilder.length() > 0) {
-		            BezierPath bezierPath = new BezierPath(5);
-		            bezierPath.parsePathString(pathBuilder.toString());
-		            List<Vector3d> pathPoints = bezierPath.evaluate();
-		            if (!pathPoints.isEmpty()) {
-		                allOutlines.add(new ArrayList<>(pathPoints));
-		            }
-		            pathBuilder = new StringBuilder();
-		        }
-		        
-		        MoveTo move = (MoveTo) element;
-		        pathBuilder.append("M").append(move.getX()).append(" ").append(move.getY());
-		        
-		    } else if (element instanceof LineTo) {
-		        LineTo line = (LineTo) element;
-		        pathBuilder.append("L").append(line.getX()).append(" ").append(line.getY());
-		        
-		    } else if (element instanceof CubicCurveTo) {
-		        CubicCurveTo curve = (CubicCurveTo) element;
-		        pathBuilder.append("C")
-		            .append(curve.getControlX1()).append(" ").append(curve.getControlY1()).append(" ")
-		            .append(curve.getControlX2()).append(" ").append(curve.getControlY2()).append(" ")
-		            .append(curve.getX()).append(" ").append(curve.getY());
-		            
-		    } else if (element instanceof QuadCurveTo) {
-		        QuadCurveTo curve = (QuadCurveTo) element;
-		        pathBuilder.append("Q")
-		            .append(curve.getControlX()).append(" ").append(curve.getControlY()).append(" ")
-		            .append(curve.getX()).append(" ").append(curve.getY());
-		    }
+			if (element instanceof MoveTo) {
+				// If we have a current path, process it with BezierPath
+				if (pathBuilder.length() > 0) {
+					BezierPath bezierPath = new BezierPath(5);
+					bezierPath.parsePathString(pathBuilder.toString());
+					List<Vector3d> pathPoints = bezierPath.evaluate();
+					if (!pathPoints.isEmpty()) {
+						allOutlines.add(new ArrayList<>(pathPoints));
+					}
+					pathBuilder = new StringBuilder();
+				}
+
+				MoveTo move = (MoveTo) element;
+				pathBuilder.append("M").append(move.getX()).append(" ").append(move.getY());
+
+			} else if (element instanceof LineTo) {
+				LineTo line = (LineTo) element;
+				pathBuilder.append("L").append(line.getX()).append(" ").append(line.getY());
+
+			} else if (element instanceof CubicCurveTo) {
+				CubicCurveTo curve = (CubicCurveTo) element;
+				pathBuilder.append("C").append(curve.getControlX1()).append(" ").append(curve.getControlY1())
+						.append(" ").append(curve.getControlX2()).append(" ").append(curve.getControlY2()).append(" ")
+						.append(curve.getX()).append(" ").append(curve.getY());
+
+			} else if (element instanceof QuadCurveTo) {
+				QuadCurveTo curve = (QuadCurveTo) element;
+				pathBuilder.append("Q").append(curve.getControlX()).append(" ").append(curve.getControlY()).append(" ")
+						.append(curve.getX()).append(" ").append(curve.getY());
+			}
 		}
 
 		// Process the final path if it exists
 		if (pathBuilder.length() > 0) {
-		    BezierPath bezierPath = new BezierPath(5);
-		    bezierPath.parsePathString(pathBuilder.toString());
-		    List<Vector3d> pathPoints = bezierPath.evaluate();
-		    if (!pathPoints.isEmpty()) {
-		        allOutlines.add(pathPoints);
-		    }
+			BezierPath bezierPath = new BezierPath(5);
+			bezierPath.parsePathString(pathBuilder.toString());
+			List<Vector3d> pathPoints = bezierPath.evaluate();
+			if (!pathPoints.isEmpty()) {
+				allOutlines.add(pathPoints);
+			}
 		}
 
 		return allOutlines;

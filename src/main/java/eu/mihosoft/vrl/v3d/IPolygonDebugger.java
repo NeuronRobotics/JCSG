@@ -4,8 +4,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public interface IPolygonDebugger {
-	void display( List<Polygon> poly);
-	default void  display( Polygon... poly) {
+	void display(List<Polygon> poly);
+	default void display(Polygon... poly) {
 		display(Arrays.asList(poly));
 	}
 }
