@@ -69,6 +69,7 @@ import com.aparapi.Range;
 import com.aparapi.device.Device;
 import com.aparapi.internal.kernel.KernelManager;
 import com.aparapi.internal.kernel.KernelRunner;
+import com.cadoodlecad.manifold.ManifoldBindings;
 import com.neuronrobotics.interaction.CadInteractionEvent;
 
 import javafx.scene.paint.Color;
@@ -199,6 +200,7 @@ public class CSG implements IuserAPI, Serializable {
 
 	private int pointsAdded;
 	private String uniqueId = UUID.randomUUID().toString();
+	private static ManifoldBindings manifold=null;
 
 	/**
 	 * Instantiates a new csg.
@@ -2715,6 +2717,15 @@ public class CSG implements IuserAPI, Serializable {
 	 * @param optType the optType to set
 	 */
 	public static void setDefaultOptType(OptType optType) {
+		if(optType == OptType.Manifold3d) {
+			try {
+				manifold = new ManifoldBindings();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				optType=defaultOptType;
+			}
+		}
 		defaultOptType = optType;
 	}
 
@@ -2724,6 +2735,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * @param optType the optType to set
 	 */
 	public CSG setOptType(OptType optType) {
+
 		this.optType = optType;
 		return this;
 	}
@@ -2750,6 +2762,8 @@ public class CSG implements IuserAPI, Serializable {
 
 		/** The polygon bound. */
 		POLYGON_BOUND,
+		
+		Manifold3d,
 
 		/** The none. */
 		NONE
