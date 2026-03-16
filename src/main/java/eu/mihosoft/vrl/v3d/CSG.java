@@ -42,6 +42,7 @@ import eu.mihosoft.vrl.v3d.parametrics.IRegenerate;
 import eu.mihosoft.vrl.v3d.parametrics.LengthParameter;
 import eu.mihosoft.vrl.v3d.parametrics.Parameter;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -1673,7 +1674,23 @@ public class CSG implements IuserAPI, Serializable {
 		toStlString(sb);
 		return sb.toString();
 	}
-
+	
+	public CSG to3mf(File target) {
+		if(defaultOptType == OptType.Manifold3d) {
+			new RuntimeException("Manifold3d 3mf export not implemented yet").printStackTrace();
+		}else {
+			throw new RuntimeException("Non-Manifold3d 3mf export not implemented yet");
+		}
+		return this;
+	}
+	public static  CSG loadFrom3mf(File target) {
+		if(defaultOptType == OptType.Manifold3d) {
+			new RuntimeException("Manifold3d 3mf export not implemented yet").printStackTrace();
+		}else {
+			throw new RuntimeException("Non-Manifold3d 3mf export not implemented yet");
+		}
+		return null;
+	}
 	/**
 	 * Returns this csg in STL string format.
 	 *
