@@ -36,7 +36,7 @@ public class CSGtoJavafx {
 
 				// Add all polygon vertices to the mesh, and get the bounds min and max
 				for (Vertex v : p.getVertices()) {
-					mesh.getPoints().addAll((float)v.pos.x, (float)v.pos.y, (float)v.pos.z);
+					mesh.getPoints().addAll((float) v.pos.x, (float) v.pos.y, (float) v.pos.z);
 
 					if (v.pos.x < minX)
 						minX = v.pos.x;
@@ -56,13 +56,12 @@ public class CSGtoJavafx {
 					if (v.pos.z > maxZ)
 						maxZ = v.pos.z;
 				} // end for
-				
+
 				// Add the vertex indexes (0, 1, 2) (0, 2, 3) (0, 3, 4) etc.
 				for (int i = 0; i < p.getVertices().size() - 2; i++) {
-					mesh.getFaces().addAll(
-						vertexOffset + 0    , 0,  // always first vertex of polygon
-						vertexOffset + i + 1, 0,  // second vertex  
-						vertexOffset + i + 2, 0); // third vertex
+					mesh.getFaces().addAll(vertexOffset + 0, 0, // always first vertex of polygon
+							vertexOffset + i + 1, 0, // second vertex
+							vertexOffset + i + 2, 0); // third vertex
 				}
 				vertexOffset += p.getVertices().size();
 
