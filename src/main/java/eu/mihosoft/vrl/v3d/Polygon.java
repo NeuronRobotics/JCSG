@@ -318,7 +318,8 @@ public final class Polygon implements Serializable {
 			this.getVertices().get(2).toStlString(sb).append("\n").append("endloop\n").append("endfacet\n");
 
 		} else {
-			throw new RuntimeException("Polygon must be a triangle before STL can be made, vertices: " + getVertices().size());
+			throw new RuntimeException(
+					"Polygon must be a triangle before STL can be made, vertices: " + getVertices().size());
 		}
 
 		return sb;

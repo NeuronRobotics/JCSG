@@ -316,7 +316,7 @@ public class Vector3d extends javax.vecmath.Vector3d {
 			return formatted; // Nothing to do
 
 		int i = formatted.length() - 1;
-		
+
 		while ((i > decPos) && (formatted.charAt(i) == '0'))
 			i--;
 
