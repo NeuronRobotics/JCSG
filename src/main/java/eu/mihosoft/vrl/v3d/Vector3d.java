@@ -306,6 +306,27 @@ public class Vector3d extends javax.vecmath.Vector3d {
 		return new Vector3d(this.y * a.z - this.z * a.y, this.z * a.x - this.x * a.z, this.x * a.y - this.y * a.x);
 	}
 
+	// Minimize ASCII STL size by removing trailing zeros
+	private static String stripTrailingZeros(String formatted) {
+		if ((formatted == null) || formatted.isEmpty())
+			return formatted;
+
+		int decPos = formatted.indexOf('.');
+		if (decPos == -1)
+			return formatted; // Nothing to do
+
+		int i = formatted.length() - 1;
+
+		while ((i > decPos) && (formatted.charAt(i) == '0'))
+			i--;
+
+		// Remove decimal point if needed
+		if (i == decPos)
+			i--;
+
+		return formatted.substring(0, i + 1);
+	}
+
 	/**
 	 * Returns this vector in STL string format.
 	 *
@@ -324,8 +345,9 @@ public class Vector3d extends javax.vecmath.Vector3d {
 	 */
 	public StringBuilder toStlString(StringBuilder sb) {
 		double ep = getEXPORTEPSILON();
-		return sb.append(roundedValue(x, ep)).append(" ").append(roundedValue(y, ep)).append(" ")
-				.append(roundedValue(z, ep));
+		return sb.append(stripTrailingZeros(roundedValue(x, ep))).append(" ")
+				.append(stripTrailingZeros(roundedValue(y, ep))).append(" ")
+				.append(stripTrailingZeros(roundedValue(z, ep)));
 	}
 
 	public Vector3d roundToEpsilon(double ep) {

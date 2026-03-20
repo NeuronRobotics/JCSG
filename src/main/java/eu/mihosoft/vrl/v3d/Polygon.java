@@ -309,17 +309,17 @@ public final class Polygon implements Serializable {
 			// TODO: improve the triangulation?
 			//
 			// STL requires triangular polygons.
-			// If our polygon has more vertices, create
-			// multiple triangles:
+			// If our polygon has more vertices, create multiple triangles:
 			String firstVertexStl = this.getVertices().get(0).toStlString();
 
-			sb.append("  facet normal ").append(this.getPlane().getNormal().toStlString()).append("\n")
-					.append("    outer loop\n").append("      ").append(firstVertexStl).append("\n").append("      ");
-			this.getVertices().get(1).toStlString(sb).append("\n").append("      ");
-			this.getVertices().get(2).toStlString(sb).append("\n").append("    endloop\n").append("  endfacet\n");
+			sb.append("facet normal ").append(this.getPlane().getNormal().toStlString()).append("\n")
+					.append("outer loop\n").append(firstVertexStl).append("\n");
+			this.getVertices().get(1).toStlString(sb).append("\n");
+			this.getVertices().get(2).toStlString(sb).append("\n").append("endloop\n").append("endfacet\n");
 
 		} else {
-			throw new RuntimeException("Polygon must be a triangle before STL can be made " + getVertices().size());
+			throw new RuntimeException(
+					"Polygon must be a triangle before STL can be made, vertices: " + getVertices().size());
 		}
 
 		return sb;
@@ -888,7 +888,6 @@ public final class Polygon implements Serializable {
 	}
 
 	public int size() {
-
 		return getVertices().size();
 	}
 

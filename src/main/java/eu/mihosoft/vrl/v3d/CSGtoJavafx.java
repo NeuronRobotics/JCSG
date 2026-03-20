@@ -10,6 +10,8 @@ public class CSGtoJavafx {
 	public static MeshContainer meshFromPolygon(Polygon... poly) {
 		return meshFromPolygon(Arrays.asList(poly));
 	}
+
+	// Uses fan triangulation, works for convex polygons only!
 	public static MeshContainer meshFromPolygon(List<Polygon> poly) {
 		TriangleMesh mesh = new TriangleMesh();
 
@@ -21,112 +23,50 @@ public class CSGtoJavafx {
 		double maxY = Double.NEGATIVE_INFINITY;
 		double maxZ = Double.NEGATIVE_INFINITY;
 
-		int counter = 0;
+		// One texture pair per mesh (not used currently)
+		mesh.getTexCoords().addAll(0, 0);
+
+		int vertexOffset = 0;
+
+		// Process a polygon, triangulate if needed
 		for (int j = 0; j < poly.size(); j++) {
+
 			Polygon p = poly.get(j);
 			if (p.getVertices().size() >= 3) {
 
-				// TODO: improve the triangulation?
-				//
-				// JavaOne requires triangular polygons.
-				// If our polygon has more vertices, create
-				// multiple triangles:
-				Vertex firstVertex = p.getVertices().get(0);
-				for (int i = 0; i < p.getVertices().size() - 2; i++) {
+				// Add all polygon vertices to the mesh, and get the bounds min and max
+				for (Vertex v : p.getVertices()) {
+					mesh.getPoints().addAll((float) v.pos.x, (float) v.pos.y, (float) v.pos.z);
 
-					if (firstVertex.pos.x < minX) {
-						minX = firstVertex.pos.x;
-					}
-					if (firstVertex.pos.y < minY) {
-						minY = firstVertex.pos.y;
-					}
-					if (firstVertex.pos.z < minZ) {
-						minZ = firstVertex.pos.z;
-					}
+					if (v.pos.x < minX)
+						minX = v.pos.x;
 
-					if (firstVertex.pos.x > maxX) {
-						maxX = firstVertex.pos.x;
-					}
-					if (firstVertex.pos.y > maxY) {
-						maxY = firstVertex.pos.y;
-					}
-					if (firstVertex.pos.z > maxZ) {
-						maxZ = firstVertex.pos.z;
-					}
+					if (v.pos.y < minY)
+						minY = v.pos.y;
 
-					mesh.getPoints().addAll((float) firstVertex.pos.x, (float) firstVertex.pos.y,
-							(float) firstVertex.pos.z);
+					if (v.pos.z < minZ)
+						minZ = v.pos.z;
 
-					mesh.getTexCoords().addAll(0); // texture (not covered)
-					mesh.getTexCoords().addAll(0);
+					if (v.pos.x > maxX)
+						maxX = v.pos.x;
 
-					Vertex secondVertex = p.getVertices().get(i + 1);
+					if (v.pos.y > maxY)
+						maxY = v.pos.y;
 
-					if (secondVertex.pos.x < minX) {
-						minX = secondVertex.pos.x;
-					}
-					if (secondVertex.pos.y < minY) {
-						minY = secondVertex.pos.y;
-					}
-					if (secondVertex.pos.z < minZ) {
-						minZ = secondVertex.pos.z;
-					}
-
-					if (secondVertex.pos.x > maxX) {
-						maxX = firstVertex.pos.x;
-					}
-					if (secondVertex.pos.y > maxY) {
-						maxY = firstVertex.pos.y;
-					}
-					if (secondVertex.pos.z > maxZ) {
-						maxZ = firstVertex.pos.z;
-					}
-
-					mesh.getPoints().addAll((float) secondVertex.pos.x, (float) secondVertex.pos.y,
-							(float) secondVertex.pos.z);
-
-					mesh.getTexCoords().addAll(0); // texture (not covered)
-					mesh.getTexCoords().addAll(0);
-
-					Vertex thirdVertex = p.getVertices().get(i + 2);
-
-					mesh.getPoints().addAll((float) thirdVertex.pos.x, (float) thirdVertex.pos.y,
-							(float) thirdVertex.pos.z);
-
-					if (thirdVertex.pos.x < minX) {
-						minX = thirdVertex.pos.x;
-					}
-					if (thirdVertex.pos.y < minY) {
-						minY = thirdVertex.pos.y;
-					}
-					if (thirdVertex.pos.z < minZ) {
-						minZ = thirdVertex.pos.z;
-					}
-
-					if (thirdVertex.pos.x > maxX) {
-						maxX = firstVertex.pos.x;
-					}
-					if (thirdVertex.pos.y > maxY) {
-						maxY = firstVertex.pos.y;
-					}
-					if (thirdVertex.pos.z > maxZ) {
-						maxZ = firstVertex.pos.z;
-					}
-
-					mesh.getTexCoords().addAll(0); // texture (not covered)
-					mesh.getTexCoords().addAll(0);
-
-					mesh.getFaces().addAll(counter, // first vertex
-							0, // texture (not covered)
-							counter + 1, // second vertex
-							0, // texture (not covered)
-							counter + 2, // third vertex
-							0 // texture (not covered)
-					);
-					counter += 3;
+					if (v.pos.z > maxZ)
+						maxZ = v.pos.z;
 				} // end for
+
+				// Add the vertex indexes (0, 1, 2) (0, 2, 3) (0, 3, 4) etc.
+				for (int i = 0; i < p.getVertices().size() - 2; i++) {
+					mesh.getFaces().addAll(vertexOffset + 0, 0, // always first vertex of polygon
+							vertexOffset + i + 1, 0, // second vertex
+							vertexOffset + i + 2, 0); // third vertex
+				}
+				vertexOffset += p.getVertices().size();
+
 			} // end if #verts >= 3
-		}
+		} // end for
 
 		return new MeshContainer(new Vector3d(minX, minY, minZ), new Vector3d(maxX, maxY, maxZ), mesh);
 	}
