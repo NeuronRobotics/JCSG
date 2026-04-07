@@ -4,7 +4,6 @@ import eu.mihosoft.vrl.v3d.CSG;
 import eu.mihosoft.vrl.v3d.Polygon;
 import eu.mihosoft.vrl.v3d.Vector3d;
 import eu.mihosoft.vrl.v3d.Vertex;
-import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
 
 import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
@@ -12,12 +11,15 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.cadoodlecad.manifold.ManifoldBindings;
-import 	com.cadoodlecad.manifold.ManifoldBindings.MeshData64;
+import com.cadoodlecad.manifold.ManifoldBindings.MeshData64;
 
 /**
- * Imports a manifold3d mesh (via its native bridge API) into a JCSG {@link CSG} object.
+ * Imports a manifold3d mesh (via its native bridge API) into a JCSG {@link CSG}
+ * object.
  *
- * <p>Usage:
+ * <p>
+ * Usage:
+ *
  * <pre>{@code
  * Manifold3dBridge bridge = ...; // your wrapper holding the MethodHandle map
  * MemorySegment manifoldSeg = bridge.importMeshGL64(vertices, triangles, nVerts, nTris);
@@ -25,13 +27,12 @@ import 	com.cadoodlecad.manifold.ManifoldBindings.MeshData64;
  * CSG csg = new Manifold3dImporter(bridge).fromManifold(manifoldSeg);
  * }</pre>
  *
- * <p>The bridge instance must expose {@code exportMeshGL64(MemorySegment)} returning a
- * {@code MeshData64} record with fields {@code double[] vertices}, {@code long[] triangles},
- * {@code int vertCount}, and {@code int triCount}.
+ * <p>
+ * The bridge instance must expose {@code exportMeshGL64(MemorySegment)}
+ * returning a {@code MeshData64} record with fields {@code double[] vertices},
+ * {@code long[] triangles}, {@code int vertCount}, and {@code int triCount}.
  */
 public class Manifold3dImporter {
-
-
 
 	private ManifoldBindings bridge;
 
@@ -44,15 +45,20 @@ public class Manifold3dImporter {
 	/**
 	 * Converts a native manifold {@link MemorySegment} to a JCSG {@link CSG}.
 	 *
-	 * <p>The manifold is exported as a triangle soup via the bridge's {@code exportMeshGL64}
-	 * method. Each triangle becomes one JCSG {@link Polygon} (three {@link Vertex} objects
-	 * with positions taken from the flat vertex array).  Per-vertex normals are computed
-	 * as the face normal so that JCSG downstream tools (BSP, boolean ops) have valid planes.
+	 * <p>
+	 * The manifold is exported as a triangle soup via the bridge's
+	 * {@code exportMeshGL64} method. Each triangle becomes one JCSG {@link Polygon}
+	 * (three {@link Vertex} objects with positions taken from the flat vertex
+	 * array). Per-vertex normals are computed as the face normal so that JCSG
+	 * downstream tools (BSP, boolean ops) have valid planes.
 	 *
-	 * @param manifold native manifold segment returned by the bridge import call
+	 * @param manifold
+	 *            native manifold segment returned by the bridge import call
 	 * @return a new {@link CSG} representing the same geometry
-	 * @throws Throwable if the native export call fails
-	 * @throws IllegalArgumentException if {@code manifold} is null
+	 * @throws Throwable
+	 *             if the native export call fails
+	 * @throws IllegalArgumentException
+	 *             if {@code manifold} is null
 	 */
 	public CSG fromManifold(MemorySegment manifold) throws Throwable {
 		if (manifold == null)

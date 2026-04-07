@@ -13,9 +13,12 @@ import eu.mihosoft.vrl.v3d.Polygon;
 import eu.mihosoft.vrl.v3d.Vertex;
 
 /**
- * Exports a JCSG {@link CSG} object into a native manifold3d manifold via the bridge API.
+ * Exports a JCSG {@link CSG} object into a native manifold3d manifold via the
+ * bridge API.
  *
- * <p>Usage:
+ * <p>
+ * Usage:
+ *
  * <pre>{@code
  * Manifold3dBridge bridge = ...; // your wrapper holding the MethodHandle map
  * CSG csg = ...;
@@ -24,11 +27,13 @@ import eu.mihosoft.vrl.v3d.Vertex;
  * // use manifoldSeg with bridge boolean operations, then clean up via bridge.delete(...)
  * }</pre>
  *
- * <p>JCSG polygons may have more than three vertices (the BSP representation preserves
- * quads and n-gons). This exporter triangulates each polygon using a simple fan from the
- * first vertex (safe for convex polygons, which is guaranteed by the JCSG BSP). The
- * resulting triangle soup is de-duplicated into an indexed mesh before being handed to
- * the bridge so that manifold3d's merge step has shared vertices to work with.
+ * <p>
+ * JCSG polygons may have more than three vertices (the BSP representation
+ * preserves quads and n-gons). This exporter triangulates each polygon using a
+ * simple fan from the first vertex (safe for convex polygons, which is
+ * guaranteed by the JCSG BSP). The resulting triangle soup is de-duplicated
+ * into an indexed mesh before being handed to the bridge so that manifold3d's
+ * merge step has shared vertices to work with.
  */
 public class Manifold3dExporter {
 
@@ -43,13 +48,17 @@ public class Manifold3dExporter {
 	/**
 	 * Converts a JCSG {@link CSG} into a native manifold {@link MemorySegment}.
 	 *
-	 * <p>The caller is responsible for eventually freeing the returned segment via the
+	 * <p>
+	 * The caller is responsible for eventually freeing the returned segment via the
 	 * bridge's delete method (e.g. {@code manifold_delete_manifold}).
 	 *
-	 * @param csg the solid to export; must not be null
+	 * @param csg
+	 *            the solid to export; must not be null
 	 * @return a native manifold segment ready for boolean operations
-	 * @throws Throwable if the native import call fails
-	 * @throws IllegalArgumentException if {@code csg} is null or has no polygons
+	 * @throws Throwable
+	 *             if the native import call fails
+	 * @throws IllegalArgumentException
+	 *             if {@code csg} is null or has no polygons
 	 */
 	public MemorySegment toManifold(CSG csg) throws Throwable {
 		if (csg == null)
@@ -60,7 +69,8 @@ public class Manifold3dExporter {
 			throw new IllegalArgumentException("CSG has no polygons");
 
 		// Build an indexed triangle mesh.
-		// Use a tolerance-free exact key so we don't merge numerically-close-but-distinct verts.
+		// Use a tolerance-free exact key so we don't merge
+		// numerically-close-but-distinct verts.
 		Map<String, Integer> vertexIndex = new HashMap<>();
 		List<double[]> vertexList = new ArrayList<>();
 		List<Long> triList = new ArrayList<>();
@@ -114,9 +124,10 @@ public class Manifold3dExporter {
 	// helpers
 
 	/**
-	 * Returns the index of {@code v} in {@code vertexList}, inserting it if not already present.
-	 * The key is an exact string representation of (x, y, z) using {@link Double#toHexString}
-	 * so that only bit-identical positions are merged, matching the BSP's behaviour.
+	 * Returns the index of {@code v} in {@code vertexList}, inserting it if not
+	 * already present. The key is an exact string representation of (x, y, z) using
+	 * {@link Double#toHexString} so that only bit-identical positions are merged,
+	 * matching the BSP's behaviour.
 	 */
 	private static int intern(Vertex v, Map<String, Integer> index, List<double[]> list) {
 		String key = Double.toHexString(v.pos.x) + "," + Double.toHexString(v.pos.y) + ","
@@ -124,7 +135,7 @@ public class Manifold3dExporter {
 
 		return index.computeIfAbsent(key, k -> {
 			int idx = list.size();
-			list.add(new double[] { v.pos.x, v.pos.y, v.pos.z });
+			list.add(new double[]{v.pos.x, v.pos.y, v.pos.z});
 			return idx;
 		});
 	}

@@ -63,7 +63,6 @@ import java.util.stream.Collectors;
 import com.aparapi.Kernel;
 import com.aparapi.Range;
 import com.aparapi.internal.kernel.KernelRunner;
-import com.cadoodlecad.manifold.ManifoldBindings;
 import com.neuronrobotics.interaction.CadInteractionEvent;
 import com.neuronrobotics.manifold3d.CSGManifold3d;
 
@@ -2821,8 +2820,8 @@ public class CSG implements IuserAPI, Serializable {
 				e.printStackTrace();
 				optType = defaultOptType;
 			}
-		}else {
-			Slice.setSliceEngine(null );
+		} else {
+			Slice.setSliceEngine(null);
 			Slice.getSliceEngine();// set the default when the engine is null
 		}
 		defaultOptType = optType;
