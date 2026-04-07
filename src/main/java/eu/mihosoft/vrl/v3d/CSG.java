@@ -2821,6 +2821,9 @@ public class CSG implements IuserAPI, Serializable {
 				e.printStackTrace();
 				optType = defaultOptType;
 			}
+		}else {
+			Slice.setSliceEngine(null );
+			Slice.getSliceEngine();// set the default when the engine is null
 		}
 		defaultOptType = optType;
 	}

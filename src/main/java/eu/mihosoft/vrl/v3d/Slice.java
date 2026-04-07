@@ -419,7 +419,7 @@ public class Slice {
 		}
 	};
 
-	private static ISlice sliceEngine = new DefaultSliceImp();
+	private static ISlice sliceEngine ;
 
 	/**
 	 * Returns true if this polygon lies entirely in the z plane
@@ -498,6 +498,8 @@ public class Slice {
 		return slice(incoming, new Transform(), normalInsetDistance);
 	}
 	public static ISlice getSliceEngine() {
+		if(sliceEngine==null)
+			sliceEngine= new DefaultSliceImp();
 		return sliceEngine;
 	}
 
