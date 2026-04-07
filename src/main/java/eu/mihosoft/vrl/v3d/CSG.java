@@ -65,6 +65,7 @@ import com.aparapi.Range;
 import com.aparapi.internal.kernel.KernelRunner;
 import com.cadoodlecad.manifold.ManifoldBindings;
 import com.neuronrobotics.interaction.CadInteractionEvent;
+import com.neuronrobotics.manifold3d.CSGManifold3d;
 
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
@@ -194,7 +195,7 @@ public class CSG implements IuserAPI, Serializable {
 
 	private int pointsAdded;
 	private String uniqueId = UUID.randomUUID().toString();
-	private static ManifoldBindings manifold = null;
+	private static CSGManifold3d manifold = null;
 
 	/**
 	 * Instantiates a new csg.
@@ -2805,7 +2806,7 @@ public class CSG implements IuserAPI, Serializable {
 	public static void setDefaultOptType(OptType optType) {
 		if (optType == OptType.Manifold3d) {
 			try {
-				manifold = new ManifoldBindings();
+				manifold = new CSGManifold3d();
 				Slice.setSliceEngine(new ISlice() {
 
 					@Override
