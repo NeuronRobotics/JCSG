@@ -8,6 +8,7 @@ import com.cadoodlecad.manifold.ManifoldBindings;
 
 import eu.mihosoft.vrl.v3d.CSG;
 import eu.mihosoft.vrl.v3d.Polygon;
+import eu.mihosoft.vrl.v3d.Transform;
 import eu.mihosoft.vrl.v3d.Vector3d;
 import eu.mihosoft.vrl.v3d.Vertex;
 
@@ -83,7 +84,8 @@ public class CSGManifold3d {
 	 * @throws RuntimeException
 	 *             wrapping any native call failure
 	 */
-	public ArrayList<Polygon> sliceAtZero(CSG csg) {
+	public ArrayList<Polygon> sliceAtZero(CSG incoming, Transform slicePlane) {
+		CSG csg = incoming.transformed(slicePlane.inverse());
 		try {
 			MemorySegment csgm = toManifold(csg);
 			List<double[][]> contours = manifold.slice(csgm, 0.0);
