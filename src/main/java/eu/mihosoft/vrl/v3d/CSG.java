@@ -894,7 +894,12 @@ public class CSG implements IuserAPI, Serializable {
 			case POLYGON_BOUND :
 				return _unionPolygonBoundsOpt(csg).historySync(this).historySync(csg);
 			case Manifold3d :
-				new RuntimeException("Not implemented yet").printStackTrace();
+			try {
+				return manifold.union(this, csg);
+			} catch (Throwable e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			default :
 				// return _unionIntersectOpt(csg);
 				return _unionNoOpt(csg).historySync(this).historySync(csg);
@@ -1420,7 +1425,12 @@ public class CSG implements IuserAPI, Serializable {
 					case POLYGON_BOUND :
 						return _differencePolygonBoundsOpt(csg).historySync(this).historySync(csg);
 					case Manifold3d :
-						new RuntimeException("Not implemented yet").printStackTrace();
+					try {
+						return manifold.difference(this, csg);
+					} catch (Throwable e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 					default :
 						return _differenceNoOpt(csg).historySync(this).historySync(csg);
 
@@ -1594,7 +1604,12 @@ public class CSG implements IuserAPI, Serializable {
 			return CSG.fromPolygons(new ArrayList<Polygon>()).historySync(this).historySync(csg);
 		}
 		if (defaultOptType == OptType.Manifold3d) {
-			new RuntimeException("Manifold3d not implemented here").printStackTrace();
+			try {
+				return manifold.intersection(this, csg);
+			} catch (Throwable e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 
 		Node a;
@@ -2807,16 +2822,13 @@ public class CSG implements IuserAPI, Serializable {
 			try {
 				manifold = new CSGManifold3d();
 				Slice.setSliceEngine(new ISlice() {
-
 					@Override
 					public List<Polygon> slice(CSG incoming, Transform slicePlane, double normalInsetDistance)
 							throws ColinearPointsException {
-						new RuntimeException("Manifold3d not implemented yet").printStackTrace();
-						return new ArrayList<Polygon>();
+						return manifold.sliceAtZero(incoming, slicePlane);
 					}
 				});
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 				optType = defaultOptType;
 			}
