@@ -895,7 +895,7 @@ public class CSG implements IuserAPI, Serializable {
 				return _unionPolygonBoundsOpt(csg).historySync(this).historySync(csg);
 			case Manifold3d :
 			try {
-				return manifold.union(this, csg);
+				return getManifold().union(this, csg);
 			} catch (Throwable e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -1426,7 +1426,7 @@ public class CSG implements IuserAPI, Serializable {
 						return _differencePolygonBoundsOpt(csg).historySync(this).historySync(csg);
 					case Manifold3d :
 					try {
-						return manifold.difference(this, csg);
+						return getManifold().difference(this, csg);
 					} catch (Throwable e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -1605,7 +1605,7 @@ public class CSG implements IuserAPI, Serializable {
 		}
 		if (defaultOptType == OptType.Manifold3d) {
 			try {
-				return manifold.intersection(this, csg);
+				return getManifold().intersection(this, csg);
 			} catch (Throwable e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -2825,7 +2825,7 @@ public class CSG implements IuserAPI, Serializable {
 					@Override
 					public List<Polygon> slice(CSG incoming, Transform slicePlane, double normalInsetDistance)
 							throws ColinearPointsException {
-						return manifold.sliceAtZero(incoming, slicePlane);
+						return getManifold().sliceAtZero(incoming, slicePlane);
 					}
 				});
 			} catch (Exception e) {
@@ -4356,6 +4356,10 @@ public class CSG implements IuserAPI, Serializable {
 	public static OptType getDefaultOptionType() {
 		// TODO Auto-generated method stub
 		return defaultOptType;
+	}
+
+	public static CSGManifold3d getManifold() {
+		return manifold;
 	}
 
 }

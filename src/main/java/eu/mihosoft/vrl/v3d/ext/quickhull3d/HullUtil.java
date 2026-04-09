@@ -73,7 +73,12 @@ public class HullUtil {
 			}
 		}
 		if (CSG.getDefaultOptionType() == OptType.Manifold3d) {
-			new RuntimeException("Not implemented yet").printStackTrace();
+			try {
+				return CSG.getManifold().hull(points);
+			} catch (Throwable e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		Point3d[] hullPoints = points.stream().map((vec) -> new Point3d(vec.x, vec.y, vec.z)).toArray(Point3d[]::new);
 

@@ -2,26 +2,32 @@ package com.neuronrobotics.manifold3d;
 
 import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.cadoodlecad.manifold.ManifoldBindings;
+import com.cadoodlecad.manifold.ManifoldBindings.MeshData64;
 
 import eu.mihosoft.vrl.v3d.CSG;
 import eu.mihosoft.vrl.v3d.Polygon;
 import eu.mihosoft.vrl.v3d.Transform;
 import eu.mihosoft.vrl.v3d.Vector3d;
 import eu.mihosoft.vrl.v3d.Vertex;
+import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
 
 public class CSGManifold3d {
 	private final ManifoldBindings manifold;
-	private final Manifold3dExporter exporter;
-	private final Manifold3dImporter importer;
+	//	private final Manifold3dExporter exporter;
+	//	private final Manifold3dImporter importer;
 
 	public CSGManifold3d() throws Exception {
 		this.manifold = new ManifoldBindings();
-		exporter = new Manifold3dExporter(manifold);
-		importer = new Manifold3dImporter(manifold);
+		//		exporter = new Manifold3dExporter(manifold);
+		//		importer = new Manifold3dImporter(manifold);
 	}
+
 
 	/**
 	 * Converts a JCSG {@link CSG} into a native manifold {@link MemorySegment}.
@@ -38,9 +44,71 @@ public class CSGManifold3d {
 	 * @throws IllegalArgumentException
 	 *             if {@code csg} is null or has no polygons
 	 */
-	private MemorySegment toManifold(CSG csg) throws Throwable {
-		return exporter.toManifold(csg);
+	public MemorySegment toManifold(CSG csg) throws Throwable {
+		if (csg == null)
+			throw new IllegalArgumentException("csg must not be null");
+
+		List<Polygon> polygons = csg.getPolygons();
+		if (polygons == null || polygons.isEmpty())
+			throw new IllegalArgumentException("CSG has no polygons");
+
+		// Build an indexed triangle mesh.
+		// Use a tolerance-free exact key so we don't merge
+		// numerically-close-but-distinct verts.
+		Map<String, Integer> vertexIndex = new HashMap<>();
+		List<double[]> vertexList = new ArrayList<>();
+		List<Long> triList = new ArrayList<>();
+
+		for (Polygon incoming : polygons) {
+			for (Polygon poly : PolygonUtil.triangulatePolygon(incoming)) {
+				List<Vertex> pverts = poly.getVertices();
+				if (pverts == null || pverts.size() < 3)
+					continue;
+
+				// Fan triangulation: (0,1,2), (0,2,3), (0,3,4), ...
+				int i0 = intern(pverts.get(0), vertexIndex, vertexList);
+				for (int i = 1; i < pverts.size() - 1; i++) {
+					int i1 = intern(pverts.get(i), vertexIndex, vertexList);
+					int i2 = intern(pverts.get(i + 1), vertexIndex, vertexList);
+
+					// Skip degenerate triangles (two or more identical indices).
+					if (i0 == i1 || i1 == i2 || i0 == i2)
+						continue;
+
+					triList.add((long) i0);
+					triList.add((long) i1);
+					triList.add((long) i2);
+				}
+			}
+		}
+
+		if (triList.isEmpty())
+			throw new IllegalArgumentException("CSG produced no valid triangles after triangulation");
+
+		long nVerts = vertexList.size();
+		long nTris = triList.size() / 3;
+
+		// Flatten vertex list into a primitive array.
+		double[] vertices = new double[(int) (nVerts * 3)];
+		for (int i = 0; i < nVerts; i++) {
+			double[] v = vertexList.get(i);
+			vertices[i * 3] = v[0];
+			vertices[i * 3 + 1] = v[1];
+			vertices[i * 3 + 2] = v[2];
+		}
+
+		// Flatten triangle index list.
+		long[] triangles = new long[triList.size()];
+		for (int i = 0; i < triList.size(); i++) {
+			triangles[i] = triList.get(i);
+		}
+
+		return manifold.importMeshGL64(vertices, triangles, nVerts, nTris);
 	}
+
+	// -------------------------------------------------------------------------
+	// helpers
+
 
 	/**
 	 * Converts a native manifold {@link MemorySegment} to a JCSG {@link CSG}.
@@ -52,7 +120,7 @@ public class CSGManifold3d {
 	 * array). Per-vertex normals are computed as the face normal so that JCSG
 	 * downstream tools (BSP, boolean ops) have valid planes.
 	 *
-	 * @param manifold
+	 * @param ms
 	 *            native manifold segment returned by the bridge import call
 	 * @return a new {@link CSG} representing the same geometry
 	 * @throws Throwable
@@ -60,8 +128,58 @@ public class CSGManifold3d {
 	 * @throws IllegalArgumentException
 	 *             if {@code manifold} is null
 	 */
-	private CSG fromManifold(MemorySegment manifold) throws Throwable {
-		return importer.fromManifold(manifold);
+	public CSG fromManifold(MemorySegment ms) throws Throwable {
+		if (ms == null)
+			throw new IllegalArgumentException("manifold segment must not be null");
+
+		MeshData64 mesh = this.manifold.exportMeshGL64(ms);
+
+		double[] verts = mesh.vertices(); // flat [x0,y0,z0, x1,y1,z1, ...]
+		long[] tris = mesh.triangles(); // flat [i0,i1,i2, i3,i4,i5, ...]
+		int triCount = mesh.triCount();
+
+		if (triCount == 0)
+			return new CSG();
+
+		ArrayList<Polygon> polygons = new ArrayList<>(triCount);
+
+		for (int t = 0; t < triCount; t++) {
+			int base = t * 3;
+
+			Vector3d p0 = vertexAt(verts, (int) tris[base]);
+			Vector3d p1 = vertexAt(verts, (int) tris[base + 1]);
+			Vector3d p2 = vertexAt(verts, (int) tris[base + 2]);
+
+			List<Vertex> vertices = Arrays.asList(new Vertex(p0), new Vertex(p1), new Vertex(p2));
+
+			polygons.add(new Polygon(vertices));
+		}
+
+		return CSG.fromPolygons(polygons);
+	}
+
+	// -------------------------------------------------------------------------
+	// helpers
+	/**
+	 * Returns the index of {@code v} in {@code vertexList}, inserting it if not
+	 * already present. The key is an exact string representation of (x, y, z) using
+	 * {@link Double#toHexString} so that only bit-identical positions are merged,
+	 * matching the BSP's behavior.
+	 */
+	private static int intern(Vertex v, Map<String, Integer> index, List<double[]> list) {
+		String key = Double.toHexString(v.pos.x) + "," + Double.toHexString(v.pos.y) + ","
+				+ Double.toHexString(v.pos.z);
+
+		return index.computeIfAbsent(key, k -> {
+			int idx = list.size();
+			list.add(new double[] { v.pos.x, v.pos.y, v.pos.z });
+			return idx;
+		});
+	}
+
+	private static Vector3d vertexAt(double[] verts, int index) {
+		int base = index * 3;
+		return new Vector3d(verts[base], verts[base + 1], verts[base + 2]);
 	}
 
 	/**
@@ -131,8 +249,8 @@ public class CSGManifold3d {
 			MemorySegment result = manifold.union(ma, mb);
 			return fromManifold(result);
 		} finally {
-			manifold.deleteMeshGL64(ma);
-			manifold.deleteMeshGL64(mb);
+			manifold.delete(ma);
+			manifold.delete(mb);
 		}
 	}
 
@@ -147,8 +265,8 @@ public class CSGManifold3d {
 			MemorySegment result = manifold.difference(ma, mb);
 			return fromManifold(result);
 		} finally {
-			manifold.deleteMeshGL64(ma);
-			manifold.deleteMeshGL64(mb);
+			manifold.delete(ma);
+			manifold.delete(mb);
 		}
 	}
 
@@ -163,8 +281,8 @@ public class CSGManifold3d {
 			MemorySegment result = manifold.intersection(ma, mb);
 			return fromManifold(result);
 		} finally {
-			manifold.deleteMeshGL64(ma);
-			manifold.deleteMeshGL64(mb);
+			manifold.delete(ma);
+			manifold.delete(mb);
 		}
 	}
 
@@ -185,7 +303,7 @@ public class CSGManifold3d {
 			MemorySegment result = manifold.hull(ma);
 			return fromManifold(result);
 		} finally {
-			manifold.deleteMeshGL64(ma);
+			manifold.delete(ma);
 		}
 	}
 
@@ -207,144 +325,21 @@ public class CSGManifold3d {
 		}
 	}
 
-	// -------------------------------------------------------------------------
-	// Slice at a plane → List<Polygon>
-	// -------------------------------------------------------------------------
+	public CSG hull(List<Vector3d> points) throws Throwable {
+		ArrayList<double[]> pts = new ArrayList<double[]>();
+		for (int i = 0; i < points.size(); i++) {
+			Vector3d v = points.get(i);
+			double[] p = new double[] { v.x, v.y, v.z };
+			pts.add(p);
+		}
+		MemorySegment mem = null;
+		try {
+			mem = manifold.hullPoints(pts);
+			return fromManifold(mem);
+		} finally {
+			manifold.delete(mem);
+		}
+	}
 
-	// /**
-	// * Slices a CSG solid at a horizontal plane (Z = height) and returns the
-	// * resulting cross-section contours as JCSG {@link Polygon}s.
-	// * <p>
-	// * Manifold's {@code manifold_slice(mem, m, height)} always cuts perpendicular
-	// * to the Z axis and returns a {@code ManifoldPolygons*}. Each contour ring
-	// * is reconstructed here as a JCSG {@link Polygon} lying in the XY plane at
-	// * {@code z = height}.
-	// * <p>
-	// * To cut along an arbitrary plane, rotate the solid so that the desired
-	// * normal aligns with +Z, call this method, then reverse-rotate the polygons.
-	// *
-	// * @param csg the solid to slice
-	// * @param height Z coordinate of the cutting plane
-	// * @return cross-section polygons (may be empty for solids that don't reach
-	// * that height)
-	// * @throws Throwable if the native call fails
-	// */
-	// public List<Polygon> sliceAtZ(CSG csg, double height) throws Throwable {
-	// MemorySegment m = toManifold(csg);
-	// try {
-	// // manifold.slice(MemorySegment m, double height) →
-	// // ManifoldPolygons* manifold_slice(void* mem, ManifoldManifold* m, double
-	// height)
-	// MemorySegment polygonsSeg = manifold.slice(m, height);
-	// try {
-	// return importer.fromManifoldPolygons(polygonsSeg, height);
-	// } finally {
-	// manifold.deletePolygons(polygonsSeg);
-	// }
-	// } finally {
-	// manifold.deleteMeshGL64(m);
-	// }
-	// }
-
-	// -------------------------------------------------------------------------
-	// STL import / export
-	// -------------------------------------------------------------------------
-
-	// /**
-	// * Exports a CSG solid to an STL file via Manifold's mesh pipeline.
-	// * <p>
-	// * The geometry is round-tripped through Manifold's MeshGL64 representation
-	// * and written by the {@link Manifold3dSTLExporter} helper.
-	// * <p>
-	// * <b>Note:</b> STL is lossy – it has no topology encoding. Prefer 3MF for
-	// * any round-trip use-case.
-	// *
-	// * @param csg the solid to export
-	// * @param file destination STL file (created or overwritten)
-	// * @throws Throwable if export or file-write fails
-	// */
-	// public void exportSTL(CSG csg, File file) throws Throwable {
-	// MemorySegment m = toManifold(csg);
-	// try {
-	// ManifoldBindings.MeshData64 mesh = manifold.exportMeshGL64(m);
-	// Manifold3dSTLExporter.write(mesh, file);
-	// } finally {
-	// manifold.deleteMeshGL64(m);
-	// }
-	// }
-	//
-	// /**
-	// * Imports an STL file and returns its geometry as a CSG solid.
-	// * <p>
-	// * The file is parsed by {@link Manifold3dSTLImporter} into raw
-	// vertex/triangle
-	// * arrays that are fed into {@code manifold.importMeshGL64(...)}, which merges
-	// * duplicate vertices and validates manifoldness before handing back a native
-	// * manifold segment that is then converted to CSG.
-	// *
-	// * @param file the STL file to read
-	// * @return a new {@link CSG} representing the imported geometry
-	// * @throws Throwable if parsing or the native import fails
-	// * @throws IllegalArgumentException if the file does not exist
-	// */
-	// public CSG importSTL(File file) throws Throwable {
-	// if (!file.exists())
-	// throw new IllegalArgumentException("STL file not found: " +
-	// file.getAbsolutePath());
-	// Manifold3dSTLImporter.RawMesh raw = Manifold3dSTLImporter.read(file);
-	// MemorySegment m = manifold.importMeshGL64(raw.vertices(), raw.triangles(),
-	// raw.vertCount(), raw.triCount());
-	// try {
-	// return fromManifold(m);
-	// } finally {
-	// manifold.deleteMeshGL64(m);
-	// }
-	// }
-	//
-	// // -------------------------------------------------------------------------
-	// // 3MF import / export
-	// // -------------------------------------------------------------------------
-	//
-	// /**
-	// * Exports a CSG solid to a 3MF file.
-	// * <p>
-	// * 3MF preserves topology and is lossless – recommended over STL for any
-	// * workflow that re-imports the file.
-	// *
-	// * @param csg the solid to export
-	// * @param file destination 3MF file (created or overwritten)
-	// * @throws Throwable if export or file-write fails
-	// */
-	// public void export3MF(CSG csg, File file) throws Throwable {
-	// MemorySegment m = toManifold(csg);
-	// try {
-	// ManifoldBindings.MeshData64 mesh = manifold.exportMeshGL64(m);
-	// Manifold3d3MFExporter.write(mesh, file);
-	// } finally {
-	// manifold.deleteMeshGL64(m);
-	// }
-	// }
-	//
-	// /**
-	// * Imports a 3MF file and returns the first body as a CSG solid.
-	// *
-	// * @param file the 3MF file to read
-	// * @return a new {@link CSG} representing the imported geometry
-	// * @throws Throwable if parsing or the native import fails
-	// * @throws IllegalArgumentException if the file does not exist
-	// */
-	// public CSG import3MF(File file) throws Throwable {
-	// if (!file.exists())
-	// throw new IllegalArgumentException("3MF file not found: " +
-	// file.getAbsolutePath());
-	// Manifold3dSTLImporter.RawMesh raw = Manifold3d3MFImporter.read(file);
-	// MemorySegment m = manifold.importMeshGL64(raw.vertices(), raw.triangles(),
-	// raw.vertCount(), raw.triCount());
-	// try {
-	// return fromManifold(m);
-	// } finally {
-	// manifold.deleteMeshGL64(m);
-	// }
-	// }
 
 }
