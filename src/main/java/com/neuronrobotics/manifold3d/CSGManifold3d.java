@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.cadoodlecad.manifold.ManifoldBindings;
+import com.cadoodlecad.manifold.ManifoldBindings.ManifoldError;
 import com.cadoodlecad.manifold.ManifoldBindings.MeshData64;
 
 import eu.mihosoft.vrl.v3d.CSG;
@@ -103,7 +104,9 @@ public class CSGManifold3d {
 			triangles[i] = triList.get(i);
 		}
 
-		return manifold.importMeshGL64(vertices, triangles, nVerts, nTris);
+		MemorySegment ms = manifold.importMeshGL64(vertices, triangles, nVerts, nTris);
+		checkResult(ms);
+		return ms;
 	}
 
 	// -------------------------------------------------------------------------
@@ -131,7 +134,6 @@ public class CSGManifold3d {
 	public CSG fromManifold(MemorySegment ms) throws Throwable {
 		if (ms == null)
 			throw new IllegalArgumentException("manifold segment must not be null");
-
 		MeshData64 mesh = this.manifold.exportMeshGL64(ms);
 
 		double[] verts = mesh.vertices(); // flat [x0,y0,z0, x1,y1,z1, ...]
@@ -199,13 +201,16 @@ public class CSGManifold3d {
 	 *            the solid to slice
 	 * @return closed polygon contours of the cross-section at Z=0, never
 	 *         {@code null}, may be empty if the plane misses the solid
+	 * @throws Throwable 
 	 * @throws RuntimeException
 	 *             wrapping any native call failure
 	 */
-	public ArrayList<Polygon> sliceAtZero(CSG incoming, Transform slicePlane) {
+	public ArrayList<Polygon> sliceAtZero(CSG incoming, Transform slicePlane) throws Throwable {
 		CSG csg = incoming.transformed(slicePlane.inverse());
+		MemorySegment csgm = null;
 		try {
-			MemorySegment csgm = toManifold(csg);
+			csgm = toManifold(csg);
+			checkResult(csgm);
 			List<double[][]> contours = manifold.slice(csgm, 0.0);
 
 			ArrayList<Polygon> result = new ArrayList<>(contours.size());
@@ -227,9 +232,9 @@ public class CSGManifold3d {
 
 			return result;
 
-		} catch (RuntimeException e) {
-			throw e;
 		} catch (Throwable e) {
+			if(csgm!=null)
+				manifold.delete(csgm);
 			throw new RuntimeException("Failed to slice CSG at Z=0", e);
 		}
 	}
@@ -247,6 +252,7 @@ public class CSGManifold3d {
 		MemorySegment mb = toManifold(b);
 		try {
 			MemorySegment result = manifold.union(ma, mb);
+			checkResult(result);
 			return fromManifold(result);
 		} finally {
 			manifold.delete(ma);
@@ -263,6 +269,7 @@ public class CSGManifold3d {
 		MemorySegment mb = toManifold(b);
 		try {
 			MemorySegment result = manifold.difference(ma, mb);
+			checkResult(result);
 			return fromManifold(result);
 		} finally {
 			manifold.delete(ma);
@@ -279,6 +286,7 @@ public class CSGManifold3d {
 		MemorySegment mb = toManifold(b);
 		try {
 			MemorySegment result = manifold.intersection(ma, mb);
+			checkResult(result);
 			return fromManifold(result);
 		} finally {
 			manifold.delete(ma);
@@ -299,8 +307,10 @@ public class CSGManifold3d {
 	 */
 	public CSG hull(CSG a) throws Throwable {
 		MemorySegment ma = toManifold(a);
+		checkResult(ma);
 		try {
 			MemorySegment result = manifold.hull(ma);
+			checkResult(result);
 			return fromManifold(result);
 		} finally {
 			manifold.delete(ma);
@@ -314,16 +324,29 @@ public class CSGManifold3d {
 	 */
 	public CSG hull(CSG... solids) throws Throwable {
 		MemorySegment[] segs = new MemorySegment[solids.length];
-		for (int i = 0; i < solids.length; i++)
+		for (int i = 0; i < solids.length; i++) {
 			segs[i] = toManifold(solids[i]);
+		}
 		try {
 			MemorySegment result = manifold.batchHull(segs);
+			checkResult(result);
 			return fromManifold(result);
 		} finally {
 			for (MemorySegment seg : segs)
-				manifold.deleteMeshGL64(seg);
+				manifold.delete(seg);
 		}
 	}
+
+	private void checkResult(MemorySegment... memorySegments) throws Throwable {
+		for (int i = 0; i < memorySegments.length; i++) {
+			MemorySegment ms = memorySegments[i];
+			ManifoldError result = manifold.status(ms);
+			//System.out.println("Status of Manifold Op is "+result);
+			if (result != ManifoldError.NO_ERROR)
+				throw new NonManifoldShapeError("Error was " + result);
+		}
+	}
+
 
 	public CSG hull(List<Vector3d> points) throws Throwable {
 		ArrayList<double[]> pts = new ArrayList<double[]>();
@@ -334,7 +357,9 @@ public class CSGManifold3d {
 		}
 		MemorySegment mem = null;
 		try {
-			mem = manifold.hullPoints(pts);
+			mem = manifold.hull(pts);
+			checkResult(mem);
+
 			return fromManifold(mem);
 		} finally {
 			manifold.delete(mem);
