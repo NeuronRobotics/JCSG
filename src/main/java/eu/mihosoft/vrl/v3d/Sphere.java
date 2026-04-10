@@ -86,6 +86,7 @@ public class Sphere extends Primitive {
 		init();
 		this.radius = radius;
 	}
+
 	// public Cube(LengthParameter w, LengthParameter h, LengthParameter d) {
 	// this(Vector3d.ZERO, new Vector3d(w.getMM(), h.getMM(), d.getMM()));
 	//
@@ -176,31 +177,33 @@ public class Sphere extends Primitive {
 		if (radius <= 0)
 			throw new NumberFormatException("radius can not be negative");
 		List<Polygon> polygons = new ArrayList<>();
+		for (int i = 0; i < numSlices; i++) {
+			for (int j = 0; j < numStacks; j++) {
 
-		for (int i = 0; i < getNumSlices(); i++) {
-			for (int j = 0; j < getNumStacks(); j++) {
-				final List<Vertex> vertices = new ArrayList<>();
+				Vertex v0 = sphereVertex(center, radius, i / (double) numSlices, j / (double) numStacks);
+				Vertex v1 = sphereVertex(center, radius, (i + 1) / (double) numSlices, j / (double) numStacks);
+				Vertex v2 = sphereVertex(center, radius, (i + 1) / (double) numSlices, (j + 1) / (double) numStacks);
+				Vertex v3 = sphereVertex(center, radius, i / (double) numSlices, (j + 1) / (double) numStacks);
 
-				vertices.add(sphereVertex(center, radius, i / (double) getNumSlices(), j / (double) getNumStacks()));
-				if (j > 0) {
-					vertices.add(sphereVertex(center, radius, (i + 1) / (double) getNumSlices(),
-							j / (double) getNumStacks()));
-				}
-				if (j < getNumStacks() - 1) {
-					vertices.add(sphereVertex(center, radius, (i + 1) / (double) getNumSlices(),
-							(j + 1) / (double) getNumStacks()));
-				}
-				vertices.add(
-						sphereVertex(center, radius, i / (double) getNumSlices(), (j + 1) / (double) getNumStacks()));
-				try {
-					polygons.add(new Polygon(vertices, getProperties()));
-				} catch (ColinearPointsException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				if (j == 0) {
+					addPolygon(polygons, v0, v3, v2);
+				} else if (j == numStacks - 1) {
+					addPolygon(polygons, v0, v2, v1);
+				} else {
+					addPolygon(polygons, v0, v3, v1);
+					addPolygon(polygons, v1, v3, v2);
 				}
 			}
 		}
 		return polygons;
+	}
+
+	private void addPolygon(List<Polygon> polygons, Vertex... verts) {
+		try {
+			polygons.add(new Polygon(List.of(verts), getProperties()));
+		} catch (ColinearPointsException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
