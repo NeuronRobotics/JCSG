@@ -81,6 +81,10 @@ public class Vertex implements Serializable {
 		this.weight = weight;
 	}
 
+	public Vertex(double x, double y, double z) {
+		pos = new Vector3d(x, y, z);
+	}
+
 	/*
 	 * (non-Javadoc)
 	 *
