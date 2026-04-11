@@ -109,6 +109,31 @@ public class CSGManifold3d {
 		return ms;
 	}
 
+	/**
+	 * Returns the index of {@code v} in {@code vertexList}, inserting it if not
+	 * already present. The key is an exact string representation of (x, y, z) using
+	 * {@link Double#toHexString} so that only bit-identical positions are merged,
+	 * matching the BSP's behavior.
+	 */
+	private static int intern(Vertex v, Map<String, Integer> index, List<double[]> list) {
+		// 1. Lower the precision slightly. 1e9 is too high for 'double' stability 
+		// after multiple CSG operations. 1e7 (0.1 nanometer) is the "sweet spot".
+		double precision = 1e7;
+
+		long x = Math.round(v.pos.x * precision);
+		long y = Math.round(v.pos.y * precision);
+		long z = Math.round(v.pos.z * precision);
+
+		String key = x + "," + y + "," + z;
+
+		return index.computeIfAbsent(key, k -> {
+			int idx = list.size();
+			// Use the RAW position for the first instance of this vertex.
+			// This keeps the geometry as true to the BSP as possible.
+			list.add(new double[] { v.pos.x, v.pos.y, v.pos.z });
+			return idx;
+		});
+	}
 	// -------------------------------------------------------------------------
 	// helpers
 
@@ -162,22 +187,7 @@ public class CSGManifold3d {
 
 	// -------------------------------------------------------------------------
 	// helpers
-	/**
-	 * Returns the index of {@code v} in {@code vertexList}, inserting it if not
-	 * already present. The key is an exact string representation of (x, y, z) using
-	 * {@link Double#toHexString} so that only bit-identical positions are merged,
-	 * matching the BSP's behavior.
-	 */
-	private static int intern(Vertex v, Map<String, Integer> index, List<double[]> list) {
-		String key = Double.toHexString(v.pos.x) + "," + Double.toHexString(v.pos.y) + ","
-				+ Double.toHexString(v.pos.z);
 
-		return index.computeIfAbsent(key, k -> {
-			int idx = list.size();
-			list.add(new double[] { v.pos.x, v.pos.y, v.pos.z });
-			return idx;
-		});
-	}
 
 	private static Vector3d vertexAt(double[] verts, int index) {
 		int base = index * 3;
@@ -233,7 +243,7 @@ public class CSGManifold3d {
 			return result;
 
 		} catch (Throwable e) {
-			if(csgm!=null)
+			if (csgm != null)
 				manifold.delete(csgm);
 			throw new RuntimeException("Failed to slice CSG at Z=0", e);
 		}
@@ -253,7 +263,9 @@ public class CSGManifold3d {
 		try {
 			MemorySegment result = manifold.union(ma, mb);
 			checkResult(result);
-			return fromManifold(result);
+			CSG fromManifold = fromManifold(result);
+			manifold.delete(result);
+			return fromManifold;
 		} finally {
 			manifold.delete(ma);
 			manifold.delete(mb);
@@ -270,7 +282,9 @@ public class CSGManifold3d {
 		try {
 			MemorySegment result = manifold.difference(ma, mb);
 			checkResult(result);
-			return fromManifold(result);
+			CSG fromManifold = fromManifold(result);
+			manifold.delete(result);
+			return fromManifold;
 		} finally {
 			manifold.delete(ma);
 			manifold.delete(mb);
@@ -287,7 +301,9 @@ public class CSGManifold3d {
 		try {
 			MemorySegment result = manifold.intersection(ma, mb);
 			checkResult(result);
-			return fromManifold(result);
+			CSG fromManifold = fromManifold(result);
+			manifold.delete(result);
+			return fromManifold;
 		} finally {
 			manifold.delete(ma);
 			manifold.delete(mb);
@@ -311,7 +327,9 @@ public class CSGManifold3d {
 		try {
 			MemorySegment result = manifold.hull(ma);
 			checkResult(result);
-			return fromManifold(result);
+			CSG fromManifold = fromManifold(result);
+			manifold.delete(result);
+			return fromManifold;
 		} finally {
 			manifold.delete(ma);
 		}
@@ -340,10 +358,17 @@ public class CSGManifold3d {
 	private void checkResult(MemorySegment... memorySegments) throws Throwable {
 		for (int i = 0; i < memorySegments.length; i++) {
 			MemorySegment ms = memorySegments[i];
-			ManifoldError result = manifold.status(ms);
+			ManifoldError err = manifold.status(ms);
 			//System.out.println("Status of Manifold Op is "+result);
-			if (result != ManifoldError.NO_ERROR)
-				throw new NonManifoldShapeError("Error was " + result);
+			if (err != ManifoldError.NO_ERROR) {
+				System.out.println("Status: " + err);
+				System.out.println("Verts: " + manifold.numVert(ms));
+				System.out.println("Tris: " + manifold.numTri(ms));
+				System.out.println("Genus: " + manifold.genus(ms));
+				throw new NonManifoldShapeError("Error was " + err);
+			}else {
+				System.out.println("Manifold check ok!");
+			}
 		}
 	}
 
@@ -360,7 +385,10 @@ public class CSGManifold3d {
 			mem = manifold.hull(pts);
 			checkResult(mem);
 
-			return fromManifold(mem);
+			CSG fromManifold = fromManifold(mem);
+			manifold.delete(mem);
+			mem=null;
+			return fromManifold;
 		} finally {
 			manifold.delete(mem);
 		}
