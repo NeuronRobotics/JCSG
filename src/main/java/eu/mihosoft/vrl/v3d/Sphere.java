@@ -34,7 +34,13 @@
 package eu.mihosoft.vrl.v3d;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+
+import eu.mihosoft.vrl.v3d.ext.quickhull3d.HullUtil;
 
 //  Auto-generated Javadoc
 /**
@@ -163,48 +169,48 @@ public class Sphere extends Primitive {
 	private Vertex sphereVertex(Vector3d c, double r, double theta, double phi) {
 		theta *= Math.PI * 2;
 		phi *= Math.PI;
+
+		// Clamp poles to exact values to avoid sin(PI) floating point error
+		if (phi <= 0)
+			return new Vertex(c.plus(new Vector3d(0, r, 0)));
+		if (phi >= Math.PI)
+			return new Vertex(c.plus(new Vector3d(0, -r, 0)));
+
 		Vector3d dir = new Vector3d(Math.cos(theta) * Math.sin(phi), Math.cos(phi), Math.sin(theta) * Math.sin(phi));
 		return new Vertex(c.plus(dir.times(r)));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see eu.mihosoft.vrl.v3d.Primitive#toPolygons()
-	 */
-	@Override
 	public List<Polygon> toPolygons() {
-		if (radius <= 0)
-			throw new NumberFormatException("radius can not be negative");
-		List<Polygon> polygons = new ArrayList<>();
-		for (int i = 0; i < numSlices; i++) {
-			for (int j = 0; j < numStacks; j++) {
+		List<Vector3d> points = new ArrayList<>();
 
-				Vertex v0 = sphereVertex(center, radius, i / (double) numSlices, j / (double) numStacks);
-				Vertex v1 = sphereVertex(center, radius, (i + 1) / (double) numSlices, j / (double) numStacks);
-				Vertex v2 = sphereVertex(center, radius, (i + 1) / (double) numSlices, (j + 1) / (double) numStacks);
-				Vertex v3 = sphereVertex(center, radius, i / (double) numSlices, (j + 1) / (double) numStacks);
+		// 1. Add the Poles explicitly (avoiding the loop to ensure they are clean)
+		points.add(new Vector3d(center.x, center.y + radius, center.z)); // North
+		points.add(new Vector3d(center.x, center.y - radius, center.z)); // South
 
-				if (j == 0) {
-					addPolygon(polygons, v0, v3, v2);
-				} else if (j == numStacks - 1) {
-					addPolygon(polygons, v0, v2, v1);
-				} else {
-					addPolygon(polygons, v0, v3, v1);
-					addPolygon(polygons, v1, v3, v2);
-				}
+		// 2. Generate the rings (excluding the pole stacks)
+		for (int j = 1; j < numStacks; j++) {
+			double phi = Math.PI * j / numStacks;
+			double y = Math.cos(phi);
+			double rRing = Math.sin(phi);
+
+			for (int i = 0; i < numSlices; i++) {
+				double theta = 2.0 * Math.PI * i / numSlices;
+
+				double x = Math.cos(theta) * rRing;
+				double z = Math.sin(theta) * rRing;
+
+				// Micro-snapping to zero for stability
+				if (Math.abs(x) < 1e-12)
+					x = 0;
+				if (Math.abs(z) < 1e-12)
+					z = 0;
+
+				points.add(new Vector3d(center.x + x * radius, center.y + y * radius, center.z + z * radius));
 			}
 		}
-		return polygons;
+		return HullUtil.hull(points, getProperties()).getPolygons();
 	}
 
-	private void addPolygon(List<Polygon> polygons, Vertex... verts) {
-		try {
-			polygons.add(new Polygon(List.of(verts), getProperties()));
-		} catch (ColinearPointsException e) {
-			e.printStackTrace();
-		}
-	}
 
 	/**
 	 * Gets the center.
@@ -262,8 +268,8 @@ public class Sphere extends Primitive {
 	 *            the numSlices to set
 	 */
 	public Sphere setNumSlices(int numSlices) {
-		if (numSlices > (NUM_SLICES * 4))
-			System.out.println("Very large sphere! this may crash!");
+		//		if (numSlices > (NUM_SLICES * 4))
+		//			System.out.println("Very large sphere! this may crash!");
 		this.numSlices = numSlices;
 		return this;
 	}
@@ -284,8 +290,8 @@ public class Sphere extends Primitive {
 	 *            the numStacks to set
 	 */
 	public Sphere setNumStacks(int numStacks) {
-		if (numStacks > (NUM_STACKS * 4))
-			System.out.println("Very large sphere! this may crash!");
+		//		if (numStacks > (NUM_STACKS * 4))
+		//			System.out.println("Very large sphere! this may crash!");
 		this.numStacks = numStacks;
 		return this;
 	}
