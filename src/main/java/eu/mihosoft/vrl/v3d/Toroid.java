@@ -49,7 +49,7 @@ public class Toroid extends Primitive {
 
 	/** The properties. */
 	private final PropertyStorage properties = new PropertyStorage();
-	List<Polygon> polys;
+	ArrayList<Polygon> polys;
 	public Toroid(double innerRadius, double OuterRadius) {
 		this(innerRadius, OuterRadius, 20, 16);
 	}
@@ -89,7 +89,7 @@ public class Toroid extends Primitive {
 				e.printStackTrace();
 			}
 		}
-		List<Polygon> newPolygons = new ArrayList<>();
+		ArrayList<Polygon> newPolygons = new ArrayList<>();
 		for (int j = 0; j < slices.size(); j++) {
 			int next = j + 1;
 			if (next == slices.size())
@@ -134,8 +134,14 @@ public class Toroid extends Primitive {
 	 * @see eu.mihosoft.vrl.v3d.Primitive#toPolygons()
 	 */
 	@Override
-	public List<Polygon> toPolygons() {
-		return polys;
+	public CSG toCSG() {
+		try {
+			return new CSG(polys);
+		} catch (ColinearPointsException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return new CSG();
+		}
 	}
 
 	/*

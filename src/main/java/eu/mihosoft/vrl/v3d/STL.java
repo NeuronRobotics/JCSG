@@ -63,8 +63,9 @@ public class STL {
 	 *             if loading failed
 	 * @throws URISyntaxException
 	 *             the URI syntax exception
+	 * @throws ColinearPointsException 
 	 */
-	public static CSG file(URL path) throws IOException, URISyntaxException {
+	public static CSG file(URL path) throws IOException, URISyntaxException, ColinearPointsException {
 		final URI uri = path.toURI();
 		Map<String, String> env = new HashMap<>();
 		env.put("create", "true");
@@ -81,13 +82,14 @@ public class STL {
 	 * @return CSG
 	 * @throws IOException
 	 *             if loading failed
+	 * @throws ColinearPointsException 
 	 */
-	public static CSG file(Path path) throws IOException {
+	public static CSG file(Path path) throws IOException, ColinearPointsException {
 		STLLoader loader = new STLLoader();
 
 		ArrayList<Polygon> polygons = loader.parse(path.toFile());
 
-		CSG fromPolygons = CSG.fromPolygons(new PropertyStorage(), polygons);
+		CSG fromPolygons = new CSG(polygons);
 		return fromPolygons;
 	}
 }

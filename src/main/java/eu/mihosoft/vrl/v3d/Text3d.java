@@ -99,12 +99,8 @@ public class Text3d extends Primitive {
 	}
 
 	@Override
-	public List<Polygon> toPolygons() {
-		List<Polygon> poly = new ArrayList<Polygon>();
-		for (CSG c : letters) {
-			poly.addAll(c.getPolygons());
-		}
-		return poly;
+	public CSG toCSG() {
+		return CSG.unionAll(letters);
 	}
 
 	@Override
