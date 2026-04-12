@@ -221,7 +221,9 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	public CSG(ArrayList<Polygon> polygons) throws ColinearPointsException {
+		this();
 		processPolygonsToTriangles(polygons);
+
 	}
 
 	public ArrayList<Polygon> generatePolygonsFromMesh() throws ColinearPointsException {
@@ -247,9 +249,9 @@ public class CSG implements IuserAPI, Serializable {
 		return polygons;
 	}
 
-	private static Vector3d vertexAt(double[] verts, int index) {
-		int base = index * 3;
-		return new Vector3d(verts[base], verts[base + 1], verts[base + 2]);
+	private static Vector3d vertexAt(double[] verts, long index) {
+		long base = index * 3;
+		return new Vector3d(verts[(int) base], verts[(int) (base + 1)], verts[(int) (base + 2)]);
 	}
 
 	public CSG processPolygonsToTriangles(ArrayList<Polygon> polygons) throws ColinearPointsException {
@@ -268,18 +270,17 @@ public class CSG implements IuserAPI, Serializable {
 
 				// Fan triangulation: (0,1,2), (0,2,3), (0,3,4), ...
 				int i0 = intern(pverts.get(0), vertexIndex, vertexList);
-				for (int i = 1; i < pverts.size() - 1; i++) {
-					int i1 = intern(pverts.get(i), vertexIndex, vertexList);
-					int i2 = intern(pverts.get(i + 1), vertexIndex, vertexList);
+				int i1 = intern(pverts.get(1), vertexIndex, vertexList);
+				int i2 = intern(pverts.get(2), vertexIndex, vertexList);
 
-					// Skip degenerate triangles (two or more identical indices).
-					if (i0 == i1 || i1 == i2 || i0 == i2)
-						continue;
+				// Skip degenerate triangles (two or more identical indices).
+				if (i0 == i1 || i1 == i2 || i0 == i2)
+					continue;
 
-					triList.add((long) i0);
-					triList.add((long) i1);
-					triList.add((long) i2);
-				}
+				triList.add((long) i0);
+				triList.add((long) i1);
+				triList.add((long) i2);
+
 			}
 		}
 
@@ -473,7 +474,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return the mesh
 	 * @throws ColinearPointsException 
 	 */
-	public MeshView getMesh()  {
+	public MeshView getMesh() {
 		if (getCurrentMeshView() != null)
 			return getCurrentMeshView();
 		setCurrentMeshView(newMesh());
@@ -486,7 +487,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return the mesh
 	 * @throws ColinearPointsException 
 	 */
-	public MeshView newMesh()  {
+	public MeshView newMesh() {
 
 		MeshContainer meshContainer = toJavaFXMesh(null);
 
@@ -1047,7 +1048,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return a csg consisting of the polygons of this csg and the specified csg
 	 * @throws ColinearPointsException 
 	 */
-	public CSG dumbUnion(CSG csg)  {
+	public CSG dumbUnion(CSG csg) {
 		// boolean tri = triangulated && csg.triangulated;
 		CSG result = this.clone();
 		CSG other = csg.clone();
@@ -1064,7 +1065,7 @@ public class CSG implements IuserAPI, Serializable {
 			e.printStackTrace();
 			return this;
 		}
-	
+
 	}
 
 	/**
@@ -2538,7 +2539,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return the specified string builder
 	 * @throws ColinearPointsException 
 	 */
-	public StringBuilder toObjString(StringBuilder sb)  {
+	public StringBuilder toObjString(StringBuilder sb) {
 		triangulate(true);
 		sb.append("# Group").append("\n");
 		sb.append("g v3d.csg\n");
@@ -2631,11 +2632,10 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return this csg in OBJ string format
 	 * @throws ColinearPointsException 
 	 */
-	public String toObjString()  {
+	public String toObjString() {
 		StringBuilder sb = new StringBuilder();
 		return toObjString(sb).toString();
 	}
-
 
 
 	/** 
@@ -2643,10 +2643,10 @@ public class CSG implements IuserAPI, Serializable {
 	 */
 	private void flip() {
 		for (int i = 0; i < triCount; i++) {
-			long a = triangles[i*3 + 1];
-			long b = triangles[i*3 + 2];
-			triangles[i*3 + 1] = b;
-			triangles[i*3 + 2] = a;
+			long a = triangles[i * 3 + 1];
+			long b = triangles[i * 3 + 2];
+			triangles[i * 3 + 1] = b;
+			triangles[i * 3 + 2] = a;
 		}
 	}
 
@@ -2667,9 +2667,9 @@ public class CSG implements IuserAPI, Serializable {
 		CSG csg = clone();
 
 		for (int i = 0; i < vertCount; i++) {
-			double vectx= csg.vertices[i*3];
-			double vecty= csg.vertices[i*3+1];
-			double vectz= csg.vertices[i*3+2];
+			double vectx = csg.vertices[i * 3];
+			double vecty = csg.vertices[i * 3 + 1];
+			double vectz = csg.vertices[i * 3 + 2];
 			double prevX = vectx;
 			double prevY = vecty;
 			double prevZ = vectz;
@@ -2688,9 +2688,9 @@ public class CSG implements IuserAPI, Serializable {
 			double diffY = vecty - prevY;
 			double diffZ = vectz - prevZ;
 
-			csg.vertices[i*3] = prevX + (diffX) ;
-			csg.vertices[i*3+1] = prevY + (diffY) ;
-			csg.vertices[i*3+2] = prevZ + (diffZ) ;
+			csg.vertices[i * 3] = prevX + (diffX);
+			csg.vertices[i * 3 + 1] = prevY + (diffY);
+			csg.vertices[i * 3 + 2] = prevZ + (diffZ);
 		}
 		if (transform.isMirror()) {
 			flip();
@@ -2712,7 +2712,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * @throws ColinearPointsException 
 	 */
 	// TODO finish experiment (20.7.2014)
-	public MeshContainer toJavaFXMesh(CadInteractionEvent interact)  {
+	public MeshContainer toJavaFXMesh(CadInteractionEvent interact) {
 
 		return toJavaFXMeshSimple(interact);
 
@@ -2738,7 +2738,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return the CSG as JavaFX triangle mesh
 	 * @throws ColinearPointsException 
 	 */
-	public MeshContainer toJavaFXMeshSimple(CadInteractionEvent interact)   {
+	public MeshContainer toJavaFXMeshSimple(CadInteractionEvent interact) {
 
 		try {
 			return CSGtoJavafx.meshFromPolygon(generatePolygonsFromMesh());
@@ -2769,31 +2769,31 @@ public class CSG implements IuserAPI, Serializable {
 
 		//for (Polygon p : getPolygons()) {
 
-			for (int i = 0; i < vertCount; i++) {
+		for (int i = 0; i < vertCount; i++) {
 
-				Vector3d vert = vertexAt(vertices, i);
+			Vector3d vert = vertexAt(vertices, i);
 
-				if (vert.x < minX) {
-					minX = vert.x;
-				}
-				if (vert.y < minY) {
-					minY = vert.y;
-				}
-				if (vert.z < minZ) {
-					minZ = vert.z;
-				}
+			if (vert.x < minX) {
+				minX = vert.x;
+			}
+			if (vert.y < minY) {
+				minY = vert.y;
+			}
+			if (vert.z < minZ) {
+				minZ = vert.z;
+			}
 
-				if (vert.x > maxX) {
-					maxX = vert.x;
-				}
-				if (vert.y > maxY) {
-					maxY = vert.y;
-				}
-				if (vert.z > maxZ) {
-					maxZ = vert.z;
-				}
+			if (vert.x > maxX) {
+				maxX = vert.x;
+			}
+			if (vert.y > maxY) {
+				maxY = vert.y;
+			}
+			if (vert.z > maxZ) {
+				maxZ = vert.z;
+			}
 
-			} // end for vertices
+		} // end for vertices
 
 		//} // end for polygon
 
@@ -3783,7 +3783,7 @@ public class CSG implements IuserAPI, Serializable {
 		return text(text, height, 30);
 	}
 
-	public static CSG text(String text, double height, double fontSize, String fontType)  {
+	public static CSG text(String text, double height, double fontSize, String fontType) {
 		javafx.scene.text.Font font = new javafx.scene.text.Font(fontType, fontSize);
 		if (!font.getName().toLowerCase().contains(fontType.toLowerCase())) {
 			String options = "";
@@ -4437,15 +4437,25 @@ public class CSG implements IuserAPI, Serializable {
 		return uniqueId;
 	}
 
-	public Vector3d vertexAt(int i) {
+	public Vector3d vertexAt(long i) {
 		return vertexAt(vertices, i);
 	}
 
 	public List<Vector3d> getPoints() {
 		List<Vector3d> points = new ArrayList<Vector3d>();
-		for(int i=0;i<vertCount;i++)
+		for (int i = 0; i < vertCount; i++)
 			points.add(vertexAt(i));
 		return points;
+	}
+
+	public Polygon getPolygonByIndex(int faceIndex) throws ColinearPointsException {
+		List<Vertex> points = new ArrayList<Vertex>();
+		points.add(new Vertex(vertexAt(triangles[faceIndex * 3])));
+		points.add(new Vertex(vertexAt(triangles[faceIndex * 3 + 1])));
+		points.add(new Vertex(vertexAt(triangles[faceIndex * 3 + 2])));
+
+
+		return new Polygon(points);
 	}
 
 }
