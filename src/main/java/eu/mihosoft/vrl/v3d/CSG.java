@@ -4285,4 +4285,12 @@ public class CSG implements IuserAPI, Serializable {
 		return uniqueId;
 	}
 
+	public List<Polygon> generatePolygonsFromMesh() throws ColinearPointsException{
+		return polygons;
+	}
+
+	public int getNumberOfTriangles() {
+		return polygons.size();
+	}
+
 }
