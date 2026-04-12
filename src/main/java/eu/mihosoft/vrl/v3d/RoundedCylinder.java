@@ -81,7 +81,7 @@ public class RoundedCylinder extends Primitive {
 	 * @see eu.mihosoft.vrl.v3d.Primitive#toPolygons()
 	 */
 	@Override
-	public List<Polygon> toPolygons() {
+	public CSG toCSG() {
 		double minHeight = height - cornerRadius * 2;
 		ArrayList<CSG> cylParts = new ArrayList<>();
 
@@ -98,7 +98,7 @@ public class RoundedCylinder extends Primitive {
 					(int) resolution // resolution
 			).toCSG().movez(-heightInc));
 		}
-		return HullUtil.hull(cylParts).toZMin().getPolygons();
+		return HullUtil.hull(cylParts).toZMin();
 	}
 
 	/*

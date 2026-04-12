@@ -102,7 +102,7 @@ public class RoundedCube extends Primitive {
 	 * @see eu.mihosoft.vrl.v3d.Primitive#toPolygons()
 	 */
 	@Override
-	public List<Polygon> toPolygons() {
+	public CSG toCSG() {
 		CSG spherePrototype = new Sphere(getCornerRadius(), getResolution() * 2, getResolution()).toCSG();
 
 		double x = dimensions.x / 2.0 - getCornerRadius();
@@ -119,24 +119,17 @@ public class RoundedCube extends Primitive {
 		CSG sphere7 = spherePrototype.transformed(unity().translate(x, y, z));
 		CSG sphere8 = spherePrototype.transformed(unity().translate(-x, y, z));
 
-		List<Polygon> result = CSG.hullAll(sphere1, sphere2, sphere3, sphere4, sphere5, sphere6, sphere7, sphere8)
-				.getPolygons();
+		CSG back = CSG.hullAll(sphere1, sphere2, sphere3, sphere4, sphere5, sphere6, sphere7, sphere8);
 
 		if (!centered) {
 
 			Transform centerTransform = Transform.unity().translate(dimensions.x / 2.0, dimensions.y / 2.0,
 					dimensions.z / 2.0);
 
-			for (Polygon p : result) {
-				try {
-					p.transform(centerTransform);
-				} catch (ColinearPointsException e) {
-					throw new RuntimeException(e);
-				}
-			}
+			back=back.transformed(centerTransform);
 		}
 
-		return result;
+		return back;
 	}
 
 	/*

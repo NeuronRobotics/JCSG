@@ -2638,16 +2638,7 @@ public class CSG implements IuserAPI, Serializable {
 		return toObjString(sb).toString();
 	}
 
-	/**
-	 * Weighted.
-	 *
-	 * @param f
-	 *            the f
-	 * @return the csg
-	 */
-	public CSG weighted(WeightFunction f) {
-		return new Modifier(f).modified(this);
-	}
+
 
 	/** 
 	 * Reverse the winding order of all the triangles

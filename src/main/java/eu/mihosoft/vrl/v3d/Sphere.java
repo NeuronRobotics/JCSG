@@ -36,6 +36,8 @@ package eu.mihosoft.vrl.v3d;
 import java.util.ArrayList;
 import java.util.List;
 
+import eu.mihosoft.vrl.v3d.ext.quickhull3d.HullUtil;
+
 //  Auto-generated Javadoc
 /**
  * A solid sphere.
@@ -172,35 +174,38 @@ public class Sphere extends Primitive {
 	 * @see eu.mihosoft.vrl.v3d.Primitive#toPolygons()
 	 */
 	@Override
-	public List<Polygon> toPolygons() {
+	public CSG toCSG() {
 		if (radius <= 0)
 			throw new NumberFormatException("radius can not be negative");
-		List<Polygon> polygons = new ArrayList<>();
 
-		for (int i = 0; i < getNumSlices(); i++) {
-			for (int j = 0; j < getNumStacks(); j++) {
-				final List<Vertex> vertices = new ArrayList<>();
+		List<Vector3d> points = new ArrayList<>();
 
-				vertices.add(sphereVertex(center, radius, i / (double) getNumSlices(), j / (double) getNumStacks()));
-				if (j > 0) {
-					vertices.add(sphereVertex(center, radius, (i + 1) / (double) getNumSlices(),
-							j / (double) getNumStacks()));
-				}
-				if (j < getNumStacks() - 1) {
-					vertices.add(sphereVertex(center, radius, (i + 1) / (double) getNumSlices(),
-							(j + 1) / (double) getNumStacks()));
-				}
-				vertices.add(
-						sphereVertex(center, radius, i / (double) getNumSlices(), (j + 1) / (double) getNumStacks()));
-				try {
-					polygons.add(new Polygon(vertices, getProperties()));
-				} catch (ColinearPointsException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+		// 1. Add the Poles explicitly (avoiding the loop to ensure they are clean)
+		points.add(new Vector3d(center.x, center.y + radius, center.z)); // North
+		points.add(new Vector3d(center.x, center.y - radius, center.z)); // South
+
+		// 2. Generate the rings (excluding the pole stacks)
+		for (int j = 1; j < numStacks; j++) {
+			double phi = Math.PI * j / numStacks;
+			double y = Math.cos(phi);
+			double rRing = Math.sin(phi);
+
+			for (int i = 0; i < numSlices; i++) {
+				double theta = 2.0 * Math.PI * i / numSlices;
+
+				double x = Math.cos(theta) * rRing;
+				double z = Math.sin(theta) * rRing;
+
+				// Micro-snapping to zero for stability
+				if (Math.abs(x) < 1e-12)
+					x = 0;
+				if (Math.abs(z) < 1e-12)
+					z = 0;
+
+				points.add(new Vector3d(center.x + x * radius, center.y + y * radius, center.z + z * radius));
 			}
 		}
-		return polygons;
+		return HullUtil.hull(points, getProperties());
 	}
 
 	/**
