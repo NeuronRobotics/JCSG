@@ -64,7 +64,7 @@ public class Octahedron extends Primitive {
 	 * @see eu.mihosoft.vrl.v3d.Primitive#toPolygons()
 	 */
 	@Override
-	public List<Polygon> toPolygons() {
+	public CSG toCSG() {
 		if (radius <= 0)
 			throw new NumberFormatException("radius can not be negative");
 		double sqrt2_2 = Math.sqrt(2) / 2;
@@ -77,9 +77,8 @@ public class Octahedron extends Primitive {
 		points.add(new Vector3d(+sqrt2_2, -sqrt2_2, 0));
 		points.add(new Vector3d(+sqrt2_2, +sqrt2_2, 0));
 
-		List<Polygon> polygons = HullUtil.hull(points).scale(radius).getPolygons();
+		return HullUtil.hull(points).scale(radius);
 
-		return polygons;
 	}
 
 	/**
