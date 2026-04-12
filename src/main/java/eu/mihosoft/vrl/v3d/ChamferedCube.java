@@ -36,11 +36,11 @@ public class ChamferedCube extends Primitive {
 	 * @see eu.mihosoft.vrl.v3d.Primitive#toPolygons()
 	 */
 	@Override
-	public List<Polygon> toPolygons() {
+	public CSG toCSG() {
 		CSG cube1 = new Cube(w - chamferHeight * 2, h, d - chamferHeight * 2).toCSG();
 		CSG cube2 = new Cube(w, h - chamferHeight * 2, d - chamferHeight * 2).toCSG();
 		CSG cube3 = new Cube(w - chamferHeight * 2, h - chamferHeight * 2, d).toCSG();
-		return cube1.union(cube2).union(cube3).hull().getPolygons();
+		return cube1.union(cube2).union(cube3).hull();
 	}
 
 }

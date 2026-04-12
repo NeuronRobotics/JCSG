@@ -153,7 +153,7 @@ class CSGServerHandler implements Runnable {
 			}
 		} catch (Throwable t) {
 			CSGClient.setServerCall(false);
-			throw t;
+			throw new RuntimeException(t);
 		}
 		CSGClient.setServerCall(false);
 		return new CSGResponse(back, request.getOperation());
