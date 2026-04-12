@@ -42,9 +42,9 @@ public class Hexagon extends Primitive {
 	 * @see eu.mihosoft.vrl.v3d.Primitive#toPolygons()
 	 */
 	@Override
-	public List<Polygon> toPolygons() {
+	public CSG toCSG() {
 		head = new Cylinder(nunRad, nunRad, height, (int) 6).toCSG();
-		return head.getPolygons();
+		return head;
 	}
 
 	/**

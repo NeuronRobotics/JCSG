@@ -83,10 +83,10 @@ public class Fillet extends Primitive {
 	 * @see eu.mihosoft.vrl.v3d.Primitive#toPolygons()
 	 */
 	@Override
-	public List<Polygon> toPolygons() {
+	public CSG toCSG() {
 		CSG simpleSyntax = new Cylinder(w, h + 1).toCSG() // a one line Cylinder
 				.rotx(90).toXMin().toZMin().movey(-0.5);
 		CSG cubeSection = new Cube(w - 0.1, h, w - 0.1).toCSG().toXMin().toZMin().toYMin();
-		return cubeSection.difference(simpleSyntax).getPolygons();
+		return cubeSection.difference(simpleSyntax);
 	}
 }

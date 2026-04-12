@@ -109,7 +109,7 @@ public class Extrude {
 
 			// ArrayList<Polygon> topPolygons = PolygonUtil.triangulatePolygon(polygon2);
 
-			extrude = CSG.fromPolygons(newPolygons);
+			extrude = new CSG(newPolygons);
 			return extrude;
 		}
 
@@ -598,7 +598,7 @@ public class Extrude {
 		List<Polygon> topPolygons = PolygonUtil.triangulatePolygon(polygon2.flipped());
 		newPolygons.addAll(topPolygons);
 
-		return CSG.fromPolygons(newPolygons);
+		return new CSG(newPolygons);
 	}
 
 	public static CSG sweep(Polygon p, double angle, double z, double radius, int steps)
