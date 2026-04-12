@@ -41,7 +41,7 @@ public class Wedge extends Primitive {
 	 * @see eu.mihosoft.vrl.v3d.Primitive#toPolygons()
 	 */
 	@Override
-	public List<Polygon> toPolygons() {
+	public CSG toCSG() {
 		CSG polygon = null;
 		try {
 			polygon = Extrude.points(new Vector3d(0, 0, h), // This is the extrusion depth
@@ -53,6 +53,6 @@ public class Wedge extends Primitive {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return polygon.getPolygons();
+		return polygon;
 	}
 }

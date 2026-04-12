@@ -473,7 +473,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return the mesh
 	 * @throws ColinearPointsException 
 	 */
-	public MeshView getMesh() throws ColinearPointsException {
+	public MeshView getMesh()  {
 		if (getCurrentMeshView() != null)
 			return getCurrentMeshView();
 		setCurrentMeshView(newMesh());
@@ -486,7 +486,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return the mesh
 	 * @throws ColinearPointsException 
 	 */
-	public MeshView newMesh() throws ColinearPointsException {
+	public MeshView newMesh()  {
 
 		MeshContainer meshContainer = toJavaFXMesh(null);
 
@@ -1047,16 +1047,24 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return a csg consisting of the polygons of this csg and the specified csg
 	 * @throws ColinearPointsException 
 	 */
-	public CSG dumbUnion(CSG csg) throws ColinearPointsException {
+	public CSG dumbUnion(CSG csg)  {
 		// boolean tri = triangulated && csg.triangulated;
 		CSG result = this.clone();
 		CSG other = csg.clone();
 
-		ArrayList<Polygon> polygonsFromMesh = result.generatePolygonsFromMesh();
-		polygonsFromMesh.addAll(other.generatePolygonsFromMesh());
-		bounds = null;
-		// result.triangulated = tri;
-		return new CSG(polygonsFromMesh).historySync(csg).historySync(this);
+		ArrayList<Polygon> polygonsFromMesh;
+		try {
+			polygonsFromMesh = result.generatePolygonsFromMesh();
+			polygonsFromMesh.addAll(other.generatePolygonsFromMesh());
+			bounds = null;
+			// result.triangulated = tri;
+			return new CSG(polygonsFromMesh).historySync(csg).historySync(this);
+		} catch (ColinearPointsException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return this;
+		}
+	
 	}
 
 	/**
@@ -1126,12 +1134,7 @@ public class CSG implements IuserAPI, Serializable {
 					if (dumb == null) {
 						dumb = test;
 					} else
-						try {
-							dumb = dumb.dumbUnion(test);
-						} catch (ColinearPointsException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
+						dumb = dumb.dumbUnion(test);
 				}
 
 			}
@@ -1166,12 +1169,7 @@ public class CSG implements IuserAPI, Serializable {
 		else
 			result = solid.difference(hole);
 		if (dumb != null) {
-			try {
-				result = result.dumbUnion(dumb);
-			} catch (ColinearPointsException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			result = result.dumbUnion(dumb);
 		}
 		return result;
 	}
@@ -1410,12 +1408,7 @@ public class CSG implements IuserAPI, Serializable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		try {
-			return dumbUnion(csg);
-		} catch (ColinearPointsException e) {
-			e.printStackTrace();
-			return this;
-		}
+		return dumbUnion(csg);
 	}
 
 	/**
@@ -2545,7 +2538,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return the specified string builder
 	 * @throws ColinearPointsException 
 	 */
-	public StringBuilder toObjString(StringBuilder sb) throws ColinearPointsException {
+	public StringBuilder toObjString(StringBuilder sb)  {
 		triangulate(true);
 		sb.append("# Group").append("\n");
 		sb.append("g v3d.csg\n");
@@ -2568,20 +2561,25 @@ public class CSG implements IuserAPI, Serializable {
 
 		sb.append("\n# Vertices\n");
 
-		for (Polygon p : generatePolygonsFromMesh()) {
-			List<Integer> polyIndices = new ArrayList<>();
+		try {
+			for (Polygon p : generatePolygonsFromMesh()) {
+				List<Integer> polyIndices = new ArrayList<>();
 
-			p.getVertices().stream().forEach((v) -> {
-				if (!vertices.contains(v)) {
-					vertices.add(v);
-					v.toObjString(sb);
-					polyIndices.add(vertices.size());
-				} else {
-					polyIndices.add(vertices.indexOf(v) + 1);
-				}
-			});
-			indices.add(new PolygonStruct(getStorage(), polyIndices, " "));
+				p.getVertices().stream().forEach((v) -> {
+					if (!vertices.contains(v)) {
+						vertices.add(v);
+						v.toObjString(sb);
+						polyIndices.add(vertices.size());
+					} else {
+						polyIndices.add(vertices.indexOf(v) + 1);
+					}
+				});
+				indices.add(new PolygonStruct(getStorage(), polyIndices, " "));
 
+			}
+		} catch (ColinearPointsException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		HashMap<Vertex, Integer> mapping = new HashMap<Vertex, Integer>();
 		HashMap<Transform, Vertex> mappingTF = new HashMap<>();
@@ -2633,7 +2631,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return this csg in OBJ string format
 	 * @throws ColinearPointsException 
 	 */
-	public String toObjString() throws ColinearPointsException {
+	public String toObjString()  {
 		StringBuilder sb = new StringBuilder();
 		return toObjString(sb).toString();
 	}
@@ -2714,7 +2712,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * @throws ColinearPointsException 
 	 */
 	// TODO finish experiment (20.7.2014)
-	public MeshContainer toJavaFXMesh(CadInteractionEvent interact) throws ColinearPointsException {
+	public MeshContainer toJavaFXMesh(CadInteractionEvent interact)  {
 
 		return toJavaFXMeshSimple(interact);
 
@@ -2740,9 +2738,15 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return the CSG as JavaFX triangle mesh
 	 * @throws ColinearPointsException 
 	 */
-	public MeshContainer toJavaFXMeshSimple(CadInteractionEvent interact) throws ColinearPointsException {
+	public MeshContainer toJavaFXMeshSimple(CadInteractionEvent interact)   {
 
-		return CSGtoJavafx.meshFromPolygon(generatePolygonsFromMesh());
+		try {
+			return CSGtoJavafx.meshFromPolygon(generatePolygonsFromMesh());
+		} catch (ColinearPointsException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return CSGtoJavafx.meshFromPolygon(new ArrayList<>());
+		}
 	}
 
 	/**
@@ -3772,20 +3776,14 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	public static CSG text(String text, double height, double fontSize) {
-		try {
-			return text(text, height, fontSize, Font.getDefault().getName());
-		} catch (ColinearPointsException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return new CSG();
-		}
+		return text(text, height, fontSize, Font.getDefault().getName());
 	}
 
 	public static CSG text(String text, double height) {
 		return text(text, height, 30);
 	}
 
-	public static CSG text(String text, double height, double fontSize, String fontType) throws ColinearPointsException {
+	public static CSG text(String text, double height, double fontSize, String fontType)  {
 		javafx.scene.text.Font font = new javafx.scene.text.Font(fontType, fontSize);
 		if (!font.getName().toLowerCase().contains(fontType.toLowerCase())) {
 			String options = "";
@@ -4437,6 +4435,17 @@ public class CSG implements IuserAPI, Serializable {
 
 	public String getUniqueId() {
 		return uniqueId;
+	}
+
+	public Vector3d vertexAt(int i) {
+		return vertexAt(vertices, i);
+	}
+
+	public List<Vector3d> getPoints() {
+		List<Vector3d> points = new ArrayList<Vector3d>();
+		for(int i=0;i<vertCount;i++)
+			points.add(vertexAt(i));
+		return points;
 	}
 
 }

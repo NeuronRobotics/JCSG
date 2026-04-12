@@ -84,12 +84,19 @@ public class STL {
 	 *             if loading failed
 	 * @throws ColinearPointsException 
 	 */
-	public static CSG file(Path path) throws IOException, ColinearPointsException {
+	public static CSG file(Path path) throws IOException {
 		STLLoader loader = new STLLoader();
 
 		ArrayList<Polygon> polygons = loader.parse(path.toFile());
 
-		CSG fromPolygons = new CSG(polygons);
+		CSG fromPolygons;
+		try {
+			fromPolygons = new CSG(polygons);
+		} catch (ColinearPointsException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			fromPolygons= new CSG();
+		}
 		return fromPolygons;
 	}
 }

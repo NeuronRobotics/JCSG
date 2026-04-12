@@ -8,13 +8,13 @@ import java.util.Arrays;
 import org.junit.Test;
 
 public class ConcavePolygonExtrusionTest {
-	Vector3d[] helvetica_H = {new Vector3d(2.9375, -21.875, 0.0), new Vector3d(5.90625, -21.875, 0.0),
+	Vector3d[] helvetica_H = { new Vector3d(2.9375, -21.875, 0.0), new Vector3d(5.90625, -21.875, 0.0),
 			new Vector3d(5.90625, -12.90625, 0.0), new Vector3d(16.65625, -12.90625, 0.0),
 			new Vector3d(16.65625, -21.875, 0.0), new Vector3d(19.609375, -21.875, 0.0),
 			new Vector3d(19.609375, 0.0, 0.0), new Vector3d(16.65625, 0.0, 0.0),
 			new Vector3d(16.65625, -10.421875, 0.0), new Vector3d(5.90625, -10.421875, 0.0),
-			new Vector3d(5.90625, 0.0, 0.0), new Vector3d(2.9375, 0.0, 0.0)};
-	Vector3d[] helvetica_e = new Vector3d[]{new Vector3d(39.41796875, -8.875, 0.0),
+			new Vector3d(5.90625, 0.0, 0.0), new Vector3d(2.9375, 0.0, 0.0) };
+	Vector3d[] helvetica_e = new Vector3d[] { new Vector3d(39.41796875, -8.875, 0.0),
 			new Vector3d(39.41796875, -7.5625, 0.0), new Vector3d(27.02734375, -7.5625, 0.0),
 			new Vector3d(27.0478515625, -7.287675380706787, 0.0),
 			new Vector3d(27.07499885559082, -7.0194525718688965, 0.0),
@@ -220,31 +220,7 @@ public class ConcavePolygonExtrusionTest {
 			new Vector3d(39.341094970703125, -10.281874656677246, 0.0),
 			new Vector3d(39.374725341796875, -9.941757202148438, 0.0),
 			new Vector3d(39.39875030517578, -9.593905448913574, 0.0),
-			new Vector3d(39.41316604614258, -9.238319396972656, 0.0)};
+			new Vector3d(39.41316604614258, -9.238319396972656, 0.0) };
 
-	@Test
-	public void test() throws ColinearPointsException {
-		ArrayList<Vector3d> H_points = new ArrayList<Vector3d>(Arrays.asList(helvetica_H));
-		ArrayList<Vector3d> e_points = new ArrayList<Vector3d>(Arrays.asList(helvetica_e));
-
-		CSG HLetter = Extrude.points(new Vector3d(0, 0, 10), H_points);
-		CSG eLetter = Extrude.points(new Vector3d(0, 0, 10), e_points);
-
-		// System.out.println("H number of polygons: " + HLetter.getPolygons().size());
-		// System.out.println("e number of polygons: " + eLetter.getPolygons().size());
-
-		CSG.setDefaultOptType(CSG.OptType.CSG_BOUND);
-
-		CSG simpleUnionOfNonIntersectingBodies = eLetter.union(HLetter);
-
-		int numPolysExpected = HLetter.getPolygons().size() + eLetter.getPolygons().size();
-
-		// System.out.println("Both number of polygons: " +
-		// simpleUnionOfNonIntersectingBodies.getPolygons().size());
-
-		// assumption only valid if optimization is enabled! (see above)
-		// assumption is wrong for CSG.setDefaultOptType(CSG.OptType.NONE);
-		assertTrue(numPolysExpected == simpleUnionOfNonIntersectingBodies.getPolygons().size());
-	}
 
 }

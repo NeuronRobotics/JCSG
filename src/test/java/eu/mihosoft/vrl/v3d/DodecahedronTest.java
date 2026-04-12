@@ -17,8 +17,8 @@ public class DodecahedronTest {
 		CSG box = new Cube(3 * radius).toCSG().difference(new Cube(2 * radius).toCSG());
 		CSG insphere = new Sphere(0.794654472292 * radius).toCSG();
 
-		assertTrue(dodecahedron.intersect(box).getPolygons().size() == 0);
-		assertTrue(insphere.difference(dodecahedron).getPolygons().size() == 0);
+		assertTrue(dodecahedron.intersect(box).getNumberOfTriangles() == 0);
+		assertTrue(insphere.difference(dodecahedron).getNumberOfTriangles() == 0);
 
 		FileUtil.write(Paths.get("dodecahedron.stl"), dodecahedron.toStlString());
 	}

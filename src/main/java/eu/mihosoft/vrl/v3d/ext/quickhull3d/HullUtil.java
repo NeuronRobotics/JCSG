@@ -34,6 +34,7 @@ public class HullUtil {
 	 * @param points
 	 *            the points
 	 * @return the csg
+	 * @throws ColinearPointsException 
 	 */
 	public static CSG hull(List<?> points) {
 		List<Vector3d> plist = new ArrayList<>();
@@ -42,9 +43,12 @@ public class HullUtil {
 			return hull(plist, new PropertyStorage());
 		}
 		if (CSG.class.isInstance(points.get(0))) {
-			for (Object csg : points)
-				((CSG) csg).getPolygons().forEach((p) -> p.getVertices().forEach((v) -> plist.add(v.pos)));
-
+			for (Object csg : points) {
+				CSG csg2 = (CSG) csg;
+				for(int i=0;i<csg2.getNumberOfTriangles()*3;i++) {
+					plist.add(csg2.vertexAt(i));
+				}
+			}
 			return hull(plist, new PropertyStorage());
 		}
 		throw new RuntimeException("Objects in list are of unknown type: " + points.get(0).getClass().getName()
@@ -59,8 +63,9 @@ public class HullUtil {
 	 * @param storage
 	 *            the storage
 	 * @return the csg
+	 * @throws ColinearPointsException 
 	 */
-	public static CSG hull(List<Vector3d> points, PropertyStorage storage) {
+	public static CSG hull(List<Vector3d> points, PropertyStorage storage)  {
 		if (CSGClient.isRunning()) {
 			try {
 				CSG csg = CSGClient.getClient().hull(points, new PropertyStorage()).get(0);
@@ -99,7 +104,13 @@ public class HullUtil {
 			vertices.clear();
 		}
 
-		return CSG.fromPolygons(polygons);
+		try {
+			return new CSG(polygons);
+		} catch (ColinearPointsException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return new CSG();
+		}
 	}
 
 	/**
@@ -113,10 +124,8 @@ public class HullUtil {
 	 */
 	public static CSG hull(CSG csg, PropertyStorage storage) {
 
-		List<Vector3d> points = new ArrayList<>(csg.getPolygons().size() * 3);
-
-		csg.getPolygons().forEach((p) -> p.getVertices().forEach((v) -> points.add(v.pos)));
-
+		List<Vector3d> points = csg.getPoints();
+		
 		return hull(points, storage);
 	}
 
@@ -131,8 +140,7 @@ public class HullUtil {
 
 		List<Vector3d> points = new ArrayList<>();
 		for (CSG csg : csgList)
-			csg.getPolygons().forEach((p) -> p.getVertices().forEach((v) -> points.add(v.pos)));
-
+			points.addAll(csg.getPoints());
 		return hull(points, new PropertyStorage());
 	}
 }

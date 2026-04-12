@@ -22,7 +22,7 @@ public class SliceTest {
 		List<Polygon> polygons = Slice.slice(carrot, new Transform(), 0);
 
 		// Construct a CSG from that Polygon List
-		CSG finished = CSG.fromPolygons(new ArrayList<>(polygons));
+		CSG finished = new CSG(new ArrayList<>(polygons));
 
 		// System.out.println(finished.toStlString());
 	}
@@ -36,7 +36,7 @@ public class SliceTest {
 		List<Polygon> polygons = Slice.slice(carrot, new Transform(), 0);
 
 		// Construct a CSG from that Polygon List
-		CSG finished = CSG.fromPolygons(new ArrayList<>(polygons));
+		CSG finished = new CSG(new ArrayList<>(polygons));
 
 		// System.out.println(finished.toStlString());
 	}
