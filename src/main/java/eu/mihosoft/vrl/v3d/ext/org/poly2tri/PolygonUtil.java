@@ -594,6 +594,10 @@ public class PolygonUtil {
 			return result;
 		if (incoming.getVertices().size() < 3)
 			return result;
+		if (incoming.getVertices().size() == 3) {
+			result.add(incoming);
+			return result;
+		}
 		Polygon tmp = incoming;
 		Vector3d normalOfPlane = incoming.getPlane().getNormal().clone();
 		normalOfPlane.normalize();
