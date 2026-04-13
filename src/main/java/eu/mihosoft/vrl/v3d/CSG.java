@@ -307,9 +307,13 @@ public class CSG implements IuserAPI, Serializable {
 			}
 		}
 
-		if (triList.isEmpty())
-			throw new IllegalArgumentException("CSG produced no valid triangles after triangulation");
-
+		if (triList.isEmpty()) {
+			vertices = new double[0];
+			triangles = new long[0];
+			vertCount=0;
+			triCount=0;
+			return this;
+		}
 		vertCount = vertexList.size();
 		triCount = triList.size() / 3;
 
