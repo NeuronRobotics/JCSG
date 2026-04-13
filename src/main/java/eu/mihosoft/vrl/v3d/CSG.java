@@ -166,7 +166,12 @@ public class CSG implements IuserAPI, Serializable {
 	// GPU processing
 	transient private static boolean useGPU = false;
 	transient private static int ExtraSpace = 100;
-	transient private static ICSGProgress progressMoniter=new ICSGProgress(){@Override public void progressUpdate(int currentIndex,int finalIndex,String type,CSG intermediateShape){System.err.println(type+"  cur:"+currentIndex+" of "+finalIndex);}};
+	transient private static ICSGProgress progressMoniter = new ICSGProgress() {
+		@Override
+		public void progressUpdate(int currentIndex, int finalIndex, String type, CSG intermediateShape) {
+			System.err.println(type + "  cur:" + currentIndex + " of " + finalIndex);
+		}
+	};
 	transient private static ForkJoinPool poolGlobal = null;
 
 	/** The polygons. */
@@ -243,8 +248,11 @@ public class CSG implements IuserAPI, Serializable {
 		ArrayList<Polygon> polygons = new ArrayList<Polygon>();
 
 		for (long t = 0; t < triCount; t++) {
-			int base =(int) (t * 3);
-			polygons.add(getPolygonByIndex(base));
+			try {
+				polygons.add(getPolygonByIndex((int) t));
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
 		}
 		return polygons;
 	}
@@ -253,6 +261,7 @@ public class CSG implements IuserAPI, Serializable {
 		long base = index * 3;
 		return new Vector3d(verts[(int) base], verts[(int) (base + 1)], verts[(int) (base + 2)]);
 	}
+
 	public Vector3d vertexAt(long i) {
 		return vertexAt(vertices, i);
 	}
@@ -277,16 +286,14 @@ public class CSG implements IuserAPI, Serializable {
 		// Use a tolerance-free exact key so we don't merge
 		// numerically-close-but-distinct verts.
 		Map<String, Integer> vertexIndex = new HashMap<>();
-		List<double[]> vertexList = new ArrayList<>();
+		List<Vector3d> vertexList = new ArrayList<>();
 		List<Long> triList = new ArrayList<>();
 
 		for (Polygon incoming : polygons) {
 			for (Polygon poly : PolygonUtil.triangulatePolygon(incoming)) {
 				List<Vertex> pverts = poly.getVertices();
-				if (pverts == null || pverts.size() < 3)
+				if (pverts == null || pverts.size() != 3)
 					continue;
-
-				// Fan triangulation: (0,1,2), (0,2,3), (0,3,4), ...
 				int i0 = intern(pverts.get(0), vertexIndex, vertexList);
 				int i1 = intern(pverts.get(1), vertexIndex, vertexList);
 				int i2 = intern(pverts.get(2), vertexIndex, vertexList);
@@ -305,30 +312,50 @@ public class CSG implements IuserAPI, Serializable {
 		if (triList.isEmpty())
 			throw new IllegalArgumentException("CSG produced no valid triangles after triangulation");
 
-		long nVerts = vertexList.size();
-		long nTris = triList.size() / 3;
+		vertCount = vertexList.size();
+		triCount = triList.size() / 3;
 
 		// Flatten vertex list into a primitive array.
-		double[] vertices = new double[(int) (nVerts * 3)];
-		for (int i = 0; i < nVerts; i++) {
-			double[] v = vertexList.get(i);
-			vertices[i * 3] = v[0];
-			vertices[i * 3 + 1] = v[1];
-			vertices[i * 3 + 2] = v[2];
+		vertices = new double[(int) (vertCount * 3)];
+		for (int i = 0; i < vertCount; i++) {
+			Vector3d v = vertexList.get(i);
+			vertices[i * 3] = v.x;
+			vertices[i * 3 + 1] = v.y;
+			vertices[i * 3 + 2] = v.z;
 		}
 
 		// Flatten triangle index list.
-		long[] triangles = new long[triList.size()];
-		for (int i = 0; i < triList.size(); i++) {
+		triangles = new long[(int) triCount*3];
+		for (int i = 0; i < triangles.length; i++) {
 			triangles[i] = triList.get(i);
 		}
-		this.vertices = vertices;
-		this.triangles = triangles;
-		this.vertCount = nVerts;
-		this.triCount = nTris;
 		return this;
 	}
+	/**
+	 * Returns the index of {@code v} in {@code vertexList}, inserting it if not
+	 * already present. The key is an exact string representation of (x, y, z) using
+	 * {@link Double#toHexString} so that only bit-identical positions are merged,
+	 * matching the BSP's behavior.
+	 */
+	private static int intern(Vertex v, Map<String, Integer> index, List<Vector3d> list) {
+		// 1. Lower the precision slightly. 1e9 is too high for 'double' stability 
+		// after multiple CSG operations. 1e7 (0.1 nanometer) is the "sweet spot".
+		double precision = 1e9;
 
+		long x = Math.round(v.pos.x * precision);
+		long y = Math.round(v.pos.y * precision);
+		long z = Math.round(v.pos.z * precision);
+
+		String key = x + "_" + y + "_" + z;
+
+		return index.computeIfAbsent(key, k -> {
+			int idx = list.size();
+			// Use the RAW position for the first instance of this vertex.
+			// This keeps the geometry as true to the BSP as possible.
+			list.add(v.pos.clone());
+			return idx;
+		});
+	}
 	/**
 	 * Gets the polygons.
 	 *
@@ -360,31 +387,7 @@ public class CSG implements IuserAPI, Serializable {
 		return triCount;
 	}
 
-	/**
-	 * Returns the index of {@code v} in {@code vertexList}, inserting it if not
-	 * already present. The key is an exact string representation of (x, y, z) using
-	 * {@link Double#toHexString} so that only bit-identical positions are merged,
-	 * matching the BSP's behavior.
-	 */
-	private static int intern(Vertex v, Map<String, Integer> index, List<double[]> list) {
-		// 1. Lower the precision slightly. 1e9 is too high for 'double' stability 
-		// after multiple CSG operations. 1e7 (0.1 nanometer) is the "sweet spot".
-		double precision = 1e7;
 
-		long x = Math.round(v.pos.x * precision);
-		long y = Math.round(v.pos.y * precision);
-		long z = Math.round(v.pos.z * precision);
-
-		String key = x + "," + y + "," + z;
-
-		return index.computeIfAbsent(key, k -> {
-			int idx = list.size();
-			// Use the RAW position for the first instance of this vertex.
-			// This keeps the geometry as true to the BSP as possible.
-			list.add(new double[] { v.pos.x, v.pos.y, v.pos.z });
-			return idx;
-		});
-	}
 
 	public CSG setID(CSG dying) {
 		uniqueId = dying.uniqueId;
@@ -2339,8 +2342,7 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	public static List<ForkJoinWorkerThread> getForkJoinWorkers(ForkJoinPool pool) {
-		return Thread.getAllStackTraces().keySet().stream().filter(
-				thread -> thread instanceof ForkJoinWorkerThread)
+		return Thread.getAllStackTraces().keySet().stream().filter(thread -> thread instanceof ForkJoinWorkerThread)
 				.map(thread -> (ForkJoinWorkerThread) thread).collect(Collectors.toList());
 	}
 
@@ -2970,8 +2972,6 @@ public class CSG implements IuserAPI, Serializable {
 		this.optType = optType;
 		return this;
 	}
-
-
 
 
 	/**
