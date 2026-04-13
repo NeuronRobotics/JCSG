@@ -85,7 +85,8 @@ public class ServerClientTest {
 				fail();
 			CSG d = a.difference(b, dif);
 			if (testPoly(d1, d))
-				fail("Difference Step fail , expected " + d1.getNumberOfTriangles() + " got " + d.getNumberOfTriangles());
+				fail("Difference Step fail , expected " + d1.getNumberOfTriangles() + " got "
+						+ d.getNumberOfTriangles());
 			CSG t = d.clone().triangulate(true);
 			if (testPoly(t1, t))
 				fail();
@@ -123,7 +124,7 @@ public class ServerClientTest {
 		}
 		ArrayList<Polygon> p1p = p1.generatePolygonsFromMesh();
 		ArrayList<Polygon> p2p = p2.generatePolygonsFromMesh();
-		
+
 		for (int i = 0; i < size1; i++) {
 			Polygon poly1 = p1p.get(i);
 			Polygon poly2 = p2p.get(i);

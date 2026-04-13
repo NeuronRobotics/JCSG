@@ -35,7 +35,6 @@ package eu.mihosoft.vrl.v3d;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import eu.mihosoft.vrl.v3d.ext.quickhull3d.HullUtil;
 
@@ -249,12 +248,12 @@ public class Cylinder extends Primitive {
 		final Vector3d axisY = axisX.cross(axisZ).normalized();
 		Vector3d startV = s;
 		Vector3d endV = e;
-		//List<Polygon> polygons = new ArrayList<>();
+		// List<Polygon> polygons = new ArrayList<>();
 		ArrayList<Vector3d> points = new ArrayList<Vector3d>();
 		for (int i = 0; i < numSlices; i++) {
 			double t0 = i / (double) numSlices, t1 = (i + 1) / (double) numSlices;
 			points.addAll(Arrays.asList(startV, cylPoint(axisX, axisY, axisZ, ray, s, startRadius, 0, t0, -1),
-							cylPoint(axisX, axisY, axisZ, ray, s, startRadius, 0, t1, -1)));
+					cylPoint(axisX, axisY, axisZ, ray, s, startRadius, 0, t1, -1)));
 			points.addAll(Arrays.asList(cylPoint(axisX, axisY, axisZ, ray, s, startRadius, 0, t1, 0),
 					cylPoint(axisX, axisY, axisZ, ray, s, startRadius, 0, t0, 0),
 					cylPoint(axisX, axisY, axisZ, ray, s, endRadius, 1, t0, 0),

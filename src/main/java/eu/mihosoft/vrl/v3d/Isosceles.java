@@ -1,7 +1,5 @@
 package eu.mihosoft.vrl.v3d;
 
-import java.util.List;
-
 public class Isosceles extends Primitive {
 	double w, h, d;
 

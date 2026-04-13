@@ -3,8 +3,6 @@
  */
 package eu.mihosoft.vrl.v3d;
 
-import java.util.List;
-
 public class Hexagon extends Primitive {
 
 	/**

@@ -51,7 +51,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -150,8 +149,8 @@ public class CSG implements IuserAPI, Serializable {
 		/** The csg bound. */
 		CSG_BOUND,
 
-		//		/** The polygon bound. */
-		//		POLYGON_BOUND,
+		// /** The polygon bound. */
+		// POLYGON_BOUND,
 
 		/** The none. */
 		NONE
@@ -175,7 +174,7 @@ public class CSG implements IuserAPI, Serializable {
 	transient private static ForkJoinPool poolGlobal = null;
 
 	/** The polygons. */
-	//private ArrayList<Polygon> polygons;
+	// private ArrayList<Polygon> polygons;
 
 	/** The default opt type. */
 
@@ -208,7 +207,6 @@ public class CSG implements IuserAPI, Serializable {
 
 	private int pointsAdded;
 	private String uniqueId = UUID.randomUUID().toString();
-
 
 	private double[] vertices;
 	private long[] triangles;
@@ -325,7 +323,7 @@ public class CSG implements IuserAPI, Serializable {
 		}
 
 		// Flatten triangle index list.
-		triangles = new long[(int) triCount*3];
+		triangles = new long[(int) triCount * 3];
 		for (int i = 0; i < triangles.length; i++) {
 			triangles[i] = triList.get(i);
 		}
@@ -338,7 +336,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * matching the BSP's behavior.
 	 */
 	private static int intern(Vertex v, Map<String, Integer> index, List<Vector3d> list) {
-		// 1. Lower the precision slightly. 1e9 is too high for 'double' stability 
+		// 1. Lower the precision slightly. 1e9 is too high for 'double' stability
 		// after multiple CSG operations. 1e7 (0.1 nanometer) is the "sweet spot".
 		double precision = 1e9;
 
@@ -376,7 +374,7 @@ public class CSG implements IuserAPI, Serializable {
 	 *
 	 * @param polygons
 	 *            the new polygons
-	 * @throws ColinearPointsException 
+	 * @throws ColinearPointsException
 	 */
 	public CSG setPolygons(ArrayList<Polygon> polygons) throws ColinearPointsException {
 		processPolygonsToTriangles(polygons);
@@ -386,8 +384,6 @@ public class CSG implements IuserAPI, Serializable {
 	public long getNumberOfTriangles() {
 		return triCount;
 	}
-
-
 
 	public CSG setID(CSG dying) {
 		uniqueId = dying.uniqueId;
@@ -454,8 +450,8 @@ public class CSG implements IuserAPI, Serializable {
 		g = color.getGreen();
 		b = color.getBlue();
 		o = color.getOpacity();
-		//		for (Polygon p : polygons)
-		//			p.setColor(color);
+		// for (Polygon p : polygons)
+		// p.setColor(color);
 		return this;
 	}
 
@@ -502,7 +498,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * Gets the mesh.
 	 *
 	 * @return the mesh
-	 * @throws ColinearPointsException 
+	 * @throws ColinearPointsException
 	 */
 	public MeshView getMesh() {
 		if (getCurrentMeshView() != null)
@@ -515,7 +511,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * Gets the mesh.
 	 *
 	 * @return the mesh
-	 * @throws ColinearPointsException 
+	 * @throws ColinearPointsException
 	 */
 	public MeshView newMesh() {
 
@@ -921,65 +917,67 @@ public class CSG implements IuserAPI, Serializable {
 		return this.transformed(new Transform().scale(scaleValue.doubleValue()));
 	}
 
-	//	/**
-	//	 * Constructs a CSG from a list of {@link Polygon} instances.
-	//	 *
-	//	 * @param polygons
-	//	 *            polygons
-	//	 * @return a CSG instance
-	//	 */
-	//	public static CSG fromPolygons(ArrayList<Polygon> polygons) {
+	// /**
+	// * Constructs a CSG from a list of {@link Polygon} instances.
+	// *
+	// * @param polygons
+	// * polygons
+	// * @return a CSG instance
+	// */
+	// public static CSG fromPolygons(ArrayList<Polygon> polygons) {
 	//
-	//		CSG csg = new CSG();
-	//		csg.setPolygons(polygons);
-	//		return csg;
-	//	}
+	// CSG csg = new CSG();
+	// csg.setPolygons(polygons);
+	// return csg;
+	// }
 	//
-	//	/**
-	//	 * Constructs a CSG from the specified {@link Polygon} instances.
-	//	 *
-	//	 * @param polygons
-	//	 *            polygons
-	//	 * @return a CSG instance
-	//	 */
-	//	public static CSG fromPolygons(Polygon... polygons) {
-	//		return fromPolygons(new ArrayList<>(Arrays.asList(polygons)));
-	//	}
+	// /**
+	// * Constructs a CSG from the specified {@link Polygon} instances.
+	// *
+	// * @param polygons
+	// * polygons
+	// * @return a CSG instance
+	// */
+	// public static CSG fromPolygons(Polygon... polygons) {
+	// return fromPolygons(new ArrayList<>(Arrays.asList(polygons)));
+	// }
 	//
-	//	/**
-	//	 * Constructs a CSG from a list of {@link Polygon} instances.
-	//	 *
-	//	 * @param storage
-	//	 *            shared storage
-	//	 * @param polygons
-	//	 *            polygons
-	//	 * @return a CSG instance
-	//	 */
-	//	public static CSG fromPolygons(PropertyStorage storage, ArrayList<Polygon> polygons) {
+	// /**
+	// * Constructs a CSG from a list of {@link Polygon} instances.
+	// *
+	// * @param storage
+	// * shared storage
+	// * @param polygons
+	// * polygons
+	// * @return a CSG instance
+	// */
+	// public static CSG fromPolygons(PropertyStorage storage, ArrayList<Polygon>
+	// polygons) {
 	//
-	//		CSG csg = new CSG();
-	//		csg.setPolygons(polygons);
+	// CSG csg = new CSG();
+	// csg.setPolygons(polygons);
 	//
-	//		csg.setStorage(storage);
+	// csg.setStorage(storage);
 	//
-	//		for (Polygon polygon : polygons) {
-	//			polygon.setStorage(storage);
-	//		}
-	//		return csg;
-	//	}
+	// for (Polygon polygon : polygons) {
+	// polygon.setStorage(storage);
+	// }
+	// return csg;
+	// }
 	//
-	//	/**
-	//	 * Constructs a CSG from the specified {@link Polygon} instances.
-	//	 *
-	//	 * @param storage
-	//	 *            shared storage
-	//	 * @param polygons
-	//	 *            polygons
-	//	 * @return a CSG instance
-	//	 */
-	//	public static CSG fromPolygons(PropertyStorage storage, Polygon... polygons) {
-	//		return fromPolygons(storage, new ArrayList<>(Arrays.asList(polygons)));
-	//	}
+	// /**
+	// * Constructs a CSG from the specified {@link Polygon} instances.
+	// *
+	// * @param storage
+	// * shared storage
+	// * @param polygons
+	// * polygons
+	// * @return a CSG instance
+	// */
+	// public static CSG fromPolygons(PropertyStorage storage, Polygon... polygons)
+	// {
+	// return fromPolygons(storage, new ArrayList<>(Arrays.asList(polygons)));
+	// }
 
 	/*
 	 * (non-Javadoc)
@@ -996,7 +994,6 @@ public class CSG implements IuserAPI, Serializable {
 	public CSG cloneShallow() {
 		return new CSG(vertices.clone(), triangles.clone(), vertCount, triCount);
 	}
-
 
 	/**
 	 * Defines the CSg optimization type.
@@ -1053,13 +1050,13 @@ public class CSG implements IuserAPI, Serializable {
 		// triangulate();
 		// csg.triangulate();
 		switch (getOptType()) {
-		case CSG_BOUND:
-			return _unionCSGBoundsOpt(csg).historySync(this).historySync(csg);
-		//			case POLYGON_BOUND :
-		//				return _unionPolygonBoundsOpt(csg).historySync(this).historySync(csg);
-		default:
-			// return _unionIntersectOpt(csg);
-			return _unionNoOpt(csg).historySync(this).historySync(csg);
+			case CSG_BOUND :
+				return _unionCSGBoundsOpt(csg).historySync(this).historySync(csg);
+			// case POLYGON_BOUND :
+			// return _unionPolygonBoundsOpt(csg).historySync(this).historySync(csg);
+			default :
+				// return _unionIntersectOpt(csg);
+				return _unionNoOpt(csg).historySync(this).historySync(csg);
 		}
 	}
 
@@ -1076,7 +1073,7 @@ public class CSG implements IuserAPI, Serializable {
 	 *            csg
 	 *
 	 * @return a csg consisting of the polygons of this csg and the specified csg
-	 * @throws ColinearPointsException 
+	 * @throws ColinearPointsException
 	 */
 	public CSG dumbUnion(CSG csg) {
 		// boolean tri = triangulated && csg.triangulated;
@@ -1341,38 +1338,38 @@ public class CSG implements IuserAPI, Serializable {
 	 *            the csg
 	 * @return the csg
 	 */
-	//	private CSG _unionPolygonBoundsOpt(CSG csg) {
-	//		ArrayList<Polygon> inner = new ArrayList<>();
-	//		ArrayList<Polygon> outer = new ArrayList<>();
+	// private CSG _unionPolygonBoundsOpt(CSG csg) {
+	// ArrayList<Polygon> inner = new ArrayList<>();
+	// ArrayList<Polygon> outer = new ArrayList<>();
 	//
-	//		Bounds b = csg.getBounds();
+	// Bounds b = csg.getBounds();
 	//
-	//		this.getPolygons().stream().forEach((p) -> {
-	//			if (b.intersects(p.getBounds())) {
-	//				inner.add(p);
-	//			} else {
-	//				outer.add(p);
-	//			}
-	//		});
+	// this.getPolygons().stream().forEach((p) -> {
+	// if (b.intersects(p.getBounds())) {
+	// inner.add(p);
+	// } else {
+	// outer.add(p);
+	// }
+	// });
 	//
-	//		ArrayList<Polygon> allPolygons = new ArrayList<>();
+	// ArrayList<Polygon> allPolygons = new ArrayList<>();
 	//
-	//		if (!inner.isEmpty()) {
-	//			CSG innerCSG = CSG.fromPolygons(inner);
+	// if (!inner.isEmpty()) {
+	// CSG innerCSG = CSG.fromPolygons(inner);
 	//
-	//			allPolygons.addAll(outer);
-	//			allPolygons.addAll(innerCSG._unionNoOpt(csg).getPolygons());
-	//		} else {
-	//			allPolygons.addAll(this.getPolygons());
-	//			allPolygons.addAll(csg.getPolygons());
-	//		}
-	//		bounds = null;
-	//		CSG back = CSG.fromPolygons(allPolygons).optimization(getOptType());
-	//		if (getName().length() != 0 && csg.getName().length() != 0) {
-	//			back.setName(name);
-	//		}
-	//		return back;
-	//	}
+	// allPolygons.addAll(outer);
+	// allPolygons.addAll(innerCSG._unionNoOpt(csg).getPolygons());
+	// } else {
+	// allPolygons.addAll(this.getPolygons());
+	// allPolygons.addAll(csg.getPolygons());
+	// }
+	// bounds = null;
+	// CSG back = CSG.fromPolygons(allPolygons).optimization(getOptType());
+	// if (getName().length() != 0 && csg.getName().length() != 0) {
+	// back.setName(name);
+	// }
+	// return back;
+	// }
 
 	/**
 	 * Optimizes for intersection. If csgs do not intersect create a new csg that
@@ -1382,7 +1379,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * @param csg
 	 *            csg
 	 * @return the union of this csg and the specified csg
-	 * @throws ColinearPointsException 
+	 * @throws ColinearPointsException
 	 */
 	private CSG _unionIntersectOpt(CSG csg) throws ColinearPointsException {
 		boolean intersects = false;
@@ -1577,12 +1574,12 @@ public class CSG implements IuserAPI, Serializable {
 			// polygons
 			if (this.getNumberOfTriangles() > 0 && csg.getNumberOfTriangles() > 0) {
 				switch (getOptType()) {
-				case CSG_BOUND:
-					return _differenceCSGBoundsOpt(csg).historySync(this).historySync(csg);
-				//					case POLYGON_BOUND :
-				//						return _differencePolygonBoundsOpt(csg).historySync(this).historySync(csg);
-				default:
-					return _differenceNoOpt(csg).historySync(this).historySync(csg);
+					case CSG_BOUND :
+						return _differenceCSGBoundsOpt(csg).historySync(this).historySync(csg);
+					// case POLYGON_BOUND :
+					// return _differencePolygonBoundsOpt(csg).historySync(this).historySync(csg);
+					default :
+						return _differenceNoOpt(csg).historySync(this).historySync(csg);
 				}
 			} else
 				return this;
@@ -1629,31 +1626,31 @@ public class CSG implements IuserAPI, Serializable {
 	 *            the csg
 	 * @return the csg
 	 */
-	//	private CSG _differencePolygonBoundsOpt(CSG csg) {
-	//		ArrayList<Polygon> inner = new ArrayList<>();
-	//		ArrayList<Polygon> outer = new ArrayList<>();
+	// private CSG _differencePolygonBoundsOpt(CSG csg) {
+	// ArrayList<Polygon> inner = new ArrayList<>();
+	// ArrayList<Polygon> outer = new ArrayList<>();
 	//
-	//		Bounds bounds = csg.getBounds();
+	// Bounds bounds = csg.getBounds();
 	//
-	//		this.getPolygons().stream().forEach((p) -> {
-	//			if (bounds.intersects(p.getBounds())) {
-	//				inner.add(p);
-	//			} else {
-	//				outer.add(p);
-	//			}
-	//		});
+	// this.getPolygons().stream().forEach((p) -> {
+	// if (bounds.intersects(p.getBounds())) {
+	// inner.add(p);
+	// } else {
+	// outer.add(p);
+	// }
+	// });
 	//
-	//		CSG innerCSG = CSG.fromPolygons(inner);
+	// CSG innerCSG = CSG.fromPolygons(inner);
 	//
-	//		ArrayList<Polygon> allPolygons = new ArrayList<>();
-	//		allPolygons.addAll(outer);
-	//		allPolygons.addAll(innerCSG._differenceNoOpt(csg).getPolygons());
-	//		CSG BACK = CSG.fromPolygons(allPolygons).optimization(getOptType());
-	//		if (getName().length() != 0 && csg.getName().length() != 0) {
-	//			BACK.setName(name);
-	//		}
-	//		return BACK;
-	//	}
+	// ArrayList<Polygon> allPolygons = new ArrayList<>();
+	// allPolygons.addAll(outer);
+	// allPolygons.addAll(innerCSG._differenceNoOpt(csg).getPolygons());
+	// CSG BACK = CSG.fromPolygons(allPolygons).optimization(getOptType());
+	// if (getName().length() != 0 && csg.getName().length() != 0) {
+	// BACK.setName(name);
+	// }
+	// return BACK;
+	// }
 
 	/**
 	 * _difference no opt.
@@ -1901,9 +1898,9 @@ public class CSG implements IuserAPI, Serializable {
 		return this;
 	}
 
-	//	public CSG snapPoints() throws ColinearPointsException {
-	//		return triangulate(false, true);
-	//	}
+	// public CSG snapPoints() throws ColinearPointsException {
+	// return triangulate(false, true);
+	// }
 
 	public CSG triangulate(boolean fix, boolean justSnap) throws ColinearPointsException {
 		// if (fix && needsDegeneratesPruned)
@@ -2032,7 +2029,7 @@ public class CSG implements IuserAPI, Serializable {
 		int[] added = new int[numberOfPolygons];
 		int testPointChunk = 1000;
 		int snapChunk = 1000;
-		int[] tp = new int[] { 0, snapChunk };
+		int[] tp = new int[]{0, snapChunk};
 
 		// Aparapi-compatible kernel with flattened data
 		Kernel snapPointsToDistance = new Kernel() {
@@ -2378,7 +2375,7 @@ public class CSG implements IuserAPI, Serializable {
 			progressMoniter.progressUpdate(0, 100, "CPU mode " + valueOf, null);
 			kernel.setExecutionMode(Kernel.EXECUTION_MODE.JTP); // Java Thread Pool
 		}
-		int[] iteration = new int[] { 0 };
+		int[] iteration = new int[]{0};
 
 		long begin = System.currentTimeMillis();
 		boolean print = false;
@@ -2567,7 +2564,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * @param sb
 	 *            string builder
 	 * @return the specified string builder
-	 * @throws ColinearPointsException 
+	 * @throws ColinearPointsException
 	 */
 	public StringBuilder toObjString(StringBuilder sb) {
 		triangulate(true);
@@ -2660,15 +2657,14 @@ public class CSG implements IuserAPI, Serializable {
 	 * Returns this csg in OBJ string format.
 	 *
 	 * @return this csg in OBJ string format
-	 * @throws ColinearPointsException 
+	 * @throws ColinearPointsException
 	 */
 	public String toObjString() {
 		StringBuilder sb = new StringBuilder();
 		return toObjString(sb).toString();
 	}
 
-
-	/** 
+	/**
 	 * Reverse the winding order of all the triangles
 	 */
 	private void flip() {
@@ -2739,7 +2735,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * @param interact
 	 *            the interact
 	 * @return the mesh container
-	 * @throws ColinearPointsException 
+	 * @throws ColinearPointsException
 	 */
 	// TODO finish experiment (20.7.2014)
 	public MeshContainer toJavaFXMesh(CadInteractionEvent interact) {
@@ -2766,7 +2762,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * @param interact
 	 *            the interact
 	 * @return the CSG as JavaFX triangle mesh
-	 * @throws ColinearPointsException 
+	 * @throws ColinearPointsException
 	 */
 	public MeshContainer toJavaFXMeshSimple(CadInteractionEvent interact) {
 
@@ -2797,7 +2793,7 @@ public class CSG implements IuserAPI, Serializable {
 		double maxY = Double.NEGATIVE_INFINITY;
 		double maxZ = Double.NEGATIVE_INFINITY;
 
-		//for (Polygon p : getPolygons()) {
+		// for (Polygon p : getPolygons()) {
 
 		for (int i = 0; i < vertCount; i++) {
 
@@ -2825,7 +2821,7 @@ public class CSG implements IuserAPI, Serializable {
 
 		} // end for vertices
 
-		//} // end for polygon
+		// } // end for polygon
 
 		bounds = new Bounds(new Vector3d(minX, minY, minZ), new Vector3d(maxX, maxY, maxZ));
 		return bounds;
@@ -2973,13 +2969,12 @@ public class CSG implements IuserAPI, Serializable {
 		return this;
 	}
 
-
 	/**
 	 * Hail Zeon! In case you forget the name of minkowski and are a Gundam fan
 	 *
 	 * @param travelingShape
 	 * @return
-	 * @throws ColinearPointsException 
+	 * @throws ColinearPointsException
 	 */
 	@Deprecated
 	public ArrayList<CSG> minovsky(CSG travelingShape) throws ColinearPointsException {
@@ -2992,7 +2987,7 @@ public class CSG implements IuserAPI, Serializable {
 	 *
 	 * @param travelingShape
 	 * @return
-	 * @throws ColinearPointsException 
+	 * @throws ColinearPointsException
 	 */
 	public ArrayList<CSG> mink(CSG travelingShape) throws ColinearPointsException {
 		return minkowski(travelingShape);
@@ -3008,7 +3003,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * @param travelingShape
 	 *            a shape to sweep around
 	 * @return
-	 * @throws ColinearPointsException 
+	 * @throws ColinearPointsException
 	 */
 	public ArrayList<CSG> minkowskiHullShape(CSG travelingShape) throws ColinearPointsException {
 		if (CSGClient.isRunning()) {
@@ -3058,7 +3053,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * @param travelingShape
 	 *            a shape to sweep around
 	 * @return
-	 * @throws ColinearPointsException 
+	 * @throws ColinearPointsException
 	 */
 	public ArrayList<CSG> minkowski(CSG travelingShape) throws ColinearPointsException {
 		HashMap<Vertex, CSG> map = new HashMap<>();
@@ -3083,7 +3078,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * @param minkowskiObject
 	 *            the object to represent the offset
 	 * @return
-	 * @throws ColinearPointsException 
+	 * @throws ColinearPointsException
 	 */
 	public CSG minkowskiDifference(CSG itemToDifference, CSG minkowskiObject) throws ColinearPointsException {
 		CSG intersection = this.intersect(itemToDifference);
@@ -3109,7 +3104,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * @param tolerance
 	 *            the tolerance distance
 	 * @return
-	 * @throws ColinearPointsException 
+	 * @throws ColinearPointsException
 	 */
 	public CSG minkowskiDifference(CSG itemToDifference, double tolerance) throws ColinearPointsException {
 		double shellThickness = Math.abs(tolerance);
@@ -3468,7 +3463,7 @@ public class CSG implements IuserAPI, Serializable {
 	public CSG getBoundingBox() {
 		return new Cube((-this.getMinX() + this.getMaxX()), (-this.getMinY() + this.getMaxY()),
 				(-this.getMinZ() + this.getMaxZ())).toCSG().toXMax().movex(this.getMaxX()).toYMax()
-						.movey(this.getMaxY()).toZMax().movez(this.getMaxZ());
+				.movey(this.getMaxY()).toZMax().movez(this.getMaxZ());
 	}
 
 	public String getName() {
@@ -4239,8 +4234,8 @@ public class CSG implements IuserAPI, Serializable {
 	public static List<CSG> tessellate(CSG incoming, int xSteps, int ySteps, int zSteps, double oddRowXOffset,
 			double oddRowYOffset, double oddRowZOffset, double oddColXOffset, double oddColYOffset,
 			double oddColZOffset, double oddLayXOffset, double oddLayYOffset, double oddLayZOffset) {
-		double[][] offsets = { { oddRowXOffset, oddRowYOffset, oddRowZOffset },
-				{ oddColXOffset, oddColYOffset, oddColZOffset }, { oddLayXOffset, oddLayYOffset, oddLayZOffset } };
+		double[][] offsets = {{oddRowXOffset, oddRowYOffset, oddRowZOffset},
+				{oddColXOffset, oddColYOffset, oddColZOffset}, {oddLayXOffset, oddLayYOffset, oddLayZOffset}};
 		return tessellate(incoming, xSteps, ySteps, zSteps, incoming.getTotalX(), incoming.getTotalY(),
 				incoming.getTotalZ(), offsets);
 	}
@@ -4451,6 +4446,5 @@ public class CSG implements IuserAPI, Serializable {
 	public String getUniqueId() {
 		return uniqueId;
 	}
-
 
 }

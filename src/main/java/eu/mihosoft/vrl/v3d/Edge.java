@@ -835,15 +835,16 @@ public class Edge {
 	 * @return the list
 	 * @throws ColinearPointsException
 	 */
-//	public static List<Polygon> boundaryPolygons(CSG csg) throws ColinearPointsException {
-//		List<Polygon> result = new ArrayList<>();
-//
-//		for (List<Polygon> polygonGroup : searchPlaneGroups(csg.getPolygons())) {
-//			result.addAll(boundaryPolygonsOfPlaneGroup(polygonGroup));
-//		}
-//
-//		return result;
-//	}
+	// public static List<Polygon> boundaryPolygons(CSG csg) throws
+	// ColinearPointsException {
+	// List<Polygon> result = new ArrayList<>();
+	//
+	// for (List<Polygon> polygonGroup : searchPlaneGroups(csg.getPolygons())) {
+	// result.addAll(boundaryPolygonsOfPlaneGroup(polygonGroup));
+	// }
+	//
+	// return result;
+	// }
 
 	/**
 	 * Boundary edges of plane group.

@@ -34,7 +34,7 @@ public class HullUtil {
 	 * @param points
 	 *            the points
 	 * @return the csg
-	 * @throws ColinearPointsException 
+	 * @throws ColinearPointsException
 	 */
 	public static CSG hull(List<?> points) {
 		List<Vector3d> plist = new ArrayList<>();
@@ -45,7 +45,7 @@ public class HullUtil {
 		if (CSG.class.isInstance(points.get(0))) {
 			for (Object csg : points) {
 				CSG csg2 = (CSG) csg;
-				for(int i=0;i<csg2.getNumberOfTriangles()*3;i++) {
+				for (int i = 0; i < csg2.getNumberOfTriangles() * 3; i++) {
 					plist.add(csg2.vertexAt(i));
 				}
 			}
@@ -63,9 +63,9 @@ public class HullUtil {
 	 * @param storage
 	 *            the storage
 	 * @return the csg
-	 * @throws ColinearPointsException 
+	 * @throws ColinearPointsException
 	 */
-	public static CSG hull(List<Vector3d> points, PropertyStorage storage)  {
+	public static CSG hull(List<Vector3d> points, PropertyStorage storage) {
 		if (CSGClient.isRunning()) {
 			try {
 				CSG csg = CSGClient.getClient().hull(points, new PropertyStorage()).get(0);
@@ -125,7 +125,7 @@ public class HullUtil {
 	public static CSG hull(CSG csg, PropertyStorage storage) {
 
 		List<Vector3d> points = csg.getPoints();
-		
+
 		return hull(points, storage);
 	}
 

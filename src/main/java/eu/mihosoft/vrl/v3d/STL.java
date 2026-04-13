@@ -63,7 +63,7 @@ public class STL {
 	 *             if loading failed
 	 * @throws URISyntaxException
 	 *             the URI syntax exception
-	 * @throws ColinearPointsException 
+	 * @throws ColinearPointsException
 	 */
 	public static CSG file(URL path) throws IOException, URISyntaxException, ColinearPointsException {
 		final URI uri = path.toURI();
@@ -82,7 +82,7 @@ public class STL {
 	 * @return CSG
 	 * @throws IOException
 	 *             if loading failed
-	 * @throws ColinearPointsException 
+	 * @throws ColinearPointsException
 	 */
 	public static CSG file(Path path) throws IOException {
 		STLLoader loader = new STLLoader();
@@ -95,7 +95,7 @@ public class STL {
 		} catch (ColinearPointsException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			fromPolygons= new CSG();
+			fromPolygons = new CSG();
 		}
 		return fromPolygons;
 	}

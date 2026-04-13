@@ -6,7 +6,6 @@
 package eu.mihosoft.vrl.v3d;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import eu.mihosoft.vrl.v3d.ext.quickhull3d.HullUtil;
 

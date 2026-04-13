@@ -1,7 +1,5 @@
 package eu.mihosoft.vrl.v3d;
 
-import java.util.List;
-
 public class ChamferedCylinder extends Primitive {
 	double r, h, chamferHeight;
 	int sides = -1;

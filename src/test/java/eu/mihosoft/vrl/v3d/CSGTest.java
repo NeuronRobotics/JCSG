@@ -11,9 +11,10 @@ public class CSGTest {
 		CSG cube = new Cube().toCSG().setColor(Color.BLUE);
 		assertEquals(Color.BLUE, cube.getColor());
 
-//		cube.getPolygons().forEach(polygon -> {
-//			assertEquals("Expected the polygon to get the same color as the CSG", Color.BLUE, polygon.getColor());
-//		});
+		// cube.getPolygons().forEach(polygon -> {
+		// assertEquals("Expected the polygon to get the same color as the CSG",
+		// Color.BLUE, polygon.getColor());
+		// });
 	}
 
 	@Test
@@ -71,9 +72,10 @@ public class CSGTest {
 
 		cube.setColor(Color.RED);
 
-//		cube.getPolygons().forEach(polygon -> {
-//			assertEquals("Expected the cube polygons to be another color", Color.RED, polygon.getColor());
-//		});
+		// cube.getPolygons().forEach(polygon -> {
+		// assertEquals("Expected the cube polygons to be another color", Color.RED,
+		// polygon.getColor());
+		// });
 	}
 
 	@Test

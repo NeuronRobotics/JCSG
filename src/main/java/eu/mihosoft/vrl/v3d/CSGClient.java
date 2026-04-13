@@ -171,7 +171,7 @@ public class CSGClient {
 
 			ArrayList<CSG> toSend = new ArrayList<CSG>();
 			for (CSG c : csgList) {
-				
+
 				if (c.getNumberOfTriangles() == 0) {
 					Exception ex = new Exception("No Polygons In Incoming geometry here!");
 					ex.printStackTrace();
@@ -217,7 +217,7 @@ public class CSGClient {
 					runtimeException.printStackTrace();
 					throw runtimeException;
 				}
-				CSG historySync =c.cloneShallow();
+				CSG historySync = c.cloneShallow();
 				back.add(historySync);
 				for (CSG s : csgList) {
 					historySync.historySync(s);

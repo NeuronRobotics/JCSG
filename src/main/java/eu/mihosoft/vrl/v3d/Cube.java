@@ -135,7 +135,7 @@ public class Cube extends Primitive {
 				// position // normal
 				{{0, 4, 6, 2}, {-1, 0, 0}}, {{1, 3, 7, 5}, {+1, 0, 0}}, {{0, 1, 5, 4}, {0, -1, 0}},
 				{{2, 6, 7, 3}, {0, +1, 0}}, {{0, 2, 3, 1}, {0, 0, -1}}, {{4, 5, 7, 6}, {0, 0, +1}}};
-		//List<Polygon> polygons = new ArrayList<>();
+		// List<Polygon> polygons = new ArrayList<>();
 		List<Vector3d> vertices = new ArrayList<>();
 
 		for (int[][] info : a) {
@@ -152,7 +152,7 @@ public class Cube extends Primitive {
 
 			Transform centerTransform = Transform.unity().translate(dimensions.x / 2.0, dimensions.y / 2.0,
 					dimensions.z / 2.0);
-			hull=hull.transformed(centerTransform);
+			hull = hull.transformed(centerTransform);
 		}
 
 		return hull;

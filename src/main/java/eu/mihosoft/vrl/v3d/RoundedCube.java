@@ -6,7 +6,6 @@
 package eu.mihosoft.vrl.v3d;
 
 import static eu.mihosoft.vrl.v3d.Transform.unity;
-import java.util.List;
 
 //  Auto-generated Javadoc
 /**
@@ -126,7 +125,7 @@ public class RoundedCube extends Primitive {
 			Transform centerTransform = Transform.unity().translate(dimensions.x / 2.0, dimensions.y / 2.0,
 					dimensions.z / 2.0);
 
-			back=back.transformed(centerTransform);
+			back = back.transformed(centerTransform);
 		}
 
 		return back;
