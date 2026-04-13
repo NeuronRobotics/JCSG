@@ -628,10 +628,7 @@ public class PolygonUtil {
 		// }
 		// }
 		try {
-			if (concave.size() == 3) {
-				result.add(concave);
-			} else
-				makeTriangles(concave, cw, result, zplane, normalOfPlane, debug, orientationInv, reorient,
+			makeTriangles(concave, cw, result, zplane, normalOfPlane, debug, orientationInv, reorient,
 						incoming.getColor());
 		} catch (java.lang.IllegalStateException ex) {
 
