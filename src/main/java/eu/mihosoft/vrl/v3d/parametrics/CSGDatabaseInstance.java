@@ -200,7 +200,7 @@ public class CSGDatabaseInstance {
 		// }
 	}
 
-	private ConcurrentHashMap<String, Parameter> getDatabase() {
+	public ConcurrentHashMap<String, Parameter> getDatabase() {
 		if (database == null) {
 
 			String jsonString;

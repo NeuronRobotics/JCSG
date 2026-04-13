@@ -142,6 +142,21 @@ public class CSG implements IuserAPI, Serializable {
 	transient private static HashMap<String, IRegenerate> regenerate = new HashMap<String, IRegenerate>();
 	transient private static HashMap<String, Affine> manipulator = new HashMap<String, Affine>();
 
+	/**
+	 * The Enum OptType.
+	 */
+	public static enum OptType {
+
+		/** The csg bound. */
+		CSG_BOUND,
+
+		//		/** The polygon bound. */
+		//		POLYGON_BOUND,
+
+		/** The none. */
+		NONE
+	}
+
 	transient private static OptType defaultOptType = OptType.CSG_BOUND;
 	transient private static String defaultcolor = "#007956";
 	// private boolean triangulated;
@@ -151,12 +166,7 @@ public class CSG implements IuserAPI, Serializable {
 	// GPU processing
 	transient private static boolean useGPU = false;
 	transient private static int ExtraSpace = 100;
-	transient private static ICSGProgress progressMoniter = new ICSGProgress() {
-		@Override
-		public void progressUpdate(int currentIndex, int finalIndex, String type, CSG intermediateShape) {
-			System.err.println(type + "  cur:" + currentIndex + " of " + finalIndex);
-		}
-	};
+	transient private static ICSGProgress progressMoniter=new ICSGProgress(){@Override public void progressUpdate(int currentIndex,int finalIndex,String type,CSG intermediateShape){System.err.println(type+"  cur:"+currentIndex+" of "+finalIndex);}};
 	transient private static ForkJoinPool poolGlobal = null;
 
 	/** The polygons. */
@@ -253,6 +263,24 @@ public class CSG implements IuserAPI, Serializable {
 		long base = index * 3;
 		return new Vector3d(verts[(int) base], verts[(int) (base + 1)], verts[(int) (base + 2)]);
 	}
+	public Vector3d vertexAt(long i) {
+		return vertexAt(vertices, i);
+	}
+
+	public List<Vector3d> getPoints() {
+		List<Vector3d> points = new ArrayList<Vector3d>();
+		for (int i = 0; i < vertCount; i++)
+			points.add(vertexAt(i));
+		return points;
+	}
+
+	public Polygon getPolygonByIndex(int faceIndex) throws ColinearPointsException {
+		List<Vertex> points = new ArrayList<Vertex>();
+		points.add(new Vertex(vertexAt(triangles[faceIndex * 3])));
+		points.add(new Vertex(vertexAt(triangles[faceIndex * 3 + 1])));
+		points.add(new Vertex(vertexAt(triangles[faceIndex * 3 + 2])));
+		return new Polygon(points);
+	}
 
 	public CSG processPolygonsToTriangles(ArrayList<Polygon> polygons) throws ColinearPointsException {
 		// Build an indexed triangle mesh.
@@ -311,24 +339,33 @@ public class CSG implements IuserAPI, Serializable {
 		return this;
 	}
 
-	//	/**
-	//	 * Gets the polygons.
-	//	 *
-	//	 * @return the polygons of this CSG
-	//	 */
-	//	public ArrayList<Polygon> getPolygons() {
-	//		return generatePolygonsFromMesh();
-	//	}
+	/**
+	 * Gets the polygons.
+	 *
+	 * @return the polygons of this CSG
+	 */
+	public ArrayList<Polygon> getPolygons() {
+		try {
+			return generatePolygonsFromMesh();
+		} catch (ColinearPointsException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return new ArrayList<>();
+		}
+	}
+
 	/**
 	 * Sets the polygons.
 	 *
 	 * @param polygons
 	 *            the new polygons
+	 * @throws ColinearPointsException 
 	 */
-	//	public CSG setPolygons(ArrayList<Polygon> polygons) {
-	//		processPolygonsToTriangles(polygons);
-	//		return this;
-	//	}	
+	public CSG setPolygons(ArrayList<Polygon> polygons) throws ColinearPointsException {
+		processPolygonsToTriangles(polygons);
+		return this;
+	}
+
 	public long getNumberOfTriangles() {
 		return triCount;
 	}
@@ -2312,7 +2349,8 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	public static List<ForkJoinWorkerThread> getForkJoinWorkers(ForkJoinPool pool) {
-		return Thread.getAllStackTraces().keySet().stream().filter(thread -> thread instanceof ForkJoinWorkerThread)
+		return Thread.getAllStackTraces().keySet().stream().filter(
+				thread -> thread instanceof ForkJoinWorkerThread)
 				.map(thread -> (ForkJoinWorkerThread) thread).collect(Collectors.toList());
 	}
 
@@ -2944,20 +2982,7 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 
-	/**
-	 * The Enum OptType.
-	 */
-	public static enum OptType {
 
-		/** The csg bound. */
-		CSG_BOUND,
-
-		//		/** The polygon bound. */
-		//		POLYGON_BOUND,
-
-		/** The none. */
-		NONE
-	}
 
 	/**
 	 * Hail Zeon! In case you forget the name of minkowski and are a Gundam fan
@@ -4437,25 +4462,5 @@ public class CSG implements IuserAPI, Serializable {
 		return uniqueId;
 	}
 
-	public Vector3d vertexAt(long i) {
-		return vertexAt(vertices, i);
-	}
-
-	public List<Vector3d> getPoints() {
-		List<Vector3d> points = new ArrayList<Vector3d>();
-		for (int i = 0; i < vertCount; i++)
-			points.add(vertexAt(i));
-		return points;
-	}
-
-	public Polygon getPolygonByIndex(int faceIndex) throws ColinearPointsException {
-		List<Vertex> points = new ArrayList<Vertex>();
-		points.add(new Vertex(vertexAt(triangles[faceIndex * 3])));
-		points.add(new Vertex(vertexAt(triangles[faceIndex * 3 + 1])));
-		points.add(new Vertex(vertexAt(triangles[faceIndex * 3 + 2])));
-
-
-		return new Polygon(points);
-	}
 
 }
