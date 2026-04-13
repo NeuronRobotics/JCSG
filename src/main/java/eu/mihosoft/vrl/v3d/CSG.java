@@ -237,24 +237,14 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	public ArrayList<Polygon> generatePolygonsFromMesh() throws ColinearPointsException {
-		double[] verts = vertices; // flat [x0,y0,z0, x1,y1,z1, ...]
-		long[] tris = triangles; // flat [i0,i1,i2, i3,i4,i5, ...]
-
 		if (triCount == 0)
 			return new ArrayList<>();
 
 		ArrayList<Polygon> polygons = new ArrayList<Polygon>();
 
-		for (int t = 0; t < triCount; t++) {
-			int base = t * 3;
-
-			Vector3d p0 = vertexAt(verts, (int) tris[base]);
-			Vector3d p1 = vertexAt(verts, (int) tris[base + 1]);
-			Vector3d p2 = vertexAt(verts, (int) tris[base + 2]);
-
-			List<Vertex> vertices = Arrays.asList(new Vertex(p0), new Vertex(p1), new Vertex(p2));
-
-			polygons.add(new Polygon(vertices));
+		for (long t = 0; t < triCount; t++) {
+			int base =(int) (t * 3);
+			polygons.add(getPolygonByIndex(base));
 		}
 		return polygons;
 	}
