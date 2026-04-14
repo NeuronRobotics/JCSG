@@ -66,7 +66,7 @@ public class ServerClientTest {
 			CSG u1 = a.union(b, c);
 			CSG i1 = c.intersect(b);
 			CSG d1 = a.difference(b, dif);
-			CSG t1 = d1.clone().triangulate(true);
+			CSG t1 = d1.clone().makeManifold();
 			ArrayList<CSG> m1 = a.minkowskiHullShape(b);
 			CSG h1 = u1.hull();
 
@@ -87,7 +87,7 @@ public class ServerClientTest {
 			if (testPoly(d1, d))
 				fail("Difference Step fail , expected " + d1.getNumberOfTriangles() + " got "
 						+ d.getNumberOfTriangles());
-			CSG t = d.clone().triangulate(true);
+			CSG t = d.clone().makeManifold();
 			if (testPoly(t1, t))
 				fail();
 			ArrayList<CSG> m = a.minkowskiHullShape(b);

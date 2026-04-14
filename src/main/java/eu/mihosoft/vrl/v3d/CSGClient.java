@@ -283,7 +283,6 @@ public class CSGClient {
 			CSG c = new Cube(10, 10, 10).toCSG();
 			CSG u = CSG.unionAll(a, b, c);
 			CSG d = a.difference(b);
-			CSG t = d.triangulate(true);
 			ArrayList<CSG> m = a.minkowskiHullShape(b);
 			CSGClient.close();
 		} catch (Exception e) {
