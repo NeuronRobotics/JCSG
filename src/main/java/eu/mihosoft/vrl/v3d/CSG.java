@@ -340,9 +340,8 @@ public class CSG implements IuserAPI, Serializable {
 	 * matching the BSP's behavior.
 	 */
 	private static int intern(Vertex v, Map<String, Integer> index, List<Vector3d> list) {
-		// 1. Lower the precision slightly. 1e9 is too high for 'double' stability
-		// after multiple CSG operations. 1e7 (0.1 nanometer) is the "sweet spot".
-		double precision = 1e9;
+
+		double precision = 0.0001;// 0.1d/Plane.getEPSILON();
 
 		long x = Math.round(v.pos.x * precision);
 		long y = Math.round(v.pos.y * precision);
@@ -352,8 +351,6 @@ public class CSG implements IuserAPI, Serializable {
 
 		return index.computeIfAbsent(key, k -> {
 			int idx = list.size();
-			// Use the RAW position for the first instance of this vertex.
-			// This keeps the geometry as true to the BSP as possible.
 			list.add(v.pos.clone());
 			return idx;
 		});
@@ -1874,7 +1871,9 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return the specified string builder
 	 */
 	public StringBuilder toStlString(StringBuilder sb) {
+		
 		try {
+			makeManifold();
 			sb.append("solid v3d.csg\n");
 			for (Polygon p : generatePolygonsFromMesh()) {
 				try {
@@ -1892,21 +1891,11 @@ public class CSG implements IuserAPI, Serializable {
 		}
 	}
 
-	public CSG triangulate() {
-		// return triangulate(false);
-		return this;
-	}
-
-	public CSG triangulate(boolean fix) {
-		// return triangulate(fix, false);
-		return this;
-	}
-
 	// public CSG snapPoints() throws ColinearPointsException {
 	// return triangulate(false, true);
 	// }
 
-	public CSG triangulate(boolean fix, boolean justSnap) throws ColinearPointsException {
+	public CSG makeManifold() throws ColinearPointsException {
 		// if (fix && needsDegeneratesPruned)
 		// triangulated = false;
 		// if (triangulated)
@@ -1933,10 +1922,11 @@ public class CSG implements IuserAPI, Serializable {
 		int added = 0;
 		int itr = 1;
 		if (preventNonManifoldTriangles) {
+
+			ArrayList<Polygon> polygons = generatePolygonsFromMesh();
 			do {
 				long np = vertCount;
 				long numberOfPolygons = getNumberOfTriangles();
-				ArrayList<Polygon> polygons = generatePolygonsFromMesh();
 
 				int extraSpace = ExtraSpace;
 				long longLength = 1 + np + ((numberOfPolygons + 1) * extraSpace);
@@ -1946,7 +1936,7 @@ public class CSG implements IuserAPI, Serializable {
 					System.err.println("Processing Mesh Manifold with " + longLength * 4 + " byte buffer");
 					added = 0;
 					try {
-						added = runGPUMakeManifold(itr, np, (int) longLength, numberOfPolygons, justSnap, polygons);
+						added = runGPUMakeManifold(itr, np, (int) longLength, numberOfPolygons, polygons);
 					} catch (Exception ex) {
 						ex.printStackTrace();
 					}
@@ -1958,10 +1948,16 @@ public class CSG implements IuserAPI, Serializable {
 					}
 				}
 			} while (added < 0 && itr++ < 51);
+			try {
+				processPolygonsToTriangles(polygons);
+			} catch (ColinearPointsException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		// }
-		if (!justSnap)
-			performTriangulation();
+		
+
 		// System.out.println("Complete Triangulation \n\n");
 		// now all polygons are definantly triangles
 		// triangulated = true;
@@ -1980,7 +1976,7 @@ public class CSG implements IuserAPI, Serializable {
 		// triangulation is performed when loading
 	}
 
-	private int runGPUMakeManifold(int iteration, long np, int longLength, long numPoly, boolean justSnap,
+	private int runGPUMakeManifold(int iteration, long np, int longLength, long numPoly,
 			ArrayList<Polygon> polygons) {
 		if (iteration < 0 || np <= 0 || longLength <= 0 || numPoly <= 0)
 			throw new RuntimeException("Error none of the dataa lengths can be negative nor 0");
@@ -2075,15 +2071,15 @@ public class CSG implements IuserAPI, Serializable {
 			}
 		};
 
-		gpuRun(numberOfPoints, snapPointsToDistance, done, "Snap Points Itr(" + iteration + ")", () -> {
-			tp[0] += snapChunk;
-			tp[1] += snapChunk;
-			if (tp[1] > polySizes.length)
-				tp[1] = polySizes.length;
-			if (tp[0] < polySizes.length)
-				return true;
-			return false;
-		}, iteration, polySizes.length / snapChunk);
+//		gpuRun(numberOfPoints, snapPointsToDistance, done, "Snap Points Itr(" + iteration + ")", () -> {
+//			tp[0] += snapChunk;
+//			tp[1] += snapChunk;
+//			if (tp[1] > polySizes.length)
+//				tp[1] = polySizes.length;
+//			if (tp[0] < polySizes.length)
+//				return true;
+//			return false;
+//		}, iteration, polySizes.length / snapChunk);
 		tp[0] = 0;
 		tp[1] = testPointChunk;
 		HashSet<Integer> unique = new HashSet<Integer>();
@@ -2267,7 +2263,7 @@ public class CSG implements IuserAPI, Serializable {
 			}// Run method
 		};
 		pointsAdded = 0;
-		if (!justSnap) {
+		
 			gpuRun(numberOfPolygons, findNonManifoldPoints, done, "Manifold Itr(" + iteration + ")", () -> {
 				// for (int tp = 0; tp < uniquePoints.length; tp++)
 				// Iterate through each of the test points in host thread
@@ -2299,7 +2295,7 @@ public class CSG implements IuserAPI, Serializable {
 				}
 				return false;
 			}, iteration, uniquePoints.length / testPointChunk);
-		}
+		
 		ArrayList<Polygon> newPoly = new ArrayList<>();
 		for (int i = 0; i < getNumberOfTriangles(); i++) {
 			Polygon polygon = polygons.get(i);
@@ -2338,7 +2334,7 @@ public class CSG implements IuserAPI, Serializable {
 			polygon.getPoints().clear();
 		}
 		polygons.clear();
-		polygons = newPoly;
+		polygons.addAll( newPoly);
 		return pointsAdded;
 	}
 
@@ -2571,7 +2567,12 @@ public class CSG implements IuserAPI, Serializable {
 	 * @throws ColinearPointsException
 	 */
 	public StringBuilder toObjString(StringBuilder sb) {
-		triangulate(true);
+		try {
+			makeManifold();
+		} catch (ColinearPointsException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		sb.append("# Group").append("\n");
 		sb.append("g v3d.csg\n");
 		sb.append("o " + (name == null || name.length() == 0 ? "CSG Export" : getName()) + "\n");
