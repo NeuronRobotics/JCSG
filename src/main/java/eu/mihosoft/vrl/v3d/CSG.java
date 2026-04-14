@@ -341,7 +341,7 @@ public class CSG implements IuserAPI, Serializable {
 	 */
 	private static int intern(Vertex v, Map<String, Integer> index, List<Vector3d> list) {
 
-		double precision = 0.0001;// 0.1d/Plane.getEPSILON();
+		double precision =  1.0d/POINTS_CONTACT_DISTANCE;//0.1d/Plane.getEPSILON();
 
 		long x = Math.round(v.pos.x * precision);
 		long y = Math.round(v.pos.y * precision);
@@ -1896,6 +1896,8 @@ public class CSG implements IuserAPI, Serializable {
 	// }
 
 	public CSG makeManifold() throws ColinearPointsException {
+		if(getNumberOfTriangles()<4)
+			return this;
 		// if (fix && needsDegeneratesPruned)
 		// triangulated = false;
 		// if (triangulated)
@@ -1925,12 +1927,12 @@ public class CSG implements IuserAPI, Serializable {
 
 			ArrayList<Polygon> polygons = generatePolygonsFromMesh();
 			do {
-				long np = vertCount;
 				long numberOfPolygons = getNumberOfTriangles();
+				long np = numberOfPolygons*3;
 
 				int extraSpace = ExtraSpace;
 				long longLength = 1 + np + ((numberOfPolygons + 1) * extraSpace);
-				if (longLength * 4 > Integer.MAX_VALUE)
+				if (longLength  > Integer.MAX_VALUE)
 					new RuntimeException("Mesh too large to process with integers!").printStackTrace();
 				else {
 					System.err.println("Processing Mesh Manifold with " + longLength * 4 + " byte buffer");
