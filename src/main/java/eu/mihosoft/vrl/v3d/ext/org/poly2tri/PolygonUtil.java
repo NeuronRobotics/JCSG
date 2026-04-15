@@ -594,6 +594,10 @@ public class PolygonUtil {
 			return result;
 		if (incoming.getVertices().size() < 3)
 			return result;
+		if (incoming.getVertices().size() == 3) {
+			result.add(incoming);
+			return result;
+		}
 		Polygon tmp = incoming;
 		Vector3d normalOfPlane = incoming.getPlane().getNormal().clone();
 		normalOfPlane.normalize();
@@ -624,10 +628,7 @@ public class PolygonUtil {
 		// }
 		// }
 		try {
-			if (concave.size() == 3) {
-				result.add(concave);
-			} else
-				makeTriangles(concave, cw, result, zplane, normalOfPlane, debug, orientationInv, reorient,
+			makeTriangles(concave, cw, result, zplane, normalOfPlane, debug, orientationInv, reorient,
 						incoming.getColor());
 		} catch (java.lang.IllegalStateException ex) {
 

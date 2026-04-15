@@ -36,6 +36,8 @@ package eu.mihosoft.vrl.v3d;
 import java.util.ArrayList;
 import java.util.List;
 
+import eu.mihosoft.vrl.v3d.ext.quickhull3d.HullUtil;
+
 //  Auto-generated Javadoc
 /**
  * An axis-aligned solid cuboid defined by {@code center} and
@@ -122,7 +124,7 @@ public class Cube extends Primitive {
 	 * @see eu.mihosoft.vrl.v3d.Primitive#toPolygons()
 	 */
 	@Override
-	public List<Polygon> toPolygons() {
+	public CSG toCSG() {
 		if (dimensions.x <= 0)
 			throw new NumberFormatException("X can not be negative");
 		if (dimensions.y <= 0)
@@ -133,39 +135,27 @@ public class Cube extends Primitive {
 				// position // normal
 				{{0, 4, 6, 2}, {-1, 0, 0}}, {{1, 3, 7, 5}, {+1, 0, 0}}, {{0, 1, 5, 4}, {0, -1, 0}},
 				{{2, 6, 7, 3}, {0, +1, 0}}, {{0, 2, 3, 1}, {0, 0, -1}}, {{4, 5, 7, 6}, {0, 0, +1}}};
-		List<Polygon> polygons = new ArrayList<>();
+		// List<Polygon> polygons = new ArrayList<>();
+		List<Vector3d> vertices = new ArrayList<>();
+
 		for (int[][] info : a) {
-			List<Vertex> vertices = new ArrayList<>();
 			for (int i : info[0]) {
 				Vector3d pos = new Vector3d(center.x + dimensions.x * (1 * Math.min(1, i & 1) - 0.5),
 						center.y + dimensions.y * (1 * Math.min(1, i & 2) - 0.5),
 						center.z + dimensions.z * (1 * Math.min(1, i & 4) - 0.5));
-				vertices.add(new Vertex(pos));
-			}
-			try {
-				polygons.add(new Polygon(vertices, properties));
-			} catch (ColinearPointsException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				vertices.add(pos);
 			}
 		}
+		CSG hull = HullUtil.hull(vertices, properties);
 
 		if (!centered) {
 
 			Transform centerTransform = Transform.unity().translate(dimensions.x / 2.0, dimensions.y / 2.0,
 					dimensions.z / 2.0);
-
-			for (Polygon p : polygons) {
-				try {
-					p.transform(centerTransform);
-				} catch (ColinearPointsException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
+			hull = hull.transformed(centerTransform);
 		}
 
-		return polygons;
+		return hull;
 	}
 
 	/**

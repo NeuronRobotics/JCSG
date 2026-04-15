@@ -64,7 +64,7 @@ public class Dodecahedron extends Primitive {
 	 * @see eu.mihosoft.vrl.v3d.Primitive#toPolygons()
 	 */
 	@Override
-	public List<Polygon> toPolygons() {
+	public CSG toCSG() {
 		if (radius <= 0)
 			throw new NumberFormatException("radius can not be negative");
 
@@ -92,9 +92,7 @@ public class Dodecahedron extends Primitive {
 		points.add(new Vector3d(-1 / phi, -phi, 0));
 		points.add(new Vector3d(0, -1 / phi, -phi));
 
-		List<Polygon> polygons = HullUtil.hull(points).scale(radius * (phi - 1)).getPolygons();
-
-		return polygons;
+		return HullUtil.hull(points).scale(radius * (phi - 1));
 	}
 
 	/**

@@ -17,8 +17,8 @@ public class OctahedronTest {
 		CSG box = new Cube(3 * radius).toCSG().difference(new Cube(2 * radius).toCSG());
 		CSG insphere = new Sphere(Math.sqrt(6) / 6 * radius).toCSG();
 
-		assertTrue(octahedron.intersect(box).getPolygons().size() == 0);
-		assertTrue(insphere.difference(octahedron).getPolygons().size() == 0);
+		assertTrue(octahedron.intersect(box).getNumberOfTriangles() == 0);
+		assertTrue(insphere.difference(octahedron).getNumberOfTriangles() == 0);
 
 		FileUtil.write(Paths.get("octahedron.stl"), octahedron.toStlString());
 	}

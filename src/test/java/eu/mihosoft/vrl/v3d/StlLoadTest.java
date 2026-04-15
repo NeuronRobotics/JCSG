@@ -42,7 +42,7 @@ public class StlLoadTest {
 			// Auto-generated catch block
 			e.printStackTrace();
 		}
-		if (loaded.getPolygons().size() / 2 > diff.getPolygons().size()) {
+		if (loaded.getNumberOfTriangles() / 2 > diff.getNumberOfTriangles()) {
 			fail("Failed perform difference without losing information!");
 		}
 	}

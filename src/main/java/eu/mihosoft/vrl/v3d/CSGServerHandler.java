@@ -124,7 +124,7 @@ class CSGServerHandler implements Runnable {
 				case TRIANGULATE :
 					CSG.setPreventNonManifoldTriangles(true);
 					for (CSG c : csgList)
-						back.add(c.triangulate(true));
+						back.add(c.makeManifold());
 					break;
 				case UNION :
 					try {
@@ -153,7 +153,7 @@ class CSGServerHandler implements Runnable {
 			}
 		} catch (Throwable t) {
 			CSGClient.setServerCall(false);
-			throw t;
+			throw new RuntimeException(t);
 		}
 		CSGClient.setServerCall(false);
 		return new CSGResponse(back, request.getOperation());

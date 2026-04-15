@@ -1,7 +1,5 @@
 package eu.mihosoft.vrl.v3d;
 
-import java.util.List;
-
 public class Isosceles extends Primitive {
 	double w, h, d;
 
@@ -35,7 +33,7 @@ public class Isosceles extends Primitive {
 	 * @see eu.mihosoft.vrl.v3d.Primitive#toPolygons()
 	 */
 	@Override
-	public List<Polygon> toPolygons() {
+	public CSG toCSG() {
 		if (w <= 0)
 			throw new NumberFormatException("w can not be negative");
 		if (h <= 0)
@@ -54,7 +52,7 @@ public class Isosceles extends Primitive {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return polygon.getPolygons();
+		return polygon;
 	}
 
 }

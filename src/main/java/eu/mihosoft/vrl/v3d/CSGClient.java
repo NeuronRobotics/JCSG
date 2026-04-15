@@ -171,13 +171,13 @@ public class CSGClient {
 
 			ArrayList<CSG> toSend = new ArrayList<CSG>();
 			for (CSG c : csgList) {
-				List<Polygon> polygons = c.getPolygons();
-				if (polygons.size() == 0) {
+
+				if (c.getNumberOfTriangles() == 0) {
 					Exception ex = new Exception("No Polygons In Incoming geometry here!");
 					ex.printStackTrace();
 					throw ex;
 				}
-				CSG tmp = CSG.fromPolygons(new ArrayList<>(polygons));
+				CSG tmp = c.cloneShallow();
 				tmp.setOptType(c.getOptType());
 				toSend.add(tmp);
 			}
@@ -210,14 +210,14 @@ public class CSGClient {
 			// Return results as ArrayList
 			back = new ArrayList<CSG>();
 			for (CSG c : response.getCsgList()) {
-				if (c.getPolygons().size() == 0) {
+				if (c.getNumberOfTriangles() == 0) {
 					System.out.println("Running Operation on server: " + hostname + " " + operation);
 					RuntimeException runtimeException = new RuntimeException(
 							"Network CSG op resulted in no polygons here ");
 					runtimeException.printStackTrace();
 					throw runtimeException;
 				}
-				CSG historySync = CSG.fromPolygons(c.getPolygons());
+				CSG historySync = c.cloneShallow();
 				back.add(historySync);
 				for (CSG s : csgList) {
 					historySync.historySync(s);
@@ -283,7 +283,6 @@ public class CSGClient {
 			CSG c = new Cube(10, 10, 10).toCSG();
 			CSG u = CSG.unionAll(a, b, c);
 			CSG d = a.difference(b);
-			CSG t = d.triangulate(true);
 			ArrayList<CSG> m = a.minkowskiHullShape(b);
 			CSGClient.close();
 		} catch (Exception e) {

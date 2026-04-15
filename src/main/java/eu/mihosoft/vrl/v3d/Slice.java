@@ -30,7 +30,7 @@ public class Slice {
 		int minRes = 1000;
 		private boolean done;
 
-		Object[] toPixMap(CSG slicePart) {
+		Object[] toPixMap(CSG slicePart) throws ColinearPointsException {
 
 			// BowlerStudioController.getBowlerStudio()
 			// .addObject((Object)slicePart.movez(1),(File)null)
@@ -44,7 +44,7 @@ public class Slice {
 			double mySize = slicePart.getTotalX() > slicePart.getTotalY()
 					? slicePart.getTotalX()
 					: slicePart.getTotalY();
-			List<Polygon> polys = slicePart.getPolygons();
+			List<Polygon> polys = slicePart.generatePolygonsFromMesh();
 			double size = sizeinPixelSpace * (mySize / 200) * (polys.size() / 300);
 			if (size < minRes)
 				size = minRes;
@@ -180,7 +180,7 @@ public class Slice {
 			CSG slicePart = finalPart
 
 					.intersect(planeCSG);
-			for (Polygon p : slicePart.getPolygons()) {
+			for (Polygon p : slicePart.generatePolygonsFromMesh()) {
 				if (Slice.isPolygonAtZero(p)) {
 					rawPolygons.add(p);
 				}
@@ -471,7 +471,8 @@ public class Slice {
 			}
 			return sanatize(getSliceEngine().slice(incoming, slicePlane, normalInsetDistance));
 		} catch (Throwable e) {
-			return sanatize(incoming.getPolygons());
+			e.printStackTrace();
+			return sanatize(incoming.generatePolygonsFromMesh());
 		}
 	}
 

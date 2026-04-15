@@ -1,7 +1,5 @@
 package eu.mihosoft.vrl.v3d;
 
-import java.util.List;
-
 public class ChamferedCylinder extends Primitive {
 	double r, h, chamferHeight;
 	int sides = -1;
@@ -54,9 +52,9 @@ public class ChamferedCylinder extends Primitive {
 	 * @see eu.mihosoft.vrl.v3d.Primitive#toPolygons()
 	 */
 	@Override
-	public List<Polygon> toPolygons() {
+	public CSG toCSG() {
 		CSG cube1 = new Cylinder(r - chamferHeight, r - chamferHeight, h, sides).toCSG();
 		CSG cube2 = new Cylinder(r, r, h - chamferHeight * 2, sides).toCSG().movez(chamferHeight);
-		return cube1.union(cube2).hull().getPolygons();
+		return cube1.union(cube2).hull();
 	}
 }

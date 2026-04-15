@@ -60,13 +60,13 @@ public class ServerClientTest {
 			CSG dif = new Cube(100, 100, 1).toCSG();
 			dif.getBounds();
 
-			int apoly1 = a.getPolygons().size();
-			int bpoly1 = b.getPolygons().size();
+			long apoly1 = a.getNumberOfTriangles();
+			long bpoly1 = b.getNumberOfTriangles();
 
 			CSG u1 = a.union(b, c);
 			CSG i1 = c.intersect(b);
 			CSG d1 = a.difference(b, dif);
-			CSG t1 = d1.clone().triangulate(true);
+			CSG t1 = d1.clone().makeManifold();
 			ArrayList<CSG> m1 = a.minkowskiHullShape(b);
 			CSG h1 = u1.hull();
 
@@ -75,8 +75,8 @@ public class ServerClientTest {
 			CSG.setMinPolygonsForOffloading(4);
 			// Connect to server
 			System.out.println("Client info: " + CSGClient.getClient().getServerInfo());
-			int apoly = a.getPolygons().size();
-			int bpoly = b.getPolygons().size();
+			long apoly = a.getNumberOfTriangles();
+			long bpoly = b.getNumberOfTriangles();
 			CSG u = a.union(b, c);
 			if (testPoly(u1, u))
 				fail();
@@ -85,8 +85,9 @@ public class ServerClientTest {
 				fail();
 			CSG d = a.difference(b, dif);
 			if (testPoly(d1, d))
-				fail("Difference Step fail , expected " + d1.getPolygons().size() + " got " + d.getPolygons().size());
-			CSG t = d.clone().triangulate(true);
+				fail("Difference Step fail , expected " + d1.getNumberOfTriangles() + " got "
+						+ d.getNumberOfTriangles());
+			CSG t = d.clone().makeManifold();
 			if (testPoly(t1, t))
 				fail();
 			ArrayList<CSG> m = a.minkowskiHullShape(b);
@@ -114,16 +115,19 @@ public class ServerClientTest {
 		System.out.println("\nClient example completed.");
 	}
 
-	boolean testPoly(CSG p1, CSG p2) {
-		int size1 = p1.getPolygons().size();
-		int size2 = p2.getPolygons().size();
+	boolean testPoly(CSG p1, CSG p2) throws ColinearPointsException {
+		long size1 = p1.getNumberOfTriangles();
+		long size2 = p2.getNumberOfTriangles();
 		if (size1 != size2) {
 			System.err.println("Mismatched number of polygons expected " + size1 + " but got " + size2);
 			return true;
 		}
+		ArrayList<Polygon> p1p = p1.generatePolygonsFromMesh();
+		ArrayList<Polygon> p2p = p2.generatePolygonsFromMesh();
+
 		for (int i = 0; i < size1; i++) {
-			Polygon poly1 = p1.getPolygons().get(i);
-			Polygon poly2 = p2.getPolygons().get(i);
+			Polygon poly1 = p1p.get(i);
+			Polygon poly2 = p2p.get(i);
 			int size = poly1.getPoints().size();
 			if (size != poly2.getPoints().size()) {
 				System.err.println("Number of Points mismatch ");

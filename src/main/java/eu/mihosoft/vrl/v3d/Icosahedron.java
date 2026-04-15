@@ -64,7 +64,7 @@ public class Icosahedron extends Primitive {
 	 * @see eu.mihosoft.vrl.v3d.Primitive#toPolygons()
 	 */
 	@Override
-	public List<Polygon> toPolygons() {
+	public CSG toCSG() {
 		if (radius <= 0)
 			throw new NumberFormatException("radius can not be negative");
 		double phi = (Math.sqrt(5) + 1) / 2;
@@ -83,9 +83,8 @@ public class Icosahedron extends Primitive {
 		points.add(new Vector3d(-1, -phi, 0));
 		points.add(new Vector3d(0, -1, -phi));
 
-		List<Polygon> polygons = HullUtil.hull(points).scale(radius / (Math.sqrt(1 + Math.pow(phi, 2)))).getPolygons();
+		return HullUtil.hull(points).scale(radius / (Math.sqrt(1 + Math.pow(phi, 2))));
 
-		return polygons;
 	}
 
 	/**
