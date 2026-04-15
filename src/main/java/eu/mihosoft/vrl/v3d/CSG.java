@@ -4546,10 +4546,14 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	public long getVertCount() {
+		if(vertices==null)
+			return 0;
 		return vertices.length/3;
 	}
 
 	public long getTriCount() {
+		if(triangles==null)
+			return 0;
 		return triangles.length/3;
 	}
 
