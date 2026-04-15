@@ -8,12 +8,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 
+import eu.mihosoft.vrl.v3d.CSG.OptType;
 import eu.mihosoft.vrl.v3d.svg.SVGExporter;
 import eu.mihosoft.vrl.v3d.svg.SVGLoad;
 
 public class SvgExportTest {
+	@BeforeClass
+	public static void init() {
+		JavaFXInitializer.go();
+		CSG.setDefaultOptType(OptType.Manifold3d);
+	}
 
 	@Test
 	public void slicetest() throws IOException, ColinearPointsException {
@@ -35,7 +42,8 @@ public class SvgExportTest {
 		CSG incoming = main.difference(cut).intersect(new Cube(400, 400, 2).toCSG());
 
 		List<Polygon> polygons = Slice.slice(incoming, slicePlane, normalInsetDistance);
-
+		if(polygons.size()==0)
+			fail();
 		SVGExporter.export(polygons, new File("SVGExportTest.svg"), false);
 
 	}
