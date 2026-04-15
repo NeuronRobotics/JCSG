@@ -8,12 +8,14 @@ import java.nio.file.Paths;
 
 import org.junit.Test;
 
+import eu.mihosoft.vrl.v3d.CSG.OptType;
+
 public class StlExportTest {
 
 	@Test
 
 	public void makeBadSTL() throws IOException {
-
+		CSG.setDefaultOptType(OptType.Manifold3d);
 		// Vector3d.setEXPORTEPSILON(1.0e-10);
 		CSG.setUseGPU(true);
 		CSG.setPreventNonManifoldTriangles(true);
