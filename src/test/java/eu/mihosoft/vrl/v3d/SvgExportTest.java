@@ -42,7 +42,7 @@ public class SvgExportTest {
 		CSG incoming = main.difference(cut).intersect(new Cube(400, 400, 2).toCSG());
 
 		List<Polygon> polygons = Slice.slice(incoming, slicePlane, normalInsetDistance);
-		if(polygons.size()==0)
+		if (polygons.size() == 0)
 			fail();
 		SVGExporter.export(polygons, new File("SVGExportTest.svg"), false);
 

@@ -2,10 +2,7 @@ package com.neuronrobotics.manifold3d;
 
 import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.cadoodlecad.manifold.ManifoldBindings;
 import com.cadoodlecad.manifold.ManifoldBindings.ManifoldError;
@@ -16,19 +13,17 @@ import eu.mihosoft.vrl.v3d.Polygon;
 import eu.mihosoft.vrl.v3d.Transform;
 import eu.mihosoft.vrl.v3d.Vector3d;
 import eu.mihosoft.vrl.v3d.Vertex;
-import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
 
 public class CSGManifold3d {
 	private final ManifoldBindings manifold;
-	//	private final Manifold3dExporter exporter;
-	//	private final Manifold3dImporter importer;
+	// private final Manifold3dExporter exporter;
+	// private final Manifold3dImporter importer;
 
 	public CSGManifold3d() throws Exception {
 		this.manifold = new ManifoldBindings();
-		//		exporter = new Manifold3dExporter(manifold);
-		//		importer = new Manifold3dImporter(manifold);
+		// exporter = new Manifold3dExporter(manifold);
+		// importer = new Manifold3dImporter(manifold);
 	}
-
 
 	/**
 	 * Converts a JCSG {@link CSG} into a native manifold {@link MemorySegment}.
@@ -48,7 +43,6 @@ public class CSGManifold3d {
 	public MemorySegment toManifold(CSG csg) throws Throwable {
 		if (csg == null)
 			throw new IllegalArgumentException("csg must not be null");
-
 
 		double[] vertices = csg.getVertices();
 
@@ -91,7 +85,6 @@ public class CSGManifold3d {
 		return new CSG(verts, tris);
 	}
 
-
 	/**
 	 * Slices the given CSG at Z=0 and returns the resulting cross-section as a list
 	 * of JCSG {@link Polygon} objects.
@@ -109,7 +102,7 @@ public class CSGManifold3d {
 	 *            the solid to slice
 	 * @return closed polygon contours of the cross-section at Z=0, never
 	 *         {@code null}, may be empty if the plane misses the solid
-	 * @throws Throwable 
+	 * @throws Throwable
 	 * @throws RuntimeException
 	 *             wrapping any native call failure
 	 */
@@ -257,7 +250,7 @@ public class CSGManifold3d {
 		for (int i = 0; i < memorySegments.length; i++) {
 			MemorySegment ms = memorySegments[i];
 			ManifoldError err = manifold.status(ms);
-			//System.out.println("Status of Manifold Op is "+result);
+			// System.out.println("Status of Manifold Op is "+result);
 			if (err != ManifoldError.NO_ERROR) {
 				System.out.println("Status: " + err);
 				System.out.println("Verts: " + manifold.numVert(ms));
@@ -265,17 +258,16 @@ public class CSGManifold3d {
 				System.out.println("Genus: " + manifold.genus(ms));
 				throw new NonManifoldShapeError("Error was " + err);
 			} else {
-				//System.out.println("Manifold check ok!");
+				// System.out.println("Manifold check ok!");
 			}
 		}
 	}
-
 
 	public CSG hull(List<Vector3d> points) throws Throwable {
 		ArrayList<double[]> pts = new ArrayList<double[]>();
 		for (int i = 0; i < points.size(); i++) {
 			Vector3d v = points.get(i);
-			double[] p = new double[] { v.x, v.y, v.z };
+			double[] p = new double[]{v.x, v.y, v.z};
 			pts.add(p);
 		}
 		MemorySegment mem = null;
@@ -293,10 +285,8 @@ public class CSGManifold3d {
 		}
 	}
 
-
 	public void delete(MemorySegment back) throws Throwable {
 		manifold.delete(back);
 	}
-
 
 }

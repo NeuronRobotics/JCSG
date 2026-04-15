@@ -338,7 +338,7 @@ public class CSG implements IuserAPI, Serializable {
 	 */
 	private static int intern(Vertex v, Map<String, Integer> index, List<Vector3d> list) {
 
-		double precision =  1.0d/POINTS_CONTACT_DISTANCE;//0.1d/Plane.getEPSILON();
+		double precision = 1.0d / POINTS_CONTACT_DISTANCE;// 0.1d/Plane.getEPSILON();
 
 		long x = Math.round(v.pos.x * precision);
 		long y = Math.round(v.pos.y * precision);
@@ -1048,21 +1048,20 @@ public class CSG implements IuserAPI, Serializable {
 		// triangulate();
 		// csg.triangulate();
 		switch (getOptType()) {
-		case Manifold3d:
-			try {
-				return getManifold().union(this, csg);
-			} catch (Throwable e) {
-				System.err.println("ERROR failing over to Java Union "+e.getMessage());
-				e.printStackTrace();
-			}
-		case CSG_BOUND:
-			return _unionCSGBoundsOpt(csg).historySync(this).historySync(csg);
-//		case POLYGON_BOUND:
-//			return _unionPolygonBoundsOpt(csg).historySync(this).historySync(csg);
-		default:
-			// return _unionIntersectOpt(csg);
-			return _unionNoOpt(csg).historySync(this).historySync(csg);
-
+			case Manifold3d :
+				try {
+					return getManifold().union(this, csg);
+				} catch (Throwable e) {
+					System.err.println("ERROR failing over to Java Union " + e.getMessage());
+					e.printStackTrace();
+				}
+			case CSG_BOUND :
+				return _unionCSGBoundsOpt(csg).historySync(this).historySync(csg);
+			// case POLYGON_BOUND:
+			// return _unionPolygonBoundsOpt(csg).historySync(this).historySync(csg);
+			default :
+				// return _unionIntersectOpt(csg);
+				return _unionNoOpt(csg).historySync(this).historySync(csg);
 
 		}
 	}
@@ -1581,17 +1580,17 @@ public class CSG implements IuserAPI, Serializable {
 			// polygons
 			if (this.getNumberOfTriangles() > 0 && csg.getNumberOfTriangles() > 0) {
 				switch (getOptType()) {
-				case Manifold3d:
-					try {
-						return getManifold().difference(this, csg);
-					} catch (Throwable e) {
-						System.err.println("ERROR failing over to Java Difference "+e.getMessage());
-						e.printStackTrace();
-					}
-				case CSG_BOUND:
-					return _differenceCSGBoundsOpt(csg).historySync(this).historySync(csg);
-				default:
-					return _differenceNoOpt(csg).historySync(this).historySync(csg);
+					case Manifold3d :
+						try {
+							return getManifold().difference(this, csg);
+						} catch (Throwable e) {
+							System.err.println("ERROR failing over to Java Difference " + e.getMessage());
+							e.printStackTrace();
+						}
+					case CSG_BOUND :
+						return _differenceCSGBoundsOpt(csg).historySync(this).historySync(csg);
+					default :
+						return _differenceNoOpt(csg).historySync(this).historySync(csg);
 
 				}
 			} else
@@ -1752,7 +1751,7 @@ public class CSG implements IuserAPI, Serializable {
 			try {
 				return getManifold().intersection(this, csg);
 			} catch (Throwable e) {
-				System.err.println("ERROR failing over to Java Intersect "+e.getMessage());
+				System.err.println("ERROR failing over to Java Intersect " + e.getMessage());
 				e.printStackTrace();
 			}
 		}
@@ -1933,15 +1932,15 @@ public class CSG implements IuserAPI, Serializable {
 	// }
 
 	public CSG makeManifold() throws ColinearPointsException {
-		if(getNumberOfTriangles()<4)
+		if (getNumberOfTriangles() < 4)
 			return this;
-		if(getOptType()==OptType.Manifold3d) {
+		if (getOptType() == OptType.Manifold3d) {
 			try {
 				MemorySegment back = manifold.toManifold(this);
 				CSG mcsg = manifold.fromManifold(back);
 				manifold.delete(back);
-				vertices=mcsg.vertices;
-				triangles=mcsg.triangles;
+				vertices = mcsg.vertices;
+				triangles = mcsg.triangles;
 				return this;
 			} catch (NonManifoldShapeError e) {
 				System.err.println("Shape can not be loaded as manifold, correcting");
@@ -1976,11 +1975,11 @@ public class CSG implements IuserAPI, Serializable {
 			ArrayList<Polygon> polygons = generatePolygonsFromMesh();
 			do {
 				long numberOfPolygons = getNumberOfTriangles();
-				long np = numberOfPolygons*3;
+				long np = numberOfPolygons * 3;
 
 				int extraSpace = ExtraSpace;
 				long longLength = 1 + np + ((numberOfPolygons + 1) * extraSpace);
-				if (longLength  > Integer.MAX_VALUE)
+				if (longLength > Integer.MAX_VALUE)
 					new RuntimeException("Mesh too large to process with integers!").printStackTrace();
 				else {
 					System.err.println("Processing Mesh Manifold with " + longLength * 4 + " byte buffer");
@@ -2006,7 +2005,6 @@ public class CSG implements IuserAPI, Serializable {
 			}
 		}
 		// }
-		
 
 		// System.out.println("Complete Triangulation \n\n");
 		// now all polygons are definantly triangles
@@ -2024,8 +2022,7 @@ public class CSG implements IuserAPI, Serializable {
 		// triangulation is performed when loading
 	}
 
-	private int runGPUMakeManifold(int iteration, long np, int longLength, long numPoly,
-			ArrayList<Polygon> polygons) {
+	private int runGPUMakeManifold(int iteration, long np, int longLength, long numPoly, ArrayList<Polygon> polygons) {
 		if (iteration < 0 || np <= 0 || longLength <= 0 || numPoly <= 0)
 			throw new RuntimeException("Error none of the dataa lengths can be negative nor 0");
 		// Flattened approach - more Aparapi-friendly
@@ -2077,7 +2074,7 @@ public class CSG implements IuserAPI, Serializable {
 		int[] added = new int[numberOfPolygons];
 		int testPointChunk = 1000;
 		int snapChunk = 1000;
-		int[] tp = new int[] { 0, snapChunk };
+		int[] tp = new int[]{0, snapChunk};
 
 		// Aparapi-compatible kernel with flattened data
 		Kernel snapPointsToDistance = new Kernel() {
@@ -2119,15 +2116,16 @@ public class CSG implements IuserAPI, Serializable {
 			}
 		};
 
-//		gpuRun(numberOfPoints, snapPointsToDistance, done, "Snap Points Itr(" + iteration + ")", () -> {
-//			tp[0] += snapChunk;
-//			tp[1] += snapChunk;
-//			if (tp[1] > polySizes.length)
-//				tp[1] = polySizes.length;
-//			if (tp[0] < polySizes.length)
-//				return true;
-//			return false;
-//		}, iteration, polySizes.length / snapChunk);
+		// gpuRun(numberOfPoints, snapPointsToDistance, done, "Snap Points Itr(" +
+		// iteration + ")", () -> {
+		// tp[0] += snapChunk;
+		// tp[1] += snapChunk;
+		// if (tp[1] > polySizes.length)
+		// tp[1] = polySizes.length;
+		// if (tp[0] < polySizes.length)
+		// return true;
+		// return false;
+		// }, iteration, polySizes.length / snapChunk);
 		tp[0] = 0;
 		tp[1] = testPointChunk;
 		HashSet<Integer> unique = new HashSet<Integer>();
@@ -2311,39 +2309,39 @@ public class CSG implements IuserAPI, Serializable {
 			}// Run method
 		};
 		pointsAdded = 0;
-		
-			gpuRun(numberOfPolygons, findNonManifoldPoints, done, "Manifold Itr(" + iteration + ")", () -> {
-				// for (int tp = 0; tp < uniquePoints.length; tp++)
-				// Iterate through each of the test points in host thread
-				tp[0] += testPointChunk;
-				tp[1] += testPointChunk;
-				if (tp[1] > uniquePoints.length)
-					tp[1] = uniquePoints.length;
-				if (tp[0] < uniquePoints.length)
-					return true;
-				pointsAdded = 0;
-				String out = "points added report [";
-				for (int x = 0; x < added.length; x++) {
-					if (added[x] < 0) {
-						progressMoniter.progressUpdate(1, 1,
-								"\n\nManifold failed after " + x + " of " + numberOfPolygons + " polygons ", this);
-						pointsAdded = -1;
-						break;
-					} else {
-						pointsAdded += added[x];
-						if (added[x] > 0 && out.length() < 300)
-							out += " to " + x + " added " + (added[x]) + " size " + polySizes[x] + " , ";
-					}
+
+		gpuRun(numberOfPolygons, findNonManifoldPoints, done, "Manifold Itr(" + iteration + ")", () -> {
+			// for (int tp = 0; tp < uniquePoints.length; tp++)
+			// Iterate through each of the test points in host thread
+			tp[0] += testPointChunk;
+			tp[1] += testPointChunk;
+			if (tp[1] > uniquePoints.length)
+				tp[1] = uniquePoints.length;
+			if (tp[0] < uniquePoints.length)
+				return true;
+			pointsAdded = 0;
+			String out = "points added report [";
+			for (int x = 0; x < added.length; x++) {
+				if (added[x] < 0) {
+					progressMoniter.progressUpdate(1, 1,
+							"\n\nManifold failed after " + x + " of " + numberOfPolygons + " polygons ", this);
+					pointsAdded = -1;
+					break;
+				} else {
+					pointsAdded += added[x];
+					if (added[x] > 0 && out.length() < 300)
+						out += " to " + x + " added " + (added[x]) + " size " + polySizes[x] + " , ";
 				}
-				out += "]";
-				out = "Total added " + pointsAdded + " " + out;
-				if (pointsAdded > 0) {
-					progressMoniter.progressUpdate(1, 1, out, this);
-					// return true;
-				}
-				return false;
-			}, iteration, uniquePoints.length / testPointChunk);
-		
+			}
+			out += "]";
+			out = "Total added " + pointsAdded + " " + out;
+			if (pointsAdded > 0) {
+				progressMoniter.progressUpdate(1, 1, out, this);
+				// return true;
+			}
+			return false;
+		}, iteration, uniquePoints.length / testPointChunk);
+
 		ArrayList<Polygon> newPoly = new ArrayList<>();
 		for (int i = 0; i < getNumberOfTriangles(); i++) {
 			Polygon polygon = polygons.get(i);
@@ -2382,7 +2380,7 @@ public class CSG implements IuserAPI, Serializable {
 			polygon.getPoints().clear();
 		}
 		polygons.clear();
-		polygons.addAll( newPoly);
+		polygons.addAll(newPoly);
 		return pointsAdded;
 	}
 
@@ -2423,7 +2421,7 @@ public class CSG implements IuserAPI, Serializable {
 			progressMoniter.progressUpdate(0, 100, "CPU mode " + valueOf, null);
 			kernel.setExecutionMode(Kernel.EXECUTION_MODE.JTP); // Java Thread Pool
 		}
-		int[] iteration = new int[] { 0 };
+		int[] iteration = new int[]{0};
 
 		long begin = System.currentTimeMillis();
 		boolean print = false;
@@ -3022,7 +3020,7 @@ public class CSG implements IuserAPI, Serializable {
 							e.printStackTrace();
 							Slice.setSliceEngine(null);
 							Slice.getSliceEngine();// set the default when the engine is null
-							return Slice.getSliceEngine().slice(incoming,slicePlane,normalInsetDistance);
+							return Slice.getSliceEngine().slice(incoming, slicePlane, normalInsetDistance);
 						}
 					}
 				});
@@ -3048,8 +3046,6 @@ public class CSG implements IuserAPI, Serializable {
 		this.optType = optType;
 		return this;
 	}
-
-
 
 	/**
 	 * Hail Zeon! In case you forget the name of minkowski and are a Gundam fan
@@ -3545,7 +3541,7 @@ public class CSG implements IuserAPI, Serializable {
 	public CSG getBoundingBox() {
 		return new Cube((-this.getMinX() + this.getMaxX()), (-this.getMinY() + this.getMaxY()),
 				(-this.getMinZ() + this.getMaxZ())).toCSG().toXMax().movex(this.getMaxX()).toYMax()
-						.movey(this.getMaxY()).toZMax().movez(this.getMaxZ());
+				.movey(this.getMaxY()).toZMax().movez(this.getMaxZ());
 	}
 
 	public String getName() {
@@ -4316,8 +4312,8 @@ public class CSG implements IuserAPI, Serializable {
 	public static List<CSG> tessellate(CSG incoming, int xSteps, int ySteps, int zSteps, double oddRowXOffset,
 			double oddRowYOffset, double oddRowZOffset, double oddColXOffset, double oddColYOffset,
 			double oddColZOffset, double oddLayXOffset, double oddLayYOffset, double oddLayZOffset) {
-		double[][] offsets = { { oddRowXOffset, oddRowYOffset, oddRowZOffset },
-				{ oddColXOffset, oddColYOffset, oddColZOffset }, { oddLayXOffset, oddLayYOffset, oddLayZOffset } };
+		double[][] offsets = {{oddRowXOffset, oddRowYOffset, oddRowZOffset},
+				{oddColXOffset, oddColYOffset, oddColZOffset}, {oddLayXOffset, oddLayYOffset, oddLayZOffset}};
 		return tessellate(incoming, xSteps, ySteps, zSteps, incoming.getTotalX(), incoming.getTotalY(),
 				incoming.getTotalZ(), offsets);
 	}
@@ -4546,15 +4542,15 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	public long getVertCount() {
-		if(vertices==null)
+		if (vertices == null)
 			return 0;
-		return vertices.length/3;
+		return vertices.length / 3;
 	}
 
 	public long getTriCount() {
-		if(triangles==null)
+		if (triangles == null)
 			return 0;
-		return triangles.length/3;
+		return triangles.length / 3;
 	}
 
 }

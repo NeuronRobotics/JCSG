@@ -629,7 +629,7 @@ public class PolygonUtil {
 		// }
 		try {
 			makeTriangles(concave, cw, result, zplane, normalOfPlane, debug, orientationInv, reorient,
-						incoming.getColor());
+					incoming.getColor());
 		} catch (java.lang.IllegalStateException ex) {
 
 			Polygon repaired = repairOverlappingEdges(concave);

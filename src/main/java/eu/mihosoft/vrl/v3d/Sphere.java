@@ -34,11 +34,7 @@
 package eu.mihosoft.vrl.v3d;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 
 import eu.mihosoft.vrl.v3d.ext.quickhull3d.HullUtil;
 
@@ -182,7 +178,6 @@ public class Sphere extends Primitive {
 		return new Vertex(c.plus(dir.times(r)));
 	}
 
-
 	/*
 	 * (non-Javadoc)
 	 *
@@ -221,7 +216,6 @@ public class Sphere extends Primitive {
 
 		return HullUtil.hull(points, getProperties());
 	}
-
 
 	/**
 	 * Gets the center.
@@ -279,8 +273,8 @@ public class Sphere extends Primitive {
 	 *            the numSlices to set
 	 */
 	public Sphere setNumSlices(int numSlices) {
-		//		if (numSlices > (NUM_SLICES * 4))
-		//			System.out.println("Very large sphere! this may crash!");
+		// if (numSlices > (NUM_SLICES * 4))
+		// System.out.println("Very large sphere! this may crash!");
 		this.numSlices = numSlices;
 		return this;
 	}
@@ -301,8 +295,8 @@ public class Sphere extends Primitive {
 	 *            the numStacks to set
 	 */
 	public Sphere setNumStacks(int numStacks) {
-		//		if (numStacks > (NUM_STACKS * 4))
-		//			System.out.println("Very large sphere! this may crash!");
+		// if (numStacks > (NUM_STACKS * 4))
+		// System.out.println("Very large sphere! this may crash!");
 		this.numStacks = numStacks;
 		return this;
 	}
