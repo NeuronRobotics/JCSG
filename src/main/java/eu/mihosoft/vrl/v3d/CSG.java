@@ -43,6 +43,7 @@ import eu.mihosoft.vrl.v3d.parametrics.Parameter;
 
 import java.io.File;
 import java.io.Serializable;
+import java.lang.foreign.MemorySegment;
 import java.lang.reflect.Field;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -65,6 +66,7 @@ import com.aparapi.Range;
 import com.aparapi.internal.kernel.KernelRunner;
 import com.neuronrobotics.interaction.CadInteractionEvent;
 import com.neuronrobotics.manifold3d.CSGManifold3d;
+import com.neuronrobotics.manifold3d.NonManifoldShapeError;
 
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
@@ -180,7 +182,7 @@ public class CSG implements IuserAPI, Serializable {
 	/** The default opt type. */
 
 	/** The opt type. */
-	private OptType optType = null;
+	private OptType optType = defaultOptType;
 
 	/** The storage. */
 	private PropertyStorage str;
@@ -212,8 +214,6 @@ public class CSG implements IuserAPI, Serializable {
 
 	private double[] vertices;
 	private long[] triangles;
-	private long vertCount;
-	private long triCount;
 
 	/**
 	 * Instantiates a new csg.
@@ -227,12 +227,10 @@ public class CSG implements IuserAPI, Serializable {
 		}
 	}
 
-	public CSG(double[] vertices, long[] triangles, long vertCount, long triCount) {
+	public CSG(double[] vertices, long[] triangles) {
 		this();
 		this.vertices = vertices;
 		this.triangles = triangles;
-		this.vertCount = vertCount;
-		this.triCount = triCount;
 	}
 
 	public CSG(ArrayList<Polygon> polygons) throws ColinearPointsException {
@@ -242,12 +240,12 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	public ArrayList<Polygon> generatePolygonsFromMesh() throws ColinearPointsException {
-		if (triCount == 0)
+		if (getTriCount() == 0)
 			return new ArrayList<>();
 
 		ArrayList<Polygon> polygons = new ArrayList<Polygon>();
 
-		for (long t = 0; t < triCount; t++) {
+		for (long t = 0; t < getTriCount(); t++) {
 			try {
 				polygons.add(getPolygonByIndex((int) t));
 			} catch (Exception ex) {
@@ -268,7 +266,7 @@ public class CSG implements IuserAPI, Serializable {
 
 	public List<Vector3d> getPoints() {
 		List<Vector3d> points = new ArrayList<Vector3d>();
-		for (int i = 0; i < vertCount; i++)
+		for (int i = 0; i < getVertCount(); i++)
 			points.add(vertexAt(i));
 		return points;
 	}
@@ -312,16 +310,13 @@ public class CSG implements IuserAPI, Serializable {
 		if (triList.isEmpty()) {
 			vertices = new double[0];
 			triangles = new long[0];
-			vertCount=0;
-			triCount=0;
+
 			return this;
 		}
-		vertCount = vertexList.size();
-		triCount = triList.size() / 3;
 
 		// Flatten vertex list into a primitive array.
-		vertices = new double[(int) (vertCount * 3)];
-		for (int i = 0; i < vertCount; i++) {
+		vertices = new double[(int) (vertexList.size() * 3)];
+		for (int i = 0; i < getVertCount(); i++) {
 			Vector3d v = vertexList.get(i);
 			getVertices()[i * 3] = v.x;
 			getVertices()[i * 3 + 1] = v.y;
@@ -329,7 +324,7 @@ public class CSG implements IuserAPI, Serializable {
 		}
 
 		// Flatten triangle index list.
-		triangles = new long[(int) triCount * 3];
+		triangles = new long[triList.size()];
 		for (int i = 0; i < getTriangles().length; i++) {
 			getTriangles()[i] = triList.get(i);
 		}
@@ -385,7 +380,7 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	public long getNumberOfTriangles() {
-		return triCount;
+		return getTriCount();
 	}
 
 	public CSG setID(CSG dying) {
@@ -995,7 +990,7 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	public CSG cloneShallow() {
-		return new CSG(getVertices().clone(), getTriangles().clone(), vertCount, triCount);
+		return new CSG(getVertices().clone(), getTriangles().clone());
 	}
 
 	/**
@@ -1304,7 +1299,7 @@ public class CSG implements IuserAPI, Serializable {
 		ArrayList<Vector3d> points = new ArrayList<Vector3d>();
 
 		for (CSG c : csgs) {
-			for (int i = 0; i < c.vertCount; i++) {
+			for (int i = 0; i < c.getVertCount(); i++) {
 				points.add(vertexAt(c.getVertices(), i));
 			}
 		}
@@ -1940,10 +1935,21 @@ public class CSG implements IuserAPI, Serializable {
 	public CSG makeManifold() throws ColinearPointsException {
 		if(getNumberOfTriangles()<4)
 			return this;
-		// if (fix && needsDegeneratesPruned)
-		// triangulated = false;
-		// if (triangulated)
-		// return this;
+		if(getOptType()==OptType.Manifold3d) {
+			try {
+				MemorySegment back = manifold.toManifold(this);
+				CSG mcsg = manifold.fromManifold(back);
+				manifold.delete(back);
+				vertices=mcsg.vertices;
+				triangles=mcsg.triangles;
+				return this;
+			} catch (NonManifoldShapeError e) {
+				System.err.println("Shape can not be loaded as manifold, correcting");
+			} catch (Throwable e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		if (this.getNumberOfTriangles() > getMinPolygonsForOffloading() && preventNonManifoldTriangles)
 			if (CSGClient.isRunning()) {
 				ArrayList<CSG> go = new ArrayList<CSG>(Arrays.asList(this));
@@ -2012,8 +2018,6 @@ public class CSG implements IuserAPI, Serializable {
 	private void setData(CSG csg) {
 		vertices = csg.getVertices().clone();
 		triangles = csg.getTriangles().clone();
-		vertCount = csg.vertCount;
-		triCount = csg.triCount;
 	}
 
 	private void performTriangulation() {
@@ -2717,7 +2721,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * Reverse the winding order of all the triangles
 	 */
 	private void flip() {
-		for (int i = 0; i < triCount; i++) {
+		for (int i = 0; i < getTriCount(); i++) {
 			long a = getTriangles()[i * 3 + 1];
 			long b = getTriangles()[i * 3 + 2];
 			getTriangles()[i * 3 + 1] = b;
@@ -2741,7 +2745,7 @@ public class CSG implements IuserAPI, Serializable {
 		}
 		CSG csg = clone();
 
-		for (int i = 0; i < vertCount; i++) {
+		for (int i = 0; i < csg.getVertCount(); i++) {
 			double vectx = csg.getVertices()[i * 3];
 			double vecty = csg.getVertices()[i * 3 + 1];
 			double vectz = csg.getVertices()[i * 3 + 2];
@@ -2844,7 +2848,7 @@ public class CSG implements IuserAPI, Serializable {
 
 		// for (Polygon p : getPolygons()) {
 
-		for (int i = 0; i < vertCount; i++) {
+		for (int i = 0; i < getVertCount(); i++) {
 
 			Vector3d vert = vertexAt(getVertices(), i);
 
@@ -4526,7 +4530,6 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	public static OptType getDefaultOptionType() {
-		// TODO Auto-generated method stub
 		return defaultOptType;
 	}
 
@@ -4540,6 +4543,14 @@ public class CSG implements IuserAPI, Serializable {
 
 	public long[] getTriangles() {
 		return triangles;
+	}
+
+	public long getVertCount() {
+		return vertices.length/3;
+	}
+
+	public long getTriCount() {
+		return triangles.length/3;
 	}
 
 }
