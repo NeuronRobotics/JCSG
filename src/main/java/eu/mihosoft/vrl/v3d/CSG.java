@@ -263,7 +263,7 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	public Vector3d vertexAt(long i) {
-		return vertexAt(vertices, i);
+		return vertexAt(getVertices(), i);
 	}
 
 	public List<Vector3d> getPoints() {
@@ -275,9 +275,9 @@ public class CSG implements IuserAPI, Serializable {
 
 	public Polygon getPolygonByIndex(int faceIndex) throws ColinearPointsException {
 		List<Vertex> points = new ArrayList<Vertex>();
-		points.add(new Vertex(vertexAt(triangles[faceIndex * 3])));
-		points.add(new Vertex(vertexAt(triangles[faceIndex * 3 + 1])));
-		points.add(new Vertex(vertexAt(triangles[faceIndex * 3 + 2])));
+		points.add(new Vertex(vertexAt(getTriangles()[faceIndex * 3])));
+		points.add(new Vertex(vertexAt(getTriangles()[faceIndex * 3 + 1])));
+		points.add(new Vertex(vertexAt(getTriangles()[faceIndex * 3 + 2])));
 		return new Polygon(points);
 	}
 
@@ -323,15 +323,15 @@ public class CSG implements IuserAPI, Serializable {
 		vertices = new double[(int) (vertCount * 3)];
 		for (int i = 0; i < vertCount; i++) {
 			Vector3d v = vertexList.get(i);
-			vertices[i * 3] = v.x;
-			vertices[i * 3 + 1] = v.y;
-			vertices[i * 3 + 2] = v.z;
+			getVertices()[i * 3] = v.x;
+			getVertices()[i * 3 + 1] = v.y;
+			getVertices()[i * 3 + 2] = v.z;
 		}
 
 		// Flatten triangle index list.
 		triangles = new long[(int) triCount * 3];
-		for (int i = 0; i < triangles.length; i++) {
-			triangles[i] = triList.get(i);
+		for (int i = 0; i < getTriangles().length; i++) {
+			getTriangles()[i] = triList.get(i);
 		}
 		return this;
 	}
@@ -995,7 +995,7 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	public CSG cloneShallow() {
-		return new CSG(vertices.clone(), triangles.clone(), vertCount, triCount);
+		return new CSG(getVertices().clone(), getTriangles().clone(), vertCount, triCount);
 	}
 
 	/**
@@ -1305,7 +1305,7 @@ public class CSG implements IuserAPI, Serializable {
 
 		for (CSG c : csgs) {
 			for (int i = 0; i < c.vertCount; i++) {
-				points.add(vertexAt(c.vertices, i));
+				points.add(vertexAt(c.getVertices(), i));
 			}
 		}
 
@@ -2010,8 +2010,8 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	private void setData(CSG csg) {
-		vertices = csg.vertices.clone();
-		triangles = csg.triangles.clone();
+		vertices = csg.getVertices().clone();
+		triangles = csg.getTriangles().clone();
 		vertCount = csg.vertCount;
 		triCount = csg.triCount;
 	}
@@ -2718,10 +2718,10 @@ public class CSG implements IuserAPI, Serializable {
 	 */
 	private void flip() {
 		for (int i = 0; i < triCount; i++) {
-			long a = triangles[i * 3 + 1];
-			long b = triangles[i * 3 + 2];
-			triangles[i * 3 + 1] = b;
-			triangles[i * 3 + 2] = a;
+			long a = getTriangles()[i * 3 + 1];
+			long b = getTriangles()[i * 3 + 2];
+			getTriangles()[i * 3 + 1] = b;
+			getTriangles()[i * 3 + 2] = a;
 		}
 	}
 
@@ -2742,9 +2742,9 @@ public class CSG implements IuserAPI, Serializable {
 		CSG csg = clone();
 
 		for (int i = 0; i < vertCount; i++) {
-			double vectx = csg.vertices[i * 3];
-			double vecty = csg.vertices[i * 3 + 1];
-			double vectz = csg.vertices[i * 3 + 2];
+			double vectx = csg.getVertices()[i * 3];
+			double vecty = csg.getVertices()[i * 3 + 1];
+			double vectz = csg.getVertices()[i * 3 + 2];
 			double prevX = vectx;
 			double prevY = vecty;
 			double prevZ = vectz;
@@ -2763,9 +2763,9 @@ public class CSG implements IuserAPI, Serializable {
 			double diffY = vecty - prevY;
 			double diffZ = vectz - prevZ;
 
-			csg.vertices[i * 3] = prevX + (diffX);
-			csg.vertices[i * 3 + 1] = prevY + (diffY);
-			csg.vertices[i * 3 + 2] = prevZ + (diffZ);
+			csg.getVertices()[i * 3] = prevX + (diffX);
+			csg.getVertices()[i * 3 + 1] = prevY + (diffY);
+			csg.getVertices()[i * 3 + 2] = prevZ + (diffZ);
 		}
 		if (transform.isMirror()) {
 			flip();
@@ -2846,7 +2846,7 @@ public class CSG implements IuserAPI, Serializable {
 
 		for (int i = 0; i < vertCount; i++) {
 
-			Vector3d vert = vertexAt(vertices, i);
+			Vector3d vert = vertexAt(getVertices(), i);
 
 			if (vert.x < minX) {
 				minX = vert.x;
@@ -4532,6 +4532,14 @@ public class CSG implements IuserAPI, Serializable {
 
 	public static CSGManifold3d getManifold() {
 		return manifold;
+	}
+
+	public double[] getVertices() {
+		return vertices;
+	}
+
+	public long[] getTriangles() {
+		return triangles;
 	}
 
 }
