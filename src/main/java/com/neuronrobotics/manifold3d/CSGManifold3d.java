@@ -88,7 +88,7 @@ public class CSGManifold3d {
 		if (triCount == 0)
 			return new CSG();
 
-		return new CSG(verts, tris, verts.length, triCount);
+		return new CSG(verts, tris);
 	}
 
 
@@ -265,7 +265,7 @@ public class CSGManifold3d {
 				System.out.println("Genus: " + manifold.genus(ms));
 				throw new NonManifoldShapeError("Error was " + err);
 			} else {
-				System.out.println("Manifold check ok!");
+				//System.out.println("Manifold check ok!");
 			}
 		}
 	}
@@ -288,8 +288,14 @@ public class CSGManifold3d {
 			mem = null;
 			return fromManifold;
 		} finally {
-			manifold.delete(mem);
+			if (mem != null)
+				manifold.delete(mem);
 		}
+	}
+
+
+	public void delete(MemorySegment back) throws Throwable {
+		manifold.delete(back);
 	}
 
 
