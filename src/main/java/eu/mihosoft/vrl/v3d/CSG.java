@@ -181,8 +181,6 @@ public class CSG implements IuserAPI, Serializable {
 
 	/** The default opt type. */
 
-	/** The opt type. */
-	private OptType optType = defaultOptType;
 
 	/** The storage. */
 	private PropertyStorage str;
@@ -520,7 +518,8 @@ public class CSG implements IuserAPI, Serializable {
 
 		MeshView current = meshContainer.getAsMeshViews().get(0);
 
-		PhongMaterial m = new PhongMaterial(getColor());
+		Color color = getColor();
+		PhongMaterial m = new PhongMaterial(color);
 		current.setMaterial(m);
 
 		boolean hasManipulator = hasManipulator();
@@ -997,18 +996,6 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	/**
-	 * Defines the CSg optimization type.
-	 *
-	 * @param type
-	 *            optimization type
-	 * @return this CSG
-	 */
-	public CSG optimization(OptType type) {
-		this.setOptType(type);
-		return this;
-	}
-
-	/**
 	 * Return a new CSG solid representing the union of this csg and the specified
 	 * csg.
 	 * <p>
@@ -1436,7 +1423,7 @@ public class CSG implements IuserAPI, Serializable {
 			b.clipTo(a);
 			b.invert();
 			a.build(b.allPolygons());
-			CSG back = new CSG(a.allPolygons()).optimization(getOptType());
+			CSG back = new CSG(a.allPolygons());
 			if (getName().length() != 0 && csg.getName().length() != 0) {
 				back.setName(name);
 			}
@@ -1619,7 +1606,7 @@ public class CSG implements IuserAPI, Serializable {
 		CSG result = null;
 		if (a2.getNumberOfTriangles() > 0)
 			try {
-				result = a2._differenceNoOpt(csg)._unionIntersectOpt(a1).optimization(getOptType());
+				result = a2._differenceNoOpt(csg)._unionIntersectOpt(a1);
 			} catch (ColinearPointsException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -1692,7 +1679,7 @@ public class CSG implements IuserAPI, Serializable {
 			a.build(b.allPolygons());
 			a.invert();
 
-			CSG csgA = new CSG(a.allPolygons()).optimization(getOptType());
+			CSG csgA = new CSG(a.allPolygons());
 			if (getName().length() != 0 && csg.getName().length() != 0) {
 				csgA.setName(name);
 			}
@@ -1773,7 +1760,7 @@ public class CSG implements IuserAPI, Serializable {
 			b.clipTo(a);
 			a.build(b.allPolygons());
 			a.invert();
-			CSG back = new CSG(a.allPolygons()).optimization(getOptType()).historySync(csg).historySync(this);
+			CSG back = new CSG(a.allPolygons()).historySync(csg).historySync(this);
 			if (getName().length() != 0 && csg.getName().length() != 0) {
 				back.setName(name);
 			}
@@ -2996,7 +2983,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return the optType
 	 */
 	protected OptType getOptType() {
-		return optType != null ? optType : defaultOptType;
+		return  defaultOptType;
 	}
 
 	/**
@@ -3035,17 +3022,6 @@ public class CSG implements IuserAPI, Serializable {
 		defaultOptType = optType;
 	}
 
-	/**
-	 * Sets the opt type.
-	 *
-	 * @param optType
-	 *            the optType to set
-	 */
-	public CSG setOptType(OptType optType) {
-
-		this.optType = optType;
-		return this;
-	}
 
 	/**
 	 * Hail Zeon! In case you forget the name of minkowski and are a Gundam fan

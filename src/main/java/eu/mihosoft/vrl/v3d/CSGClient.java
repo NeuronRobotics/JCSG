@@ -178,7 +178,6 @@ public class CSGClient {
 					throw ex;
 				}
 				CSG tmp = c.cloneShallow();
-				tmp.setOptType(c.getOptType());
 				toSend.add(tmp);
 			}
 
