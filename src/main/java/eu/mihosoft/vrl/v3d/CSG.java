@@ -2021,9 +2021,6 @@ public class CSG implements IuserAPI, Serializable {
 		triangles = csg.getTriangles().clone();
 	}
 
-	private void performTriangulation() {
-		// triangulation is performed when loading
-	}
 
 	private int runGPUMakeManifold(int iteration, long np, int longLength, long numPoly, ArrayList<Polygon> polygons) {
 		if (iteration < 0 || np <= 0 || longLength <= 0 || numPoly <= 0)
