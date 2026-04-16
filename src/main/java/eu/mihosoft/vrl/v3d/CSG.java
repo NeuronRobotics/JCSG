@@ -227,10 +227,11 @@ public class CSG implements IuserAPI, Serializable {
 		}
 	}
 
-	public CSG(double[] vertices, long[] triangles) {
+	public CSG(double[] vertices, long[] triangles,Color c) {
 		this();
 		this.vertices = vertices;
 		this.triangles = triangles;
+		setColor(c);
 	}
 
 	public CSG(ArrayList<Polygon> polygons) throws ColinearPointsException {
@@ -276,7 +277,9 @@ public class CSG implements IuserAPI, Serializable {
 		points.add(new Vertex(vertexAt(getTriangles()[faceIndex * 3])));
 		points.add(new Vertex(vertexAt(getTriangles()[faceIndex * 3 + 1])));
 		points.add(new Vertex(vertexAt(getTriangles()[faceIndex * 3 + 2])));
-		return new Polygon(points);
+		Polygon polygon = new Polygon(points);
+		polygon.setColor(getColor());
+		return polygon;
 	}
 
 	public CSG processPolygonsToTriangles(ArrayList<Polygon> polygons) throws ColinearPointsException {
@@ -990,7 +993,7 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	public CSG cloneShallow() {
-		return new CSG(getVertices().clone(), getTriangles().clone());
+		return new CSG(getVertices().clone(), getTriangles().clone(),getColor());
 	}
 
 	/**
@@ -1937,7 +1940,7 @@ public class CSG implements IuserAPI, Serializable {
 		if (getOptType() == OptType.Manifold3d) {
 			try {
 				MemorySegment back = manifold.toManifold(this);
-				CSG mcsg = manifold.fromManifold(back);
+				CSG mcsg = manifold.fromManifold(back,this.getColor());
 				manifold.delete(back);
 				vertices = mcsg.vertices;
 				triangles = mcsg.triangles;

@@ -13,6 +13,7 @@ import eu.mihosoft.vrl.v3d.Polygon;
 import eu.mihosoft.vrl.v3d.Transform;
 import eu.mihosoft.vrl.v3d.Vector3d;
 import eu.mihosoft.vrl.v3d.Vertex;
+import javafx.scene.paint.Color;
 
 public class CSGManifold3d {
 	private final ManifoldBindings manifold;
@@ -70,7 +71,7 @@ public class CSGManifold3d {
 	 * @throws IllegalArgumentException
 	 *             if {@code manifold} is null
 	 */
-	public CSG fromManifold(MemorySegment ms) throws Throwable {
+	public CSG fromManifold(MemorySegment ms, Color c) throws Throwable {
 		if (ms == null)
 			throw new IllegalArgumentException("manifold segment must not be null");
 		MeshData64 mesh = this.manifold.exportMeshGL64(ms);
@@ -82,7 +83,7 @@ public class CSGManifold3d {
 		if (triCount == 0)
 			return new CSG();
 
-		return new CSG(verts, tris);
+		return new CSG(verts, tris,c);
 	}
 
 	/**
@@ -154,7 +155,7 @@ public class CSGManifold3d {
 		try {
 			MemorySegment result = manifold.union(ma, mb);
 			checkResult(result);
-			CSG fromManifold = fromManifold(result);
+			CSG fromManifold = fromManifold(result,b.getColor());
 			manifold.delete(result);
 			return fromManifold;
 		} finally {
@@ -173,7 +174,7 @@ public class CSGManifold3d {
 		try {
 			MemorySegment result = manifold.difference(ma, mb);
 			checkResult(result);
-			CSG fromManifold = fromManifold(result);
+			CSG fromManifold = fromManifold(result,a.getColor());
 			manifold.delete(result);
 			return fromManifold;
 		} finally {
@@ -192,7 +193,7 @@ public class CSGManifold3d {
 		try {
 			MemorySegment result = manifold.intersection(ma, mb);
 			checkResult(result);
-			CSG fromManifold = fromManifold(result);
+			CSG fromManifold = fromManifold(result,a.getColor());
 			manifold.delete(result);
 			return fromManifold;
 		} finally {
@@ -218,7 +219,7 @@ public class CSGManifold3d {
 		try {
 			MemorySegment result = manifold.hull(ma);
 			checkResult(result);
-			CSG fromManifold = fromManifold(result);
+			CSG fromManifold = fromManifold(result,a.getColor());
 			manifold.delete(result);
 			return fromManifold;
 		} finally {
@@ -239,7 +240,7 @@ public class CSGManifold3d {
 		try {
 			MemorySegment result = manifold.batchHull(segs);
 			checkResult(result);
-			return fromManifold(result);
+			return fromManifold(result,solids[0].getColor());
 		} finally {
 			for (MemorySegment seg : segs)
 				manifold.delete(seg);
@@ -275,7 +276,7 @@ public class CSGManifold3d {
 			mem = manifold.hull(pts);
 			checkResult(mem);
 
-			CSG fromManifold = fromManifold(mem);
+			CSG fromManifold = fromManifold(mem,CSG.getDefaultColor());
 			manifold.delete(mem);
 			mem = null;
 			return fromManifold;
