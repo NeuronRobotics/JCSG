@@ -83,7 +83,7 @@ public class CSGManifold3d {
 		if (triCount == 0)
 			return new CSG();
 
-		return new CSG(verts, tris,c);
+		return new CSG(verts, tris, c);
 	}
 
 	/**
@@ -155,7 +155,7 @@ public class CSGManifold3d {
 		try {
 			MemorySegment result = manifold.union(ma, mb);
 			checkResult(result);
-			CSG fromManifold = fromManifold(result,b.getColor());
+			CSG fromManifold = fromManifold(result, b.getColor());
 			manifold.delete(result);
 			return fromManifold;
 		} finally {
@@ -174,7 +174,7 @@ public class CSGManifold3d {
 		try {
 			MemorySegment result = manifold.difference(ma, mb);
 			checkResult(result);
-			CSG fromManifold = fromManifold(result,a.getColor());
+			CSG fromManifold = fromManifold(result, a.getColor());
 			manifold.delete(result);
 			return fromManifold;
 		} finally {
@@ -193,7 +193,7 @@ public class CSGManifold3d {
 		try {
 			MemorySegment result = manifold.intersection(ma, mb);
 			checkResult(result);
-			CSG fromManifold = fromManifold(result,a.getColor());
+			CSG fromManifold = fromManifold(result, a.getColor());
 			manifold.delete(result);
 			return fromManifold;
 		} finally {
@@ -219,7 +219,7 @@ public class CSGManifold3d {
 		try {
 			MemorySegment result = manifold.hull(ma);
 			checkResult(result);
-			CSG fromManifold = fromManifold(result,a.getColor());
+			CSG fromManifold = fromManifold(result, a.getColor());
 			manifold.delete(result);
 			return fromManifold;
 		} finally {
@@ -240,7 +240,7 @@ public class CSGManifold3d {
 		try {
 			MemorySegment result = manifold.batchHull(segs);
 			checkResult(result);
-			return fromManifold(result,solids[0].getColor());
+			return fromManifold(result, solids[0].getColor());
 		} finally {
 			for (MemorySegment seg : segs)
 				manifold.delete(seg);
@@ -276,7 +276,7 @@ public class CSGManifold3d {
 			mem = manifold.hull(pts);
 			checkResult(mem);
 
-			CSG fromManifold = fromManifold(mem,CSG.getDefaultColor());
+			CSG fromManifold = fromManifold(mem, CSG.getDefaultColor());
 			manifold.delete(mem);
 			mem = null;
 			return fromManifold;

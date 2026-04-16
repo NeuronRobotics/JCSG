@@ -181,7 +181,6 @@ public class CSG implements IuserAPI, Serializable {
 
 	/** The default opt type. */
 
-
 	/** The storage. */
 	private PropertyStorage str;
 	private PropertyStorage assembly;
@@ -225,7 +224,7 @@ public class CSG implements IuserAPI, Serializable {
 		}
 	}
 
-	public CSG(double[] vertices, long[] triangles,Color c) {
+	public CSG(double[] vertices, long[] triangles, Color c) {
 		this();
 		this.vertices = vertices;
 		this.triangles = triangles;
@@ -992,7 +991,7 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	public CSG cloneShallow() {
-		return new CSG(getVertices().clone(), getTriangles().clone(),getColor());
+		return new CSG(getVertices().clone(), getTriangles().clone(), getColor());
 	}
 
 	/**
@@ -1927,7 +1926,7 @@ public class CSG implements IuserAPI, Serializable {
 		if (getOptType() == OptType.Manifold3d) {
 			try {
 				MemorySegment back = manifold.toManifold(this);
-				CSG mcsg = manifold.fromManifold(back,this.getColor());
+				CSG mcsg = manifold.fromManifold(back, this.getColor());
 				manifold.delete(back);
 				vertices = mcsg.vertices;
 				triangles = mcsg.triangles;
@@ -2007,7 +2006,6 @@ public class CSG implements IuserAPI, Serializable {
 		vertices = csg.getVertices().clone();
 		triangles = csg.getTriangles().clone();
 	}
-
 
 	private int runGPUMakeManifold(int iteration, long np, int longLength, long numPoly, ArrayList<Polygon> polygons) {
 		if (iteration < 0 || np <= 0 || longLength <= 0 || numPoly <= 0)
@@ -2983,7 +2981,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return the optType
 	 */
 	protected OptType getOptType() {
-		return  defaultOptType;
+		return defaultOptType;
 	}
 
 	/**
@@ -3021,7 +3019,6 @@ public class CSG implements IuserAPI, Serializable {
 		}
 		defaultOptType = optType;
 	}
-
 
 	/**
 	 * Hail Zeon! In case you forget the name of minkowski and are a Gundam fan
