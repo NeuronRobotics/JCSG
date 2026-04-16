@@ -44,11 +44,9 @@ public class HullUtil {
 			return hull(plist, new PropertyStorage());
 		}
 		if (CSG.class.isInstance(points.get(0))) {
-			for (Object csg : points) {
-				CSG csg2 = (CSG) csg;
-				for (int i = 0; i < csg2.getNumberOfTriangles() * 3; i++) {
-					plist.add(csg2.vertexAt(i));
-				}
+			for (Object c : points) {
+				CSG csg = (CSG) c;
+				plist.addAll(csg.getPoints());
 			}
 			return hull(plist, new PropertyStorage());
 		}
