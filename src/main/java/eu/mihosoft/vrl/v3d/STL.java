@@ -59,31 +59,38 @@ public class STL {
 	/**
 	 * Loads a CSG from stl.
 	 *
-	 * @param path file path
+	 * @param path
+	 *            file path
 	 * @return CSG
-	 * @throws IOException             if loading failed
-	 * @throws URISyntaxException      the URI syntax exception
+	 * @throws IOException
+	 *             if loading failed
+	 * @throws URISyntaxException
+	 *             the URI syntax exception
 	 * @throws ColinearPointsException
 	 */
-	public static CSG file(URL path,boolean repair) throws IOException, URISyntaxException, ColinearPointsException,NonManifoldShapeError {
+	public static CSG file(URL path, boolean repair)
+			throws IOException, URISyntaxException, ColinearPointsException, NonManifoldShapeError {
 		final URI uri = path.toURI();
 		Map<String, String> env = new HashMap<>();
 		env.put("create", "true");
 		FileSystem zipfs = FileSystems.newFileSystem(uri, env);
 		Path myFolderPath = Paths.get(uri);
-		return file(myFolderPath,repair);
+		return file(myFolderPath, repair);
 	}
 
 	/**
 	 * Loads a CSG from stl.
 	 *
-	 * @param path file path
+	 * @param path
+	 *            file path
 	 * @return CSG
-	 * @throws IOException             if loading failed
+	 * @throws IOException
+	 *             if loading failed
 	 * @throws NonManifoldShapeError
 	 * @throws ColinearPointsException
 	 */
-	public static CSG file(Path path, boolean repair) throws IOException, NonManifoldShapeError, ColinearPointsException {
+	public static CSG file(Path path, boolean repair)
+			throws IOException, NonManifoldShapeError, ColinearPointsException {
 		STLLoader loader = new STLLoader();
 
 		ArrayList<Polygon> polygons = loader.parse(path.toFile());
@@ -100,15 +107,17 @@ public class STL {
 	/**
 	 * Loads a CSG from stl.
 	 *
-	 * @param path file path
+	 * @param path
+	 *            file path
 	 * @return CSG
-	 * @throws IOException             if loading failed
+	 * @throws IOException
+	 *             if loading failed
 	 * @throws NonManifoldShapeError
 	 * @throws ColinearPointsException
 	 */
 	public static CSG file(Path path) {
 		try {
-			return file(path,true);
+			return file(path, true);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
