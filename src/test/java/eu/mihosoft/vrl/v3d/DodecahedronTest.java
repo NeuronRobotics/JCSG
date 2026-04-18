@@ -4,13 +4,15 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
+import com.neuronrobotics.manifold3d.NonManifoldShapeError;
+
 import java.io.IOException;
 import java.nio.file.Paths;
 
 public class DodecahedronTest {
 
 	@Test
-	public void test() throws IOException {
+	public void test() throws IOException, ColinearPointsException, NonManifoldShapeError {
 		double radius = 10;
 
 		CSG dodecahedron = new Dodecahedron(radius).toCSG();
@@ -20,7 +22,7 @@ public class DodecahedronTest {
 		assertTrue(dodecahedron.intersect(box).getNumberOfTriangles() == 0);
 		assertTrue(insphere.difference(dodecahedron).getNumberOfTriangles() == 0);
 
-		FileUtil.write(Paths.get("dodecahedron.stl"), dodecahedron.toStlString());
+		FileUtil.write(Paths.get("dodecahedron.stl"), dodecahedron.toStlString(true));
 	}
 
 }

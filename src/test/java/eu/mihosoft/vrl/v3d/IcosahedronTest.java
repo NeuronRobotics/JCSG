@@ -4,13 +4,15 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
+import com.neuronrobotics.manifold3d.NonManifoldShapeError;
+
 import java.io.IOException;
 import java.nio.file.Paths;
 
 public class IcosahedronTest {
 
 	@Test
-	public void test() throws IOException {
+	public void test() throws IOException, ColinearPointsException, NonManifoldShapeError {
 		double radius = 10;
 
 		CSG icosahedron = new Icosahedron(radius).toCSG();
@@ -20,7 +22,7 @@ public class IcosahedronTest {
 		// assertTrue(icosahedron.intersect(box).getPolygons().size() == 0);
 		// assertTrue(insphere.difference(icosahedron).getPolygons().size() == 0);
 		//
-		FileUtil.write(Paths.get("icosahedron.stl"), icosahedron.toStlString());
+		FileUtil.write(Paths.get("icosahedron.stl"), icosahedron.toStlString(true));
 	}
 
 }

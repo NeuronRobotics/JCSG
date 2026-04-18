@@ -31,6 +31,7 @@
 
 package eu.mihosoft.vrl.v3d;
 
+import eu.mihosoft.vrl.v3d.CSG.OptType;
 import eu.mihosoft.vrl.v3d.ext.imagej.STLLoader;
 
 import java.io.IOException;
@@ -45,6 +46,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.neuronrobotics.manifold3d.NonManifoldShapeError;
+
 //  Auto-generated Javadoc
 /**
  * Loads a CSG from stl.
@@ -56,47 +59,66 @@ public class STL {
 	/**
 	 * Loads a CSG from stl.
 	 *
-	 * @param path
-	 *            file path
+	 * @param path file path
 	 * @return CSG
-	 * @throws IOException
-	 *             if loading failed
-	 * @throws URISyntaxException
-	 *             the URI syntax exception
+	 * @throws IOException             if loading failed
+	 * @throws URISyntaxException      the URI syntax exception
 	 * @throws ColinearPointsException
 	 */
-	public static CSG file(URL path) throws IOException, URISyntaxException, ColinearPointsException {
+	public static CSG file(URL path,boolean repair) throws IOException, URISyntaxException, ColinearPointsException,NonManifoldShapeError {
 		final URI uri = path.toURI();
 		Map<String, String> env = new HashMap<>();
 		env.put("create", "true");
 		FileSystem zipfs = FileSystems.newFileSystem(uri, env);
 		Path myFolderPath = Paths.get(uri);
-		return file(myFolderPath);
+		return file(myFolderPath,repair);
 	}
 
 	/**
 	 * Loads a CSG from stl.
 	 *
-	 * @param path
-	 *            file path
+	 * @param path file path
 	 * @return CSG
-	 * @throws IOException
-	 *             if loading failed
+	 * @throws IOException             if loading failed
+	 * @throws NonManifoldShapeError
 	 * @throws ColinearPointsException
 	 */
-	public static CSG file(Path path) throws IOException {
+	public static CSG file(Path path, boolean repair) throws IOException, NonManifoldShapeError, ColinearPointsException {
 		STLLoader loader = new STLLoader();
 
 		ArrayList<Polygon> polygons = loader.parse(path.toFile());
 
 		CSG fromPolygons;
+
+		fromPolygons = new CSG(polygons);
+		if (CSG.getDefaultOptionType() == OptType.Manifold3d) {
+			fromPolygons.makeManifold(repair);
+		}
+
+		return fromPolygons;
+	}
+	/**
+	 * Loads a CSG from stl.
+	 *
+	 * @param path file path
+	 * @return CSG
+	 * @throws IOException             if loading failed
+	 * @throws NonManifoldShapeError
+	 * @throws ColinearPointsException
+	 */
+	public static CSG file(Path path) {
 		try {
-			fromPolygons = new CSG(polygons);
+			return file(path,true);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NonManifoldShapeError e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		} catch (ColinearPointsException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			fromPolygons = new CSG();
 		}
-		return fromPolygons;
+		return new CSG();
 	}
 }

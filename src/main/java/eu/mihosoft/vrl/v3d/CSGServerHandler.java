@@ -124,7 +124,7 @@ class CSGServerHandler implements Runnable {
 				case TRIANGULATE :
 					CSG.setPreventNonManifoldTriangles(true);
 					for (CSG c : csgList)
-						back.add(c.makeManifold());
+						back.add(c.makeManifold(true));
 					break;
 				case UNION :
 					try {

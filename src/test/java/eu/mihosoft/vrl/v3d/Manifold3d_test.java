@@ -24,7 +24,8 @@ public class Manifold3d_test {
 			CSG difference = cube.difference(sphere);
 			CSG intersect = cube.intersect(sphere);
 			CSG union = cube.union(sphere);
-
+			CSG mirrored = union.mirrorx();
+			FileUtil.write(Paths.get("Manifole-mirror.stl"), mirrored.toStlString());
 			FileUtil.write(Paths.get("Manifole-union.stl"), union.toStlString());
 			FileUtil.write(Paths.get("Manifole-difference.stl"), difference.toStlString());
 			FileUtil.write(Paths.get("Manifole-intersect.stl"), intersect.toStlString());
