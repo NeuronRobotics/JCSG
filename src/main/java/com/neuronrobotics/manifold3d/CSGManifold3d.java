@@ -293,10 +293,16 @@ public class CSGManifold3d {
 
 	public CSG fromSTL(Path path) throws Throwable {
 		MemorySegment man = manifold.importSTL(path.toFile());
-		checkResult(man);
-		CSG back = fromManifold(man, Color.ALICEBLUE);
-		manifold.delete(man);
-		return back;
+		try {
+			checkResult(man);
+			CSG back = fromManifold(man, Color.ALICEBLUE);
+			manifold.delete(man);
+			return back;
+		} catch (Throwable t) {
+			if (man != null)
+				manifold.delete(man);
+			throw t;
+		}
 	}
 
 }
