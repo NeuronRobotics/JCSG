@@ -110,7 +110,7 @@ public class STL {
 		fromPolygons = new CSG(polygons);
 
 		return fromPolygons;
-		
+
 	}
 	/**
 	 * Loads a CSG from stl.

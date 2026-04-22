@@ -1,6 +1,5 @@
 package com.neuronrobotics.manifold3d;
 
-import java.io.File;
 import java.lang.foreign.MemorySegment;
 import java.nio.file.Path;
 import java.util.ArrayList;
