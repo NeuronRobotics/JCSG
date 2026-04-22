@@ -1947,9 +1947,9 @@ public class CSG implements IuserAPI, Serializable {
 			return this;
 		if (getOptType() == OptType.Manifold3d) {
 			try {
-				MemorySegment back = manifold.toManifold(this);
-				CSG mcsg = manifold.fromManifold(back, this.getColor());
-				manifold.delete(back);
+				MemorySegment back = getManifold().toManifold(this);
+				CSG mcsg = getManifold().fromManifold(back, this.getColor());
+				getManifold().delete(back);
 				vertices = mcsg.vertices;
 				triangles = mcsg.triangles;
 				return this;
@@ -3040,7 +3040,7 @@ public class CSG implements IuserAPI, Serializable {
 	public static void setDefaultOptType(OptType optType) {
 		if (optType == OptType.Manifold3d) {
 			try {
-				manifold = new CSGManifold3d();
+				setManifold(new CSGManifold3d());
 				Slice.setSliceEngine(new ISlice() {
 					@Override
 					public List<Polygon> slice(CSG incoming, Transform slicePlane, double normalInsetDistance)
@@ -4571,6 +4571,10 @@ public class CSG implements IuserAPI, Serializable {
 		if (triangles == null)
 			return 0;
 		return triangles.length / 3;
+	}
+
+	public static void setManifold(CSGManifold3d manifold) {
+		CSG.manifold = manifold;
 	}
 
 }
