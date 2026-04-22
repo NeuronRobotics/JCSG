@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.neuronrobotics.manifold3d.CSGManifold3d;
 import com.neuronrobotics.manifold3d.NonManifoldShapeError;
 
 //  Auto-generated Javadoc
@@ -91,6 +92,15 @@ public class STL {
 	 */
 	public static CSG file(Path path, boolean repair)
 			throws IOException, NonManifoldShapeError, ColinearPointsException {
+
+		if (CSG.getDefaultOptionType() == OptType.Manifold3d) {
+			CSGManifold3d m = CSG.getManifold();
+			try {
+				return m.fromSTL(path);
+			} catch (Throwable e) {
+				e.printStackTrace();
+			}
+		}
 		STLLoader loader = new STLLoader();
 
 		ArrayList<Polygon> polygons = loader.parse(path.toFile());
@@ -98,11 +108,9 @@ public class STL {
 		CSG fromPolygons;
 
 		fromPolygons = new CSG(polygons);
-		if (CSG.getDefaultOptionType() == OptType.Manifold3d) {
-			fromPolygons.makeManifold(repair);
-		}
 
 		return fromPolygons;
+		
 	}
 	/**
 	 * Loads a CSG from stl.
