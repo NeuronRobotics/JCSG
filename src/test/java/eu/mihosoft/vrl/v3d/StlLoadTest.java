@@ -10,6 +10,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import eu.mihosoft.vrl.v3d.CSG.OptType;
 import eu.mihosoft.vrl.v3d.parametrics.CSGDatabase;
 import eu.mihosoft.vrl.v3d.thumbnail.ThumbnailImageCSG;
 import javafx.scene.shape.CullFace;
@@ -60,5 +61,19 @@ public class StlLoadTest {
 			e.printStackTrace();
 		}
 	}
-
+	@Test
+	public void testBumber() throws IOException {
+		CSG.setDefaultOptType(OptType.Manifold3d);
+		String filename = "bumper.STL";
+		File file = new File(filename);
+		CSG loaded = STL.file(file.toPath());
+		try {
+			ThumbnailImageCSG.setCullFaceValue(CullFace.NONE);
+			new ThumbnailImageCSG().writeImage(CSGDatabase.getInstance(), loaded,
+					new File(file.getAbsolutePath() + ".png"));
+		} catch (Exception e) {
+			// Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 }
