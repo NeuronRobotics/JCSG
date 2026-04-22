@@ -1,6 +1,8 @@
 package com.neuronrobotics.manifold3d;
 
+import java.io.File;
 import java.lang.foreign.MemorySegment;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -288,6 +290,14 @@ public class CSGManifold3d {
 
 	public void delete(MemorySegment back) throws Throwable {
 		manifold.delete(back);
+	}
+
+	public CSG fromSTL(Path path) throws Throwable {
+		MemorySegment man = manifold.importSTL(path.toFile());
+		checkResult(man);
+		CSG back = fromManifold(man, Color.ALICEBLUE);
+		manifold.delete(man);
+		return back;
 	}
 
 }
