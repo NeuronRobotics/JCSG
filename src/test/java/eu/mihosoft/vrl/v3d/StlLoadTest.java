@@ -3,7 +3,6 @@ package eu.mihosoft.vrl.v3d;
 import static org.junit.Assert.*;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Paths;
 
 import org.junit.Before;
@@ -22,7 +21,7 @@ public class StlLoadTest {
 	}
 	@Test
 	@Ignore
-	public void tower() throws IOException {
+	public void tower() throws Throwable {
 		String filename = "fixedTower.STL";
 		File file = new File(filename);
 		System.out.println("Loading STL");
@@ -48,7 +47,7 @@ public class StlLoadTest {
 		}
 	}
 	@Test
-	public void test() throws IOException {
+	public void test() throws Throwable {
 		String filename = "brokenSTL.STL";
 		File file = new File(filename);
 		CSG loaded = STL.file(file.toPath());
@@ -62,7 +61,7 @@ public class StlLoadTest {
 		}
 	}
 	@Test
-	public void testBumber() throws IOException {
+	public void testBumber() throws Throwable {
 		CSG.setDefaultOptType(OptType.Manifold3d);
 		String filename = "bumper.STL";
 		File file = new File(filename);

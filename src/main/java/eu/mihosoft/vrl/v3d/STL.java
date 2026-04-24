@@ -36,7 +36,6 @@ import eu.mihosoft.vrl.v3d.ext.imagej.STLLoader;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
@@ -63,14 +62,10 @@ public class STL {
 	 * @param path
 	 *            file path
 	 * @return CSG
-	 * @throws IOException
-	 *             if loading failed
-	 * @throws URISyntaxException
-	 *             the URI syntax exception
-	 * @throws ColinearPointsException
+	 * @throws Throwable 
 	 */
 	public static CSG file(URL path, boolean repair)
-			throws IOException, URISyntaxException, ColinearPointsException, NonManifoldShapeError {
+			throws Throwable {
 		final URI uri = path.toURI();
 		Map<String, String> env = new HashMap<>();
 		env.put("create", "true");
@@ -85,21 +80,16 @@ public class STL {
 	 * @param path
 	 *            file path
 	 * @return CSG
-	 * @throws IOException
-	 *             if loading failed
-	 * @throws NonManifoldShapeError
-	 * @throws ColinearPointsException
+	 * @throws Throwable 
 	 */
 	public static CSG file(Path path, boolean repair)
-			throws IOException, NonManifoldShapeError, ColinearPointsException {
+			throws Throwable {
 
 		if (CSG.getDefaultOptionType() == OptType.Manifold3d) {
 			CSGManifold3d m = CSG.getManifold();
-			try {
-				return m.fromSTL(path);
-			} catch (Throwable e) {
-				e.printStackTrace();
-			}
+			
+			return m.fromSTL(path);
+			
 		}
 		STLLoader loader = new STLLoader();
 
@@ -118,12 +108,13 @@ public class STL {
 	 * @param path
 	 *            file path
 	 * @return CSG
+	 * @throws Throwable 
 	 * @throws IOException
 	 *             if loading failed
 	 * @throws NonManifoldShapeError
 	 * @throws ColinearPointsException
 	 */
-	public static CSG file(Path path) {
+	public static CSG file(Path path) throws Throwable {
 		try {
 			return file(path, true);
 		} catch (IOException e) {

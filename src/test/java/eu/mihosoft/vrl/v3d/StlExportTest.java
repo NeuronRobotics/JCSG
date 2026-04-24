@@ -3,7 +3,6 @@ package eu.mihosoft.vrl.v3d;
 import static org.junit.Assert.*;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Paths;
 
 import org.junit.Test;
@@ -14,7 +13,7 @@ public class StlExportTest {
 
 	@Test
 
-	public void makeBadSTL() throws IOException {
+	public void makeBadSTL() throws Throwable {
 		CSG.setDefaultOptType(OptType.Manifold3d);
 		// Vector3d.setEXPORTEPSILON(1.0e-10);
 		CSG.setUseGPU(true);
