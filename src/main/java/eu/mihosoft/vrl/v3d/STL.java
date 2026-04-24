@@ -62,10 +62,9 @@ public class STL {
 	 * @param path
 	 *            file path
 	 * @return CSG
-	 * @throws Throwable 
+	 * @throws Throwable
 	 */
-	public static CSG file(URL path, boolean repair)
-			throws Throwable {
+	public static CSG file(URL path, boolean repair) throws Throwable {
 		final URI uri = path.toURI();
 		Map<String, String> env = new HashMap<>();
 		env.put("create", "true");
@@ -80,16 +79,15 @@ public class STL {
 	 * @param path
 	 *            file path
 	 * @return CSG
-	 * @throws Throwable 
+	 * @throws Throwable
 	 */
-	public static CSG file(Path path, boolean repair)
-			throws Throwable {
+	public static CSG file(Path path, boolean repair) throws Throwable {
 
 		if (CSG.getDefaultOptionType() == OptType.Manifold3d) {
 			CSGManifold3d m = CSG.getManifold();
-			
+
 			return m.fromSTL(path);
-			
+
 		}
 		STLLoader loader = new STLLoader();
 
@@ -108,7 +106,7 @@ public class STL {
 	 * @param path
 	 *            file path
 	 * @return CSG
-	 * @throws Throwable 
+	 * @throws Throwable
 	 * @throws IOException
 	 *             if loading failed
 	 * @throws NonManifoldShapeError
