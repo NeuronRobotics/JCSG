@@ -1,8 +1,6 @@
 package eu.mihosoft.vrl.v3d;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import javafx.scene.shape.TriangleMesh;
 
@@ -73,41 +71,30 @@ public class CSGtoJavafx {
 		return mesh;
 	}
 	public static TriangleMesh meshFromPolygon(CSG source) {
-	    TriangleMesh mesh = new TriangleMesh();
-	    mesh.getTexCoords().addAll(0, 0);
+		TriangleMesh mesh = new TriangleMesh();
+		mesh.getTexCoords().addAll(0, 0);
 
-	    long[] triangles = source.getTriangles();
-	    int triCount =(int) source.getTriCount();
+		long[] triangles = source.getTriangles();
+		int triCount = (int) source.getTriCount();
 
-	    for (int j = 0; j < triCount; j++) {
-	        int i0 = (int)triangles[j * 3 + 0];
-	        int i1 = (int)triangles[j * 3 + 1];
-	        int i2 = (int)triangles[j * 3 + 2];
+		for (int j = 0; j < triCount; j++) {
+			int i0 = (int) triangles[j * 3 + 0];
+			int i1 = (int) triangles[j * 3 + 1];
+			int i2 = (int) triangles[j * 3 + 2];
 
-	        // Duplicate the vertices — don't share them across triangles
-	        int base = j * 3;
+			// Duplicate the vertices — don't share them across triangles
+			int base = j * 3;
 
-	        mesh.getPoints().addAll(
-	            (float) source.getVertex_X(i0),
-	            (float) source.getVertex_Y(i0),
-	            (float) source.getVertex_Z(i0),
-	            (float) source.getVertex_X(i1),
-	            (float) source.getVertex_Y(i1),
-	            (float) source.getVertex_Z(i1),
-	            (float) source.getVertex_X(i2),
-	            (float) source.getVertex_Y(i2),
-	            (float) source.getVertex_Z(i2)
-	        );
+			mesh.getPoints().addAll((float) source.getVertex_X(i0), (float) source.getVertex_Y(i0),
+					(float) source.getVertex_Z(i0), (float) source.getVertex_X(i1), (float) source.getVertex_Y(i1),
+					(float) source.getVertex_Z(i1), (float) source.getVertex_X(i2), (float) source.getVertex_Y(i2),
+					(float) source.getVertex_Z(i2));
 
-	        // Each triangle gets its own 3 vertex slots
-	        mesh.getFaces().addAll(
-	            base + 0, 0,
-	            base + 1, 0,
-	            base + 2, 0
-	        );
-	    }
+			// Each triangle gets its own 3 vertex slots
+			mesh.getFaces().addAll(base + 0, 0, base + 1, 0, base + 2, 0);
+		}
 
-	    return mesh;
+		return mesh;
 	}
 
 }
