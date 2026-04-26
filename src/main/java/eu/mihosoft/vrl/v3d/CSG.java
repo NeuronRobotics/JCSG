@@ -43,7 +43,6 @@ import eu.mihosoft.vrl.v3d.parametrics.Parameter;
 
 import java.io.File;
 import java.io.Serializable;
-import java.lang.foreign.MemorySegment;
 import java.lang.reflect.Field;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -72,6 +71,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.CullFace;
 import javafx.scene.shape.DrawMode;
+import javafx.scene.shape.Mesh;
 import javafx.scene.shape.MeshView;
 import javafx.scene.text.Font;
 import javafx.scene.transform.Affine;
@@ -226,8 +226,8 @@ public class CSG implements IuserAPI, Serializable {
 
 	public CSG(double[] vertices, long[] triangles, Color c) {
 		this();
-		this.vertices = vertices;
-		this.triangles = triangles;
+		this.setVertices(vertices);
+		this.setTriangles(triangles);
 		setColor(c);
 	}
 
@@ -258,13 +258,13 @@ public class CSG implements IuserAPI, Serializable {
 	}
 	
 	public double getVertex_X(int vertex) {
-		return vertices[vertex*3+0];
+		return getVertices()[vertex*3+0];
 	}
 	public double getVertex_Y(int vertex) {
-		return vertices[vertex*3+1];
+		return getVertices()[vertex*3+1];
 	}
 	public double getVertex_Z(int vertex) {
-		return vertices[vertex*3+2];
+		return getVertices()[vertex*3+2];
 	}
 
 	public List<Vector3d> getPoints() {
@@ -313,14 +313,14 @@ public class CSG implements IuserAPI, Serializable {
 		}
 
 		if (triList.isEmpty()) {
-			vertices = new double[0];
-			triangles = new long[0];
+			setVertices(new double[0]);
+			setTriangles(new long[0]);
 
 			return this;
 		}
 
 		// Flatten vertex list into a primitive array.
-		vertices = new double[(int) (vertexList.size() * 3)];
+		setVertices(new double[(int) (vertexList.size() * 3)]);
 		for (int i = 0; i < getVertCount(); i++) {
 			Vector3d v = vertexList.get(i);
 			getVertices()[i * 3] = v.x;
@@ -329,7 +329,7 @@ public class CSG implements IuserAPI, Serializable {
 		}
 
 		// Flatten triangle index list.
-		triangles = new long[triList.size()];
+		setTriangles(new long[triList.size()]);
 		for (int i = 0; i < getTriangles().length; i++) {
 			getTriangles()[i] = triList.get(i);
 		}
@@ -520,9 +520,9 @@ public class CSG implements IuserAPI, Serializable {
 	 */
 	public MeshView newMesh() {
 
-		MeshContainer meshContainer = toJavaFXMesh(null);
+		Mesh meshContainer = toJavaFXMesh(null);
 
-		MeshView current = meshContainer.getAsMeshViews().get(0);
+		MeshView current = new MeshView(meshContainer);
 
 		Color color = getColor();
 		PhongMaterial m = new PhongMaterial(color);
@@ -1952,11 +1952,7 @@ public class CSG implements IuserAPI, Serializable {
 			return this;
 		if (getOptType() == OptType.Manifold3d) {
 			try {
-				MemorySegment back = getManifold().toManifold(this);
-				CSG mcsg = getManifold().fromManifold(back, this.getColor());
-				getManifold().delete(back);
-				vertices = mcsg.vertices;
-				triangles = mcsg.triangles;
+				manifold.checkManifold(this);
 				return this;
 			} catch (NonManifoldShapeError e) {
 				if (repair)
@@ -2035,8 +2031,8 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	private void setData(CSG csg) {
-		vertices = csg.getVertices().clone();
-		triangles = csg.getTriangles().clone();
+		setVertices(csg.getVertices().clone());
+		setTriangles(csg.getTriangles().clone());
 	}
 
 	private int runGPUMakeManifold(int iteration, long np, int longLength, long numPoly, ArrayList<Polygon> polygons) {
@@ -2757,10 +2753,10 @@ public class CSG implements IuserAPI, Serializable {
 	 */
 	private void flip() {
 		for (int i = 0; i < getTriCount(); i++) {
-			long a = triangles[i * 3 + 1];
-			long b = triangles[i * 3 + 2];
-			triangles[i * 3 + 1] = b;
-			triangles[i * 3 + 2] = a;
+			long a = getTriangles()[i * 3 + 1];
+			long b = getTriangles()[i * 3 + 2];
+			getTriangles()[i * 3 + 1] = b;
+			getTriangles()[i * 3 + 2] = a;
 		}
 	}
 
@@ -2826,7 +2822,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * @throws ColinearPointsException
 	 */
 	// TODO finish experiment (20.7.2014)
-	public MeshContainer toJavaFXMesh(CadInteractionEvent interact) {
+	public Mesh toJavaFXMesh(CadInteractionEvent interact) {
 
 		return toJavaFXMeshSimple(interact);
 
@@ -2852,7 +2848,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return the CSG as JavaFX triangle mesh
 	 * @throws ColinearPointsException
 	 */
-	public MeshContainer toJavaFXMeshSimple(CadInteractionEvent interact) {
+	public Mesh toJavaFXMeshSimple(CadInteractionEvent interact) {
 
 		return CSGtoJavafx.meshFromPolygon(this);
 	}
@@ -4561,19 +4557,27 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	public long getVertCount() {
-		if (vertices == null)
+		if (getVertices() == null)
 			return 0;
-		return vertices.length / 3;
+		return getVertices().length / 3;
 	}
 
 	public long getTriCount() {
-		if (triangles == null)
+		if (getTriangles() == null)
 			return 0;
-		return triangles.length / 3;
+		return getTriangles().length / 3;
 	}
 
 	public static void setManifold(CSGManifold3d manifold) {
 		CSG.manifold = manifold;
+	}
+
+	public void setVertices(double[] vertices) {
+		this.vertices = vertices;
+	}
+
+	public void setTriangles(long[] triangles) {
+		this.triangles = triangles;
 	}
 
 }

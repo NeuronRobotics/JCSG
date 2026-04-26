@@ -26,6 +26,14 @@ public class CSGManifold3d {
 		// exporter = new Manifold3dExporter(manifold);
 		// importer = new Manifold3dImporter(manifold);
 	}
+	
+	public void checkManifold(CSG c) throws Throwable {
+		MemorySegment back = c.getManifold().toManifold(c);
+		CSG mcsg = c.getManifold().fromManifold(back, c.getColor());
+		CSG.getManifold().delete(back);
+		c.setVertices(mcsg.getVertices());
+		c.setTriangles(mcsg.getTriangles());
+	}
 
 	/**
 	 * Converts a JCSG {@link CSG} into a native manifold {@link MemorySegment}.
