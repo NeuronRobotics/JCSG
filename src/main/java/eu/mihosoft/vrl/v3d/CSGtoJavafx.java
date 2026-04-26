@@ -8,7 +8,7 @@ import javafx.scene.shape.TriangleMesh;
 public class CSGtoJavafx {
 
 	// Uses fan triangulation, works for convex polygons only!
-	public static MeshContainer meshFromPolygon(CSG source) {
+	public static TriangleMesh meshFromPolygon(CSG source) {
 		TriangleMesh mesh = new TriangleMesh();
 
 		double minX = Double.POSITIVE_INFINITY;
@@ -55,7 +55,7 @@ public class CSGtoJavafx {
 			
 		} // end for
 
-		return new MeshContainer(new Vector3d(minX, minY, minZ), new Vector3d(maxX, maxY, maxZ), mesh);
+		return mesh;// new MeshContainer(new Vector3d(minX, minY, minZ), new Vector3d(maxX, maxY, maxZ), mesh);
 	}
 
 }
