@@ -1,44 +1,44 @@
-
 plugins {
 	id 'eclipse'
 	id 'java'
+	id 'java-library'
 	id 'maven-publish'
 	id 'signing'
 	id 'com.diffplug.spotless' version '6.25.0'
 }
+
 spotless {
 	java {
 		lineEndings = com.diffplug.spotless.LineEnding.UNIX
-		// Eclipse formatter with your config file
-        eclipse('4.26')  // Uses Eclipse's built-in default profile — no XML needed!		
-		// Optional but recommended additions:
+		eclipse('4.26')
 		removeUnusedImports()
 		trimTrailingWhitespace()
 		endWithNewline()
 	}
 }
+
 java {
-	sourceCompatibility = JavaVersion.VERSION_21
-	targetCompatibility = JavaVersion.VERSION_21
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
+	withJavadocJar()
+	withSourcesJar()
 }
-File buildDir = file(".");
+
+base {
+	archivesName = "JavaCad"
+}
+
+File buildDir = file(".")
 Properties props = new Properties()
-props.load(new FileInputStream(buildDir.getAbsolutePath()+"/src/main/resources/com/neuronrobotics/javacad/build.properties"))
+props.load(new FileInputStream(buildDir.getAbsolutePath() + "/src/main/resources/com/neuronrobotics/javacad/build.properties"))
+
 group = "com.neuronrobotics"
-archivesBaseName = "JavaCad"
 version = props."app.version"
 
-
-[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
-
-//apply from: 'http://gradle-plugins.mihosoft.eu/latest/vlicenseheader.gradle'
-//repairHeaders.licenseHeaderText = new File(projectDir,'./license-template.txt')
-
-task sourcesJar(type: Jar) {
-	//classifier = 'sources'
-	from sourceSets.main.allSource
+tasks.withType(JavaCompile).configureEach {
+	options.encoding = 'UTF-8'
+	options.compilerArgs += ['--enable-preview']
 }
-
 
 repositories {
 	mavenCentral()
@@ -46,66 +46,28 @@ repositories {
 	maven { url "https://clojars.org/repo" }
 }
 
-// javadoc is way too strict for my taste.
-if (JavaVersion.current().isJava8Compatible()) {
-	allprojects {
-		tasks.withType(Javadoc) {
-			options.addStringOption("encoding", "UTF-8")
-			options.addStringOption('Xdoclint:none', '-quiet')
-		}
+allprojects {
+	tasks.withType(Javadoc).configureEach {
+		options.addStringOption("encoding", "UTF-8")
+		options.addStringOption('Xdoclint:none', '-quiet')
 	}
-}
-//home/hephaestus/.m2/repository/net/jsdia/jsdi_lib/4.5.0-SNAPSHOT/jsdi_lib-4.5.0-SNAPSHOT.pom
-//home/hephaestus/.m2/repository/net/jsdai/jsdai_lib/4.5.0-SNAPSHOT/jsdai_lib-4.5.0-SNAPSHOT.pom
-//home/hephaestus/.m2/repository/net/jsdia/jsdai_lib/4.5.0-SNAPSHOT/jsdai_lib-4.5.0-SNAPSHOT.pom
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-
-	//classifier = 'javadoc'
-	from javadoc.destinationDir
-}
-
-artifacts {
-	archives jar
-	archives javadocJar
-	archives sourcesJar
 }
 
 dependencies {
 	testImplementation group: 'junit', name: 'junit', version: '4.0'
 	implementation 'commons-io:commons-io:2.7'
-	implementation group:'com.googlecode.json-simple', name:'json-simple', version:'1.1'
-
+	implementation group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1'
 	implementation 'com.google.code.gson:gson:2.8.9'
 	implementation group: 'eu.mihosoft.vvecmath', name: 'vvecmath', version: '0.4.0'
 	implementation group: 'javax.vecmath', name: 'vecmath', version: '1.5.2'
-
 	implementation 'org.slf4j:slf4j-simple:1.6.1'
-
 	implementation group: 'org.apache.xmlgraphics', name: 'batik-all', version: '1.17'
-
-	implementation fileTree (dir: 'libs', includes: ['kabeja*.jar'])
-
-	// triangulation algorithm
-	implementation group: 'org.locationtech.jts', name: 'jts-core', version: '1.20.0'// https://mvnrepository.com/artifact/org.orbisgis/poly2tri
-	//implementation group: 'org.orbisgis', name: 'poly2tri', version: '0.7.0'
-
-	// alternate triangulation
-	//implementation "io.github.earcut4j:earcut4j:2.2.2"
-	// alt 3 for triangulation
-	//implementation group: 'com.github.jdiemke.delaunay-triangulator', name: 'DelaunayTriangulator', version: 'v1.0.0'
-
-	implementation 'com.google.code.gson:gson:2.5'
-
+	implementation fileTree(dir: 'libs', includes: ['kabeja*.jar'])
+	implementation group: 'org.locationtech.jts', name: 'jts-core', version: '1.20.0'
 	implementation 'com.aparapi:aparapi:3.0.2'
-	
-	//SSL for server
 	implementation 'org.bouncycastle:bcprov-jdk18on:1.80'
 	implementation 'org.bouncycastle:bcpkix-jdk18on:1.80'
-	
-	//manifold 3d
-	implementation("com.github.madhephaestus:manifold3d:v3.4.1-15")
-	
+	implementation("com.github.madhephaestus:manifold3d:v3.4.1-17")
 }
 
 Date buildTimeAndDate = new Date()
@@ -114,27 +76,19 @@ ext {
 	buildTime = new java.text.SimpleDateFormat('HH:mm:ss.SSSZ').format(buildTimeAndDate)
 }
 
-tasks.withType(JavaCompile).configureEach {
-    options.compilerArgs += ['--enable-preview']
-}
-
 tasks.withType(Test).configureEach {
-    jvmArgs '--enable-preview'
+	jvmArgs '--enable-preview'
 }
 
 tasks.withType(JavaExec).configureEach {
-    jvmArgs '--enable-preview'
+	jvmArgs '--enable-preview'
 }
+
 test {
 	dependsOn 'spotlessApply'
 	testLogging {
-		// Show which test is running
 		events "passed", "skipped", "failed", "standardOut", "standardError"
-		
-		// Show standard out and error
 		showStandardStreams = true
-		
-		// Optional: show more details
 		exceptionFormat = "full"
 		showExceptions = true
 		showCauses = true
@@ -142,10 +96,7 @@ test {
 	}
 }
 
-
-
 publishing {
-
 	repositories {
 		maven {
 			name = "OSSRH"
@@ -159,49 +110,41 @@ publishing {
 	publications {
 		mavenJava(MavenPublication) {
 			from components.java
+			artifactId = 'JavaCad'
 			pom {
-				name= 'JCSG'
-				packaging ='jar'
-				// optionally artifactId can be defined here
-				description ='A Java based CSG Cad library'
-				url= 'https://github.com/NeuronRobotics/JCSG'
-
+				name = 'JavaCad'
+				packaging = 'jar'
+				description = 'A Java based CSG Cad library'
+				url = 'https://github.com/NeuronRobotics/JavaCad'
 				scm {
-					connection 			='scm:git:https://github.com/NeuronRobotics/JCSG'
-					developerConnection ='scm:git:https://github.com/NeuronRobotics/JCSG'
-					url ='https://github.com/NeuronRobotics/JCSG'
+					connection = 'scm:git:https://github.com/NeuronRobotics/JavaCad'
+					developerConnection = 'scm:git:https://github.com/NeuronRobotics/JavaCad'
+					url = 'https://github.com/NeuronRobotics/JavaCad'
 				}
-
 				licenses {
 					license {
-						name= 'The Apache License, Version 2.0'
-						url ='http://www.apache.org/licenses/LICENSE-2.0.txt'
+						name = 'The Apache License, Version 2.0'
+						url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
 					}
 				}
-
 				developers {
 					developer {
-						id ='madhephaestus'
-						name= 'Kevin Harrington'
-						email= 'kharrington@neuronrobotics.com'
+						id = 'madhephaestus'
+						name = 'Kevin Harrington'
+						email = 'kharrington@neuronrobotics.com'
 					}
 				}
 			}
 		}
 	}
 }
-java {
-	withJavadocJar()
-	withSourcesJar()
-}
 
 signing {
 	sign publishing.publications.mavenJava
 }
 
-
 javadoc {
-	if(JavaVersion.current().isJava9Compatible()) {
+	if (JavaVersion.current().isJava9Compatible()) {
 		options.addBooleanOption('html5', true)
 	}
 }
