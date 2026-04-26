@@ -253,27 +253,32 @@ public class CSG implements IuserAPI, Serializable {
 		return polygons;
 	}
 
-	private static Vector3d vertexAt(double[] verts, long index) {
-		long base = index * 3;
-		return new Vector3d(verts[(int) base], verts[(int) (base + 1)], verts[(int) (base + 2)]);
+	private Vector3d getVertexByIndex( long index) {
+		return new Vector3d(getVertex_X((int)index), getVertex_Y((int)index), getVertex_Z((int)index));
 	}
-
-	public Vector3d vertexAt(long i) {
-		return vertexAt(getVertices(), i);
+	
+	public double getVertex_X(int vertex) {
+		return vertices[vertex*3+0];
+	}
+	public double getVertex_Y(int vertex) {
+		return vertices[vertex*3+1];
+	}
+	public double getVertex_Z(int vertex) {
+		return vertices[vertex*3+2];
 	}
 
 	public List<Vector3d> getPoints() {
 		List<Vector3d> points = new ArrayList<Vector3d>();
 		for (int i = 0; i < getVertCount(); i++)
-			points.add(vertexAt(i));
+			points.add(getVertexByIndex(i));
 		return points;
 	}
 
 	public Polygon getPolygonByIndex(int faceIndex) throws ColinearPointsException {
 		List<Vertex> points = new ArrayList<Vertex>();
-		points.add(new Vertex(vertexAt(getTriangles()[faceIndex * 3])));
-		points.add(new Vertex(vertexAt(getTriangles()[faceIndex * 3 + 1])));
-		points.add(new Vertex(vertexAt(getTriangles()[faceIndex * 3 + 2])));
+		points.add(new Vertex(getVertexByIndex(getTriangles()[faceIndex * 3])));
+		points.add(new Vertex(getVertexByIndex(getTriangles()[faceIndex * 3 + 1])));
+		points.add(new Vertex(getVertexByIndex(getTriangles()[faceIndex * 3 + 2])));
 		Polygon polygon = new Polygon(points);
 		polygon.setColor(getColor());
 		return polygon;
@@ -1290,7 +1295,7 @@ public class CSG implements IuserAPI, Serializable {
 
 		for (CSG c : csgs) {
 			for (int i = 0; i < c.getVertCount(); i++) {
-				points.add(vertexAt(c.getVertices(), i));
+				points.add(c.getVertexByIndex( i));
 			}
 		}
 
@@ -2849,13 +2854,7 @@ public class CSG implements IuserAPI, Serializable {
 	 */
 	public MeshContainer toJavaFXMeshSimple(CadInteractionEvent interact) {
 
-		try {
-			return CSGtoJavafx.meshFromPolygon(generatePolygonsFromMesh());
-		} catch (ColinearPointsException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return CSGtoJavafx.meshFromPolygon(new ArrayList<>());
-		}
+		return CSGtoJavafx.meshFromPolygon(this);
 	}
 
 	/**
@@ -2880,7 +2879,7 @@ public class CSG implements IuserAPI, Serializable {
 
 		for (int i = 0; i < getVertCount(); i++) {
 
-			Vector3d vert = vertexAt(getVertices(), i);
+			Vector3d vert = getVertexByIndex( i);
 
 			if (vert.x < minX) {
 				minX = vert.x;
