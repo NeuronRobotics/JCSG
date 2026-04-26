@@ -253,18 +253,18 @@ public class CSG implements IuserAPI, Serializable {
 		return polygons;
 	}
 
-	private Vector3d getVertexByIndex( long index) {
-		return new Vector3d(getVertex_X((int)index), getVertex_Y((int)index), getVertex_Z((int)index));
+	private Vector3d getVertexByIndex(long index) {
+		return new Vector3d(getVertex_X((int) index), getVertex_Y((int) index), getVertex_Z((int) index));
 	}
-	
+
 	public double getVertex_X(int vertex) {
-		return getVertices()[vertex*3+0];
+		return getVertices()[vertex * 3 + 0];
 	}
 	public double getVertex_Y(int vertex) {
-		return getVertices()[vertex*3+1];
+		return getVertices()[vertex * 3 + 1];
 	}
 	public double getVertex_Z(int vertex) {
-		return getVertices()[vertex*3+2];
+		return getVertices()[vertex * 3 + 2];
 	}
 
 	public List<Vector3d> getPoints() {
@@ -1295,7 +1295,7 @@ public class CSG implements IuserAPI, Serializable {
 
 		for (CSG c : csgs) {
 			for (int i = 0; i < c.getVertCount(); i++) {
-				points.add(c.getVertexByIndex( i));
+				points.add(c.getVertexByIndex(i));
 			}
 		}
 
@@ -2875,7 +2875,7 @@ public class CSG implements IuserAPI, Serializable {
 
 		for (int i = 0; i < getVertCount(); i++) {
 
-			Vector3d vert = getVertexByIndex( i);
+			Vector3d vert = getVertexByIndex(i);
 
 			if (vert.x < minX) {
 				minX = vert.x;
