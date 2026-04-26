@@ -15,7 +15,7 @@ import eu.mihosoft.vrl.v3d.Transform;
 import eu.mihosoft.vrl.v3d.Vector3d;
 import eu.mihosoft.vrl.v3d.Vertex;
 import javafx.scene.paint.Color;
-
+@SuppressWarnings("preview")
 public class CSGManifold3d {
 	private final ManifoldBindings manifold;
 	// private final Manifold3dExporter exporter;
