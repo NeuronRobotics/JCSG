@@ -324,7 +324,7 @@ public class CSGManifold3d {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 	}
 
 }

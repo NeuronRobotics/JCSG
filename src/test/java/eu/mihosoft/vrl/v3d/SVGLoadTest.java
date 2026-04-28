@@ -138,7 +138,7 @@ public class SVGLoadTest {
 			e.printStackTrace();
 		}
 		for (int i = 0; i < parts.size(); i++)
-			 parts.get(i).toStl(Paths.get(i + "-box.stl"));
+			parts.get(i).toStl(Paths.get(i + "-box.stl"));
 	}
 	@Test
 	@Ignore

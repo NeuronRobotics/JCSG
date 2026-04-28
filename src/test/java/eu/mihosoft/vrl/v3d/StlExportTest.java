@@ -25,10 +25,7 @@ public class StlExportTest {
 		CSG movey = new Cube(badExport2.getTotalX() + 10, badExport2.getTotalY() + 10, 10).toCSG().toZMin().toXMin()
 				.toYMin().movey(-5).movex(-5);
 
-		movey
-			.difference(badExport2)
-			.scaleToMeasurmentX(180)
-			.toStl(Paths.get("4-InMemTextDifferencedStl.stl"));
+		movey.difference(badExport2).scaleToMeasurmentX(180).toStl(Paths.get("4-InMemTextDifferencedStl.stl"));
 		System.out.println("Difference " + (System.currentTimeMillis() - start));
 
 		CSG badExport = CSG.text("THis is some ", 10);
@@ -39,7 +36,7 @@ public class StlExportTest {
 		badExport = badExport.union(badExport2).scaleToMeasurmentX(160).scaleToMeasurmentY(30);
 		CSG inMem = badExport;
 		// String filename ="TextStl.stl";
-		
+
 		badExport.toStl(Paths.get("1-TextStl.stl"));
 		System.out.println("Load saved stl");
 		File file = new File("1-TextStl.stl");
@@ -49,7 +46,7 @@ public class StlExportTest {
 		badExport = loaded;
 		badExport.toStl(Paths.get("3-TextScaledStl.stl"));
 		System.out.println("Perform difference");
-		CSG difference= movey.difference(badExport);
+		CSG difference = movey.difference(badExport);
 		difference.toStl(Paths.get("5-TextDifferencedStl.stl"));
 		System.out.println("Perform Rotate");
 		badExport = difference.rotx(35).roty(45);

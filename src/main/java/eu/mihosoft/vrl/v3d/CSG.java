@@ -46,7 +46,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1876,31 +1875,32 @@ public class CSG implements IuserAPI, Serializable {
 	 * @throws NonManifoldShapeError
 	 * @throws ColinearPointsException
 	 */
-//	public String toStlString(boolean repair) throws ColinearPointsException, NonManifoldShapeError {
-//		StringBuilder sb = new StringBuilder();
-//		toStlString(sb, repair);
-//		return sb.toString();
-//	}
-//	/**
-//	 * Returns this csg in STL string format.
-//	 *
-//	 * @return this csg in STL string format
-//	 * @throws NonManifoldShapeError
-//	 * @throws ColinearPointsException
-//	 */
-//	public String toStlString() {
-//		StringBuilder sb = new StringBuilder();
-//		try {
-//			toStlString(sb, true);
-//		} catch (ColinearPointsException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} catch (NonManifoldShapeError e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//		return sb.toString();
-//	}
+	// public String toStlString(boolean repair) throws ColinearPointsException,
+	// NonManifoldShapeError {
+	// StringBuilder sb = new StringBuilder();
+	// toStlString(sb, repair);
+	// return sb.toString();
+	// }
+	// /**
+	// * Returns this csg in STL string format.
+	// *
+	// * @return this csg in STL string format
+	// * @throws NonManifoldShapeError
+	// * @throws ColinearPointsException
+	// */
+	// public String toStlString() {
+	// StringBuilder sb = new StringBuilder();
+	// try {
+	// toStlString(sb, true);
+	// } catch (ColinearPointsException e) {
+	// // TODO Auto-generated catch block
+	// e.printStackTrace();
+	// } catch (NonManifoldShapeError e) {
+	// // TODO Auto-generated catch block
+	// e.printStackTrace();
+	// }
+	// return sb.toString();
+	// }
 	public CSG to3mf(File target) {
 		if (defaultOptType == OptType.Manifold3d) {
 			new RuntimeException("Manifold3d 3mf export not implemented yet").printStackTrace();
@@ -1918,7 +1918,6 @@ public class CSG implements IuserAPI, Serializable {
 		}
 		return null;
 	}
-
 
 	// public CSG snapPoints() throws ColinearPointsException {
 	// return triangulate(false, true);
@@ -3122,7 +3121,6 @@ public class CSG implements IuserAPI, Serializable {
 		return union(minkowskiHullShape(printNozzel));
 	}
 
-
 	public CSG makeKeepaway(Number sn) {
 		double shellThickness = sn.doubleValue();
 
@@ -3318,7 +3316,6 @@ public class CSG implements IuserAPI, Serializable {
 	public HashMap<String, IParametric> getMapOfparametrics(CSGDatabaseInstance instance) {
 		return instance.getMapOfparametrics(this);
 	}
-
 
 	public CSG setRegenerate(IRegenerate function) {
 		regenerate.put(getUniqueId(), function);
@@ -4432,55 +4429,62 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	public void toStl(Path path) {
-		if(CSG.defaultOptType==OptType.Manifold3d) {
-			manifold.toStl(this,path);
+		if (CSG.defaultOptType == OptType.Manifold3d) {
+			manifold.toStl(this, path);
 			return;
 		}
-//		try {
-//			FileUtil.write(path, toStlString() );
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-		
+		try {
+			FileUtil.write(path, toStlString());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
-//	public String toStlString() {
-//		try {
-//			return toStlString(true);
-//		} catch (ColinearPointsException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} catch (NonManifoldShapeError e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//		return "";
-//	}
-//	/**
-//	 * Returns this csg in STL string format.
-//	 *
-//	 * @param sb
-//	 *            string builder
-//	 *
-//	 * @return the specified string builder
-//	 * @throws NonManifoldShapeError
-//	 * @throws ColinearPointsException
-//	 */
-//	public String toStlString(boolean repair)
-//			throws ColinearPointsException, NonManifoldShapeError {
-//		StringBuilder sb=new StringBuilder();
-//		makeManifold(repair);
-//		sb.append("solid v3d.csg\n");
-//		for (Polygon p : generatePolygonsFromMesh()) {
-//			try {
-//				Plane.createFromPoints(p.getVertices(), null);
-//				p.toStlString(sb);
-//			} catch (Exception ex) {
-//				ex.printStackTrace();
-//				System.out.println("Prune Polygon on export");
-//			}
-//		}
-//		sb.append("endsolid v3d.csg\n");
-//		return sb.toString();
-//	}
+	/**
+	 * @deprecated use public void toStl(Path path)
+	 * @return an ascii stl string
+	 */
+	@Deprecated
+	public String toStlString() {
+		try {
+			return toStlString(true);
+		} catch (ColinearPointsException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NonManifoldShapeError e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return "";
+	}
+	/**
+	 * Returns this csg in STL string format.
+	 *
+	 * @param sb
+	 *            string builder
+	 *
+	 * @return the specified string builder
+	 * @throws NonManifoldShapeError
+	 * @throws ColinearPointsException
+	 * @deprecated use public void toStl(Path path)
+	 */
+	@Deprecated
+	public String toStlString(boolean repair) throws ColinearPointsException, NonManifoldShapeError {
+		StringBuilder sb = new StringBuilder();
+		new Exception("This method is depricated, use public void toStl(Path path)");
+		makeManifold(repair);
+		sb.append("solid v3d.csg\n");
+		for (Polygon p : generatePolygonsFromMesh()) {
+			try {
+				Plane.createFromPoints(p.getVertices(), null);
+				p.toStlString(sb);
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				System.out.println("Prune Polygon on export");
+			}
+		}
+		sb.append("endsolid v3d.csg\n");
+		return sb.toString();
+	}
 }
