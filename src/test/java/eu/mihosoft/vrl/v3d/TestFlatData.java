@@ -11,10 +11,9 @@ public class TestFlatData {
 	@Test
 	public void testFlatData() throws ColinearPointsException, IOException {
 		CSG cube = new Cube(20).toCSG();
-		FileUtil.write(Paths.get("FlatData-cube.stl"), cube.toStlString());
+		cube.toStl(Paths.get("FlatData-cube.stl"));
 		ArrayList<Polygon> polygons = cube.generatePolygonsFromMesh();
 		CSG fromPoly = new CSG(polygons);
-		FileUtil.write(Paths.get("FlatData-loaded.stl"), fromPoly.toStlString());
-
+		fromPoly.toStl(Paths.get("FlatData-loaded.stl"));
 	}
 }

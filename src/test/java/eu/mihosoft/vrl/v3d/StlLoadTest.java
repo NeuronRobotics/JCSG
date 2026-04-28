@@ -19,6 +19,7 @@ public class StlLoadTest {
 	public void init() {
 		JavaFXInitializer.go();
 	}
+
 	@Test
 	@Ignore
 	public void tower() throws Throwable {
@@ -33,7 +34,7 @@ public class StlLoadTest {
 		CSG.setPreventNonManifoldTriangles(false);
 		System.out.println("exporting STL");
 
-		FileUtil.write(Paths.get("fixedTower-export.stl"), diff.toStlString());
+		diff.toStl(Paths.get("fixedTower-export.stl"));
 		try {
 			ThumbnailImageCSG.setCullFaceValue(CullFace.NONE);
 			new ThumbnailImageCSG().writeImage(CSGDatabase.getInstance(), loaded,
@@ -46,6 +47,7 @@ public class StlLoadTest {
 			fail("Failed perform difference without losing information!");
 		}
 	}
+
 	@Test
 	public void test() throws Throwable {
 		String filename = "brokenSTL.STL";
@@ -60,6 +62,7 @@ public class StlLoadTest {
 			e.printStackTrace();
 		}
 	}
+
 	@Test
 	public void testBumber() throws Throwable {
 		CSG.setDefaultOptType(OptType.Manifold3d);

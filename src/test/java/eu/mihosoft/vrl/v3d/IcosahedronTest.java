@@ -22,7 +22,7 @@ public class IcosahedronTest {
 		// assertTrue(icosahedron.intersect(box).getPolygons().size() == 0);
 		// assertTrue(insphere.difference(icosahedron).getPolygons().size() == 0);
 		//
-		FileUtil.write(Paths.get("icosahedron.stl"), icosahedron.toStlString(true));
+		icosahedron.toStl(Paths.get("icosahedron.stl"));
 	}
 
 }

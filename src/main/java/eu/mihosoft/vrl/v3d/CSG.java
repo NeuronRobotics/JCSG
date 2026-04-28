@@ -42,8 +42,11 @@ import eu.mihosoft.vrl.v3d.parametrics.LengthParameter;
 import eu.mihosoft.vrl.v3d.parametrics.Parameter;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1873,31 +1876,31 @@ public class CSG implements IuserAPI, Serializable {
 	 * @throws NonManifoldShapeError
 	 * @throws ColinearPointsException
 	 */
-	public String toStlString(boolean repair) throws ColinearPointsException, NonManifoldShapeError {
-		StringBuilder sb = new StringBuilder();
-		toStlString(sb, repair);
-		return sb.toString();
-	}
-	/**
-	 * Returns this csg in STL string format.
-	 *
-	 * @return this csg in STL string format
-	 * @throws NonManifoldShapeError
-	 * @throws ColinearPointsException
-	 */
-	public String toStlString() {
-		StringBuilder sb = new StringBuilder();
-		try {
-			toStlString(sb, true);
-		} catch (ColinearPointsException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (NonManifoldShapeError e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return sb.toString();
-	}
+//	public String toStlString(boolean repair) throws ColinearPointsException, NonManifoldShapeError {
+//		StringBuilder sb = new StringBuilder();
+//		toStlString(sb, repair);
+//		return sb.toString();
+//	}
+//	/**
+//	 * Returns this csg in STL string format.
+//	 *
+//	 * @return this csg in STL string format
+//	 * @throws NonManifoldShapeError
+//	 * @throws ColinearPointsException
+//	 */
+//	public String toStlString() {
+//		StringBuilder sb = new StringBuilder();
+//		try {
+//			toStlString(sb, true);
+//		} catch (ColinearPointsException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (NonManifoldShapeError e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		return sb.toString();
+//	}
 	public CSG to3mf(File target) {
 		if (defaultOptType == OptType.Manifold3d) {
 			new RuntimeException("Manifold3d 3mf export not implemented yet").printStackTrace();
@@ -1916,32 +1919,6 @@ public class CSG implements IuserAPI, Serializable {
 		return null;
 	}
 
-	/**
-	 * Returns this csg in STL string format.
-	 *
-	 * @param sb
-	 *            string builder
-	 *
-	 * @return the specified string builder
-	 * @throws NonManifoldShapeError
-	 * @throws ColinearPointsException
-	 */
-	public StringBuilder toStlString(StringBuilder sb, boolean repair)
-			throws ColinearPointsException, NonManifoldShapeError {
-
-		makeManifold(repair);
-		sb.append("solid v3d.csg\n");
-		for (Polygon p : generatePolygonsFromMesh()) {
-			try {
-				Plane.createFromPoints(p.getVertices(), null);
-				p.toStlString(sb);
-			} catch (Exception ex) {
-				System.out.println("Prune Polygon on export");
-			}
-		}
-		sb.append("endsolid v3d.csg\n");
-		return sb;
-	}
 
 	// public CSG snapPoints() throws ColinearPointsException {
 	// return triangulate(false, true);
@@ -2441,40 +2418,7 @@ public class CSG implements IuserAPI, Serializable {
 		long timeSinceLastPrint = 0;
 		long printLimit = 800;
 		String typOfCPU = typOfCPU(kernel);
-		// ForkJoinPool commonPool = ForkJoinPool.commonPool();
-		// System.out.println("Common ForkJoinPool Status:");
-		// System.out.println(" Pool Size: " + commonPool.getPoolSize());
-		// System.out.println(" Active Thread Count: " +
-		// commonPool.getActiveThreadCount());
-		// System.out.println(" Running Thread Count: " +
-		// commonPool.getRunningThreadCount());
-		// System.out.println(" Queued Task Count: " + commonPool.getQueuedTaskCount());
-		// System.out.println(" Queued Submission Count: " +
-		// commonPool.getQueuedSubmissionCount());
-		// System.out.println(" Steal Count: " + commonPool.getStealCount());
-		// System.out.println(" Parallelism: " + commonPool.getParallelism());
-		// System.out.println(" Is Shutdown: " + commonPool.isShutdown());
-		// System.out.println(" Is Terminated: " + commonPool.isTerminated());
-		// List<ForkJoinWorkerThread> workersInitial=null;
-		// try {
-		//
-		// workersInitial = getForkJoinWorkers(commonPool);
-		//
-		// if (workersInitial != null) {
-		// System.out.println("Worker threads in pool:");
-		// for (int i = 0; i < workersInitial.size(); i++) {
-		// ForkJoinWorkerThread worker = workersInitial.get(i);
-		// if (worker != null) {
-		// System.out.println(" Worker[" + i + "]: " + worker.getName() +
-		// " | State: " + worker.getState() +
-		// " | Pool Index: " + worker.getPoolIndex() +
-		// " | ID: " + worker.getId());
-		// }
-		// }
-		// }
-		// }catch(Exception ex) {
-		// ex.printStackTrace();
-		// }
+
 		try {
 			do {
 				KernelRunner kernelRunner = new KernelRunner(kernel);
@@ -2512,45 +2456,7 @@ public class CSG implements IuserAPI, Serializable {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
-		// commonPool.awaitQuiescence(10, TimeUnit.MILLISECONDS);
-		// List<ForkJoinWorkerThread> workers=null;
-		// List<ForkJoinWorkerThread> workersInit=workersInitial;
-		// try {
-		// workers = getForkJoinWorkers(commonPool).stream()
-		// .filter(afterThread -> workersInit.stream()
-		// .noneMatch(beforeThread -> beforeThread.getId() == afterThread.getId()))
-		// .collect(Collectors.toList());;
-		//
-		// if (workers != null) {
-		// System.out.println("After Worker threads in pool:");
-		// for (int i = 0; i < workers.size(); i++) {
-		// ForkJoinWorkerThread worker = workers.get(i);
-		// if (worker != null) {
-		// System.out.println(" Worker[" + i + "]: " + worker.getName() +
-		// " | State: " + worker.getState() +
-		// " | Pool Index: " + worker.getPoolIndex() +
-		// " | ID: " + worker.getId());
-		// worker.interrupt();
-		// }
-		// }
-		// }
-		// }catch(Exception ex) {
-		// ex.printStackTrace();
-		// }
-		// System.out.println("\n2 Common ForkJoinPool Status:");
-		// System.out.println(" 2 Pool Size: " + commonPool.getPoolSize());
-		// System.out.println(" 2 Active Thread Count: " +
-		// commonPool.getActiveThreadCount());
-		// System.out.println(" 2 Running Thread Count: " +
-		// commonPool.getRunningThreadCount());
-		// System.out.println(" 2 Queued Task Count: " +
-		// commonPool.getQueuedTaskCount());
-		// System.out.println(" 2 Queued Submission Count: " +
-		// commonPool.getQueuedSubmissionCount());
-		// System.out.println(" 2 Steal Count: " + commonPool.getStealCount());
-		// System.out.println(" 2 Parallelism: " + commonPool.getParallelism());
-		// System.out.println(" 2 Is Shutdown: " + commonPool.isShutdown());
-		// System.out.println(" 2 Is Terminated: " + commonPool.isTerminated());
+
 		boolean executing;
 		do {
 			executing = kernel.isExecuting();
@@ -2826,18 +2732,6 @@ public class CSG implements IuserAPI, Serializable {
 
 		return toJavaFXMeshSimple(interact);
 
-		// TODO test obj approach with multiple materials
-		// try {
-		// ObjImporter importer = new ObjImporter(toObj());
-		//
-		// List<Mesh> meshes = new ArrayList<>(importer.getMeshCollection());
-		// return new MeshContainer(getBounds().getMin(), getBounds().getMax(),
-		// meshes, new ArrayList<>(importer.getMaterialCollection()));
-		// } catch (IOException ex) {
-		// Logger.getLogger(CSG.class.getName()).log(Level.SEVERE, null, ex);
-		// }
-		// // we have no backup strategy for broken streams :(
-		// return null;
 	}
 
 	/**
@@ -3228,9 +3122,6 @@ public class CSG implements IuserAPI, Serializable {
 		return union(minkowskiHullShape(printNozzel));
 	}
 
-	// private int getNumFacesForOffsets() {
-	// return getNumfacesinoffset();
-	// }
 
 	public CSG makeKeepaway(Number sn) {
 		double shellThickness = sn.doubleValue();
@@ -3428,46 +3319,6 @@ public class CSG implements IuserAPI, Serializable {
 		return instance.getMapOfparametrics(this);
 	}
 
-	// @Deprecated
-	// public HashMap<String, IParametric> getMapOfparametrics(){
-	// new RuntimeException("This is using LEGACY database!").printStackTrace();
-	// return CSGDatabase.getInstance().getMapOfparametrics(this);
-	// }
-	// @Deprecated
-	// public CSG setParameter(Parameter w) {
-	// new RuntimeException("This is using LEGACY database!").printStackTrace();
-	// return setParameter(CSGDatabase.getInstance(),w);
-	// }
-	// @Deprecated
-	// public CSG setParameter(String key, double defaultValue, double upperBound,
-	// double lowerBound,
-	// IParametric function) {
-	// new RuntimeException("This is using LEGACY database!").printStackTrace();
-	// setParameter(CSGDatabase.getInstance(), key, defaultValue, upperBound,
-	// lowerBound, function);
-	// return this;
-	// }
-	// @Deprecated
-	// public CSG setParameter(Parameter w, IParametric function) {
-	// new RuntimeException("This is using LEGACY database!").printStackTrace();
-	// return setParameter(CSGDatabase.getInstance(), w, function);
-	// }
-	// @Deprecated
-	// public CSG setParameterIfNull(String key) {
-	// new RuntimeException("This is using LEGACY database!").printStackTrace();
-	// setParameterIfNull(CSGDatabase.getInstance(), key);
-	// return this;
-	// }
-	// @Deprecated
-	// public Set<String> getParameters() {
-	// new RuntimeException("This is using LEGACY database!").printStackTrace();
-	// return getParameters(CSGDatabase.getInstance());
-	// }
-	// @Deprecated
-	// public CSG setParameterNewValue( String key, double newValue) {
-	// new RuntimeException("This is using LEGACY database!").printStackTrace();
-	// return setParameterNewValue(CSGDatabase.getInstance(),key,newValue);
-	// }
 
 	public CSG setRegenerate(IRegenerate function) {
 		regenerate.put(getUniqueId(), function);
@@ -4580,4 +4431,56 @@ public class CSG implements IuserAPI, Serializable {
 		this.triangles = triangles;
 	}
 
+	public void toStl(Path path) {
+		if(CSG.defaultOptType==OptType.Manifold3d) {
+			manifold.toStl(this,path);
+			return;
+		}
+//		try {
+//			FileUtil.write(path, toStlString() );
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+		
+	}
+//	public String toStlString() {
+//		try {
+//			return toStlString(true);
+//		} catch (ColinearPointsException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (NonManifoldShapeError e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		return "";
+//	}
+//	/**
+//	 * Returns this csg in STL string format.
+//	 *
+//	 * @param sb
+//	 *            string builder
+//	 *
+//	 * @return the specified string builder
+//	 * @throws NonManifoldShapeError
+//	 * @throws ColinearPointsException
+//	 */
+//	public String toStlString(boolean repair)
+//			throws ColinearPointsException, NonManifoldShapeError {
+//		StringBuilder sb=new StringBuilder();
+//		makeManifold(repair);
+//		sb.append("solid v3d.csg\n");
+//		for (Polygon p : generatePolygonsFromMesh()) {
+//			try {
+//				Plane.createFromPoints(p.getVertices(), null);
+//				p.toStlString(sb);
+//			} catch (Exception ex) {
+//				ex.printStackTrace();
+//				System.out.println("Prune Polygon on export");
+//			}
+//		}
+//		sb.append("endsolid v3d.csg\n");
+//		return sb.toString();
+//	}
 }

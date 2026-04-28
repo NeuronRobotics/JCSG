@@ -18,19 +18,19 @@ public class Manifold3d_test {
 			CSG.setDefaultOptType(OptType.Manifold3d);
 			CSG cube = new Cube(50, 50, 50).toCSG();
 			CSG sphere = new Sphere(30, 10, 10).toCSG();
-			FileUtil.write(Paths.get("Manifole-sphere.stl"), sphere.toStlString());
+			sphere.toStl(Paths.get("Manifole-sphere.stl"));
 			List<Polygon> polygons = Slice.slice(sphere, new Transform(), 0);
 			SVGExporter.export(polygons, new File("Manifold-SVGExportTest.svg"), false);
 			CSG difference = cube.difference(sphere);
 			CSG intersect = cube.intersect(sphere);
 			CSG union = cube.union(sphere);
 			CSG mirrored = union.mirrorx();
-			FileUtil.write(Paths.get("Manifole-mirror.stl"), mirrored.toStlString());
-			FileUtil.write(Paths.get("Manifole-union.stl"), union.toStlString());
-			FileUtil.write(Paths.get("Manifole-difference.stl"), difference.toStlString());
-			FileUtil.write(Paths.get("Manifole-intersect.stl"), intersect.toStlString());
+			mirrored.toStl(Paths.get("Manifole-mirror.stl"));
+			union.toStl(Paths.get("Manifole-union.stl"));
+			difference.toStl(Paths.get("Manifole-difference.stl"));
+			intersect.toStl(Paths.get("Manifole-intersect.stl"));
 			CSG hull = union.hull();
-			FileUtil.write(Paths.get("Manifole-hull.stl"), hull.toStlString());
+			hull.toStl(Paths.get("Manifole-hull.stl"));
 		} catch (Throwable t) {
 			t.printStackTrace();
 			// Set back to default to complete test and not disrupt other tests

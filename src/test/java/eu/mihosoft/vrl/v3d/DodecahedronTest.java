@@ -22,7 +22,7 @@ public class DodecahedronTest {
 		assertTrue(dodecahedron.intersect(box).getNumberOfTriangles() == 0);
 		assertTrue(insphere.difference(dodecahedron).getNumberOfTriangles() == 0);
 
-		FileUtil.write(Paths.get("dodecahedron.stl"), dodecahedron.toStlString(true));
+		dodecahedron.toStl(Paths.get("dodecahedron.stl"));
 	}
 
 }

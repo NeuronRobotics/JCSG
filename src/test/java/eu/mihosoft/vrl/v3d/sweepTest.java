@@ -42,7 +42,7 @@ public class sweepTest {
 			return new Transform().movex(sprl * unit * d);
 		};
 		CSG text = Extrude.sweep(transformedP, increment, radiusT, steps, pr).rotx(-90);
-		FileUtil.write(Paths.get("exampleSweep.stl"), text.toStlString());
+		text.toStl(Paths.get("exampleSweep.stl"));
 	}
 
 }

@@ -86,7 +86,7 @@ public class SVGLoadTest {
 			e.printStackTrace();
 		}
 		for (int i = 0; i < parts.size(); i++)
-			FileUtil.write(Paths.get(i + "-flame.stl"), parts.get(i).toStlString());
+			parts.get(i).toStl(Paths.get(i + "-flame.stl"));
 	}
 	// Alexes_Bad.svg
 	@Test
@@ -138,7 +138,7 @@ public class SVGLoadTest {
 			e.printStackTrace();
 		}
 		for (int i = 0; i < parts.size(); i++)
-			FileUtil.write(Paths.get(i + "-box.stl"), parts.get(i).toStlString());
+			 parts.get(i).toStl(Paths.get(i + "-box.stl"));
 	}
 	@Test
 	@Ignore
@@ -158,7 +158,7 @@ public class SVGLoadTest {
 			e.printStackTrace();
 		}
 		for (int i = 0; i < parts.size(); i++)
-			FileUtil.write(Paths.get(i + "-InsideOutsideTest.stl"), parts.get(i).toStlString());
+			parts.get(i).toStl(Paths.get(i + "-InsideOutsideTest.stl"));
 	}
 	@Test
 	public void adversarial() throws IOException {

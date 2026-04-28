@@ -19,8 +19,7 @@ public class OctahedronTest {
 
 		assertTrue(octahedron.intersect(box).getNumberOfTriangles() == 0);
 		assertTrue(insphere.difference(octahedron).getNumberOfTriangles() == 0);
-
-		FileUtil.write(Paths.get("octahedron.stl"), octahedron.toStlString());
+		octahedron.toStl(Paths.get("octahedron.stl"));
 	}
 
 }

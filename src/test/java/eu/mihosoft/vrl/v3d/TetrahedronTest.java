@@ -19,8 +19,7 @@ public class TetrahedronTest {
 
 		assertTrue(tetrahedron.intersect(box).getNumberOfTriangles() == 0);
 		assertTrue(insphere.difference(tetrahedron).getNumberOfTriangles() == 0);
-
-		FileUtil.write(Paths.get("tetrahedron.stl"), tetrahedron.toStlString());
+		tetrahedron.toStl(Paths.get("tetrahedron.stl"));
 	}
 
 }
