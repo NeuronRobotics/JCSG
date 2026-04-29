@@ -32,16 +32,20 @@
  * info@michaelhoffer.de.
  */
 package eu.mihosoft.vrl.v3d;
-
+import org.xml.sax.Attributes;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipEntry;
 import java.util.Enumeration;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParserFactory;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -4567,14 +4571,12 @@ public class CSG implements IuserAPI, Serializable {
 
 	/**
 	 * Reads a .3mf file and returns one CSG per <object> found in the model.
-	 * Vertex indices in <triangle> are 0-based, matching the native long[] directly.
+	 * Uses a SAX streaming parser for high performance on large meshes.
 	 *
 	 * @param source  path to the .3mf file
 	 * @return        list of CSG objects, one per <object> in the 3MF resources
 	 */
 	public static List<CSG> fromThreeMF(Path source) throws IOException {
-		List<CSG> result = new ArrayList<>();
-
 		try (ZipFile zip = new ZipFile(source.toFile())) {
 
 			ZipEntry modelEntry = null;
@@ -4589,89 +4591,165 @@ public class CSG implements IuserAPI, Serializable {
 			if (modelEntry == null)
 				throw new IOException("No 3dmodel.model found in: " + source);
 
-			Document doc;
+			ThreeMFHandler handler = new ThreeMFHandler();
 			try {
-				DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-				dbf.setNamespaceAware(true);
-				doc = dbf.newDocumentBuilder().parse(zip.getInputStream(modelEntry));
+				SAXParserFactory spf = SAXParserFactory.newInstance();
+				spf.setNamespaceAware(true);
+				spf.newSAXParser().parse(zip.getInputStream(modelEntry), handler);
 			} catch (ParserConfigurationException | SAXException e) {
 				throw new IOException("Failed to parse 3dmodel.model", e);
 			}
 
-			// ── Build a map of materialGroupId -> (pindex -> Color) ─────────────
-			// Handles any number of <basematerials> groups in the file.
-			Map<String, Map<Integer, Color>> materialGroups = new HashMap<>();
-			NodeList baseMaterialNodes = doc.getElementsByTagNameNS("*", "basematerials");
-			for (int g = 0; g < baseMaterialNodes.getLength(); g++) {
-				Element group = (Element) baseMaterialNodes.item(g);
-				String groupId = group.getAttribute("id");
-				Map<Integer, Color> colorMap = new HashMap<>();
-				NodeList bases = group.getElementsByTagNameNS("*", "base");
-				for (int b = 0; b < bases.getLength(); b++) {
-					Element base = (Element) bases.item(b);
-					String hex = base.getAttribute("displaycolor");
-					if (hex != null && hex.startsWith("#") && hex.length() >= 7) {
-						int r = Integer.parseInt(hex.substring(1, 3), 16);
-						int g2 = Integer.parseInt(hex.substring(3, 5), 16);
-						int bl = Integer.parseInt(hex.substring(5, 7), 16);
-						colorMap.put(b, Color.rgb(r, g2, bl));
-					}
-				}
-				materialGroups.put(groupId, colorMap);
+			return handler.buildCSGs();
+		}
+	}
+
+	// ── SAX Handler ──────────────────────────────────────────────────────────────
+
+	private static final class ThreeMFHandler extends DefaultHandler {
+
+		// Material groups: groupId -> (pindex -> Color)
+		private final Map<String, Map<Integer, Color>> materialGroups = new HashMap<>();
+
+		// Collected objects during parse
+		private final List<ObjectData> objects = new ArrayList<>();
+
+		// Mutable state during parse
+		private ObjectData current = null;
+		private String currentGroupId = null;
+		private int baseIndex = 0;
+		private boolean inMesh = false;
+
+		// ── Primitive growable buffers (avoids boxing overhead) ──────────────
+
+		private static final class DoubleList {
+			double[] buf = new double[4096];
+			int size = 0;
+
+			void add(double v) {
+				if (size == buf.length)
+					buf = Arrays.copyOf(buf, buf.length * 2);
+				buf[size++] = v;
 			}
 
-			// ── Parse each <object> ──────────────────────────────────────────────
-			NodeList objects = doc.getElementsByTagNameNS("*", "object");
-			for (int objIdx = 0; objIdx < objects.getLength(); objIdx++) {
-				Element object = (Element) objects.item(objIdx);
+			double[] trim() {
+				return Arrays.copyOf(buf, size);
+			}
+		}
 
-				String type = object.getAttribute("type");
-				if (!type.isEmpty() && !type.equals("model"))
-					continue;
+		private static final class LongList {
+			long[] buf = new long[4096];
+			int size = 0;
 
-				String name = object.getAttribute("name");
+			void add(long v) {
+				if (size == buf.length)
+					buf = Arrays.copyOf(buf, buf.length * 2);
+				buf[size++] = v;
+			}
 
-				// ── Resolve color from pid/pindex ────────────────────────────────
-				Color color = null;
-				String pid = object.getAttribute("pid");
-				String pindex = object.getAttribute("pindex");
-				if (!pid.isEmpty() && !pindex.isEmpty()) {
-					Map<Integer, Color> group = materialGroups.get(pid);
-					if (group != null) {
-						color = group.get(Integer.parseInt(pindex));
+			long[] trim() {
+				return Arrays.copyOf(buf, size);
+			}
+		}
+
+		// ── Collected object data before CSG construction ─────────────────────
+
+		private static final class ObjectData {
+			String name;
+			String pid;
+			String pindex;
+			DoubleList vertices = new DoubleList();
+			LongList triangles = new LongList();
+		}
+
+		// ── SAX callbacks ─────────────────────────────────────────────────────
+
+		@Override
+		public void startElement(String uri, String local, String qName, Attributes atts) {
+
+			if ("basematerials".equals(local)) {
+				currentGroupId = atts.getValue("id");
+				baseIndex = 0;
+				materialGroups.put(currentGroupId, new HashMap<Integer, Color>());
+
+			} else if ("base".equals(local)) {
+				if (currentGroupId != null) {
+					String hex = atts.getValue("displaycolor");
+					if (hex != null && hex.startsWith("#") && hex.length() >= 7) {
+						int r = Integer.parseInt(hex.substring(1, 3), 16);
+						int g = Integer.parseInt(hex.substring(3, 5), 16);
+						int b = Integer.parseInt(hex.substring(5, 7), 16);
+						materialGroups.get(currentGroupId).put(baseIndex, Color.rgb(r, g, b));
 					}
+					baseIndex++;
 				}
 
-				// ── Vertices ─────────────────────────────────────────────────────
-				NodeList vertexNodes = object.getElementsByTagNameNS("*", "vertex");
-				double[] vertices = new double[vertexNodes.getLength() * 3];
-				for (int i = 0; i < vertexNodes.getLength(); i++) {
-					Element v = (Element) vertexNodes.item(i);
-					vertices[i * 3] = Double.parseDouble(v.getAttribute("x"));
-					vertices[i * 3 + 1] = Double.parseDouble(v.getAttribute("y"));
-					vertices[i * 3 + 2] = Double.parseDouble(v.getAttribute("z"));
-				}
+			} else if ("object".equals(local)) {
+				String type = atts.getValue("type");
+				if (type != null && !type.isEmpty() && !type.equals("model"))
+					return;
 
-				// ── Triangles ─────────────────────────────────────────────────────
-				NodeList triangleNodes = object.getElementsByTagNameNS("*", "triangle");
-				long[] triangles = new long[triangleNodes.getLength() * 3];
-				for (int i = 0; i < triangleNodes.getLength(); i++) {
-					Element t = (Element) triangleNodes.item(i);
-					triangles[i * 3] = Long.parseLong(t.getAttribute("v1"));
-					triangles[i * 3 + 1] = Long.parseLong(t.getAttribute("v2"));
-					triangles[i * 3 + 2] = Long.parseLong(t.getAttribute("v3"));
+				current = new ObjectData();
+				current.name = atts.getValue("name");
+				current.pid = atts.getValue("pid");
+				current.pindex = atts.getValue("pindex");
+
+			} else if ("mesh".equals(local)) {
+				if (current != null)
+					inMesh = true;
+
+			} else if ("vertex".equals(local)) {
+				if (current == null || !inMesh)
+					return;
+				current.vertices.add(Double.parseDouble(atts.getValue("x")));
+				current.vertices.add(Double.parseDouble(atts.getValue("y")));
+				current.vertices.add(Double.parseDouble(atts.getValue("z")));
+
+			} else if ("triangle".equals(local)) {
+				if (current == null || !inMesh)
+					return;
+				current.triangles.add(Long.parseLong(atts.getValue("v1")));
+				current.triangles.add(Long.parseLong(atts.getValue("v2")));
+				current.triangles.add(Long.parseLong(atts.getValue("v3")));
+			}
+		}
+
+		@Override
+		public void endElement(String uri, String local, String qName) {
+			if ("object".equals(local)) {
+				if (current != null) {
+					objects.add(current);
+					current = null;
+				}
+			} else if ("mesh".equals(local)) {
+				inMesh = false;
+			} else if ("basematerials".equals(local)) {
+				currentGroupId = null;
+			}
+		}
+
+		// ── Build CSGs after parse ─────────────────────────────────────────────
+
+		List<CSG> buildCSGs() {
+			List<CSG> result = new ArrayList<CSG>(objects.size());
+			for (ObjectData od : objects) {
+				Color color = null;
+				if (od.pid != null && od.pindex != null && !od.pid.isEmpty()) {
+					Map<Integer, Color> group = materialGroups.get(od.pid);
+					if (group != null)
+						color = group.get(Integer.parseInt(od.pindex));
 				}
 
 				CSG csg = new CSG();
-				csg.setName(name.isEmpty() ? null : name);
-				csg.setVertices(vertices);
-				csg.setTriangles(triangles);
+				csg.setName(od.name == null || od.name.isEmpty() ? null : od.name);
+				csg.setVertices(od.vertices.trim());
+				csg.setTriangles(od.triangles.trim());
 				if (color != null)
 					csg.setColor(color);
 				result.add(csg);
 			}
+			return result;
 		}
-
-		return result;
 	}
+
 }
