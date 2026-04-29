@@ -184,7 +184,7 @@ public class CSGManifold3d {
 			MemorySegment result = manifold.difference(ma, mb);
 			MemorySegment or = manifold.asOriginal(result);
 			manifold.delete(result);
-			MemorySegment smooth = manifold.simplify(or,0.001);
+			MemorySegment smooth = manifold.simplify(or, 0.001);
 			manifold.delete(or);
 			checkResult(smooth);
 			CSG fromManifold = fromManifold(smooth, a.getColor());
@@ -317,14 +317,14 @@ public class CSGManifold3d {
 		}
 	}
 
-	public void toSTL(CSG incoming, Path path)  throws Throwable{
-		MemorySegment man=null;
+	public void toSTL(CSG incoming, Path path) throws Throwable {
+		MemorySegment man = null;
 		try {
 			man = toManifold(incoming);
 			manifold.exportSTL(man, path.toFile());
 			manifold.delete(man);
 		} catch (Throwable e) {
-			if (man!=null)
+			if (man != null)
 				manifold.delete(man);
 			throw e;
 		}
