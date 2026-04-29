@@ -4472,9 +4472,9 @@ public class CSG implements IuserAPI, Serializable {
 		try (ZipOutputStream zip = new ZipOutputStream(
 				Files.newOutputStream(destination, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING),
 				StandardCharsets.UTF_8)) {
+
 			zip.setLevel(Deflater.BEST_COMPRESSION);
 
-			// ── _rels/.rels ──────────────────────────────────────────────────────
 			writeZipEntry(zip, "_rels/.rels",
 					"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 							+ "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">\n"
@@ -4482,7 +4482,6 @@ public class CSG implements IuserAPI, Serializable {
 							+ "                Target=\"/3D/3dmodel.model\"\n" + "                Id=\"rel0\"/>\n"
 							+ "</Relationships>\n");
 
-			// ── [Content_Types].xml ──────────────────────────────────────────────
 			writeZipEntry(zip, "[Content_Types].xml",
 					"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 							+ "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">\n"
@@ -4492,15 +4491,29 @@ public class CSG implements IuserAPI, Serializable {
 							+ "          ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\"/>\n"
 							+ "</Types>\n");
 
-			// ── 3D/3dmodel.model ─────────────────────────────────────────────────
-			StringBuilder model = new StringBuilder(1 << 20); // 1 MB initial capacity
+			StringBuilder model = new StringBuilder(1 << 20);
 
 			model.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
 					.append("<model unit=\"millimeter\" xml:lang=\"en-US\"\n")
 					.append("       xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\">\n")
 					.append("  <resources>\n");
 
-			// One <object> per CSG — object ids are 1-based per the 3MF spec
+			// ── basematerials block: one <base> per CSG, id="1" ─────────────────
+			// Object IDs start at 2 so that 1 is free for this group.
+			model.append("    <basematerials id=\"1\">\n");
+			for (CSG csg : csgs) {
+				Color c = csg.getColor();
+				String hex = c == null ? "#FFFFFF"
+						: String.format("#%02X%02X%02X", (int) Math.round(c.getRed() * 255),
+								(int) Math.round(c.getGreen() * 255), (int) Math.round(c.getBlue() * 255));
+				String matName = (csg.getName() == null || csg.getName().isEmpty()) ? "material"
+						: csg.getName().replace('"', '\'');
+				model.append("      <base name=\"").append(matName).append("\" displaycolor=\"").append(hex)
+						.append("\"/>\n");
+			}
+			model.append("    </basematerials>\n");
+
+			// ── one <object> per CSG, pid="1" pindex=N (0-based into basematerials)
 			for (int objIdx = 0; objIdx < csgs.size(); objIdx++) {
 				CSG csg = csgs.get(objIdx);
 				csg.makeManifold(repair);
@@ -4512,8 +4525,10 @@ public class CSG implements IuserAPI, Serializable {
 				String objName = (csg.getName() == null || csg.getName().isEmpty()) ? "CSG_" + (objIdx + 1)
 						: csg.getName().replace('"', '\'');
 
-				model.append("    <object id=\"").append(objIdx + 1).append("\" type=\"model\" name=\"").append(objName)
-						.append("\">\n").append("      <mesh>\n").append("        <vertices>\n");
+				// id starts at 2; pindex is 0-based index into the basematerials group
+				model.append("    <object id=\"").append(objIdx + 2).append("\" type=\"model\"").append(" name=\"")
+						.append(objName).append("\"").append(" pid=\"1\" pindex=\"").append(objIdx).append("\">\n")
+						.append("      <mesh>\n").append("        <vertices>\n");
 
 				for (int i = 0; i < vCount; i++) {
 					model.append("          <vertex x=\"").append(verts[i * 3]).append("\" y=\"")
@@ -4532,8 +4547,9 @@ public class CSG implements IuserAPI, Serializable {
 
 			model.append("  </resources>\n").append("  <build>\n");
 
+			// item objectids match the object ids above (2-based)
 			for (int objIdx = 0; objIdx < csgs.size(); objIdx++) {
-				model.append("    <item objectid=\"").append(objIdx + 1).append("\"/>\n");
+				model.append("    <item objectid=\"").append(objIdx + 2).append("\"/>\n");
 			}
 
 			model.append("  </build>\n").append("</model>\n");
@@ -4561,7 +4577,6 @@ public class CSG implements IuserAPI, Serializable {
 
 		try (ZipFile zip = new ZipFile(source.toFile())) {
 
-			// Find the model entry case-insensitively, per spec recommendation
 			ZipEntry modelEntry = null;
 			Enumeration<? extends ZipEntry> entries = zip.entries();
 			while (entries.hasMoreElements()) {
@@ -4583,23 +4598,53 @@ public class CSG implements IuserAPI, Serializable {
 				throw new IOException("Failed to parse 3dmodel.model", e);
 			}
 
-			// <object> elements live under <resources>
-			NodeList objects = doc.getElementsByTagNameNS("*", "object");
+			// ── Build a map of materialGroupId -> (pindex -> Color) ─────────────
+			// Handles any number of <basematerials> groups in the file.
+			Map<String, Map<Integer, Color>> materialGroups = new HashMap<>();
+			NodeList baseMaterialNodes = doc.getElementsByTagNameNS("*", "basematerials");
+			for (int g = 0; g < baseMaterialNodes.getLength(); g++) {
+				Element group = (Element) baseMaterialNodes.item(g);
+				String groupId = group.getAttribute("id");
+				Map<Integer, Color> colorMap = new HashMap<>();
+				NodeList bases = group.getElementsByTagNameNS("*", "base");
+				for (int b = 0; b < bases.getLength(); b++) {
+					Element base = (Element) bases.item(b);
+					String hex = base.getAttribute("displaycolor");
+					if (hex != null && hex.startsWith("#") && hex.length() >= 7) {
+						int r = Integer.parseInt(hex.substring(1, 3), 16);
+						int g2 = Integer.parseInt(hex.substring(3, 5), 16);
+						int bl = Integer.parseInt(hex.substring(5, 7), 16);
+						colorMap.put(b, Color.rgb(r, g2, bl));
+					}
+				}
+				materialGroups.put(groupId, colorMap);
+			}
 
+			// ── Parse each <object> ──────────────────────────────────────────────
+			NodeList objects = doc.getElementsByTagNameNS("*", "object");
 			for (int objIdx = 0; objIdx < objects.getLength(); objIdx++) {
 				Element object = (Element) objects.item(objIdx);
 
-				// Skip non-model objects (e.g. support, surface)
 				String type = object.getAttribute("type");
 				if (!type.isEmpty() && !type.equals("model"))
 					continue;
 
 				String name = object.getAttribute("name");
 
-				// ── Vertices ────────────────────────────────────────────────────
+				// ── Resolve color from pid/pindex ────────────────────────────────
+				Color color = null;
+				String pid = object.getAttribute("pid");
+				String pindex = object.getAttribute("pindex");
+				if (!pid.isEmpty() && !pindex.isEmpty()) {
+					Map<Integer, Color> group = materialGroups.get(pid);
+					if (group != null) {
+						color = group.get(Integer.parseInt(pindex));
+					}
+				}
+
+				// ── Vertices ─────────────────────────────────────────────────────
 				NodeList vertexNodes = object.getElementsByTagNameNS("*", "vertex");
 				double[] vertices = new double[vertexNodes.getLength() * 3];
-
 				for (int i = 0; i < vertexNodes.getLength(); i++) {
 					Element v = (Element) vertexNodes.item(i);
 					vertices[i * 3] = Double.parseDouble(v.getAttribute("x"));
@@ -4607,10 +4652,9 @@ public class CSG implements IuserAPI, Serializable {
 					vertices[i * 3 + 2] = Double.parseDouble(v.getAttribute("z"));
 				}
 
-				// ── Triangles ───────────────────────────────────────────────────
+				// ── Triangles ─────────────────────────────────────────────────────
 				NodeList triangleNodes = object.getElementsByTagNameNS("*", "triangle");
 				long[] triangles = new long[triangleNodes.getLength() * 3];
-
 				for (int i = 0; i < triangleNodes.getLength(); i++) {
 					Element t = (Element) triangleNodes.item(i);
 					triangles[i * 3] = Long.parseLong(t.getAttribute("v1"));
@@ -4622,6 +4666,8 @@ public class CSG implements IuserAPI, Serializable {
 				csg.setName(name.isEmpty() ? null : name);
 				csg.setVertices(vertices);
 				csg.setTriangles(triangles);
+				if (color != null)
+					csg.setColor(color);
 				result.add(csg);
 			}
 		}
