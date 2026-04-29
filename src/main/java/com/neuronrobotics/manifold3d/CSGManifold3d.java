@@ -182,8 +182,10 @@ public class CSGManifold3d {
 		MemorySegment mb = toManifold(b);
 		try {
 			MemorySegment result = manifold.difference(ma, mb);
-			MemorySegment smooth = manifold.simplify(result, 0.001);
+			MemorySegment or = manifold.asOriginal(result);
 			manifold.delete(result);
+			MemorySegment smooth = manifold.simplify(or,0.001);
+			manifold.delete(or);
 			checkResult(smooth);
 			CSG fromManifold = fromManifold(smooth, a.getColor());
 			manifold.delete(smooth);
