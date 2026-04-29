@@ -1098,6 +1098,10 @@ public class CSG implements IuserAPI, Serializable {
 	 * @throws ColinearPointsException
 	 */
 	public CSG dumbUnion(CSG csg) {
+		if (defaultOptType == OptType.Manifold3d) {
+			// in manifold mode, take no action that could become non-manifold
+			return union(csg);
+		}
 		// boolean tri = triangulated && csg.triangulated;
 		CSG result = this.clone();
 		CSG other = csg.clone();
