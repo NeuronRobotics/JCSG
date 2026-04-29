@@ -315,14 +315,16 @@ public class CSGManifold3d {
 		}
 	}
 
-	public void toStl(CSG incoming, Path path) {
+	public void toSTL(CSG incoming, Path path)  throws Throwable{
+		MemorySegment man=null;
 		try {
-			MemorySegment man = toManifold(incoming);
+			man = toManifold(incoming);
 			manifold.exportSTL(man, path.toFile());
 			manifold.delete(man);
 		} catch (Throwable e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			if (man!=null)
+				manifold.delete(man);
+			throw e;
 		}
 
 	}

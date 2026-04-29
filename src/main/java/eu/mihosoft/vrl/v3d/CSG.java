@@ -33,6 +33,22 @@
  */
 package eu.mihosoft.vrl.v3d;
 
+import java.util.zip.ZipFile;
+import java.util.zip.ZipEntry;
+import java.util.Enumeration;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.zip.Deflater;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
 import eu.mihosoft.vrl.v3d.ext.quickhull3d.HullUtil;
 import eu.mihosoft.vrl.v3d.parametrics.CSGDatabaseInstance;
@@ -45,7 +61,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -262,9 +280,11 @@ public class CSG implements IuserAPI, Serializable {
 	public double getVertex_X(int vertex) {
 		return getVertices()[vertex * 3 + 0];
 	}
+
 	public double getVertex_Y(int vertex) {
 		return getVertices()[vertex * 3 + 1];
 	}
+
 	public double getVertex_Z(int vertex) {
 		return getVertices()[vertex * 3 + 2];
 	}
@@ -1046,20 +1066,20 @@ public class CSG implements IuserAPI, Serializable {
 		// triangulate();
 		// csg.triangulate();
 		switch (getOptType()) {
-			case Manifold3d :
-				try {
-					return getManifold().union(this, csg);
-				} catch (Throwable e) {
-					System.err.println("ERROR failing over to Java Union " + e.getMessage());
-					e.printStackTrace();
-				}
-			case CSG_BOUND :
-				return _unionCSGBoundsOpt(csg).historySync(this).historySync(csg);
-			// case POLYGON_BOUND:
-			// return _unionPolygonBoundsOpt(csg).historySync(this).historySync(csg);
-			default :
-				// return _unionIntersectOpt(csg);
-				return _unionNoOpt(csg).historySync(this).historySync(csg);
+		case Manifold3d:
+			try {
+				return getManifold().union(this, csg);
+			} catch (Throwable e) {
+				System.err.println("ERROR failing over to Java Union " + e.getMessage());
+				e.printStackTrace();
+			}
+		case CSG_BOUND:
+			return _unionCSGBoundsOpt(csg).historySync(this).historySync(csg);
+		// case POLYGON_BOUND:
+		// return _unionPolygonBoundsOpt(csg).historySync(this).historySync(csg);
+		default:
+			// return _unionIntersectOpt(csg);
+			return _unionNoOpt(csg).historySync(this).historySync(csg);
 
 		}
 	}
@@ -1578,17 +1598,17 @@ public class CSG implements IuserAPI, Serializable {
 			// polygons
 			if (this.getNumberOfTriangles() > 0 && csg.getNumberOfTriangles() > 0) {
 				switch (getOptType()) {
-					case Manifold3d :
-						try {
-							return getManifold().difference(this, csg);
-						} catch (Throwable e) {
-							System.err.println("ERROR failing over to Java Difference " + e.getMessage());
-							e.printStackTrace();
-						}
-					case CSG_BOUND :
-						return _differenceCSGBoundsOpt(csg).historySync(this).historySync(csg);
-					default :
-						return _differenceNoOpt(csg).historySync(this).historySync(csg);
+				case Manifold3d:
+					try {
+						return getManifold().difference(this, csg);
+					} catch (Throwable e) {
+						System.err.println("ERROR failing over to Java Difference " + e.getMessage());
+						e.printStackTrace();
+					}
+				case CSG_BOUND:
+					return _differenceCSGBoundsOpt(csg).historySync(this).historySync(csg);
+				default:
+					return _differenceNoOpt(csg).historySync(this).historySync(csg);
 
 				}
 			} else
@@ -1868,61 +1888,6 @@ public class CSG implements IuserAPI, Serializable {
 		return intersect(Arrays.asList(csgs));
 	}
 
-	/**
-	 * Returns this csg in STL string format.
-	 *
-	 * @return this csg in STL string format
-	 * @throws NonManifoldShapeError
-	 * @throws ColinearPointsException
-	 */
-	// public String toStlString(boolean repair) throws ColinearPointsException,
-	// NonManifoldShapeError {
-	// StringBuilder sb = new StringBuilder();
-	// toStlString(sb, repair);
-	// return sb.toString();
-	// }
-	// /**
-	// * Returns this csg in STL string format.
-	// *
-	// * @return this csg in STL string format
-	// * @throws NonManifoldShapeError
-	// * @throws ColinearPointsException
-	// */
-	// public String toStlString() {
-	// StringBuilder sb = new StringBuilder();
-	// try {
-	// toStlString(sb, true);
-	// } catch (ColinearPointsException e) {
-	// // TODO Auto-generated catch block
-	// e.printStackTrace();
-	// } catch (NonManifoldShapeError e) {
-	// // TODO Auto-generated catch block
-	// e.printStackTrace();
-	// }
-	// return sb.toString();
-	// }
-	public CSG to3mf(File target) {
-		if (defaultOptType == OptType.Manifold3d) {
-			new RuntimeException("Manifold3d 3mf export not implemented yet").printStackTrace();
-		} else {
-			throw new RuntimeException("Non-Manifold3d 3mf export not implemented yet");
-		}
-		return this;
-	}
-
-	public static CSG loadFrom3mf(File target) {
-		if (defaultOptType == OptType.Manifold3d) {
-			new RuntimeException("Manifold3d 3mf export not implemented yet").printStackTrace();
-		} else {
-			throw new RuntimeException("Non-Manifold3d 3mf export not implemented yet");
-		}
-		return null;
-	}
-
-	// public CSG snapPoints() throws ColinearPointsException {
-	// return triangulate(false, true);
-	// }
-
 	public CSG makeManifold(boolean repair) throws ColinearPointsException, NonManifoldShapeError {
 		if (getNumberOfTriangles() < 4)
 			return this;
@@ -2063,7 +2028,7 @@ public class CSG implements IuserAPI, Serializable {
 		int[] added = new int[numberOfPolygons];
 		int testPointChunk = 1000;
 		int snapChunk = 1000;
-		int[] tp = new int[]{0, snapChunk};
+		int[] tp = new int[] { 0, snapChunk };
 
 		// Aparapi-compatible kernel with flattened data
 		Kernel snapPointsToDistance = new Kernel() {
@@ -2410,7 +2375,7 @@ public class CSG implements IuserAPI, Serializable {
 			progressMoniter.progressUpdate(0, 100, "CPU mode " + valueOf, null);
 			kernel.setExecutionMode(Kernel.EXECUTION_MODE.JTP); // Java Thread Pool
 		}
-		int[] iteration = new int[]{0};
+		int[] iteration = new int[] { 0 };
 
 		long begin = System.currentTimeMillis();
 		boolean print = false;
@@ -2522,136 +2487,6 @@ public class CSG implements IuserAPI, Serializable {
 		return this;
 	}
 
-	/**
-	 * Returns this csg in OBJ string format.
-	 *
-	 * @param sb
-	 *            string builder
-	 * @return the specified string builder
-	 * @throws NonManifoldShapeError
-	 * @throws ColinearPointsException
-	 */
-	public StringBuilder toObjString(StringBuilder sb, boolean repair)
-			throws ColinearPointsException, NonManifoldShapeError {
-
-		makeManifold(repair);
-
-		sb.append("# Group").append("\n");
-		sb.append("g v3d.csg\n");
-		sb.append("o " + (name == null || name.length() == 0 ? "CSG Export" : getName()) + "\n");
-		class PolygonStruct {
-
-			PropertyStorage storage;
-			List<Integer> indices;
-			String materialName;
-
-			public PolygonStruct(PropertyStorage storage, List<Integer> indices, String materialName) {
-				this.storage = storage;
-				this.indices = indices;
-				this.materialName = materialName;
-			}
-		}
-
-		List<Vertex> vertices = new ArrayList<>();
-		List<PolygonStruct> indices = new ArrayList<>();
-
-		sb.append("\n# Vertices\n");
-
-		try {
-			for (Polygon p : generatePolygonsFromMesh()) {
-				List<Integer> polyIndices = new ArrayList<>();
-
-				p.getVertices().stream().forEach((v) -> {
-					if (!vertices.contains(v)) {
-						vertices.add(v);
-						v.toObjString(sb);
-						polyIndices.add(vertices.size());
-					} else {
-						polyIndices.add(vertices.indexOf(v) + 1);
-					}
-				});
-				indices.add(new PolygonStruct(getStorage(), polyIndices, " "));
-
-			}
-		} catch (ColinearPointsException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		HashMap<Vertex, Integer> mapping = new HashMap<Vertex, Integer>();
-		HashMap<Transform, Vertex> mappingTF = new HashMap<>();
-		if (datumReferences != null) {
-			int startingIndex = vertices.size() + 1;
-			sb.append("\n# Reference Datum").append("\n");
-			for (Transform t : datumReferences) {
-				Vertex v = new Vertex(new Vector3d(0, 0, 0)).transform(t);
-				Vertex v1 = new Vertex(new Vector3d(0, 0, 1)).transform(t);
-				mapping.put(v, startingIndex++);
-				mapping.put(v1, startingIndex++);
-				mappingTF.put(t, v);
-				v.toObjString(sb);
-				v1.toObjString(sb);
-			}
-			sb.append("\n# Datum Lines").append("\n");
-			for (Transform t : mappingTF.keySet()) {
-				Vertex key = mappingTF.get(t);
-				Integer obj = mapping.get(key);
-				sb.append("\nl ").append(obj + " ").append(obj + 1).append("\n");
-			}
-		}
-
-		sb.append("\n# Faces").append("\n");
-
-		for (PolygonStruct ps : indices) {
-			// we triangulate the polygon to ensure
-			// compatibility with 3d printer software
-			List<Integer> pVerts = ps.indices;
-			if (pVerts.size() != 3)
-				throw new RuntimeException(name + " can not be exported until triangulated");
-			int index1 = pVerts.get(0);
-			for (int i = 0; i < pVerts.size() - 2; i++) {
-				int index2 = pVerts.get(i + 1);
-				int index3 = pVerts.get(i + 2);
-
-				sb.append("f ").append(index1).append(" ").append(index2).append(" ").append(index3).append("\n");
-			}
-		}
-
-		sb.append("\n# End Group v3d.csg").append("\n");
-
-		return sb;
-	}
-
-	/**
-	 * Returns this csg in OBJ string format.
-	 *
-	 * @return this csg in OBJ string format
-	 * @throws NonManifoldShapeError
-	 * @throws ColinearPointsException
-	 */
-	public String toObjString(boolean repair) throws ColinearPointsException, NonManifoldShapeError {
-		StringBuilder sb = new StringBuilder();
-		return toObjString(sb, repair).toString();
-	}
-	/**
-	 * Returns this csg in OBJ string format.
-	 *
-	 * @return this csg in OBJ string format
-	 * @throws NonManifoldShapeError
-	 * @throws ColinearPointsException
-	 */
-	public String toObjString() {
-		StringBuilder sb = new StringBuilder();
-		try {
-			return toObjString(sb, true).toString();
-		} catch (ColinearPointsException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (NonManifoldShapeError e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return sb.toString();
-	}
 
 	/**
 	 * Reverse the winding order of all the triangles
@@ -3404,7 +3239,7 @@ public class CSG implements IuserAPI, Serializable {
 	public CSG getBoundingBox() {
 		return new Cube((-this.getMinX() + this.getMaxX()), (-this.getMinY() + this.getMaxY()),
 				(-this.getMinZ() + this.getMaxZ())).toCSG().toXMax().movex(this.getMaxX()).toYMax()
-				.movey(this.getMaxY()).toZMax().movez(this.getMaxZ());
+						.movey(this.getMaxY()).toZMax().movez(this.getMaxZ());
 	}
 
 	public String getName() {
@@ -4175,8 +4010,8 @@ public class CSG implements IuserAPI, Serializable {
 	public static List<CSG> tessellate(CSG incoming, int xSteps, int ySteps, int zSteps, double oddRowXOffset,
 			double oddRowYOffset, double oddRowZOffset, double oddColXOffset, double oddColYOffset,
 			double oddColZOffset, double oddLayXOffset, double oddLayYOffset, double oddLayZOffset) {
-		double[][] offsets = {{oddRowXOffset, oddRowYOffset, oddRowZOffset},
-				{oddColXOffset, oddColYOffset, oddColZOffset}, {oddLayXOffset, oddLayYOffset, oddLayZOffset}};
+		double[][] offsets = { { oddRowXOffset, oddRowYOffset, oddRowZOffset },
+				{ oddColXOffset, oddColYOffset, oddColZOffset }, { oddLayXOffset, oddLayYOffset, oddLayZOffset } };
 		return tessellate(incoming, xSteps, ySteps, zSteps, incoming.getTotalX(), incoming.getTotalY(),
 				incoming.getTotalZ(), offsets);
 	}
@@ -4430,9 +4265,14 @@ public class CSG implements IuserAPI, Serializable {
 
 	public void toStl(Path path) {
 		if (CSG.defaultOptType == OptType.Manifold3d) {
-			manifold.toStl(this, path);
-			return;
+			try {
+				manifold.toSTL(this, path);
+				return;
+			} catch (Throwable e) {
+				e.printStackTrace();
+			}
 		}
+		System.err.println("Running Legacy STL export");
 		try {
 			FileUtil.write(path, toStlString());
 		} catch (IOException e) {
@@ -4441,6 +4281,7 @@ public class CSG implements IuserAPI, Serializable {
 		}
 
 	}
+
 	/**
 	 * @deprecated use public void toStl(Path path)
 	 * @return an ascii stl string
@@ -4458,6 +4299,7 @@ public class CSG implements IuserAPI, Serializable {
 		}
 		return "";
 	}
+
 	/**
 	 * Returns this csg in STL string format.
 	 *
@@ -4472,19 +4314,318 @@ public class CSG implements IuserAPI, Serializable {
 	@Deprecated
 	public String toStlString(boolean repair) throws ColinearPointsException, NonManifoldShapeError {
 		StringBuilder sb = new StringBuilder();
-		new Exception("This method is depricated, use public void toStl(Path path)");
 		makeManifold(repair);
-		sb.append("solid v3d.csg\n");
-		for (Polygon p : generatePolygonsFromMesh()) {
-			try {
-				Plane.createFromPoints(p.getVertices(), null);
-				p.toStlString(sb);
-			} catch (Exception ex) {
-				ex.printStackTrace();
-				System.out.println("Prune Polygon on export");
+		String solidName = (name == null || name.length() == 0) ? "CSG_Export" : getName().replace(' ', '_');
+		sb.append("solid ").append(solidName).append("\n");
+		double[] verts = getVertices();
+		long[] tris = getTriangles();
+
+		for (int i = 0; i < tris.length; i += 3) {
+			int i0 = (int) tris[i] * 3;
+			int i1 = (int) tris[i + 1] * 3;
+			int i2 = (int) tris[i + 2] * 3;
+
+			// Vertex positions
+			double ax = verts[i0], ay = verts[i0 + 1], az = verts[i0 + 2];
+			double bx = verts[i1], by = verts[i1 + 1], bz = verts[i1 + 2];
+			double cx = verts[i2], cy = verts[i2 + 1], cz = verts[i2 + 2];
+
+			// Face normal via cross product of (B-A) x (C-A)
+			double ux = bx - ax, uy = by - ay, uz = bz - az;
+			double vx = cx - ax, vy = cy - ay, vz = cz - az;
+			double nx = uy * vz - uz * vy;
+			double ny = uz * vx - ux * vz;
+			double nz = ux * vy - uy * vx;
+			double len = Math.sqrt(nx * nx + ny * ny + nz * nz);
+			if (len > 0) {
+				nx /= len;
+				ny /= len;
+				nz /= len;
+			}
+
+			sb.append("  facet normal ").append(nx).append(" ").append(ny).append(" ").append(nz).append("\n");
+			sb.append("    outer loop\n");
+			sb.append("      vertex ").append(ax).append(" ").append(ay).append(" ").append(az).append("\n");
+			sb.append("      vertex ").append(bx).append(" ").append(by).append(" ").append(bz).append("\n");
+			sb.append("      vertex ").append(cx).append(" ").append(cy).append(" ").append(cz).append("\n");
+			sb.append("    endloop\n");
+			sb.append("  endfacet\n");
+		}
+
+		sb.append("endsolid ").append(solidName).append("\n");
+		return sb.toString();
+	}
+
+	/**
+	 * Returns this csg in OBJ string format.
+	 *
+	 * @param sb
+	 *            string builder
+	 * @return the specified string builder
+	 * @throws NonManifoldShapeError
+	 * @throws ColinearPointsException
+	 */
+	public StringBuilder toObjString(StringBuilder sb, boolean repair)
+			throws ColinearPointsException, NonManifoldShapeError {
+
+		makeManifold(repair);
+
+		sb.append("# Group").append("\n");
+		sb.append("g v3d.csg\n");
+		sb.append("o ").append(name == null || name.length() == 0 ? "CSG Export" : getName()).append("\n");
+
+		// --- Vertices ---
+		sb.append("\n# Vertices\n");
+		double[] verts = getVertices();
+		int vertCount = (int) getVertCount();
+		for (int i = 0; i < vertCount; i++) {
+			sb.append("v ").append(verts[i * 3]).append(" ").append(verts[i * 3 + 1]).append(" ")
+					.append(verts[i * 3 + 2]).append("\n");
+		}
+
+		// --- Datum references (unchanged) ---
+		HashMap<Vertex, Integer> mapping = new HashMap<>();
+		HashMap<Transform, Vertex> mappingTF = new HashMap<>();
+		if (datumReferences != null) {
+			int startingIndex = vertCount + 1;
+			sb.append("\n# Reference Datum\n");
+			for (Transform t : datumReferences) {
+				Vertex v = new Vertex(new Vector3d(0, 0, 0)).transform(t);
+				Vertex v1 = new Vertex(new Vector3d(0, 0, 1)).transform(t);
+				mapping.put(v, startingIndex++);
+				mapping.put(v1, startingIndex++);
+				mappingTF.put(t, v);
+				v.toObjString(sb);
+				v1.toObjString(sb);
+			}
+			sb.append("\n# Datum Lines\n");
+			for (Transform t : mappingTF.keySet()) {
+				Vertex key = mappingTF.get(t);
+				Integer obj = mapping.get(key);
+				sb.append("\nl ").append(obj).append(" ").append(obj + 1).append("\n");
 			}
 		}
-		sb.append("endsolid v3d.csg\n");
+
+		// --- Faces ---
+		sb.append("\n# Faces\n");
+		long[] tris = getTriangles();
+		for (int i = 0; i < tris.length; i += 3) {
+			// OBJ indices are 1-based
+			sb.append("f ").append(tris[i] + 1).append(" ").append(tris[i + 1] + 1).append(" ").append(tris[i + 2] + 1)
+					.append("\n");
+		}
+
+		sb.append("\n# End Group v3d.csg\n");
+		return sb;
+	}
+
+	/**
+	 * Returns this csg in OBJ string format.
+	 *
+	 * @return this csg in OBJ string format
+	 * @throws NonManifoldShapeError
+	 * @throws ColinearPointsException
+	 */
+	public String toObjString(boolean repair) throws ColinearPointsException, NonManifoldShapeError {
+		StringBuilder sb = new StringBuilder();
+		return toObjString(sb, repair).toString();
+	}
+
+	/**
+	 * Returns this csg in OBJ string format.
+	 *
+	 * @return this csg in OBJ string format
+	 * @throws NonManifoldShapeError
+	 * @throws ColinearPointsException
+	 */
+	public String toObjString() {
+		StringBuilder sb = new StringBuilder();
+		try {
+			return toObjString(sb, true).toString();
+		} catch (ColinearPointsException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NonManifoldShapeError e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return sb.toString();
+	}
+
+	/**
+	 * Exports a list of CSG objects into a single valid 3MF file.
+	 * The .3mf is a ZIP archive containing:
+	 *   _rels/.rels
+	 *   [Content_Types].xml
+	 *   3D/3dmodel.model
+	 *
+	 * Each CSG becomes a separate <object> resource and a <item> in <build>.
+	 * Indices in <triangle> are 0-based, matching the native long[] directly.
+	 *
+	 * @param csgs     the list of CSG objects to export
+	 * @param repair   if true, attempt to repair non-manifold geometry before export
+	 * @param output   stream to write the .3mf ZIP into
+	 */
+	public static void toThreeMF(List<CSG> csgs, boolean repair, Path destination)
+			throws IOException, ColinearPointsException, NonManifoldShapeError {
+
+		try (ZipOutputStream zip = new ZipOutputStream(
+				Files.newOutputStream(destination, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING),
+				StandardCharsets.UTF_8)) {
+			zip.setLevel(Deflater.BEST_COMPRESSION);
+
+			// ── _rels/.rels ──────────────────────────────────────────────────────
+			writeZipEntry(zip, "_rels/.rels",
+					"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+							+ "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">\n"
+							+ "  <Relationship Type=\"http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel\"\n"
+							+ "                Target=\"/3D/3dmodel.model\"\n" + "                Id=\"rel0\"/>\n"
+							+ "</Relationships>\n");
+
+			// ── [Content_Types].xml ──────────────────────────────────────────────
+			writeZipEntry(zip, "[Content_Types].xml",
+					"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+							+ "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">\n"
+							+ "  <Default Extension=\"rels\"\n"
+							+ "          ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>\n"
+							+ "  <Default Extension=\"model\"\n"
+							+ "          ContentType=\"application/vnd.ms-package.3dmanufacturing-3dmodel+xml\"/>\n"
+							+ "</Types>\n");
+
+			// ── 3D/3dmodel.model ─────────────────────────────────────────────────
+			StringBuilder model = new StringBuilder(1 << 20); // 1 MB initial capacity
+
+			model.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
+					.append("<model unit=\"millimeter\" xml:lang=\"en-US\"\n")
+					.append("       xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\">\n")
+					.append("  <resources>\n");
+
+			// One <object> per CSG — object ids are 1-based per the 3MF spec
+			for (int objIdx = 0; objIdx < csgs.size(); objIdx++) {
+				CSG csg = csgs.get(objIdx);
+				csg.makeManifold(repair);
+
+				double[] verts = csg.getVertices();
+				long[] tris = csg.getTriangles();
+				int vCount = (int) csg.getVertCount();
+
+				String objName = (csg.getName() == null || csg.getName().isEmpty()) ? "CSG_" + (objIdx + 1)
+						: csg.getName().replace('"', '\'');
+
+				model.append("    <object id=\"").append(objIdx + 1).append("\" type=\"model\" name=\"").append(objName)
+						.append("\">\n").append("      <mesh>\n").append("        <vertices>\n");
+
+				for (int i = 0; i < vCount; i++) {
+					model.append("          <vertex x=\"").append(verts[i * 3]).append("\" y=\"")
+							.append(verts[i * 3 + 1]).append("\" z=\"").append(verts[i * 3 + 2]).append("\"/>\n");
+				}
+
+				model.append("        </vertices>\n").append("        <triangles>\n");
+
+				for (int i = 0; i < tris.length; i += 3) {
+					model.append("          <triangle v1=\"").append(tris[i]).append("\" v2=\"").append(tris[i + 1])
+							.append("\" v3=\"").append(tris[i + 2]).append("\"/>\n");
+				}
+
+				model.append("        </triangles>\n").append("      </mesh>\n").append("    </object>\n");
+			}
+
+			model.append("  </resources>\n").append("  <build>\n");
+
+			for (int objIdx = 0; objIdx < csgs.size(); objIdx++) {
+				model.append("    <item objectid=\"").append(objIdx + 1).append("\"/>\n");
+			}
+
+			model.append("  </build>\n").append("</model>\n");
+
+			writeZipEntry(zip, "3D/3dmodel.model", model.toString());
+		}
+	}
+
+	/** Writes a single UTF-8 text entry into the ZIP stream. */
+	private static void writeZipEntry(ZipOutputStream zip, String entryName, String content) throws IOException {
+		zip.putNextEntry(new ZipEntry(entryName));
+		zip.write(content.getBytes(StandardCharsets.UTF_8));
+		zip.closeEntry();
+	}
+
+	/**
+	 * Reads a .3mf file and returns one CSG per <object> found in the model.
+	 * Vertex indices in <triangle> are 0-based, matching the native long[] directly.
+	 *
+	 * @param source  path to the .3mf file
+	 * @return        list of CSG objects, one per <object> in the 3MF resources
+	 */
+	public static List<CSG> fromThreeMF(Path source) throws IOException {
+		List<CSG> result = new ArrayList<>();
+
+		try (ZipFile zip = new ZipFile(source.toFile())) {
+
+			// Find the model entry case-insensitively, per spec recommendation
+			ZipEntry modelEntry = null;
+			Enumeration<? extends ZipEntry> entries = zip.entries();
+			while (entries.hasMoreElements()) {
+				ZipEntry e = entries.nextElement();
+				if (e.getName().toLowerCase().endsWith("3dmodel.model")) {
+					modelEntry = e;
+					break;
+				}
+			}
+			if (modelEntry == null)
+				throw new IOException("No 3dmodel.model found in: " + source);
+
+			Document doc;
+			try {
+				DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+				dbf.setNamespaceAware(true);
+				doc = dbf.newDocumentBuilder().parse(zip.getInputStream(modelEntry));
+			} catch (ParserConfigurationException | SAXException e) {
+				throw new IOException("Failed to parse 3dmodel.model", e);
+			}
+
+			// <object> elements live under <resources>
+			NodeList objects = doc.getElementsByTagNameNS("*", "object");
+
+			for (int objIdx = 0; objIdx < objects.getLength(); objIdx++) {
+				Element object = (Element) objects.item(objIdx);
+
+				// Skip non-model objects (e.g. support, surface)
+				String type = object.getAttribute("type");
+				if (!type.isEmpty() && !type.equals("model"))
+					continue;
+
+				String name = object.getAttribute("name");
+
+				// ── Vertices ────────────────────────────────────────────────────
+				NodeList vertexNodes = object.getElementsByTagNameNS("*", "vertex");
+				double[] vertices = new double[vertexNodes.getLength() * 3];
+
+				for (int i = 0; i < vertexNodes.getLength(); i++) {
+					Element v = (Element) vertexNodes.item(i);
+					vertices[i * 3] = Double.parseDouble(v.getAttribute("x"));
+					vertices[i * 3 + 1] = Double.parseDouble(v.getAttribute("y"));
+					vertices[i * 3 + 2] = Double.parseDouble(v.getAttribute("z"));
+				}
+
+				// ── Triangles ───────────────────────────────────────────────────
+				NodeList triangleNodes = object.getElementsByTagNameNS("*", "triangle");
+				long[] triangles = new long[triangleNodes.getLength() * 3];
+
+				for (int i = 0; i < triangleNodes.getLength(); i++) {
+					Element t = (Element) triangleNodes.item(i);
+					triangles[i * 3] = Long.parseLong(t.getAttribute("v1"));
+					triangles[i * 3 + 1] = Long.parseLong(t.getAttribute("v2"));
+					triangles[i * 3 + 2] = Long.parseLong(t.getAttribute("v3"));
+				}
+
+				CSG csg = new CSG();
+				csg.setName(name.isEmpty() ? null : name);
+				csg.setVertices(vertices);
+				csg.setTriangles(triangles);
+				result.add(csg);
+			}
+		}
+
+		return result;
 	}
 }
