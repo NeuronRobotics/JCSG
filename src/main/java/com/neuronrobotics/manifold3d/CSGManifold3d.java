@@ -17,9 +17,8 @@ import eu.mihosoft.vrl.v3d.Transform;
 import eu.mihosoft.vrl.v3d.Vector3d;
 import eu.mihosoft.vrl.v3d.Vertex;
 import javafx.scene.paint.Color;
-@SuppressWarnings("preview")
 public class CSGManifold3d {
-	private static final double MembrainTollerence = 0.001;
+	private static final double MembrainTollerence = Plane.getEPSILON()*10;
 	private final ManifoldBindings manifold;
 	private static boolean minkowskiMembrainRemoval = false;
 	// private final Manifold3dExporter exporter;
