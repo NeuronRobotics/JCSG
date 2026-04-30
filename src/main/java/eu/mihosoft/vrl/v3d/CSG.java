@@ -2838,6 +2838,15 @@ public class CSG implements IuserAPI, Serializable {
 				e.printStackTrace();
 			}
 		}
+		if (defaultOptType == OptType.Manifold3d) {
+			try {
+				CSG mink = manifold.minkowski_sum(this, travelingShape);
+				return new ArrayList<CSG>(Arrays.asList(mink));
+			} catch (Throwable e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		ArrayList<CSG> bits = new ArrayList<>();
 		List<Polygon> polygons2 = this.generatePolygonsFromMesh();
 		int size3 = polygons2.size();
@@ -2975,6 +2984,8 @@ public class CSG implements IuserAPI, Serializable {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+
+
 		}
 		double z = shellThickness;
 		if (z > this.getTotalZ() / 2)
