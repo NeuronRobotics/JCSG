@@ -18,7 +18,7 @@ import eu.mihosoft.vrl.v3d.Vector3d;
 import eu.mihosoft.vrl.v3d.Vertex;
 import javafx.scene.paint.Color;
 public class CSGManifold3d {
-	private static final double MembrainTollerence = Plane.getEPSILON()*10;
+	private static final double MembrainTollerence = Plane.getEPSILON() * 10;
 	private final ManifoldBindings manifold;
 	private static boolean minkowskiMembrainRemoval = false;
 	// private final Manifold3dExporter exporter;
@@ -219,9 +219,9 @@ public class CSGManifold3d {
 		MemorySegment ma = toManifold(a);
 		MemorySegment mb = toManifold(b);
 		try {
-			MemorySegment smooth=null;
-			if(minkowskiMembrainRemoval){
-				MemorySegment tol = manifold.cube(MembrainTollerence,MembrainTollerence,MembrainTollerence, true);
+			MemorySegment smooth = null;
+			if (minkowskiMembrainRemoval) {
+				MemorySegment tol = manifold.cube(MembrainTollerence, MembrainTollerence, MembrainTollerence, true);
 				MemorySegment mink = manifold.minkowski_sum(mb, tol);
 				manifold.delete(mb);
 				manifold.delete(tol);
@@ -232,16 +232,14 @@ public class CSGManifold3d {
 				manifold.delete(result);
 				smooth = manifold.simplify(or, MembrainTollerence);
 				manifold.delete(or);
-			}else {
+			} else {
 				CSG cube = new Cube(MembrainTollerence).toCSG();
-				smooth=ma;
-				for(int i=0;i<cube.getVertCount();i++) {
-					MemorySegment bMoved = manifold.translate(mb, 
-							cube.getVertex_X(i),
-							cube.getVertex_Y(i),
+				smooth = ma;
+				for (int i = 0; i < cube.getVertCount(); i++) {
+					MemorySegment bMoved = manifold.translate(mb, cube.getVertex_X(i), cube.getVertex_Y(i),
 							cube.getVertex_Z(i));
 					MemorySegment lastOne = smooth;
-					smooth=manifold.difference(smooth, bMoved);
+					smooth = manifold.difference(smooth, bMoved);
 					manifold.delete(bMoved);
 					manifold.delete(lastOne);
 				}
@@ -251,7 +249,7 @@ public class CSGManifold3d {
 			CSG fromManifold = fromManifold(smooth, a.getColor());
 			manifold.delete(smooth);
 			return fromManifold;
-		} catch(Throwable t) {
+		} catch (Throwable t) {
 			manifold.delete(ma);
 			manifold.delete(mb);
 			throw t;
