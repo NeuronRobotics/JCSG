@@ -10,6 +10,8 @@ import com.cadoodlecad.manifold.ManifoldBindings.ManifoldError;
 import com.cadoodlecad.manifold.ManifoldBindings.MeshData64;
 
 import eu.mihosoft.vrl.v3d.CSG;
+import eu.mihosoft.vrl.v3d.Cube;
+import eu.mihosoft.vrl.v3d.Plane;
 import eu.mihosoft.vrl.v3d.Polygon;
 import eu.mihosoft.vrl.v3d.Transform;
 import eu.mihosoft.vrl.v3d.Vector3d;
@@ -17,7 +19,9 @@ import eu.mihosoft.vrl.v3d.Vertex;
 import javafx.scene.paint.Color;
 @SuppressWarnings("preview")
 public class CSGManifold3d {
+	private static final double MembrainTollerence = 0.001;
 	private final ManifoldBindings manifold;
+	private static boolean minkowskiMembrainRemoval = false;
 	// private final Manifold3dExporter exporter;
 	// private final Manifold3dImporter importer;
 
@@ -149,7 +153,42 @@ public class CSGManifold3d {
 			throw new RuntimeException("Failed to slice CSG at Z=0", e);
 		}
 	}
-
+	/**
+	 * Returns the union of two CSG solids. Uses {@code manifold.union(a, b)}
+	 * directly (wrapper around {@code manifold_union} in the C library).
+	 */
+	public CSG minkowski_difference(CSG a, CSG b) throws Throwable {
+		MemorySegment ma = toManifold(a);
+		MemorySegment mb = toManifold(b);
+		try {
+			MemorySegment result = manifold.minkowski_difference(ma, mb);
+			checkResult(result);
+			CSG fromManifold = fromManifold(result, b.getColor());
+			manifold.delete(result);
+			return fromManifold;
+		} finally {
+			manifold.delete(ma);
+			manifold.delete(mb);
+		}
+	}
+	/**
+	 * Returns the union of two CSG solids. Uses {@code manifold.union(a, b)}
+	 * directly (wrapper around {@code manifold_union} in the C library).
+	 */
+	public CSG minkowski_sum(CSG a, CSG b) throws Throwable {
+		MemorySegment ma = toManifold(a);
+		MemorySegment mb = toManifold(b);
+		try {
+			MemorySegment result = manifold.minkowski_sum(ma, mb);
+			checkResult(result);
+			CSG fromManifold = fromManifold(result, b.getColor());
+			manifold.delete(result);
+			return fromManifold;
+		} finally {
+			manifold.delete(ma);
+			manifold.delete(mb);
+		}
+	}
 	// -------------------------------------------------------------------------
 	// Boolean operations
 	// -------------------------------------------------------------------------
@@ -181,18 +220,42 @@ public class CSGManifold3d {
 		MemorySegment ma = toManifold(a);
 		MemorySegment mb = toManifold(b);
 		try {
-			MemorySegment result = manifold.difference(ma, mb);
-			MemorySegment or = manifold.asOriginal(result);
-			manifold.delete(result);
-			MemorySegment smooth = manifold.simplify(or, 0.001);
-			manifold.delete(or);
+			MemorySegment smooth=null;
+			if(minkowskiMembrainRemoval){
+				MemorySegment tol = manifold.cube(MembrainTollerence,MembrainTollerence,MembrainTollerence, true);
+				MemorySegment mink = manifold.minkowski_sum(mb, tol);
+				manifold.delete(mb);
+				manifold.delete(tol);
+				MemorySegment result = manifold.difference(ma, mink);
+				manifold.delete(ma);
+				manifold.delete(mink);
+				MemorySegment or = manifold.asOriginal(result);
+				manifold.delete(result);
+				smooth = manifold.simplify(or, MembrainTollerence);
+				manifold.delete(or);
+			}else {
+				CSG cube = new Cube(MembrainTollerence).toCSG();
+				smooth=ma;
+				for(int i=0;i<cube.getVertCount();i++) {
+					MemorySegment bMoved = manifold.translate(mb, 
+							cube.getVertex_X(i),
+							cube.getVertex_Y(i),
+							cube.getVertex_Z(i));
+					MemorySegment lastOne = smooth;
+					smooth=manifold.difference(smooth, bMoved);
+					manifold.delete(bMoved);
+					manifold.delete(lastOne);
+				}
+				manifold.delete(mb);
+			}
 			checkResult(smooth);
 			CSG fromManifold = fromManifold(smooth, a.getColor());
 			manifold.delete(smooth);
 			return fromManifold;
-		} finally {
+		} catch(Throwable t) {
 			manifold.delete(ma);
 			manifold.delete(mb);
+			throw t;
 		}
 	}
 
@@ -329,6 +392,14 @@ public class CSGManifold3d {
 			throw e;
 		}
 
+	}
+
+	public static boolean isMinkowskiMembrainRemoval() {
+		return minkowskiMembrainRemoval;
+	}
+
+	public static void setMinkowskiMembrainRemoval(boolean minkowskiMembrainRemoval) {
+		CSGManifold3d.minkowskiMembrainRemoval = minkowskiMembrainRemoval;
 	}
 
 }
