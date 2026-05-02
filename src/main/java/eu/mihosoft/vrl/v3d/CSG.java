@@ -32,6 +32,7 @@
  * info@michaelhoffer.de.
  */
 package eu.mihosoft.vrl.v3d;
+
 import org.xml.sax.Attributes;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipEntry;
@@ -2837,6 +2838,15 @@ public class CSG implements IuserAPI, Serializable {
 				e.printStackTrace();
 			}
 		}
+		if (defaultOptType == OptType.Manifold3d) {
+			try {
+				CSG mink = manifold.minkowski_sum(this, travelingShape);
+				return new ArrayList<CSG>(Arrays.asList(mink));
+			} catch (Throwable e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		ArrayList<CSG> bits = new ArrayList<>();
 		List<Polygon> polygons2 = this.generatePolygonsFromMesh();
 		int size3 = polygons2.size();
@@ -2878,6 +2888,16 @@ public class CSG implements IuserAPI, Serializable {
 	 * @throws ColinearPointsException
 	 */
 	public ArrayList<CSG> minkowski(CSG travelingShape) throws ColinearPointsException {
+		if (defaultOptType == OptType.Manifold3d) {
+			try {
+				CSG mink = manifold.minkowski_sum(this, travelingShape);
+				return new ArrayList<CSG>(Arrays.asList(mink));
+			} catch (Throwable e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		}
 		HashMap<Vertex, CSG> map = new HashMap<>();
 		for (Polygon p : travelingShape.generatePolygonsFromMesh()) {
 			for (Vertex v : p.getVertices()) {
@@ -2903,6 +2923,16 @@ public class CSG implements IuserAPI, Serializable {
 	 * @throws ColinearPointsException
 	 */
 	public CSG minkowskiDifference(CSG itemToDifference, CSG minkowskiObject) throws ColinearPointsException {
+		if (defaultOptType == OptType.Manifold3d) {
+			try {
+				CSG mink = manifold.minkowski_sum(itemToDifference, minkowskiObject);
+				return difference(mink);
+			} catch (Throwable e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
 		CSG intersection = this.intersect(itemToDifference);
 
 		ArrayList<CSG> csgDiff = intersection.minkowskiHullShape(minkowskiObject);
@@ -2929,9 +2959,12 @@ public class CSG implements IuserAPI, Serializable {
 	 * @throws ColinearPointsException
 	 */
 	public CSG minkowskiDifference(CSG itemToDifference, double tolerance) throws ColinearPointsException {
+		if (defaultOptType == OptType.Manifold3d) {
+			return minkowskiDifference(itemToDifference, new Cube(tolerance).toCSG());
+		}
 		double shellThickness = Math.abs(tolerance);
 		if (shellThickness < 0.001)
-			return this;
+			return this.difference(itemToDifference);
 		return minkowskiDifference(itemToDifference, new Sphere(shellThickness / 2.0, 8, 4).toCSG());
 	}
 
@@ -2941,6 +2974,18 @@ public class CSG implements IuserAPI, Serializable {
 		shellThickness = Math.abs(shellThickness);
 		if (shellThickness < 0.001)
 			return this;
+		if (defaultOptType == OptType.Manifold3d) {
+			try {
+				if (!cut)
+					return manifold.minkowski_sum(this, new Cube(shellThickness).toCSG());
+				else
+					return manifold.minkowski_difference(this, new Cube(shellThickness).toCSG());
+			} catch (Throwable e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		}
 		double z = shellThickness;
 		if (z > this.getTotalZ() / 2)
 			z = this.getTotalZ() / 2;
