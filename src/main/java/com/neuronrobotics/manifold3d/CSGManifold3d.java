@@ -10,6 +10,7 @@ import com.cadoodlecad.manifold.ManifoldBindings.ManifoldError;
 import com.cadoodlecad.manifold.ManifoldBindings.MeshData64;
 
 import eu.mihosoft.vrl.v3d.CSG;
+import eu.mihosoft.vrl.v3d.Cube;
 import eu.mihosoft.vrl.v3d.Plane;
 import eu.mihosoft.vrl.v3d.Polygon;
 import eu.mihosoft.vrl.v3d.Transform;
