@@ -813,4 +813,8 @@ public class Extrude {
 	public static void setMinimumDIstance(double mINIMUM_DISTANCE) {
 		MINIMUM_DISTANCE = mINIMUM_DISTANCE;
 	}
+
+	public static CSG extrude(Vector3d extrudeDir, Polygon profile) throws ColinearPointsException {
+		return getExtrusionEngine().extrude(extrudeDir, profile);
+	}
 }

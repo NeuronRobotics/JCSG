@@ -141,7 +141,8 @@ public class CSGManifold3d {
 					points.add(Vector3d.xyz(xy[0], xy[1], 0.0));
 				}
 
-				result.add(Polygon.fromPoints(points));
+				Polygon fromPoints = Polygon.fromPoints(points);
+				result.add(fromPoints);
 			}
 
 			return result;

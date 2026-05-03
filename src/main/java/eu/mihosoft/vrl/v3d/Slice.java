@@ -477,18 +477,18 @@ public class Slice {
 	}
 
 	private static List<Polygon> sanatize(List<Polygon> slice) throws ColinearPointsException {
-		for (int i = 0; i < slice.size(); i++) {
-			Polygon me = slice.get(i);
-			boolean bad = !Extrude.isCCW(me);
-			if (bad) {
-				// println "Bad polygon!"
-				List<Vector3d> points = me.getPoints();
-				ArrayList<Vector3d> result = new ArrayList<Vector3d>(points);
-				Collections.reverse(result);
-				me = Polygon.fromPoints(result);
-			}
-			slice.set(i, me);
-		}
+//		for (int i = 0; i < slice.size(); i++) {
+//			Polygon me = slice.get(i);
+//			boolean bad = !Extrude.isCCW(me);
+//			if (bad) {
+//				// println "Bad polygon!"
+//				List<Vector3d> points = me.getPoints();
+//				ArrayList<Vector3d> result = new ArrayList<Vector3d>(points);
+//				Collections.reverse(result);
+//				me = Polygon.fromPoints(result);
+//			}
+//			slice.set(i, me);
+//		}
 		return slice;
 	}
 
