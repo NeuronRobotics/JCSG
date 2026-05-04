@@ -3,14 +3,13 @@ package eu.mihosoft.vrl.v3d;
 import java.util.ArrayList;
 import java.util.List;
 
-import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
 import javafx.scene.paint.Color;
 
 public class Fillet extends Primitive {
 
 	double w, h;
-	private static final double numArcPoints = 12;
-	private static double filletOfset=0.001;
+	private double numArcPoints = 12;
+	private static double filletOfset = 0.001;
 	/** The properties. */
 	private final PropertyStorage properties = new PropertyStorage();
 
@@ -22,15 +21,17 @@ public class Fillet extends Primitive {
 	 * Constructor. Creates a new cuboid with center {@code [0,0,0]} and with the
 	 * specified dimensions.
 	 *
-	 * @param w width
-	 * @param h height
+	 * @param w
+	 *            width
+	 * @param h
+	 *            height
 	 */
 	public Fillet(double w, double h) {
 		this.w = w;
 		this.h = h;
 	}
 
-	public static CSG corner(double rad, double angle) throws ColinearPointsException {
+	public static CSG corner(double rad, double angle, double numArcPoints) throws ColinearPointsException {
 		// --- Build the concave quarter-circle fillet profile ---
 		//
 		// Shape (in XY plane, swept around Z):
@@ -69,19 +70,32 @@ public class Fillet extends Primitive {
 		// radius=0 → profile is already positioned relative to the axis
 		// z=0 → no axial offset
 		// steps=32 → match arc resolution for a smooth result
-		return Extrude.sweep(profile, angle / numArcPoints, 0, 0, (int) numArcPoints)
-				.roty(90);
+		return Extrude.sweep(profile, angle / numArcPoints, 0, 0, (int) numArcPoints).roty(90);
 	}
-
+	public static CSG outerChamfer(CSG base, double rad) throws ColinearPointsException {
+		return fillet(base, rad, true, 1);
+	}
+	public static CSG innerChamfer(CSG base, double rad) throws ColinearPointsException {
+		return fillet(base, rad, false, 1);
+	}
 	public static CSG outerFillet(CSG base, double rad) throws ColinearPointsException {
+		return fillet(base, rad, true, 8);
+	}
+	public static CSG innerFillet(CSG base, double rad) throws ColinearPointsException {
+		return fillet(base, rad, false, 8);
+	}
+	public static CSG fillet(CSG base, double rad, boolean outer, int numFaces) throws ColinearPointsException {
 		List<Polygon> polys = Slice.slice(base);
-		return outerFillet(polys, rad);
+		CSG fillet = fillet(polys, rad, outer, numFaces);
+		if (outer)
+			fillet = fillet.difference(base);
+		else
+			fillet = fillet.intersect(base);
+		return fillet;
 	}
 
-	public static CSG outerFillet(List<Polygon> polys, double rad) {
+	public static CSG fillet(List<Polygon> polys, double rad, boolean outer, double numArcPoints) {
 
-		boolean outer = true;
-		
 		ArrayList<CSG> parts = new ArrayList<>();
 
 		for (Polygon p : polys) {
@@ -91,8 +105,8 @@ public class Fillet extends Primitive {
 			} catch (ColinearPointsException e) {
 				e.printStackTrace();
 			}
-			if(!outer)
-				isHole=!isHole;
+			// if (isHole)
+			// continue;
 			System.err.println("Polygon filler " + (isHole ? "hole" : "outside"));
 
 			int size = p.getVertices().size();
@@ -120,38 +134,72 @@ public class Fillet extends Primitive {
 				// filletAngle = exterior sweep angle of the corner piece
 				double filletAngle = 180.0 - theta;
 
-
 				// Base rotation: align to seg1 direction relative to Y axis
 				double baseAngle = Math.toDegrees(seg1.angle(Vector3d.Y_ONE));
 				if (seg1.x < 0)
 					baseAngle = 360 - baseAngle;
 				double edgeAngleAbs = baseAngle;
-				if (isHole)
+				if (isHole) {
 					edgeAngleAbs += 180;
-				if(isReflex) {
-					filletAngle=180-filletAngle;
-					if(filletAngle<90)
-						filletAngle=0;
-					baseAngle+=90;
+					baseAngle -= 90;
+					if ((!isReflex) && outer) {
+						filletAngle -= 90;
+						if (filletAngle < 90)
+							filletAngle = 0;
+					}
+					if (isReflex && outer) {
+
+						baseAngle -= filletAngle;
+					}
+					if (isReflex && (!outer)) {
+						filletAngle -= 90;
+						if (filletAngle < 90)
+							filletAngle = 0;
+						baseAngle += 90;
+					}
+					if ((!isReflex) && (!outer)) {
+
+						baseAngle += 180;
+					}
+
+				} else {
+					if ((!isReflex) && outer) {
+						// default case
+					}
+					if (isReflex && outer) {
+						filletAngle = 180 - filletAngle;
+						if (filletAngle < 90)
+							filletAngle = 0;
+						baseAngle += 90;
+					}
+					if (isReflex && (!outer)) {// checked
+
+						baseAngle += 90;
+					}
+					if ((!isReflex) && (!outer)) {
+						filletAngle = theta - 90;
+						if (filletAngle < 90)
+							filletAngle = 0;
+						baseAngle += 90;
+					}
 				}
 				// -------------------------------------------------------
 				// Edge fillet: always placed, runs along seg1 from position1
 				// Holes face inward so flip 180°
 				// -------------------------------------------------------
-	
 
 				CSG edgeFillet = new Fillet(rad, len).toCSG();
-				if(isHole)
+				if (isHole)
 					edgeFillet = edgeFillet.toYMax();
 				else
 					edgeFillet = edgeFillet.toYMin().mirrorx();
-				if(!outer)
+				if (!outer)
 					edgeFillet = edgeFillet.mirrorx();
 				edgeFillet = edgeFillet.rotz(edgeAngleAbs).move(position1);
 				parts.add(edgeFillet);
 				double cornerAngleAbs = baseAngle;
-				if(!isHole && outer) {
-					cornerAngleAbs=cornerAngleAbs-filletAngle-90;
+				if (!isHole && outer) {
+					cornerAngleAbs = cornerAngleAbs - filletAngle - 90;
 				}
 				// -------------------------------------------------------
 				// Corner fillet: only placed on REFLEX corners
@@ -168,9 +216,8 @@ public class Fillet extends Primitive {
 					// Outside: no extra offset — logic is reversed (edge fillets
 					// run away from the corner, so no 90° consumption occurs)
 
-
 					try {
-						parts.add(corner(rad, filletAngle).rotz(cornerAngleAbs).move(position1));
+						parts.add(corner(rad, filletAngle, (double) numArcPoints).rotz(cornerAngleAbs).move(position1));
 					} catch (ColinearPointsException e) {
 						e.printStackTrace();
 					}
@@ -196,11 +243,11 @@ public class Fillet extends Primitive {
 
 		// Inner corner
 		profilePoints.add(new Vector3d(-filletOfset, 0, 0));
-		//profilePoints.add(new Vector3d(0, 0, 0));
+		// profilePoints.add(new Vector3d(0, 0, 0));
 
 		// Concave quarter-circle arc
-		for (int i = 0; i <= numArcPoints; i++) {
-			double angle = Math.toRadians(270.0 - 90.0 * i / numArcPoints);
+		for (int i = 0; i <= getNumArcPoints(); i++) {
+			double angle = Math.toRadians(270.0 - 90.0 * i / getNumArcPoints());
 			double x = w + w * Math.cos(angle);
 			double z = w + w * Math.sin(angle);
 			profilePoints.add(0, new Vector3d(x, 0, z));
@@ -218,5 +265,13 @@ public class Fillet extends Primitive {
 			e.printStackTrace();
 			return new Cube(20).toCSG().setColor(Color.PINK);
 		}
+	}
+
+	public double getNumArcPoints() {
+		return numArcPoints;
+	}
+
+	public void setNumArcPoints(double numArcPoints) {
+		this.numArcPoints = numArcPoints;
 	}
 }
