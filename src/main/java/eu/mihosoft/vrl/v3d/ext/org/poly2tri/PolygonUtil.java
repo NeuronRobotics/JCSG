@@ -513,9 +513,9 @@ public class PolygonUtil {
 	 *
 	 * @throws ColinearPointsException
 	 */
-	public static Transform calculateNormalTransform(Polygon concave) throws ColinearPointsException {
+	public static Transform calculateNormalTransform(Vector3d u) throws ColinearPointsException {
 		// Normalize inputs
-		Vector3d u = concave.getPlane().getNormal();
+		//Vector3d u = concave.getPlane().getNormal();
 		Vector3d pureXVect = new Vector3d(1, 0, 0);
 		Vector3d pureYVect = new Vector3d(0, 1, 0);
 		Vector3d pureZVect = new Vector3d(0, 0, 1);
@@ -554,17 +554,6 @@ public class PolygonUtil {
 		Transform rotY = new Transform().rotY(aboutY);
 		transform = rotY.copy().apply(transform1);
 
-		Vector3d u3 = u.transformed(transform).normalized();
-
-		Polygon test = concave.transformed(transform);
-		Vector3d normal = test.plane.getNormal();
-		double abs = Math.abs(normal.z);
-		if (1 - abs > 0.1) {
-			System.out.println("Error with " + test + " normal " + normal);
-			// Plane p = Plane.createFromPoints(test.getVertices());
-			new ColinearPointsException("Failed to reorent the polygon for processing! z off by " + abs + " " + normal)
-					.printStackTrace();
-		}
 
 		Matrix4d rotation = transform.getInternalMatrix();
 		Quat4d q1 = transform.getQuat();
@@ -606,7 +595,7 @@ public class PolygonUtil {
 		boolean debug = false;
 
 		if (reorient) {
-			Transform orientation = calculateNormalTransform(incoming);
+			Transform orientation = calculateNormalTransform(incoming.getPlane().getNormal());
 			tmp = incoming.transformed(orientation);
 			orientationInv = orientation.inverse();
 		}

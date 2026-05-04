@@ -99,8 +99,8 @@ public class Fillet extends Primitive {
 		CSG fillet = fillet(polys, rad, outer, numFaces);
 		if (outer)
 			fillet = fillet.difference(base);
-		else
-			fillet = fillet.intersect(base);
+//		else
+//			fillet = fillet.intersect(base);
 		return fillet;
 	}
 

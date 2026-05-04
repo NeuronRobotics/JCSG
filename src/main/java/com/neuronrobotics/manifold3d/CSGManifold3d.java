@@ -11,6 +11,7 @@ import com.cadoodlecad.manifold.ManifoldBindings.MeshData64;
 
 import eu.mihosoft.vrl.v3d.CSG;
 import eu.mihosoft.vrl.v3d.Cube;
+import eu.mihosoft.vrl.v3d.ICSGProgress;
 import eu.mihosoft.vrl.v3d.Plane;
 import eu.mihosoft.vrl.v3d.Polygon;
 import eu.mihosoft.vrl.v3d.Transform;
@@ -398,6 +399,25 @@ public class CSGManifold3d {
 
 	public static void setMinkowskiMembrainRemoval(boolean minkowskiMembrainRemoval) {
 		CSGManifold3d.minkowskiMembrainRemoval = minkowskiMembrainRemoval;
+	}
+
+	public CSG unionAll(List<CSG> csgs, ICSGProgress progressMoniter) throws Throwable {
+		MemorySegment[] shapes = new MemorySegment[csgs.size()];
+		
+		for(int i=0;i<csgs.size();i++) {
+			shapes[i]=toManifold(csgs.get(i));
+			if(progressMoniter!=null)
+				progressMoniter.progressUpdate(i, csgs.size()+1, "Union All Load", null);
+		}
+		progressMoniter.progressUpdate( csgs.size(), csgs.size()+1, "Run Union All", null);
+		MemorySegment all = manifold.batchUnion(shapes);
+		for(int i=0;i<csgs.size();i++) {
+			manifold.delete(shapes[i]);
+		}
+		progressMoniter.progressUpdate( csgs.size()+1, csgs.size()+1, "Finishing Union All", null);
+		CSG back = fromManifold(all, csgs.get(0).getColor());
+		manifold.delete(all);
+		return back;
 	}
 
 }
