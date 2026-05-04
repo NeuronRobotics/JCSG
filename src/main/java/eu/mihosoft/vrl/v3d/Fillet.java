@@ -55,13 +55,13 @@ public class Fillet extends Primitive {
 		// Concave quarter-circle arc: center=(rad,rad), radius=rad
 		// sweeps from 270° → 180° (i.e. (rad,0) → (0,rad))
 		for (int i = 1; i < numArcPoints; i++) {
-			double a = Math.toRadians(270.0 - 90.0 * ((double)i) / numArcPoints);
+			double a = Math.toRadians(270.0 - 90.0 * ((double) i) / numArcPoints);
 			double x = rad + rad * Math.cos(a);
 			double y = rad + rad * Math.sin(a);
-			if(x<filletOfset)
-				x=filletOfset;
-			if(y<filletOfset)
-				y=filletOfset;
+			if (x < filletOfset)
+				x = filletOfset;
+			if (y < filletOfset)
+				y = filletOfset;
 			pts.add(new Vector3d(x, y, 0));
 		}
 		pts.add(new Vector3d(0, rad, 0));
@@ -74,7 +74,7 @@ public class Fillet extends Primitive {
 		// radius=0 → profile is already positioned relative to the axis
 		// z=0 → no axial offset
 		// steps=32 → match arc resolution for a smooth result
-		return Extrude.sweep(profile, (angle+1) / numArcPoints, 0, 0, (int) numArcPoints).roty(90).rotz(-0.5);
+		return Extrude.sweep(profile, (angle + 1) / numArcPoints, 0, 0, (int) numArcPoints).roty(90).rotz(-0.5);
 	}
 	public static CSG outerChamfer(CSG base, double rad) throws ColinearPointsException {
 		return fillet(base, rad, true, 1);
@@ -88,10 +88,10 @@ public class Fillet extends Primitive {
 	public static CSG innerFillet(CSG base, double rad) throws ColinearPointsException {
 		return fillet(base, rad, false, 16);
 	}
-	public static CSG outerFillet(CSG base, double rad,int faces) throws ColinearPointsException {
+	public static CSG outerFillet(CSG base, double rad, int faces) throws ColinearPointsException {
 		return fillet(base, rad, true, faces);
 	}
-	public static CSG innerFillet(CSG base, double rad,int faces) throws ColinearPointsException {
+	public static CSG innerFillet(CSG base, double rad, int faces) throws ColinearPointsException {
 		return fillet(base, rad, false, faces);
 	}
 	public static CSG fillet(CSG base, double rad, boolean outer, int numFaces) throws ColinearPointsException {
@@ -257,13 +257,13 @@ public class Fillet extends Primitive {
 
 		// Concave quarter-circle arc
 		for (int i = 1; i < getNumArcPoints(); i++) {
-			double angle = Math.toRadians(270.0 - 90.0 *( (double)i) / getNumArcPoints());
+			double angle = Math.toRadians(270.0 - 90.0 * ((double) i) / getNumArcPoints());
 			double x = w + w * Math.cos(angle);
 			double z = w + w * Math.sin(angle);
-			if(x<filletOfset)
-				x=filletOfset;
-			if(z<filletOfset)
-				z=filletOfset;
+			if (x < filletOfset)
+				x = filletOfset;
+			if (z < filletOfset)
+				z = filletOfset;
 			profilePoints.add(0, new Vector3d(x, 0, z));
 		}
 		profilePoints.add(new Vector3d(0, 0, w));
