@@ -230,6 +230,7 @@ public class CSG implements IuserAPI, Serializable {
 
 	private double[] vertices;
 	private long[] triangles;
+	private ArrayList<Plane> planes;
 
 	/**
 	 * Instantiates a new csg.
@@ -295,12 +296,31 @@ public class CSG implements IuserAPI, Serializable {
 		return points;
 	}
 
+	public Plane getPlaneByIndex(int fi) {
+		if (planes == null) {
+			planes = new ArrayList<Plane>();
+			for (int faceIndex = 0; faceIndex < getNumberOfTriangles(); faceIndex++) {
+				List<Vertex> points = new ArrayList<Vertex>();
+				points.add(new Vertex(getVertexByIndex(getTriangles()[faceIndex * 3])));
+				points.add(new Vertex(getVertexByIndex(getTriangles()[faceIndex * 3 + 1])));
+				points.add(new Vertex(getVertexByIndex(getTriangles()[faceIndex * 3 + 2])));
+				try {
+					planes.add(new Plane(points, points.get(0).pos));
+				} catch (ColinearPointsException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		return planes.get(fi);
+	}
+
 	public Polygon getPolygonByIndex(int faceIndex) throws ColinearPointsException {
 		List<Vertex> points = new ArrayList<Vertex>();
 		points.add(new Vertex(getVertexByIndex(getTriangles()[faceIndex * 3])));
 		points.add(new Vertex(getVertexByIndex(getTriangles()[faceIndex * 3 + 1])));
 		points.add(new Vertex(getVertexByIndex(getTriangles()[faceIndex * 3 + 2])));
-		Polygon polygon = new Polygon(points);
+		Polygon polygon = new Polygon(points,new PropertyStorage(), true, getPlaneByIndex(faceIndex));
 		polygon.setColor(getColor());
 		return polygon;
 	}
@@ -312,7 +332,7 @@ public class CSG implements IuserAPI, Serializable {
 		Map<String, Integer> vertexIndex = new HashMap<>();
 		List<Vector3d> vertexList = new ArrayList<>();
 		List<Long> triList = new ArrayList<>();
-
+		planes=new ArrayList<Plane>();
 		for (Polygon incoming : polygons) {
 			for (Polygon poly : PolygonUtil.triangulatePolygon(incoming)) {
 				List<Vertex> pverts = poly.getVertices();
@@ -329,7 +349,7 @@ public class CSG implements IuserAPI, Serializable {
 				triList.add((long) i0);
 				triList.add((long) i1);
 				triList.add((long) i2);
-
+				planes.add(poly.getPlane());
 			}
 		}
 
@@ -1065,20 +1085,20 @@ public class CSG implements IuserAPI, Serializable {
 		// triangulate();
 		// csg.triangulate();
 		switch (getOptType()) {
-			case Manifold3d :
-				try {
-					return getManifold().union(this, csg);
-				} catch (Throwable e) {
-					System.err.println("ERROR failing over to Java Union " + e.getMessage());
-					e.printStackTrace();
-				}
-			case CSG_BOUND :
-				return _unionCSGBoundsOpt(csg).historySync(this).historySync(csg);
-			// case POLYGON_BOUND:
-			// return _unionPolygonBoundsOpt(csg).historySync(this).historySync(csg);
-			default :
-				// return _unionIntersectOpt(csg);
-				return _unionNoOpt(csg).historySync(this).historySync(csg);
+		case Manifold3d:
+			try {
+				return getManifold().union(this, csg);
+			} catch (Throwable e) {
+				System.err.println("ERROR failing over to Java Union " + e.getMessage());
+				e.printStackTrace();
+			}
+		case CSG_BOUND:
+			return _unionCSGBoundsOpt(csg).historySync(this).historySync(csg);
+		// case POLYGON_BOUND:
+		// return _unionPolygonBoundsOpt(csg).historySync(this).historySync(csg);
+		default:
+			// return _unionIntersectOpt(csg);
+			return _unionNoOpt(csg).historySync(this).historySync(csg);
 
 		}
 	}
@@ -1601,17 +1621,17 @@ public class CSG implements IuserAPI, Serializable {
 			// polygons
 			if (this.getNumberOfTriangles() > 0 && csg.getNumberOfTriangles() > 0) {
 				switch (getOptType()) {
-					case Manifold3d :
-						try {
-							return getManifold().difference(this, csg);
-						} catch (Throwable e) {
-							System.err.println("ERROR failing over to Java Difference " + e.getMessage());
-							e.printStackTrace();
-						}
-					case CSG_BOUND :
-						return _differenceCSGBoundsOpt(csg).historySync(this).historySync(csg);
-					default :
-						return _differenceNoOpt(csg).historySync(this).historySync(csg);
+				case Manifold3d:
+					try {
+						return getManifold().difference(this, csg);
+					} catch (Throwable e) {
+						System.err.println("ERROR failing over to Java Difference " + e.getMessage());
+						e.printStackTrace();
+					}
+				case CSG_BOUND:
+					return _differenceCSGBoundsOpt(csg).historySync(this).historySync(csg);
+				default:
+					return _differenceNoOpt(csg).historySync(this).historySync(csg);
 
 				}
 			} else
@@ -2031,7 +2051,7 @@ public class CSG implements IuserAPI, Serializable {
 		int[] added = new int[numberOfPolygons];
 		int testPointChunk = 1000;
 		int snapChunk = 1000;
-		int[] tp = new int[]{0, snapChunk};
+		int[] tp = new int[] { 0, snapChunk };
 
 		// Aparapi-compatible kernel with flattened data
 		Kernel snapPointsToDistance = new Kernel() {
@@ -2378,7 +2398,7 @@ public class CSG implements IuserAPI, Serializable {
 			progressMoniter.progressUpdate(0, 100, "CPU mode " + valueOf, null);
 			kernel.setExecutionMode(Kernel.EXECUTION_MODE.JTP); // Java Thread Pool
 		}
-		int[] iteration = new int[]{0};
+		int[] iteration = new int[] { 0 };
 
 		long begin = System.currentTimeMillis();
 		boolean print = false;
@@ -3285,7 +3305,7 @@ public class CSG implements IuserAPI, Serializable {
 	public CSG getBoundingBox() {
 		return new Cube((-this.getMinX() + this.getMaxX()), (-this.getMinY() + this.getMaxY()),
 				(-this.getMinZ() + this.getMaxZ())).toCSG().toXMax().movex(this.getMaxX()).toYMax()
-				.movey(this.getMaxY()).toZMax().movez(this.getMaxZ());
+						.movey(this.getMaxY()).toZMax().movez(this.getMaxZ());
 	}
 
 	public String getName() {
@@ -4056,8 +4076,8 @@ public class CSG implements IuserAPI, Serializable {
 	public static List<CSG> tessellate(CSG incoming, int xSteps, int ySteps, int zSteps, double oddRowXOffset,
 			double oddRowYOffset, double oddRowZOffset, double oddColXOffset, double oddColYOffset,
 			double oddColZOffset, double oddLayXOffset, double oddLayYOffset, double oddLayZOffset) {
-		double[][] offsets = {{oddRowXOffset, oddRowYOffset, oddRowZOffset},
-				{oddColXOffset, oddColYOffset, oddColZOffset}, {oddLayXOffset, oddLayYOffset, oddLayZOffset}};
+		double[][] offsets = { { oddRowXOffset, oddRowYOffset, oddRowZOffset },
+				{ oddColXOffset, oddColYOffset, oddColZOffset }, { oddLayXOffset, oddLayYOffset, oddLayZOffset } };
 		return tessellate(incoming, xSteps, ySteps, zSteps, incoming.getTotalX(), incoming.getTotalY(),
 				incoming.getTotalZ(), offsets);
 	}
@@ -4307,6 +4327,7 @@ public class CSG implements IuserAPI, Serializable {
 
 	public void setTriangles(long[] triangles) {
 		this.triangles = triangles;
+		planes = null;
 	}
 
 	public void toStl(Path path) {
@@ -4549,12 +4570,10 @@ public class CSG implements IuserAPI, Serializable {
 			model.append("    <basematerials id=\"1\">\n");
 			for (CSG csg : csgs) {
 				Color c = csg.getColor();
-				String hex = c == null
-						? "#FFFFFF"
+				String hex = c == null ? "#FFFFFF"
 						: String.format("#%02X%02X%02X", (int) Math.round(c.getRed() * 255),
 								(int) Math.round(c.getGreen() * 255), (int) Math.round(c.getBlue() * 255));
-				String matName = (csg.getName() == null || csg.getName().isEmpty())
-						? "material"
+				String matName = (csg.getName() == null || csg.getName().isEmpty()) ? "material"
 						: csg.getName().replace('"', '\'');
 				model.append("      <base name=\"").append(matName).append("\" displaycolor=\"").append(hex)
 						.append("\"/>\n");
@@ -4570,8 +4589,7 @@ public class CSG implements IuserAPI, Serializable {
 				long[] tris = csg.getTriangles();
 				int vCount = (int) csg.getVertCount();
 
-				String objName = (csg.getName() == null || csg.getName().isEmpty())
-						? "CSG_" + (objIdx + 1)
+				String objName = (csg.getName() == null || csg.getName().isEmpty()) ? "CSG_" + (objIdx + 1)
 						: csg.getName().replace('"', '\'');
 
 				// id starts at 2; pindex is 0-based index into the basematerials group
