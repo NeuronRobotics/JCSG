@@ -515,7 +515,7 @@ public class PolygonUtil {
 	 */
 	public static Transform calculateNormalTransform(Vector3d u) throws ColinearPointsException {
 		// Normalize inputs
-		//Vector3d u = concave.getPlane().getNormal();
+		// Vector3d u = concave.getPlane().getNormal();
 		Vector3d pureXVect = new Vector3d(1, 0, 0);
 		Vector3d pureYVect = new Vector3d(0, 1, 0);
 		Vector3d pureZVect = new Vector3d(0, 0, 1);
@@ -553,7 +553,6 @@ public class PolygonUtil {
 
 		Transform rotY = new Transform().rotY(aboutY);
 		transform = rotY.copy().apply(transform1);
-
 
 		Matrix4d rotation = transform.getInternalMatrix();
 		Quat4d q1 = transform.getQuat();

@@ -1181,16 +1181,16 @@ public class CSG implements IuserAPI, Serializable {
 				throw new RuntimeException(e);
 			}
 		}
-		if(defaultOptType==OptType.Manifold3d) {
+		if (defaultOptType == OptType.Manifold3d) {
 			incoming.add(this);
 			try {
-				return manifold.unionAll(incoming,progressMoniter);
+				return manifold.unionAll(incoming, progressMoniter);
 			} catch (Throwable e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
-		
+
 		CSG solid = this.isHole() ? null : this;
 		CSG hole = this.isHole() ? this : null;
 		ArrayList<CSG> csgs = new ArrayList<CSG>();
@@ -1324,10 +1324,10 @@ public class CSG implements IuserAPI, Serializable {
 				}
 			}
 		}
-		if(defaultOptType==OptType.Manifold3d) {
+		if (defaultOptType == OptType.Manifold3d) {
 
 			try {
-				return manifold.unionAll(csgs,progressMoniter);
+				return manifold.unionAll(csgs, progressMoniter);
 			} catch (Throwable e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

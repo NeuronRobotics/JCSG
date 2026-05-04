@@ -403,18 +403,18 @@ public class CSGManifold3d {
 
 	public CSG unionAll(List<CSG> csgs, ICSGProgress progressMoniter) throws Throwable {
 		MemorySegment[] shapes = new MemorySegment[csgs.size()];
-		
-		for(int i=0;i<csgs.size();i++) {
-			shapes[i]=toManifold(csgs.get(i));
-			if(progressMoniter!=null)
-				progressMoniter.progressUpdate(i, csgs.size()+1, "Union All Load", null);
+
+		for (int i = 0; i < csgs.size(); i++) {
+			shapes[i] = toManifold(csgs.get(i));
+			if (progressMoniter != null)
+				progressMoniter.progressUpdate(i, csgs.size() + 1, "Union All Load", null);
 		}
-		progressMoniter.progressUpdate( csgs.size(), csgs.size()+1, "Run Union All", null);
+		progressMoniter.progressUpdate(csgs.size(), csgs.size() + 1, "Run Union All", null);
 		MemorySegment all = manifold.batchUnion(shapes);
-		for(int i=0;i<csgs.size();i++) {
+		for (int i = 0; i < csgs.size(); i++) {
 			manifold.delete(shapes[i]);
 		}
-		progressMoniter.progressUpdate( csgs.size()+1, csgs.size()+1, "Finishing Union All", null);
+		progressMoniter.progressUpdate(csgs.size() + 1, csgs.size() + 1, "Finishing Union All", null);
 		CSG back = fromManifold(all, csgs.get(0).getColor());
 		manifold.delete(all);
 		return back;
