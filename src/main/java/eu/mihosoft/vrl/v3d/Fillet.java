@@ -47,20 +47,24 @@ public class Fillet extends Primitive {
 		List<Vector3d> pts = new ArrayList<>();
 
 		// Corner at origin
-		pts.add(new Vector3d(0, -filletOfset, 0));
+		pts.add(new Vector3d(0, 0, 0));
 
 		// Straight edge along +X
-		pts.add(new Vector3d(rad, -filletOfset, 0));
+		pts.add(new Vector3d(rad, 0, 0));
 
 		// Concave quarter-circle arc: center=(rad,rad), radius=rad
 		// sweeps from 270° → 180° (i.e. (rad,0) → (0,rad))
-		for (int i = 0; i <= numArcPoints; i++) {
-			double a = Math.toRadians(270.0 - 90.0 * i / numArcPoints);
+		for (int i = 1; i < numArcPoints; i++) {
+			double a = Math.toRadians(270.0 - 90.0 * ((double)i) / numArcPoints);
 			double x = rad + rad * Math.cos(a);
 			double y = rad + rad * Math.sin(a);
+			if(x<filletOfset)
+				x=filletOfset;
+			if(y<filletOfset)
+				y=filletOfset;
 			pts.add(new Vector3d(x, y, 0));
 		}
-
+		pts.add(new Vector3d(0, rad, 0));
 		// Straight edge back down to origin closes the polygon
 		// (fromPoints auto-closes, so no need to re-add (0,0,0))
 
@@ -70,7 +74,7 @@ public class Fillet extends Primitive {
 		// radius=0 → profile is already positioned relative to the axis
 		// z=0 → no axial offset
 		// steps=32 → match arc resolution for a smooth result
-		return Extrude.sweep(profile, angle / numArcPoints, 0, 0, (int) numArcPoints).roty(90);
+		return Extrude.sweep(profile, (angle+1) / numArcPoints, 0, 0, (int) numArcPoints).roty(90).rotz(-0.5);
 	}
 	public static CSG outerChamfer(CSG base, double rad) throws ColinearPointsException {
 		return fillet(base, rad, true, 1);
@@ -79,10 +83,16 @@ public class Fillet extends Primitive {
 		return fillet(base, rad, false, 1);
 	}
 	public static CSG outerFillet(CSG base, double rad) throws ColinearPointsException {
-		return fillet(base, rad, true, 8);
+		return fillet(base, rad, true, 16);
 	}
 	public static CSG innerFillet(CSG base, double rad) throws ColinearPointsException {
-		return fillet(base, rad, false, 8);
+		return fillet(base, rad, false, 16);
+	}
+	public static CSG outerFillet(CSG base, double rad,int faces) throws ColinearPointsException {
+		return fillet(base, rad, true, faces);
+	}
+	public static CSG innerFillet(CSG base, double rad,int faces) throws ColinearPointsException {
+		return fillet(base, rad, false, faces);
 	}
 	public static CSG fillet(CSG base, double rad, boolean outer, int numFaces) throws ColinearPointsException {
 		List<Polygon> polys = Slice.slice(base);
@@ -188,7 +198,7 @@ public class Fillet extends Primitive {
 				// Holes face inward so flip 180°
 				// -------------------------------------------------------
 
-				CSG edgeFillet = new Fillet(rad, len).toCSG();
+				CSG edgeFillet = new Fillet(rad, len).setNumArcPoints(numArcPoints).toCSG();
 				if (isHole)
 					edgeFillet = edgeFillet.toYMax();
 				else
@@ -242,24 +252,28 @@ public class Fillet extends Primitive {
 		List<Vector3d> profilePoints = new ArrayList<>();
 
 		// Inner corner
-		profilePoints.add(new Vector3d(-filletOfset, 0, 0));
-		// profilePoints.add(new Vector3d(0, 0, 0));
+		profilePoints.add(new Vector3d(w, 0, 0));
+		profilePoints.add(new Vector3d(0, 0, 0));
 
 		// Concave quarter-circle arc
-		for (int i = 0; i <= getNumArcPoints(); i++) {
-			double angle = Math.toRadians(270.0 - 90.0 * i / getNumArcPoints());
+		for (int i = 1; i < getNumArcPoints(); i++) {
+			double angle = Math.toRadians(270.0 - 90.0 *( (double)i) / getNumArcPoints());
 			double x = w + w * Math.cos(angle);
 			double z = w + w * Math.sin(angle);
+			if(x<filletOfset)
+				x=filletOfset;
+			if(z<filletOfset)
+				z=filletOfset;
 			profilePoints.add(0, new Vector3d(x, 0, z));
 		}
-		profilePoints.add(new Vector3d(-filletOfset, 0, w));
+		profilePoints.add(new Vector3d(0, 0, w));
 		// Last arc point lands exactly at (0, 0, w); polygon closes to (0,0,0)
 		try {
 			Polygon profile = Polygon.fromPoints(profilePoints);
 
 			// --- 2. Extrude the profile along +Y for the fillet's length ---
 			Vector3d extrudeDir = new Vector3d(0, h, 0);
-			return Extrude.extrude(extrudeDir, profile);
+			return Extrude.extrude(extrudeDir, profile).toZMin();
 		} catch (ColinearPointsException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -271,7 +285,8 @@ public class Fillet extends Primitive {
 		return numArcPoints;
 	}
 
-	public void setNumArcPoints(double numArcPoints) {
+	public Fillet setNumArcPoints(double numArcPoints) {
 		this.numArcPoints = numArcPoints;
+		return this;
 	}
 }
