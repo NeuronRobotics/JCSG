@@ -10,6 +10,7 @@ import com.cadoodlecad.manifold.ManifoldBindings.ManifoldError;
 import com.cadoodlecad.manifold.ManifoldBindings.MeshData64;
 
 import eu.mihosoft.vrl.v3d.CSG;
+import eu.mihosoft.vrl.v3d.ColinearPointsException;
 import eu.mihosoft.vrl.v3d.Cube;
 import eu.mihosoft.vrl.v3d.ICSGProgress;
 import eu.mihosoft.vrl.v3d.Plane;
@@ -141,14 +142,18 @@ public class CSGManifold3d {
 					// Z=0 because this is a cross-section at height 0.
 					points.add(Vector3d.xyz(xy[0], xy[1], 0.0));
 				}
-
-				Polygon fromPoints = Polygon.fromPoints(points);
-				result.add(fromPoints);
+				try {
+					Polygon fromPoints = Polygon.fromPoints(points);
+					result.add(fromPoints);
+				} catch (ColinearPointsException ex) {
+					System.err.println("Polygon returned failed normal");
+				}
 			}
 
 			return result;
 
 		} catch (Throwable e) {
+			e.printStackTrace();
 			if (csgm != null)
 				manifold.delete(csgm);
 			throw new RuntimeException("Failed to slice CSG at Z=0", e);

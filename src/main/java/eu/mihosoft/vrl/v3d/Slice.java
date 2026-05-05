@@ -21,7 +21,7 @@ import javafx.scene.image.PixelReader;
 
 public class Slice {
 	private static int maxRes = 3000;
-	private static class DefaultSliceImp implements ISlice {
+	public static class DefaultSliceImp implements ISlice {
 		double sizeinPixelSpace = 1500;
 		HashMap<WritableImage, PixelReader> readers = new HashMap<>();
 		// pixelData=new HashMap<>();
@@ -458,16 +458,18 @@ public class Slice {
 	public static List<Polygon> slice(CSG incoming, Transform slicePlane, double normalInsetDistance)
 			throws ColinearPointsException {
 		try {
-			if (DefaultSliceImp.class.isInstance(sliceEngine)) {
-				// avoid concurrecy issues
-				try {
-					return sanatize(new DefaultSliceImp().slice(incoming, slicePlane, normalInsetDistance));
-				} catch (IllegalStateException e) {
-					JavaFXInitializer.go();
-
-					return sanatize(new DefaultSliceImp().slice(incoming, slicePlane, normalInsetDistance));
-				}
-			}
+			// if (DefaultSliceImp.class.isInstance(sliceEngine)) {
+			// // avoid concurrecy issues
+			// try {
+			// return sanatize(new DefaultSliceImp().slice(incoming, slicePlane,
+			// normalInsetDistance));
+			// } catch (IllegalStateException e) {
+			// JavaFXInitializer.go();
+			//
+			// return sanatize(new DefaultSliceImp().slice(incoming, slicePlane,
+			// normalInsetDistance));
+			// }
+			// }
 			return sanatize(getSliceEngine().slice(incoming, slicePlane, normalInsetDistance));
 		} catch (Throwable e) {
 			e.printStackTrace();

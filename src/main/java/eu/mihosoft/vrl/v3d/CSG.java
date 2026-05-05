@@ -49,6 +49,8 @@ import java.util.List;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
+import eu.mihosoft.vrl.v3d.Slice.DefaultSliceImp;
 import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
 import eu.mihosoft.vrl.v3d.ext.quickhull3d.HullUtil;
 import eu.mihosoft.vrl.v3d.parametrics.CSGDatabaseInstance;
@@ -2816,7 +2818,7 @@ public class CSG implements IuserAPI, Serializable {
 							e.printStackTrace();
 							Slice.setSliceEngine(null);
 							Slice.getSliceEngine();// set the default when the engine is null
-							return Slice.getSliceEngine().slice(incoming, slicePlane, normalInsetDistance);
+							return new DefaultSliceImp().slice(incoming, slicePlane, normalInsetDistance);
 						}
 					}
 				});

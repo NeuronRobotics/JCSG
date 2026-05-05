@@ -76,39 +76,35 @@ public class Fillet extends Primitive {
 		// steps=32 → match arc resolution for a smooth result
 		return Extrude.sweep(profile, (angle + 1) / numArcPoints, 0, 0, (int) numArcPoints).roty(90).rotz(-0.5);
 	}
-	public static CSG outerChamfer(CSG base, double rad) throws ColinearPointsException {
+	public static ArrayList<CSG> outerChamfer(CSG base, double rad) throws ColinearPointsException {
 		return fillet(base, rad, true, 1);
 	}
-	public static CSG innerChamfer(CSG base, double rad) throws ColinearPointsException {
+	public static ArrayList<CSG> innerChamfer(CSG base, double rad) throws ColinearPointsException {
 		return fillet(base, rad, false, 1);
 	}
-	public static CSG outerFillet(CSG base, double rad) throws ColinearPointsException {
+	public static ArrayList<CSG> outerFillet(CSG base, double rad) throws ColinearPointsException {
 		return fillet(base, rad, true, 16);
 	}
-	public static CSG innerFillet(CSG base, double rad) throws ColinearPointsException {
+	public static ArrayList<CSG> innerFillet(CSG base, double rad) throws ColinearPointsException {
 		return fillet(base, rad, false, 16);
 	}
-	public static CSG outerFillet(CSG base, double rad, int faces) throws ColinearPointsException {
+	public static ArrayList<CSG> outerFillet(CSG base, double rad, int faces) throws ColinearPointsException {
 		return fillet(base, rad, true, faces);
 	}
-	public static CSG innerFillet(CSG base, double rad, int faces) throws ColinearPointsException {
+	public static ArrayList<CSG> innerFillet(CSG base, double rad, int faces) throws ColinearPointsException {
 		return fillet(base, rad, false, faces);
 	}
-	public static CSG fillet(CSG base, double rad, boolean outer, int numFaces) throws ColinearPointsException {
+	public static ArrayList<CSG> fillet(CSG base, double rad, boolean outer, int numFaces)
+			throws ColinearPointsException {
 		List<Polygon> polys = Slice.slice(base);
-		CSG fillet = fillet(polys, rad, outer, numFaces);
-		if (outer)
-			fillet = fillet.difference(base);
-		// else
-		// fillet = fillet.intersect(base);
-		return fillet;
+		return fillet(polys, rad, outer, numFaces);
+
 	}
 
-	public static CSG fillet(List<Polygon> polys, double rad, boolean outer, double numArcPoints) {
-
-		ArrayList<CSG> parts = new ArrayList<>();
-
+	public static ArrayList<CSG> fillet(List<Polygon> polys, double rad, boolean outer, double numArcPoints) {
+		ArrayList<CSG> back = new ArrayList<CSG>();
 		for (Polygon p : polys) {
+			ArrayList<CSG> parts = new ArrayList<>();
 			boolean isHole = false;
 			try {
 				isHole = !Extrude.isCCW(p);
@@ -117,7 +113,7 @@ public class Fillet extends Primitive {
 			}
 			// if (isHole)
 			// continue;
-			System.err.println("Polygon filler " + (isHole ? "hole" : "outside"));
+			// System.err.println("Polygon filler " + (isHole ? "hole" : "outside"));
 
 			int size = p.getVertices().size();
 			for (int i = 0; i < size; i++) {
@@ -233,8 +229,9 @@ public class Fillet extends Primitive {
 					}
 				}
 			}
+			back.add(CSG.unionAll(parts));
 		}
-		return CSG.unionAll(parts);
+		return back;
 	}
 
 	@Override
