@@ -9,7 +9,7 @@ public class Fillet extends Primitive {
 
 	double w, h;
 	private double numArcPoints = 12;
-	private static double filletOfset = 0.001;
+	private static double filletOfset = 0.01;
 	/** The properties. */
 	private final PropertyStorage properties = new PropertyStorage();
 
@@ -47,21 +47,17 @@ public class Fillet extends Primitive {
 		List<Vector3d> pts = new ArrayList<>();
 
 		// Corner at origin
-		pts.add(new Vector3d(0, 0, 0));
+		pts.add(new Vector3d(0, -0, 0));
 
 		// Straight edge along +X
-		pts.add(new Vector3d(rad, 0, 0));
+		pts.add(new Vector3d(rad, -0, 0));
 
 		// Concave quarter-circle arc: center=(rad,rad), radius=rad
 		// sweeps from 270° → 180° (i.e. (rad,0) → (0,rad))
 		for (int i = 1; i < numArcPoints; i++) {
 			double a = Math.toRadians(270.0 - 90.0 * ((double) i) / numArcPoints);
-			double x = rad + rad * Math.cos(a);
-			double y = rad + rad * Math.sin(a);
-			if (x < filletOfset)
-				x = filletOfset;
-			if (y < filletOfset)
-				y = filletOfset;
+			double x = rad + rad * Math.cos(a)+filletOfset;
+			double y = rad + rad * Math.sin(a)+filletOfset;
 			pts.add(new Vector3d(x, y, 0));
 		}
 		pts.add(new Vector3d(0, rad, 0));
@@ -71,10 +67,12 @@ public class Fillet extends Primitive {
 		Polygon profile = Polygon.fromPoints(pts);
 
 		// --- Sweep the profile around the Z axis ---
-		// radius=0 → profile is already positioned relative to the axis
-		// z=0 → no axial offset
-		// steps=32 → match arc resolution for a smooth result
-		return Extrude.sweep(profile, (angle + 1) / numArcPoints, 0, 0, (int) numArcPoints).roty(90).rotz(-0.5);
+
+		return Extrude.sweep(profile, (angle + 1) / numArcPoints, 0, filletOfset, (int) numArcPoints)
+				.roty(90)
+				.rotz(-0.5)
+				.union(new Cylinder(filletOfset*1.1, rad).toCSG())
+				.movez(-filletOfset);
 	}
 	public static ArrayList<CSG> outerChamfer(CSG base, double rad) throws ColinearPointsException {
 		return fillet(base, rad, true, 1);
@@ -249,28 +247,29 @@ public class Fillet extends Primitive {
 		List<Vector3d> profilePoints = new ArrayList<>();
 
 		// Inner corner
-		profilePoints.add(new Vector3d(w, 0, 0));
-		profilePoints.add(new Vector3d(0, 0, 0));
+		profilePoints.add(new Vector3d(w, 0, -filletOfset));
+		profilePoints.add(new Vector3d(-filletOfset, 0, -filletOfset));
 
 		// Concave quarter-circle arc
 		for (int i = 1; i < getNumArcPoints(); i++) {
 			double angle = Math.toRadians(270.0 - 90.0 * ((double) i) / getNumArcPoints());
-			double x = w + w * Math.cos(angle);
-			double z = w + w * Math.sin(angle);
-			if (x < filletOfset)
-				x = filletOfset;
-			if (z < filletOfset)
-				z = filletOfset;
+			double x = w + w * Math.cos(angle)+filletOfset;
+			double z = w + w * Math.sin(angle)+filletOfset;
+
 			profilePoints.add(0, new Vector3d(x, 0, z));
 		}
-		profilePoints.add(new Vector3d(0, 0, w));
+		profilePoints.add(new Vector3d(-filletOfset, 0, w));
 		// Last arc point lands exactly at (0, 0, w); polygon closes to (0,0,0)
 		try {
 			Polygon profile = Polygon.fromPoints(profilePoints);
 
 			// --- 2. Extrude the profile along +Y for the fillet's length ---
-			Vector3d extrudeDir = new Vector3d(0, h, 0);
-			return Extrude.extrude(extrudeDir, profile).toZMin();
+			Vector3d extrudeDir = new Vector3d(0, h+(filletOfset*2), 0);
+			return Extrude.extrude(extrudeDir, profile)
+					.toZMin()
+					.movey(-filletOfset)
+					//.movex(-filletOfset)
+					.movez(-filletOfset);
 		} catch (ColinearPointsException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
