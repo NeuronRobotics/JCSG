@@ -56,8 +56,8 @@ public class Fillet extends Primitive {
 		// sweeps from 270° → 180° (i.e. (rad,0) → (0,rad))
 		for (int i = 1; i < numArcPoints; i++) {
 			double a = Math.toRadians(270.0 - 90.0 * ((double) i) / numArcPoints);
-			double x = rad + rad * Math.cos(a)+filletOfset;
-			double y = rad + rad * Math.sin(a)+filletOfset;
+			double x = rad + rad * Math.cos(a) + filletOfset;
+			double y = rad + rad * Math.sin(a) + filletOfset;
 			pts.add(new Vector3d(x, y, 0));
 		}
 		pts.add(new Vector3d(0, rad, 0));
@@ -68,11 +68,8 @@ public class Fillet extends Primitive {
 
 		// --- Sweep the profile around the Z axis ---
 
-		return Extrude.sweep(profile, (angle + 1) / numArcPoints, 0, filletOfset, (int) numArcPoints)
-				.roty(90)
-				.rotz(-0.5)
-				.union(new Cylinder(filletOfset*1.1, rad).toCSG())
-				.movez(-filletOfset);
+		return Extrude.sweep(profile, (angle + 1) / numArcPoints, 0, filletOfset, (int) numArcPoints).roty(90)
+				.rotz(-0.5).union(new Cylinder(filletOfset * 1.1, rad).toCSG()).movez(-filletOfset);
 	}
 	public static ArrayList<CSG> outerChamfer(CSG base, double rad) throws ColinearPointsException {
 		return fillet(base, rad, true, 1);
@@ -253,8 +250,8 @@ public class Fillet extends Primitive {
 		// Concave quarter-circle arc
 		for (int i = 1; i < getNumArcPoints(); i++) {
 			double angle = Math.toRadians(270.0 - 90.0 * ((double) i) / getNumArcPoints());
-			double x = w + w * Math.cos(angle)+filletOfset;
-			double z = w + w * Math.sin(angle)+filletOfset;
+			double x = w + w * Math.cos(angle) + filletOfset;
+			double z = w + w * Math.sin(angle) + filletOfset;
 
 			profilePoints.add(0, new Vector3d(x, 0, z));
 		}
@@ -264,11 +261,9 @@ public class Fillet extends Primitive {
 			Polygon profile = Polygon.fromPoints(profilePoints);
 
 			// --- 2. Extrude the profile along +Y for the fillet's length ---
-			Vector3d extrudeDir = new Vector3d(0, h+(filletOfset*2), 0);
-			return Extrude.extrude(extrudeDir, profile)
-					.toZMin()
-					.movey(-filletOfset)
-					//.movex(-filletOfset)
+			Vector3d extrudeDir = new Vector3d(0, h + (filletOfset * 2), 0);
+			return Extrude.extrude(extrudeDir, profile).toZMin().movey(-filletOfset)
+					// .movex(-filletOfset)
 					.movez(-filletOfset);
 		} catch (ColinearPointsException e) {
 			// TODO Auto-generated catch block
