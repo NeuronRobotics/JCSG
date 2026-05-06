@@ -9,7 +9,7 @@ public class Fillet extends Primitive {
 
 	double w, h;
 	private double numArcPoints = 12;
-	private static double filletOfset = 0.01;
+	private static double filletOfset = 0.001;
 	/** The properties. */
 	private final PropertyStorage properties = new PropertyStorage();
 
