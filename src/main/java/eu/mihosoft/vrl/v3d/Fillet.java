@@ -9,7 +9,7 @@ public class Fillet extends Primitive {
 
 	double w, h;
 	private double numArcPoints = 12;
-	private static double filletOfset = 0.001;
+	private static double filletOfset = 0.1;
 	/** The properties. */
 	private final PropertyStorage properties = new PropertyStorage();
 
@@ -188,16 +188,17 @@ public class Fillet extends Primitive {
 				// Edge fillet: always placed, runs along seg1 from position1
 				// Holes face inward so flip 180°
 				// -------------------------------------------------------
-
-				CSG edgeFillet = new Fillet(rad, len).setNumArcPoints(numArcPoints).toCSG();
-				if (isHole)
-					edgeFillet = edgeFillet.toYMax();
-				else
-					edgeFillet = edgeFillet.toYMin().mirrorx();
-				if (!outer)
-					edgeFillet = edgeFillet.mirrorx();
-				edgeFillet = edgeFillet.rotz(edgeAngleAbs).move(position1);
-				parts.add(edgeFillet);
+				if (len > filletOfset * 2) {
+					CSG edgeFillet = new Fillet(rad, len).setNumArcPoints(numArcPoints).toCSG();
+					if (isHole)
+						edgeFillet = edgeFillet.toYMax();
+					else
+						edgeFillet = edgeFillet.toYMin().mirrorx();
+					if (!outer)
+						edgeFillet = edgeFillet.mirrorx();
+					edgeFillet = edgeFillet.rotz(edgeAngleAbs).move(position1);
+					parts.add(edgeFillet);
+				}
 				double cornerAngleAbs = baseAngle;
 				if (!isHole && outer) {
 					cornerAngleAbs = cornerAngleAbs - filletAngle - 90;
@@ -244,9 +245,10 @@ public class Fillet extends Primitive {
 		List<Vector3d> profilePoints = new ArrayList<>();
 
 		// Inner corner
+		profilePoints.add(new Vector3d(w, 0, 0));
 		profilePoints.add(new Vector3d(w, 0, -filletOfset));
 		profilePoints.add(new Vector3d(-filletOfset, 0, -filletOfset));
-
+		profilePoints.add(new Vector3d(-filletOfset, 0, 0));
 		// Concave quarter-circle arc
 		for (int i = 1; i < getNumArcPoints(); i++) {
 			double angle = Math.toRadians(270.0 - 90.0 * ((double) i) / getNumArcPoints());
@@ -262,8 +264,7 @@ public class Fillet extends Primitive {
 
 			// --- 2. Extrude the profile along +Y for the fillet's length ---
 			Vector3d extrudeDir = new Vector3d(0, h + (filletOfset * 2), 0);
-			return Extrude.extrude(extrudeDir, profile).toZMin().movey(-filletOfset)
-					// .movex(-filletOfset)
+			return Extrude.extrude(extrudeDir, profile).toZMin().movey(-filletOfset).movex(-filletOfset)
 					.movez(-filletOfset);
 		} catch (ColinearPointsException e) {
 			// TODO Auto-generated catch block
