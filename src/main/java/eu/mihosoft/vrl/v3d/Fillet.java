@@ -219,7 +219,8 @@ public class Fillet extends Primitive {
 					// run away from the corner, so no 90° consumption occurs)
 
 					try {
-						CSG cornerPiece = corner(rad, filletAngle, (double) numArcPoints).rotz(cornerAngleAbs).move(position1);
+						CSG cornerPiece = corner(rad, filletAngle, (double) numArcPoints).rotz(cornerAngleAbs)
+								.move(position1);
 						parts.add(cornerPiece);
 					} catch (ColinearPointsException e) {
 						e.printStackTrace();
