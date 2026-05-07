@@ -9,7 +9,7 @@ public class Fillet extends Primitive {
 
 	double w, h;
 	private double numArcPoints = 12;
-	private static double filletOfset = 0.1;
+	private static double filletOfset = 0.001;
 	/** The properties. */
 	private final PropertyStorage properties = new PropertyStorage();
 
@@ -219,7 +219,8 @@ public class Fillet extends Primitive {
 					// run away from the corner, so no 90° consumption occurs)
 
 					try {
-						parts.add(corner(rad, filletAngle, (double) numArcPoints).rotz(cornerAngleAbs).move(position1));
+						CSG cornerPiece = corner(rad, filletAngle, (double) numArcPoints).rotz(cornerAngleAbs).move(position1);
+						parts.add(cornerPiece);
 					} catch (ColinearPointsException e) {
 						e.printStackTrace();
 					}
