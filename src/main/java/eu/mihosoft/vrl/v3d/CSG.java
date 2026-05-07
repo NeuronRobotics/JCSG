@@ -1184,9 +1184,10 @@ public class CSG implements IuserAPI, Serializable {
 			}
 		}
 		if (defaultOptType == OptType.Manifold3d) {
-			incoming.add(this);
+			ArrayList<CSG> values = new ArrayList<CSG>(incoming);
+			values.add(this);
 			try {
-				return manifold.unionAll(incoming, progressMoniter);
+				return manifold.unionAll(values, progressMoniter);
 			} catch (Throwable e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -1290,7 +1291,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * @return union of this csg and the specified csgs
 	 */
 	public CSG union(CSG... csgs) {
-		return union(Arrays.asList(csgs));
+		return union(new ArrayList<CSG>(Arrays.asList(csgs)));
 	}
 
 	/**
