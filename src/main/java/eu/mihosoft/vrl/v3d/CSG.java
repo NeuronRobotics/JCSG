@@ -3782,7 +3782,11 @@ public class CSG implements IuserAPI, Serializable {
 		getStorage().set("UserDefinedName", res);
 		return this;
 	}
-
+	public CSG setUserDefinedNameIfMissing(String res) {
+		if(!isUserDefinedName() )
+			getStorage().set("UserDefinedName", res);
+		return this;
+	}
 	public CSG removeUserDefinedName(String res) {
 		if (getStorage().getValue("UserDefinedName").isPresent()) {
 			getStorage().delete("UserDefinedName");
