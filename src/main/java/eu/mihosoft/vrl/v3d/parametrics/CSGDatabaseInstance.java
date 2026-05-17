@@ -44,7 +44,7 @@ public class CSGDatabaseInstance {
 	public HashMap<String, IParametric> getMapOfparametrics(CSG source) {
 		HashMap<String, IParametric> hashMap = getMap().get(source.getUniqueId());
 		if (hashMap == null) {
-			hashMap=new HashMap<>();
+			hashMap = new HashMap<>();
 			getMap().put(source.getUniqueId(), hashMap);
 		}
 		return hashMap;

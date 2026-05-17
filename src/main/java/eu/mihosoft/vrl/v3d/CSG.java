@@ -3229,7 +3229,7 @@ public class CSG implements IuserAPI, Serializable {
 
 	public Set<String> getParameters(CSGDatabaseInstance instance) {
 		HashMap<String, IParametric> mapOfparametrics = instance.getMapOfparametrics(this);
-		if(mapOfparametrics!=null)
+		if (mapOfparametrics != null)
 			return mapOfparametrics.keySet();
 		return new HashSet<String>();
 	}
