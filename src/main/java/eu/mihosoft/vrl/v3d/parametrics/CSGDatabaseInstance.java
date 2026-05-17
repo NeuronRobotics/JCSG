@@ -42,10 +42,12 @@ public class CSGDatabaseInstance {
 	}
 
 	public HashMap<String, IParametric> getMapOfparametrics(CSG source) {
-		if (getMap().get(source.getUniqueId()) == null) {
-			getMap().put(source.getUniqueId(), new HashMap<>());
+		HashMap<String, IParametric> hashMap = getMap().get(source.getUniqueId());
+		if (hashMap == null) {
+			hashMap=new HashMap<>();
+			getMap().put(source.getUniqueId(), hashMap);
 		}
-		return getMap().get(source.getUniqueId());
+		return hashMap;
 	}
 
 	public CSGDatabaseInstance setParameter(CSG instance, Parameter w) {
