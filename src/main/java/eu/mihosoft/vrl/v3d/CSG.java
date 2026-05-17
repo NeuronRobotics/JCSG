@@ -3783,7 +3783,7 @@ public class CSG implements IuserAPI, Serializable {
 		return this;
 	}
 	public CSG setUserDefinedNameIfMissing(String res) {
-		if(!isUserDefinedName() )
+		if (!isUserDefinedName())
 			getStorage().set("UserDefinedName", res);
 		return this;
 	}
@@ -3800,11 +3800,11 @@ public class CSG implements IuserAPI, Serializable {
 	}
 	public String getUserDefinedName() {
 		Optional<String> o = getStorage().getValue("UserDefinedName");
-		if( o.isPresent())
+		if (o.isPresent())
 			return o.get();
 		return getName();
 	}
-	
+
 	public CSG addIsGroupResult(String res) {
 		if (!getStorage().getValue("GroupResult").isPresent()) {
 			getStorage().set("GroupResult", new HashSet<String>());
