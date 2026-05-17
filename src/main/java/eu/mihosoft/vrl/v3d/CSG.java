@@ -3778,6 +3778,29 @@ public class CSG implements IuserAPI, Serializable {
 	// getStorage().set("GroupResult", res);
 	// return this;
 	// }
+	public CSG setUserDefinedName(String res) {
+		getStorage().set("UserDefinedName", res);
+		return this;
+	}
+
+	public CSG removeUserDefinedName(String res) {
+		if (getStorage().getValue("UserDefinedName").isPresent()) {
+			getStorage().delete("UserDefinedName");
+		}
+		return this;
+	}
+
+	public boolean isUserDefinedName() {
+		Optional<String> o = getStorage().getValue("UserDefinedName");
+		return o.isPresent();
+	}
+	public String getUserDefinedName() {
+		Optional<String> o = getStorage().getValue("UserDefinedName");
+		if( o.isPresent())
+			return o.get();
+		return getName();
+	}
+	
 	public CSG addIsGroupResult(String res) {
 		if (!getStorage().getValue("GroupResult").isPresent()) {
 			getStorage().set("GroupResult", new HashSet<String>());
@@ -3800,7 +3823,6 @@ public class CSG implements IuserAPI, Serializable {
 			return o.get().size() > 0;
 		return false;
 	}
-
 	// Hole
 	public CSG setIsMotionLock(boolean Lock) {
 		// if(Lock) {
