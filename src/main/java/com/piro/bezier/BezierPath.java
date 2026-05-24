@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 import eu.mihosoft.vrl.v3d.Edge;
 import eu.mihosoft.vrl.v3d.Extrude;
 import eu.mihosoft.vrl.v3d.Plane;
+import eu.mihosoft.vrl.v3d.TextExtrude;
 import eu.mihosoft.vrl.v3d.Vector3d;
 import eu.mihosoft.vrl.v3d.Vertex;
 
@@ -21,12 +22,12 @@ public class BezierPath {
 	BezierListProducer path;
 
 	private ArrayList<Vector3d> plInternal = new ArrayList<Vector3d>();
-	private final int resolutionPoints;
+	//private final int resolutionPoints;
 
 	/** Creates a new instance of Animate */
-	public BezierPath(int resolution) {
-		this.resolutionPoints = resolution;
-	}
+//	public BezierPath(int resolution) {
+//		this.resolutionPoints = resolution;
+//	}
 
 	public void parsePathString(String d) {
 
@@ -175,7 +176,7 @@ public class BezierPath {
 		if (dpoints < 1)
 			dpoints = 1;
 		double increment = 1.0 / dpoints;
-		double min = 1.0 / ((double) resolutionPoints);
+		double min = 1.0 / ((double) TextExtrude.getTextResolutionPoints());
 		if (increment < min)
 			increment = min;
 		if (increment > MaximumInterpolationStep)

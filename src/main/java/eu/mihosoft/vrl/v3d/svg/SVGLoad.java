@@ -647,7 +647,7 @@ public class SVGLoad {
 		if (encapsulatingLayer == null)
 			throw new RuntimeException("Layer Name can not be null");
 		// println code
-		BezierPath path = new BezierPath(TextExtrude.getTextResolutionPoints());
+		BezierPath path = new BezierPath();
 		path.parsePathString(code);
 
 		ArrayList<Vector3d> p = path.evaluate();

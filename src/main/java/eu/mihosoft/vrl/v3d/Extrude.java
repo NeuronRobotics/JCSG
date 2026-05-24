@@ -399,9 +399,9 @@ public class Extrude {
 		}
 		// println "A string = " +pathStringA
 		// println "B String = " +pathStringB
-		BezierPath path = new BezierPath(10);
+		BezierPath path = new BezierPath();
 		path.parsePathString(pathStringA);
-		BezierPath path2 = new BezierPath(10);
+		BezierPath path2 = new BezierPath();
 		path2.parsePathString(pathStringB);
 
 		return bezierToTransforms(path, path2, resolution, null, null);
@@ -414,10 +414,10 @@ public class Extrude {
 
 	public static ArrayList<Transform> bezierToTransforms(Vector3d controlA, Vector3d controlB, Vector3d endPoint,
 			int iterations) {
-		BezierPath path = new BezierPath(10);
+		BezierPath path = new BezierPath();
 		path.parsePathString("C " + controlA.x + "," + controlA.y + " " + controlB.x + "," + controlB.y + " "
 				+ endPoint.x + "," + endPoint.y);
-		BezierPath path2 = new BezierPath(10);
+		BezierPath path2 = new BezierPath();
 		path2.parsePathString("C " + controlA.x + "," + controlA.z + " " + controlB.x + "," + controlB.z + " "
 				+ endPoint.x + "," + endPoint.z);
 
@@ -561,9 +561,9 @@ public class Extrude {
 		String b = "M " + start.x + "," + start.z + "\n" + "C " + controlA.x + "," + controlA.z + " " + controlB.x + ","
 				+ controlB.z + " " + endPoint.x + "," + endPoint.z;
 		// println "Start = "+startString
-		BezierPath path = new BezierPath(10);
+		BezierPath path = new BezierPath();
 		path.parsePathString(startString);
-		BezierPath path2 = new BezierPath(10);
+		BezierPath path2 = new BezierPath();
 		path2.parsePathString(b);
 		// newParts.remove(parts.size()-1)
 		// newParts.remove(0)
@@ -781,7 +781,7 @@ public class Extrude {
 	public static ArrayList<CSG> moveBezier(CSG slice, BezierPath pathA, int numSlices) {
 		Vector3d pointA = pathA.eval((double) 1.0);
 		String zpath = "C 0,0 " + pointA.x + "," + pointA.y + " " + pointA.x + "," + pointA.y;
-		BezierPath pathB = new BezierPath(10);
+		BezierPath pathB = new BezierPath();
 		pathB.parsePathString(zpath);
 
 		return moveBezier(slice, pathA, pathB, numSlices);
