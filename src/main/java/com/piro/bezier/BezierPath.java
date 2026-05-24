@@ -22,12 +22,12 @@ public class BezierPath {
 	BezierListProducer path;
 
 	private ArrayList<Vector3d> plInternal = new ArrayList<Vector3d>();
-	//private final int resolutionPoints;
+	// private final int resolutionPoints;
 
 	/** Creates a new instance of Animate */
-//	public BezierPath(int resolution) {
-//		this.resolutionPoints = resolution;
-//	}
+	// public BezierPath(int resolution) {
+	// this.resolutionPoints = resolution;
+	// }
 
 	public void parsePathString(String d) {
 
