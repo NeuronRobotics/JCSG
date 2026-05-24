@@ -15,7 +15,7 @@ import eu.mihosoft.vrl.v3d.Vertex;
 
 public class BezierPath {
 
-	private static final double MaximumInterpolationStep = 0.5;
+	private static double MaximumInterpolationStep = 0.01;
 
 	static final Matcher matchPoint = Pattern.compile("\\s*(\\d+)[^\\d]+(\\d+)\\s*").matcher("");
 
@@ -179,8 +179,8 @@ public class BezierPath {
 		double min = 1.0 / ((double) TextExtrude.getTextResolutionPoints());
 		if (increment < min)
 			increment = min;
-		if (increment > MaximumInterpolationStep)
-			increment = MaximumInterpolationStep;
+		if (increment > getMaximumInterpolationStep())
+			increment = getMaximumInterpolationStep();
 		// System.out.println("Path with inc "+points);
 		return increment;
 	}
@@ -248,6 +248,14 @@ public class BezierPath {
 	public ArrayList<Vector3d> evaluate() {
 
 		return plInternal;
+	}
+
+	public static double getMaximumInterpolationStep() {
+		return MaximumInterpolationStep;
+	}
+
+	public static void setMaximumInterpolationStep(double maximumInterpolationStep) {
+		MaximumInterpolationStep = maximumInterpolationStep;
 	}
 
 }

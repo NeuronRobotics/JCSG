@@ -3667,7 +3667,7 @@ public class CSG implements IuserAPI, Serializable {
 			for (String name : javafx.scene.text.Font.getFontNames()) {
 				options += name + "\n";
 			}
-			new Exception(options + "\nIs Not " + fontType + " instead got " + font.getName()).printStackTrace();
+			new Exception("Missing " + fontType + " instead got " + font.getName()).printStackTrace();
 		}
 		ArrayList<CSG> stuff = TextExtrude.text(height, text, font);
 		CSG back = null;
