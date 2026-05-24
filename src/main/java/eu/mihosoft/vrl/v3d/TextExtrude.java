@@ -33,6 +33,7 @@ import java.util.*;
 
 @SuppressWarnings("restriction")
 public class TextExtrude {
+	private static int TextResolutionPoints = 10;
 	private static final String default_font = "FreeSerif";
 	private final static int POINTS_CURVE = 10;
 	private static final double CURVE_SEGMENTS = 4; // Number of segments to approximate curves
@@ -242,7 +243,7 @@ public class TextExtrude {
 			if (element instanceof MoveTo) {
 				// If we have a current path, process it with BezierPath
 				if (pathBuilder.length() > 0) {
-					BezierPath bezierPath = new BezierPath(5);
+					BezierPath bezierPath = new BezierPath(getTextResolutionPoints());
 					bezierPath.parsePathString(pathBuilder.toString());
 					List<Vector3d> pathPoints = bezierPath.evaluate();
 					if (!pathPoints.isEmpty()) {
@@ -282,6 +283,14 @@ public class TextExtrude {
 		}
 
 		return allOutlines;
+	}
+
+	public static int getTextResolutionPoints() {
+		return TextResolutionPoints;
+	}
+
+	public static void setTextResolutionPoints(int textResolutionPoints) {
+		TextResolutionPoints = textResolutionPoints;
 	}
 
 }
