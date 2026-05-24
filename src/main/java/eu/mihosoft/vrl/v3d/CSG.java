@@ -4872,4 +4872,8 @@ public class CSG implements IuserAPI, Serializable {
 		}
 	}
 
+	public void removeParameter(CSGDatabaseInstance db, String s) {
+		db.removeParameter(this, s);
+	}
+
 }

@@ -324,4 +324,9 @@ public class CSGDatabaseInstance {
 	public void reLoadDbFile() {
 		setDbFile(dbFile);
 	}
+
+	public void removeParameter(CSG obj, String s) {
+		if (getMapOfparametrics(obj).get(s) != null)
+			getMapOfparametrics(obj).remove(s);
+	}
 }
