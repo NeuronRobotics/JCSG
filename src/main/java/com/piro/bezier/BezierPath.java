@@ -15,7 +15,7 @@ import eu.mihosoft.vrl.v3d.Vertex;
 
 public class BezierPath {
 
-	private static double MaximumInterpolationStep = 0.01;
+	private static double MaximumInterpolationStep = 0.5;
 
 	static final Matcher matchPoint = Pattern.compile("\\s*(\\d+)[^\\d]+(\\d+)\\s*").matcher("");
 
