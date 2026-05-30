@@ -70,7 +70,7 @@ public class STL {
 		env.put("create", "true");
 		FileSystem zipfs = FileSystems.newFileSystem(uri, env);
 		Path myFolderPath = Paths.get(uri);
-		return file(myFolderPath, repair);
+		return file(myFolderPath);
 	}
 
 	/**
@@ -79,14 +79,22 @@ public class STL {
 	 * @param path
 	 *            file path
 	 * @return CSG
+	 * @throws IOException 
 	 * @throws Throwable
 	 */
-	public static CSG file(Path path, boolean repair) throws Throwable {
+	public static CSG file(Path path) throws NonManifoldShapeError,ColinearPointsException, IOException {
 
 		if (CSG.getDefaultOptionType() == OptType.Manifold3d) {
 			CSGManifold3d m = CSG.getManifold();
 
-			return m.fromSTL(path);
+			try {
+				return m.fromSTL(path);
+			} catch (NonManifoldShapeError e) {
+				throw e;
+			} catch (Throwable e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 
 		}
 		STLLoader loader = new STLLoader();
@@ -100,31 +108,5 @@ public class STL {
 		return fromPolygons;
 
 	}
-	/**
-	 * Loads a CSG from stl.
-	 *
-	 * @param path
-	 *            file path
-	 * @return CSG
-	 * @throws Throwable
-	 * @throws IOException
-	 *             if loading failed
-	 * @throws NonManifoldShapeError
-	 * @throws ColinearPointsException
-	 */
-	public static CSG file(Path path) throws Throwable {
-		try {
-			return file(path, true);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (NonManifoldShapeError e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ColinearPointsException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return new CSG();
-	}
+
 }
