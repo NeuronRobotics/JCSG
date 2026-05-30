@@ -79,10 +79,10 @@ public class STL {
 	 * @param path
 	 *            file path
 	 * @return CSG
-	 * @throws IOException 
+	 * @throws IOException
 	 * @throws Throwable
 	 */
-	public static CSG file(Path path) throws NonManifoldShapeError,ColinearPointsException, IOException {
+	public static CSG file(Path path) throws NonManifoldShapeError, ColinearPointsException, IOException {
 
 		if (CSG.getDefaultOptionType() == OptType.Manifold3d) {
 			CSGManifold3d m = CSG.getManifold();
