@@ -30,7 +30,7 @@ public class sweepTest {
 		double angle = sweepTot / steps;
 
 		double z = 0 * d / steps;
-		double radius = 0;
+		double radius = 0.1;
 		if (angle < 0)
 			angle = -angle;
 		double sprl = 10;

@@ -24,11 +24,13 @@ public class CSGClient {
 
 	private SSLSocketFactory factory;
 	private ArrayList<ICSGClientEvent> listeners = new ArrayList<>();
+
 	public void addListener(ICSGClientEvent e) {
 		if (listeners.contains(e))
 			return;
 		listeners.add(e);
 	}
+
 	public void removeListener(ICSGClientEvent e) {
 		if (!listeners.contains(e))
 			return;
@@ -83,9 +85,11 @@ public class CSGClient {
 	public ArrayList<CSG> union(List<CSG> csgList) throws Exception {
 		return performOperation(csgList, CSGRemoteOperation.UNION);
 	}
+
 	public ArrayList<CSG> hull(List<Vector3d> points, PropertyStorage storage) throws Exception {
 		return performOperation(new ArrayList<CSG>(), CSGRemoteOperation.hull, points, storage);
 	}
+
 	/**
 	 * Perform difference operations on consecutive CSG pairs
 	 *
@@ -145,12 +149,14 @@ public class CSGClient {
 	public ArrayList<CSG> triangulate(ArrayList<CSG> csgList) throws Exception {
 		return performOperation(csgList, CSGRemoteOperation.TRIANGULATE);
 	}
+
 	/**
 	 * Internal method to perform operations and handle request/response
 	 */
 	private ArrayList<CSG> performOperation(List<CSG> csgList, CSGRemoteOperation operation) throws Exception {
 		return performOperation(csgList, operation, null, null);
 	}
+
 	/**
 	 * Internal method to perform operations and handle request/response
 	 */
@@ -162,8 +168,9 @@ public class CSGClient {
 			throw runtimeException;
 		}
 		ArrayList<CSG> back = null;
-		SSLSocket socket = (SSLSocket) factory.createSocket(hostname, port);
+		SSLSocket socket = null;
 		try {
+			socket = (SSLSocket) factory.createSocket(hostname, port);
 			ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 			ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 			//
@@ -223,7 +230,9 @@ public class CSGClient {
 				}
 			}
 		} catch (Throwable t) {
-			socket.close();
+			if (socket != null)
+				socket.close();
+			client = null;
 			throw t;
 		}
 		return back;

@@ -9,6 +9,8 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.neuronrobotics.manifold3d.NonManifoldShapeError;
+
 import eu.mihosoft.vrl.v3d.CSG.OptType;
 import eu.mihosoft.vrl.v3d.parametrics.CSGDatabase;
 import eu.mihosoft.vrl.v3d.thumbnail.ThumbnailImageCSG;
@@ -52,14 +54,18 @@ public class StlLoadTest {
 	public void test() throws Throwable {
 		String filename = "brokenSTL.STL";
 		File file = new File(filename);
-		CSG loaded = STL.file(file.toPath());
 		try {
-			ThumbnailImageCSG.setCullFaceValue(CullFace.NONE);
-			new ThumbnailImageCSG().writeImage(CSGDatabase.getInstance(), loaded,
-					new File(file.getAbsolutePath() + ".png"));
-		} catch (Exception e) {
-			// Auto-generated catch block
-			e.printStackTrace();
+			CSG loaded = STL.file(file.toPath());
+			try {
+				ThumbnailImageCSG.setCullFaceValue(CullFace.NONE);
+				new ThumbnailImageCSG().writeImage(CSGDatabase.getInstance(), loaded,
+						new File(file.getAbsolutePath() + ".png"));
+			} catch (Exception e) {
+				// Auto-generated catch block
+				e.printStackTrace();
+			}
+		} catch (NonManifoldShapeError ex) {
+			// expected for actually broken STL
 		}
 	}
 

@@ -40,7 +40,7 @@ public class CSGServer {
 	private SSLServerSocket serverSocket2;
 	private ArrayList<ICSGServerEvent> listeners = new ArrayList<>();
 
-	public CSGServer(int port, File APIKEYS) throws IOException {
+	public CSGServer(int port, File APIKEYS) {
 		this.port = port;
 		this.threadPool = Executors.newCachedThreadPool();
 
@@ -48,7 +48,12 @@ public class CSGServer {
 			throw new NullPointerException("API Key file can not be null");
 		}
 		if (APIKEYS.exists())
-			lines = Files.readAllLines(APIKEYS.toPath()).toArray(new String[0]);
+			try {
+				lines = Files.readAllLines(APIKEYS.toPath()).toArray(new String[0]);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		if (lines != null) {
 			System.out.println("Starting server with " + lines.length + " keys from " + APIKEYS.getAbsolutePath());
 		} else {
