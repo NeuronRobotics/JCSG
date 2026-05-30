@@ -2805,6 +2805,8 @@ public class CSG implements IuserAPI, Serializable {
 	 *            the optType to set
 	 */
 	public static void setDefaultOptType(OptType optType) {
+		if(optType==defaultOptType)
+			return;
 		if (optType == OptType.Manifold3d) {
 			try {
 				setManifold(new CSGManifold3d());
