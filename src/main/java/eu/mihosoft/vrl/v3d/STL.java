@@ -34,7 +34,6 @@ package eu.mihosoft.vrl.v3d;
 import eu.mihosoft.vrl.v3d.CSG.OptType;
 import eu.mihosoft.vrl.v3d.ext.imagej.STLLoader;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.FileSystem;
@@ -46,7 +45,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.neuronrobotics.manifold3d.CSGManifold3d;
-import com.neuronrobotics.manifold3d.NonManifoldShapeError;
 
 //  Auto-generated Javadoc
 /**
@@ -79,23 +77,14 @@ public class STL {
 	 * @param path
 	 *            file path
 	 * @return CSG
-	 * @throws IOException
 	 * @throws Throwable
 	 */
-	public static CSG file(Path path) throws NonManifoldShapeError, ColinearPointsException, IOException {
+	public static CSG file(Path path) throws Throwable {
 
 		if (CSG.getDefaultOptionType() == OptType.Manifold3d) {
 			CSGManifold3d m = CSG.getManifold();
 
-			try {
-				return m.fromSTL(path);
-			} catch (NonManifoldShapeError e) {
-				throw e;
-			} catch (Throwable e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
+			return m.fromSTL(path);
 		}
 		STLLoader loader = new STLLoader();
 
