@@ -34,6 +34,7 @@
 package eu.mihosoft.vrl.v3d;
 
 import java.util.ArrayList;
+
 import com.piro.bezier.BezierPath;
 import eu.mihosoft.vrl.v3d.svg.*;
 import javafx.scene.paint.Color;
@@ -41,6 +42,8 @@ import javafx.scene.paint.Color;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import eu.mihosoft.vrl.v3d.CSG.OptType;
 
 //import javax.vecmath.Vector3d;
 
@@ -110,6 +113,14 @@ public class Extrude {
 			// ArrayList<Polygon> topPolygons = PolygonUtil.triangulatePolygon(polygon2);
 
 			extrude = new CSG(newPolygons);
+			if (CSG.getDefaultOptionType() == OptType.Manifold3d) {
+				try {
+					extrude = CSG.getManifold().calculateAreaAndSurfaceArea(extrude);
+				} catch (Throwable e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 			return extrude;
 		}
 
@@ -598,7 +609,16 @@ public class Extrude {
 		List<Polygon> topPolygons = PolygonUtil.triangulatePolygon(polygon2.flipped());
 		newPolygons.addAll(topPolygons);
 
-		return new CSG(newPolygons);
+		CSG csg = new CSG(newPolygons);
+		if (CSG.getDefaultOptionType() == OptType.Manifold3d) {
+			try {
+				csg = CSG.getManifold().calculateAreaAndSurfaceArea(csg);
+			} catch (Throwable e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return csg;
 	}
 
 	public static CSG sweep(Polygon p, double angle, double z, double radius, int steps)

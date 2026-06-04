@@ -233,6 +233,8 @@ public class CSG implements IuserAPI, Serializable {
 	private double[] vertices;
 	private long[] triangles;
 	private ArrayList<Plane> planes;
+	private double volume;
+	private double surfaceArea;
 
 	/**
 	 * Instantiates a new csg.
@@ -3126,6 +3128,8 @@ public class CSG implements IuserAPI, Serializable {
 		setColor(dyingCSG.getColor());
 		// str.syncProperties(dyingCSG.str);
 		syncCadoodleCatagories(dyingCSG);
+		volume = dyingCSG.volume;
+		surfaceArea = dyingCSG.surfaceArea;
 		return this;
 	}
 
@@ -4878,4 +4882,17 @@ public class CSG implements IuserAPI, Serializable {
 		db.removeParameter(this, s);
 	}
 
+	public void setVolume(double volume) {
+		this.volume = volume;
+	}
+	public double getVolume() {
+		return volume;
+	}
+
+	public void setSurfaceArea(double surfaceArea) {
+		this.surfaceArea = surfaceArea;
+	}
+	public double getSurfaceArea() {
+		return this.surfaceArea;
+	}
 }

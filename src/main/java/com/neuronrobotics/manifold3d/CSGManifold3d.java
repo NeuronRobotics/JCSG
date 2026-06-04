@@ -97,7 +97,10 @@ public class CSGManifold3d {
 		if (triCount == 0)
 			return new CSG();
 
-		return new CSG(verts, tris, c);
+		CSG csg = new CSG(verts, tris, c);
+		csg.setVolume(manifold.volume(ms));
+		csg.setSurfaceArea(manifold.surfaceArea(ms));
+		return csg;
 	}
 
 	/**
@@ -176,6 +179,22 @@ public class CSGManifold3d {
 			manifold.delete(ma);
 			manifold.delete(mb);
 		}
+	}
+	/**
+	 * calculateAreaAndSurfaceArea
+	 *
+	 * calculate the area and surface area by converting to manifold object and
+	 * back. the back step will set the area and volume fileds calculated by
+	 * manifold.
+	 *
+	 * @param in
+	 *            an unknown object
+	 * @return the calculated manifold object
+	 * @throws Throwable
+	 *             if the object is not manifold then an error will
+	 */
+	public CSG calculateAreaAndSurfaceArea(CSG in) throws Throwable {
+		return fromManifold(toManifold(in), in.getColor());
 	}
 	/**
 	 * Returns the union of two CSG solids. Uses {@code manifold.union(a, b)}
