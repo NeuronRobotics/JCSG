@@ -50,6 +50,7 @@ import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import eu.mihosoft.vrl.v3d.CSG.OptType;
 import eu.mihosoft.vrl.v3d.Slice.DefaultSliceImp;
 import eu.mihosoft.vrl.v3d.ext.org.poly2tri.PolygonUtil;
 import eu.mihosoft.vrl.v3d.ext.quickhull3d.HullUtil;
@@ -1039,6 +1040,8 @@ public class CSG implements IuserAPI, Serializable {
 	public CSG clone() {
 		CSG csg = cloneShallow();
 		CSG historySync = csg.historySync(this);
+		historySync.volume = volume;
+		historySync.surfaceArea = surfaceArea;
 		return historySync;
 	}
 
@@ -2595,8 +2598,16 @@ public class CSG implements IuserAPI, Serializable {
 		if (getName().length() != 0) {
 			csg.setName(name);
 		}
-
-		return csg.historySync(this);
+		if (CSG.getDefaultOptionType() == OptType.Manifold3d) {
+			try {
+				csg = CSG.getManifold().calculateAreaAndSurfaceArea(csg);
+			} catch (Throwable e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		CSG historySync = csg.historySync(this);
+		return historySync;
 	}
 
 	/**
@@ -3128,8 +3139,6 @@ public class CSG implements IuserAPI, Serializable {
 		setColor(dyingCSG.getColor());
 		// str.syncProperties(dyingCSG.str);
 		syncCadoodleCatagories(dyingCSG);
-		volume = dyingCSG.volume;
-		surfaceArea = dyingCSG.surfaceArea;
 		return this;
 	}
 
