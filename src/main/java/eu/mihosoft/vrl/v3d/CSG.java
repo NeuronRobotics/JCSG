@@ -3799,11 +3799,13 @@ public class CSG implements IuserAPI, Serializable {
 		getStorage().set("UserDefinedName", res);
 		return this;
 	}
+
 	public CSG setUserDefinedNameIfMissing(String res) {
 		if (!isUserDefinedName())
 			getStorage().set("UserDefinedName", res);
 		return this;
 	}
+
 	public CSG removeUserDefinedName(String res) {
 		if (getStorage().getValue("UserDefinedName").isPresent()) {
 			getStorage().delete("UserDefinedName");
@@ -3815,6 +3817,7 @@ public class CSG implements IuserAPI, Serializable {
 		Optional<String> o = getStorage().getValue("UserDefinedName");
 		return o.isPresent();
 	}
+
 	public String getUserDefinedName() {
 		Optional<String> o = getStorage().getValue("UserDefinedName");
 		if (o.isPresent())
@@ -3844,6 +3847,7 @@ public class CSG implements IuserAPI, Serializable {
 			return o.get().size() > 0;
 		return false;
 	}
+
 	// Hole
 	public CSG setIsMotionLock(boolean Lock) {
 		// if(Lock) {
@@ -3897,7 +3901,7 @@ public class CSG implements IuserAPI, Serializable {
 			return o.get();
 		return false;
 	}
-	
+
 	// IsAlwaysShow
 	public CSG setIsAlwaysShow(boolean Hide) {
 		getStorage().set("isAlwaysShow", Hide);
@@ -3923,29 +3927,34 @@ public class CSG implements IuserAPI, Serializable {
 			return o.get();
 		return false;
 	}
-	
-	public Optional<String> getMaterialType(){
-		return  getStorage().getValue("materialType");
+
+	public Optional<String> getMaterialType() {
+		return getStorage().getValue("materialType");
 	}
-	public void setMaterialType(String type){
-		getStorage().set("materialType",type);
+
+	public void setMaterialType(String type) {
+		getStorage().set("materialType", type);
 		getStorage().delete("material");
 		getStorage().delete("materialInfillPercent");
-		
+
 	}
-	public Optional<String> getMaterial(){
-		return  getStorage().getValue("material");
+
+	public Optional<String> getMaterial() {
+		return getStorage().getValue("material");
 	}
-	public void setMaterial(String type){
-		getStorage().set("material",type);
+
+	public void setMaterial(String type) {
+		getStorage().set("material", type);
 	}
-	public Optional<Double> getMateriaInfillPercent(){
-		return  getStorage().getValue("materialInfillPercent");
+
+	public Optional<Double> getMateriaInfillPercent() {
+		return getStorage().getValue("materialInfillPercent");
 	}
-	public void setMaterialInfillPercent(double type){
-		getStorage().set("materialInfillPercent",type);
+
+	public void setMaterialInfillPercent(double type) {
+		getStorage().set("materialInfillPercent", type);
 	}
-	
+
 	private void syncCadoodleCatagories(CSG dyingCSG) {
 		setIsHole(dyingCSG.isHole());
 		setIsHide(dyingCSG.isHide());
@@ -3955,10 +3964,18 @@ public class CSG implements IuserAPI, Serializable {
 		setIsWireFrame(dyingCSG.isWireFrame());
 		setColor(dyingCSG.getColor());
 		setNoScale(dyingCSG.isNoScale());
-		setMaterial(getMaterial().get());
-		setMaterialInfillPercent(getMateriaInfillPercent().get());
-		setMaterialType(getMaterialType().get());
-		
+
+		Optional<String> material = getMaterial();
+		if (material.isPresent())
+			setMaterial(material.get());
+		Optional<Double> materiaInfillPercent = getMateriaInfillPercent();
+		if (materiaInfillPercent.isPresent())
+			setMaterialInfillPercent(materiaInfillPercent.get());
+
+		Optional<String> materialType = getMaterialType();
+		if (materialType.isPresent())
+			setMaterialType(materialType.get());
+
 	}
 
 	public void setDefaultCadoodleCatagories() {
@@ -4920,6 +4937,7 @@ public class CSG implements IuserAPI, Serializable {
 	public void setVolume(double volume) {
 		this.volume = volume;
 	}
+
 	public double getVolume() {
 		return volume;
 	}
@@ -4927,6 +4945,7 @@ public class CSG implements IuserAPI, Serializable {
 	public void setSurfaceArea(double surfaceArea) {
 		this.surfaceArea = surfaceArea;
 	}
+
 	public double getSurfaceArea() {
 		return this.surfaceArea;
 	}
