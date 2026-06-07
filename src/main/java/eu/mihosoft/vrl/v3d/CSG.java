@@ -3965,16 +3965,16 @@ public class CSG implements IuserAPI, Serializable {
 		setColor(dyingCSG.getColor());
 		setNoScale(dyingCSG.isNoScale());
 
-		Optional<String> material = getMaterial();
-		if (material.isPresent())
-			setMaterial(material.get());
-		Optional<Double> materiaInfillPercent = getMateriaInfillPercent();
-		if (materiaInfillPercent.isPresent())
-			setMaterialInfillPercent(materiaInfillPercent.get());
-
-		Optional<String> materialType = getMaterialType();
+		Optional<String> materialType = dyingCSG.getMaterialType();
 		if (materialType.isPresent())
 			setMaterialType(materialType.get());
+
+		Optional<String> material = dyingCSG.getMaterial();
+		if (material.isPresent())
+			setMaterial(material.get());
+		Optional<Double> materiaInfillPercent = dyingCSG.getMateriaInfillPercent();
+		if (materiaInfillPercent.isPresent())
+			setMaterialInfillPercent(materiaInfillPercent.get());
 
 	}
 
