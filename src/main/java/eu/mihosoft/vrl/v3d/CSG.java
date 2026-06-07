@@ -3932,10 +3932,16 @@ public class CSG implements IuserAPI, Serializable {
 		return getStorage().getValue("materialType");
 	}
 
-	public void setMaterialType(String type) {
+	public CSG setMaterialType(String type) {
+		if (type.length() == 0)
+			throw new RuntimeException("Can not set empty");
+		if (getMaterialType().isPresent())
+			if (getMaterialType().get().contentEquals(type))
+				return this;
 		getStorage().set("materialType", type);
 		getStorage().delete("material");
 		getStorage().delete("materialInfillPercent");
+		return this;
 
 	}
 
@@ -3943,18 +3949,29 @@ public class CSG implements IuserAPI, Serializable {
 		return getStorage().getValue("material");
 	}
 
-	public void setMaterial(String type) {
+	public CSG setMaterial(String type) {
+		if (type.length() == 0)
+			throw new RuntimeException("Can not set empty");
 		getStorage().set("material", type);
+		return this;
 	}
 
 	public Optional<Double> getMateriaInfillPercent() {
 		return getStorage().getValue("materialInfillPercent");
 	}
 
-	public void setMaterialInfillPercent(double type) {
+	public CSG setMaterialInfillPercent(double type) {
 		getStorage().set("materialInfillPercent", type);
+		return this;
+	}
+	public Optional<Double> getMateriaDensity() {
+		return getStorage().getValue("materialDensity");
 	}
 
+	public CSG setMaterialDensity(double type) {
+		getStorage().set("materialDensity", type);
+		return this;
+	}
 	private void syncCadoodleCatagories(CSG dyingCSG) {
 		setIsHole(dyingCSG.isHole());
 		setIsHide(dyingCSG.isHide());
