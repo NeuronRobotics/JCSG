@@ -7,6 +7,8 @@ public class Parabola {
 	double Radius, w, a, b, FocalLength;
 	boolean fromEq = true;
 
+	private static double numberOfPoints = 64;
+
 	// from https://www.mathsisfun.com/geometry/parabola.html
 	private Parabola() {
 
@@ -46,7 +48,7 @@ public class Parabola {
 	public ArrayList<Vector3d> getpoints() {
 		ArrayList<Vector3d> points = new ArrayList<>();
 		points.add(new Vector3d(0, computeY(Radius)));
-		for (double i = 0; i <= 1; i += 0.05) {
+		for (double i = 0; i <= 1; i += (1.0 / numberOfPoints)) {
 			double x = Radius * i;
 			double y = computeY(x);
 			points.add(new Vector3d(x, y));
@@ -59,9 +61,8 @@ public class Parabola {
 		ArrayList<Vector3d> points = new Parabola().fromEquation(Radius, a, b).getpoints();// upper
 																							// right
 																							// corner
-
 		ArrayList<Vector3d> pointsOut = new ArrayList<>();
-		for (double i = 0; i <= 360; i += 10) {
+		for (double i = 0; i <= 360; i += (360.0 / numberOfPoints)) {
 			Transform transform = new Transform().roty(i);
 			for (Vector3d p : points)
 				pointsOut.add(p.transformed(transform));
@@ -71,22 +72,21 @@ public class Parabola {
 	}
 
 	public static CSG cone(double Radius, double height) {
-		return coneByHeight(Radius, height, 0).rotx(90).toZMin();
+		return coneByHeight(Radius, height).rotx(90).toZMin();
 	}
-	public static CSG cone(double Radius, double height, double b) {
-		return coneByHeight(Radius, height, b).rotx(90).toZMin();
-	}
-	public static CSG coneByHeight(double Radius, double height) {
-		return coneByHeight(Radius, height, 0);
+	public static CSG cone(double Radius, double height, double np) {
+		numberOfPoints = np;
+		return coneByHeight(Radius, height).rotx(90).toZMin();
 	}
 
-	public static CSG coneByHeight(double Radius, double height, double b) {
+	public static CSG coneByHeight(double Radius, double height) {
+		double b = 0;
 		double a = (height - (b * Radius)) / (Radius * Radius);
 		ArrayList<Vector3d> points = new Parabola().fromEquation(Radius, a, b).getpoints();// upper
 		// right
 		// corner
 		ArrayList<Vector3d> pointsOut = new ArrayList<>();
-		for (double i = 0; i <= 360; i += 10) {
+		for (double i = 0; i <= 360; i += (360 / numberOfPoints)) {
 			Transform transform = new Transform().roty(i);
 			for (Vector3d p : points)
 				pointsOut.add(p.transformed(transform));
