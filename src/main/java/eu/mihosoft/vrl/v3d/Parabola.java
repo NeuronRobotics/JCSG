@@ -48,7 +48,7 @@ public class Parabola {
 	public ArrayList<Vector3d> getpoints() {
 		ArrayList<Vector3d> points = new ArrayList<>();
 		points.add(new Vector3d(0, computeY(Radius)));
-		for (double i = 0; i <= 1; i += (1.0 / numberOfPoints)) {
+		for (double i = 0; i <= 1; i += (1.0 / getNumberOfPoints())) {
 			double x = Radius * i;
 			double y = computeY(x);
 			points.add(new Vector3d(x, y));
@@ -62,7 +62,7 @@ public class Parabola {
 																							// right
 																							// corner
 		ArrayList<Vector3d> pointsOut = new ArrayList<>();
-		for (double i = 0; i <= 360; i += (360.0 / numberOfPoints)) {
+		for (double i = 0; i <= 360; i += (360.0 / getNumberOfPoints())) {
 			Transform transform = new Transform().roty(i);
 			for (Vector3d p : points)
 				pointsOut.add(p.transformed(transform));
@@ -75,7 +75,7 @@ public class Parabola {
 		return coneByHeight(Radius, height).rotx(90).toZMin();
 	}
 	public static CSG cone(double Radius, double height, double np) {
-		numberOfPoints = np;
+		setNumberOfPoints(np);
 		return coneByHeight(Radius, height).rotx(90).toZMin();
 	}
 
@@ -86,7 +86,7 @@ public class Parabola {
 		// right
 		// corner
 		ArrayList<Vector3d> pointsOut = new ArrayList<>();
-		for (double i = 0; i <= 360; i += (360 / numberOfPoints)) {
+		for (double i = 0; i <= 360; i += (360 / getNumberOfPoints())) {
 			Transform transform = new Transform().roty(i);
 			for (Vector3d p : points)
 				pointsOut.add(p.transformed(transform));
@@ -101,7 +101,7 @@ public class Parabola {
 		// corner
 
 		ArrayList<Vector3d> pointsOut = new ArrayList<>();
-		for (double i = 0; i <= 360; i += 10) {
+		for (double i = 0; i <= 360; i += (360 / getNumberOfPoints())) {
 			Transform transform = new Transform().roty(i);
 			for (Vector3d p : points)
 				pointsOut.add(p.transformed(transform));
@@ -115,6 +115,14 @@ public class Parabola {
 		return Extrude.points(new Vector3d(0, 0, thickness), // This is the extrusion depth
 				new Parabola().fromEquation(Radius, a, b).getpoints()// upper right corner
 		);
+	}
+
+	public static double getNumberOfPoints() {
+		return numberOfPoints;
+	}
+
+	public static void setNumberOfPoints(double numberOfPoints) {
+		Parabola.numberOfPoints = numberOfPoints;
 	}
 
 }
