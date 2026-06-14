@@ -2602,8 +2602,7 @@ public class CSG implements IuserAPI, Serializable {
 			try {
 				csg = CSG.getManifold().calculateAreaAndSurfaceArea(csg);
 			} catch (Throwable e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				throw new RuntimeException(e);
 			}
 		}
 		CSG historySync = csg.historySync(this);
