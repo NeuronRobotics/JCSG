@@ -131,10 +131,15 @@ public class PropertyStorage implements Serializable {
 				property = clonedSet;
 			}
 			if (ArrayList.class.isInstance(property)) {
-				Object clonedSet = map.get(o);
-				ArrayList<String> newList = clonedSet == null ? new ArrayList<String>() : (ArrayList<String>) clonedSet;
-				newList.addAll((ArrayList<String>) property);
-				property = newList;
+				Object myListOfNameO = map.get(o);
+				ArrayList<String> property2 = (ArrayList<String>) property;
+				if (myListOfNameO == null) {
+					ArrayList<String> newList = new ArrayList<String>();
+					newList.addAll(property2);
+					property = newList;
+				} else
+					property = new ArrayList<String>((ArrayList<String>) property2);
+
 			}
 			set(o, property);
 		}
