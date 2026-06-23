@@ -2561,7 +2561,7 @@ public class CSG implements IuserAPI, Serializable {
 		// if( isMotionLock())
 		// return this.clone();
 		if (getNumberOfTriangles() == 0) {
-			return clone();
+			return new CSG();
 		}
 		CSG csg = clone();
 

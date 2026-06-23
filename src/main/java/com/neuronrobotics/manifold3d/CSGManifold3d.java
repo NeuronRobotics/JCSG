@@ -130,7 +130,7 @@ public class CSGManifold3d {
 		try {
 			csgm = toManifold(csg);
 			checkResult(csgm);
-			List<double[][]> contours = manifold.sliceWithOffset(csgm, 0.0, offset, ManifoldBindings.JoinType.ROUND,
+			List<double[][]> contours = manifold.sliceWithOffset(csgm, 0.0, offset, ManifoldBindings.JoinType.MITER,
 					2.0, 0);
 
 			ArrayList<Polygon> result = new ArrayList<>(contours.size());
