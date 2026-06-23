@@ -2827,7 +2827,7 @@ public class CSG implements IuserAPI, Serializable {
 					public List<Polygon> slice(CSG incoming, Transform slicePlane, double normalInsetDistance)
 							throws ColinearPointsException {
 						try {
-							return getManifold().sliceAtZero(incoming, slicePlane);
+							return getManifold().sliceAtZero(incoming, slicePlane,normalInsetDistance);
 						} catch (Throwable e) {
 							System.err.println("Slice failed on manifold, using legacy slice");
 							e.printStackTrace();

@@ -124,13 +124,14 @@ public class CSGManifold3d {
 	 * @throws RuntimeException
 	 *             wrapping any native call failure
 	 */
-	public ArrayList<Polygon> sliceAtZero(CSG incoming, Transform slicePlane) throws Throwable {
+	public ArrayList<Polygon> sliceAtZero(CSG incoming, Transform slicePlane, double offset) throws Throwable {
 		CSG csg = incoming.transformed(slicePlane.inverse());
 		MemorySegment csgm = null;
 		try {
 			csgm = toManifold(csg);
 			checkResult(csgm);
-			List<double[][]> contours = manifold.slice(csgm, 0.0);
+			List<double[][]> contours = manifold.sliceWithOffset(
+					csgm, 0.0, offset, ManifoldBindings.JoinType.ROUND, 2.0, 0);
 
 			ArrayList<Polygon> result = new ArrayList<>(contours.size());
 
