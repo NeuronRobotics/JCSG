@@ -112,7 +112,8 @@ jobs:
             g++ \
             make \
             maven \
-            libgtk2.0-0
+            libgtk2.0-0 \
+            xvfb
     - name: Checkout repository and submodules
       uses: actions/checkout@v2
       with:
