@@ -132,8 +132,8 @@ jobs:
       run: pwd; ls -la        
     - name: Install libraries
       run: |
-          sudo apt update
-          sudo apt install libgtk2.0-0
+          apt update
+          apt install libgtk2.0-0
           
     - name: Pull a JavaFX JDK
       run: wget https://cdn.azul.com/zulu/bin/zulu25.32.21-ca-fx-jdk25.0.2-linux_x64.tar.gz
