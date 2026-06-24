@@ -1,7 +1,7 @@
 package eu.mihosoft.vrl.v3d;
 
 public class JavaFXInitializer {
-	private static boolean latch=false;
+	private static boolean latch = false;
 	public static boolean errored = false;
 	public JavaFXInitializer() {
 
@@ -19,7 +19,7 @@ public class JavaFXInitializer {
 			errored = true;
 			e.printStackTrace();
 		}
-		latch=true;
+		latch = true;
 	}
 	public static void go() {
 		if (latch) {
@@ -38,18 +38,18 @@ public class JavaFXInitializer {
 		}.start();
 		try {
 			long start = System.currentTimeMillis();
-			while((System.currentTimeMillis()-start)<1000 && latch==false) {
+			while ((System.currentTimeMillis() - start) < 1000 && latch == false) {
 				Thread.sleep(16);
 			}
-			if(!latch)
-				errored=true;
+			if (!latch)
+				errored = true;
 		} catch (Throwable e) {
 			e.printStackTrace();
 			errored = true;
 		}
 		StackTraceElement[] stacktrace = Thread.currentThread().getStackTrace();
 		StackTraceElement e = stacktrace[2];// maybe this number needs to be corrected
-		System.out.println((errored?"ERRORED":"Success")+" JavaFX initializing! " + e);
+		System.out.println((errored ? "ERRORED" : "Success") + " JavaFX initializing! " + e);
 	}
 
 }
