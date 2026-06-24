@@ -14,6 +14,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import eu.mihosoft.vrl.v3d.CSG.OptType;
 import eu.mihosoft.vrl.v3d.parametrics.CSGDatabase;
 import eu.mihosoft.vrl.v3d.svg.SVGLoad;
 import eu.mihosoft.vrl.v3d.thumbnail.ThumbnailImageCSG;
@@ -23,6 +24,7 @@ public class SVGLoadTest {
 	@Before
 	public void setup() {
 		CSG.setPreventNonManifoldTriangles(true);
+		CSG.setDefaultOptType(OptType.Manifold3d);
 	}
 	@Test
 	@Ignore
@@ -59,7 +61,6 @@ public class SVGLoadTest {
 	@Test
 	public void flame() throws IOException {
 
-		JavaFXInitializer.go();
 		File svg = new File("flame.svg");
 		if (!svg.exists())
 			throw new RuntimeException("Test file missing!" + svg.getAbsolutePath());
@@ -123,7 +124,6 @@ public class SVGLoadTest {
 	}
 	@Test
 	public void box() throws IOException {
-		JavaFXInitializer.go();
 		File svg = new File("box.svg");
 		if (!svg.exists())
 			throw new RuntimeException("Test file missing!" + svg.getAbsolutePath());
@@ -143,7 +143,6 @@ public class SVGLoadTest {
 	@Test
 	@Ignore
 	public void inside() throws IOException {
-		JavaFXInitializer.go();
 		File svg = new File("InsideOutsideTest.svg");
 		if (!svg.exists())
 			throw new RuntimeException("Test file missing!" + svg.getAbsolutePath());
@@ -162,7 +161,6 @@ public class SVGLoadTest {
 	}
 	@Test
 	public void adversarial() throws IOException {
-		JavaFXInitializer.go();
 		File svg = new File("Part-Num-0.svg");
 		if (!svg.exists())
 			throw new RuntimeException("Test file missing!" + svg.getAbsolutePath());

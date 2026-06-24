@@ -26,8 +26,8 @@ public class SVGExporter {
 	private int colorTicker = 0;
 	public static List<String> colorNames = Arrays.asList("crimson", "gray", "darkmagenta", "darkolivegreen",
 			"darkgreen", "darkblue", "deeppink", "chartreuse", "green", "orange", "lime", "black", "tomato");
-	double min[] = {0, 0};
-	double max[] = {VueBoxSize, VueBoxSize};
+	double min[] = { 0, 0 };
+	double max[] = { VueBoxSize, VueBoxSize };
 	private ArrayList<String> polylines = new ArrayList<>();
 	private ArrayList<String> groups = new ArrayList<>();
 	private ArrayList<String> layers = new ArrayList<>();
@@ -35,9 +35,11 @@ public class SVGExporter {
 	private int groupCounter = 1;
 	private int lineCounter = 0;
 	private String name = "";
+
 	public SVGExporter() {
 
 	}
+
 	public String make() {
 		makeLayer();// make the final group
 		String output = "";
@@ -87,6 +89,7 @@ public class SVGExporter {
 		groups.add(groupsLine);
 		polylines.clear();
 	}
+
 	private void makeLayer() {
 		makeGroup();
 		// if(groups.size()==0)
@@ -138,6 +141,7 @@ public class SVGExporter {
 
 		write(svg.make(), defaultDir);
 	}
+
 	private static void write(String output, File defaultDir) throws IOException {
 		// if file doesnt exists, then create it
 		if (!defaultDir.exists()) {
@@ -148,37 +152,29 @@ public class SVGExporter {
 		bw.write(output);
 		bw.close();
 	}
+
 	public static void export(CSG currentCsg, File defaultDir) throws IOException, ColinearPointsException {
 		SVGExporter svg = new SVGExporter();
 		addCsg(currentCsg, svg);
 		write(svg.make(), defaultDir);
 	}
-	public static void export(List<CSG> currentCsg, File defaultDir) throws IOException, ColinearPointsException {
-		try {
-			eu.mihosoft.vrl.v3d.JavaFXInitializer.go();
-		} catch (Throwable t) {
-			t.printStackTrace();
-			// System.out.println("ERROR No UI engine availible");
-		}
-		if (!eu.mihosoft.vrl.v3d.JavaFXInitializer.errored) {
-			SVGExporter svg = new SVGExporter();
-			int i = 0;
-			long start = System.currentTimeMillis();
-			for (CSG tmp : currentCsg) {
-				//// System.out.println("Slicing CSG " + tmp.getName() + " " + (i + 1) + " of "
-				//// + (currentCsg.size()));
-				addCsg(tmp, svg);
-				i++;
-			}
 
-			write(svg.make(), defaultDir);
-			//// System.out.println("Finished slicing CSGs took "+ ((((double)
-			//// (System.currentTimeMillis() - start))) / 1000.0) + " seconds");
-		} else {
-			// System.out.println("ERROR No UI engine availible, SVG slicing is GPU
-			// accelerated and will not work");
+	public static void export(List<CSG> currentCsg, File defaultDir) throws IOException, ColinearPointsException {
+
+		SVGExporter svg = new SVGExporter();
+		int i = 0;
+		long start = System.currentTimeMillis();
+		for (CSG tmp : currentCsg) {
+			//// System.out.println("Slicing CSG " + tmp.getName() + " " + (i + 1) + " of "
+			//// + (currentCsg.size()));
+			addCsg(tmp, svg);
+			i++;
 		}
+
+		write(svg.make(), defaultDir);
+
 	}
+
 	private static void addCsg(CSG currentCsg, SVGExporter svg) throws IOException, ColinearPointsException {
 		svg.setName(currentCsg.getName());
 		for (Transform slicePlane : currentCsg.getSlicePlanes()) {
@@ -190,6 +186,7 @@ public class SVGExporter {
 		}
 
 	}
+
 	private void setName(String name) {
 		if (name == null)
 			return;

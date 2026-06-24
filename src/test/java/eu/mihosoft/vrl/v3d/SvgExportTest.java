@@ -18,7 +18,6 @@ import eu.mihosoft.vrl.v3d.svg.SVGLoad;
 public class SvgExportTest {
 	@BeforeClass
 	public static void init() {
-		JavaFXInitializer.go();
 		CSG.setDefaultOptType(OptType.Manifold3d);
 	}
 

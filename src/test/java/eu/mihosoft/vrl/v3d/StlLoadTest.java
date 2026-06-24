@@ -19,7 +19,7 @@ import javafx.scene.shape.CullFace;
 public class StlLoadTest {
 	@Before
 	public void init() {
-		JavaFXInitializer.go();
+		CSG.setDefaultOptType(OptType.Manifold3d);
 	}
 
 	@Test
