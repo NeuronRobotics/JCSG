@@ -87,8 +87,31 @@ jobs:
     - name: Test with Gradle
       run: ./gradlew test
   build-linux-x86:
-    runs-on: ubuntu-20.04
-
+    runs-on: ubuntu-24.04
+    container:
+      image: ubuntu:20.04
+      options: --user root
+    env:
+      CC: gcc
+      CXX: g++
+    steps:
+    - run: |
+        apt-get update
+        DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            unzip \
+            curl \
+            wget \
+            ca-certificates \
+            lsb-release \
+            gnupg \
+            git \
+            file \
+            xz-utils \
+            openjdk-11-jdk \
+            gcc \
+            g++ \
+            make \
+            maven
     steps:
     - name: Checkout repository and submodules
       uses: actions/checkout@v2
