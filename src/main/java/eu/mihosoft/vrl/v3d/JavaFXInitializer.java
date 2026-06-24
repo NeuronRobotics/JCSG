@@ -1,30 +1,28 @@
 package eu.mihosoft.vrl.v3d;
 
 public class JavaFXInitializer {
-	private static final int NUM_COUNT = 2;
-	private final static java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(NUM_COUNT);
+	private static boolean latch=false;
 	public static boolean errored = false;
 	public JavaFXInitializer() {
 
 	}
 	private static void gointernal() {
-		if (latch.getCount() != NUM_COUNT) {
+		if (latch) {
 			// System.out.println("ERR initializer already started");
 			return;
 		}
 		System.out.println("Starting JavaFX initializer..." + JavaFXInitializer.class);
-		latch.countDown();
+
 		try {
 			final javafx.embed.swing.JFXPanel fxPanel = new javafx.embed.swing.JFXPanel();
-			latch.countDown();
 		} catch (Throwable e) {
-			latch.countDown();
 			errored = true;
 			e.printStackTrace();
 		}
+		latch=true;
 	}
 	public static void go() {
-		if (latch.getCount() != NUM_COUNT) {
+		if (latch) {
 			// System.out.println("ERR initializer already started");
 			return;
 		}
@@ -39,14 +37,19 @@ public class JavaFXInitializer {
 			}
 		}.start();
 		try {
-			JavaFXInitializer.latch.await();
+			long start = System.currentTimeMillis();
+			while((System.currentTimeMillis()-start)<1000 && latch==false) {
+				Thread.sleep(16);
+			}
+			if(!latch)
+				errored=true;
 		} catch (Throwable e) {
 			e.printStackTrace();
 			errored = true;
 		}
 		StackTraceElement[] stacktrace = Thread.currentThread().getStackTrace();
 		StackTraceElement e = stacktrace[2];// maybe this number needs to be corrected
-		System.out.println("Finished JavaFX initializing! " + e);
+		System.out.println((errored?"ERRORED":"Success")+" JavaFX initializing! " + e);
 	}
 
 }
