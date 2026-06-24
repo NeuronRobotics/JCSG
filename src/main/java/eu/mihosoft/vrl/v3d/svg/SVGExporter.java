@@ -26,8 +26,8 @@ public class SVGExporter {
 	private int colorTicker = 0;
 	public static List<String> colorNames = Arrays.asList("crimson", "gray", "darkmagenta", "darkolivegreen",
 			"darkgreen", "darkblue", "deeppink", "chartreuse", "green", "orange", "lime", "black", "tomato");
-	double min[] = { 0, 0 };
-	double max[] = { VueBoxSize, VueBoxSize };
+	double min[] = {0, 0};
+	double max[] = {VueBoxSize, VueBoxSize};
 	private ArrayList<String> polylines = new ArrayList<>();
 	private ArrayList<String> groups = new ArrayList<>();
 	private ArrayList<String> layers = new ArrayList<>();
