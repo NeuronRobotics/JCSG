@@ -70,7 +70,8 @@ public class CSGtoJavafx {
 		} // end for
 		return mesh;
 	}
-	public static TriangleMesh meshFromPolygon(CSG source) {
+
+	public static TriangleMesh meshFromPolygon(CSG source, boolean insideOut) {
 		TriangleMesh mesh = new TriangleMesh();
 		mesh.getTexCoords().addAll(0, 0);
 
@@ -82,7 +83,6 @@ public class CSGtoJavafx {
 			int i1 = (int) triangles[j * 3 + 1];
 			int i2 = (int) triangles[j * 3 + 2];
 
-			// Duplicate the vertices — don't share them across triangles
 			int base = j * 3;
 
 			mesh.getPoints().addAll((float) source.getVertex_X(i0), (float) source.getVertex_Y(i0),
@@ -90,11 +90,12 @@ public class CSGtoJavafx {
 					(float) source.getVertex_Z(i1), (float) source.getVertex_X(i2), (float) source.getVertex_Y(i2),
 					(float) source.getVertex_Z(i2));
 
-			// Each triangle gets its own 3 vertex slots
-			mesh.getFaces().addAll(base + 0, 0, base + 1, 0, base + 2, 0);
+			if (insideOut)
+				mesh.getFaces().addAll(base + 0, 0, base + 2, 0, base + 1, 0);
+			else
+				mesh.getFaces().addAll(base + 0, 0, base + 1, 0, base + 2, 0);
 		}
 
 		return mesh;
 	}
-
 }

@@ -85,7 +85,6 @@ import java.util.stream.Collectors;
 import com.aparapi.Kernel;
 import com.aparapi.Range;
 import com.aparapi.internal.kernel.KernelRunner;
-import com.neuronrobotics.interaction.CadInteractionEvent;
 import com.neuronrobotics.manifold3d.CSGManifold3d;
 import com.neuronrobotics.manifold3d.NonManifoldShapeError;
 
@@ -557,7 +556,6 @@ public class CSG implements IuserAPI, Serializable {
 		setCurrentMeshView(newMesh());
 		return getCurrentMeshView();
 	}
-
 	/**
 	 * Gets the mesh.
 	 *
@@ -565,8 +563,17 @@ public class CSG implements IuserAPI, Serializable {
 	 * @throws ColinearPointsException
 	 */
 	public MeshView newMesh() {
+		return newMesh(false);
+	}
+	/**
+	 * Gets the mesh.
+	 *
+	 * @return the mesh
+	 * @throws ColinearPointsException
+	 */
+	public MeshView newMesh(boolean insideOut) {
 
-		Mesh meshContainer = toJavaFXMesh(null);
+		Mesh meshContainer = CSGtoJavafx.meshFromPolygon(this, insideOut);
 
 		MeshView current = new MeshView(meshContainer);
 
@@ -2607,34 +2614,6 @@ public class CSG implements IuserAPI, Serializable {
 		}
 		CSG historySync = csg.historySync(this);
 		return historySync;
-	}
-
-	/**
-	 * To java fx mesh.
-	 *
-	 * @param interact
-	 *            the interact
-	 * @return the mesh container
-	 * @throws ColinearPointsException
-	 */
-	// TODO finish experiment (20.7.2014)
-	public Mesh toJavaFXMesh(CadInteractionEvent interact) {
-
-		return toJavaFXMeshSimple(interact);
-
-	}
-
-	/**
-	 * Returns the CSG as JavaFX triangle mesh.
-	 *
-	 * @param interact
-	 *            the interact
-	 * @return the CSG as JavaFX triangle mesh
-	 * @throws ColinearPointsException
-	 */
-	public Mesh toJavaFXMeshSimple(CadInteractionEvent interact) {
-
-		return CSGtoJavafx.meshFromPolygon(this);
 	}
 
 	/**
