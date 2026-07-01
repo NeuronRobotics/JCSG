@@ -3173,15 +3173,19 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	public PrepForManufacturing getManufacturing() {
-		if (manufactuingMap.get(this.getUniqueId()) == null) {
-			manufactuingMap.put(this.getUniqueId(), new PrepForManufacturing() {
+		if (!hasManufacturing()) {
+			return new PrepForManufacturing() {
 				@Override
 				public CSG prep(CSG incoming) {
 					return incoming;
 				}
-			});
+			};
 		}
 		return manufactuingMap.get(this.getUniqueId());
+	}
+
+	public boolean hasManufacturing() {
+		return manufactuingMap.get(this.getUniqueId()) != null;
 	}
 
 	public PrepForManufacturing getMfg() {
