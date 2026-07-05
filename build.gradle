@@ -1,3 +1,15 @@
+buildscript {
+
+	dependencies {
+		classpath 'org.eclipse.jdt:org.eclipse.jdt.core:3.35.0'
+		classpath 'org.eclipse.platform:org.eclipse.text:3.14.0'
+	}
+}
+import groovy.xml.XmlSlurper
+import org.eclipse.jdt.core.ToolFactory
+import org.eclipse.jdt.core.formatter.CodeFormatter
+import org.eclipse.jface.text.Document
+
 plugins {
 	id 'eclipse'
 	id 'java'
@@ -7,15 +19,35 @@ plugins {
 	id 'com.diffplug.spotless' version '6.25.0'
 }
 
+
 spotless {
 	java {
 		lineEndings = com.diffplug.spotless.LineEnding.UNIX
-		eclipse('4.26')
+		custom('eclipseFormatterDirect') { String source ->
+			def configFile = new File(projectDir, 'config/eclipse-formatter.xml')
+			def options = new HashMap<String, String>()
+			def xml = new XmlSlurper().parse(configFile)
+			xml.profile.setting.each { setting ->
+				options[setting.@id.text()] = setting.@value.text()
+			}
+			def formatter = ToolFactory.createCodeFormatter(options, ToolFactory.M_FORMAT_EXISTING)
+			def edit = formatter.format(
+					CodeFormatter.K_COMPILATION_UNIT,
+					source, 0, source.length(), 0, System.lineSeparator()
+					)
+			if (edit == null) {
+				throw new GradleException("Eclipse formatter returned null — source may have a syntax error")
+			}
+			def doc = new Document(source)
+			edit.apply(doc)
+			doc.get()
+		}
 		removeUnusedImports()
 		trimTrailingWhitespace()
 		endWithNewline()
 	}
 }
+
 
 java {
 	sourceCompatibility = JavaVersion.VERSION_25

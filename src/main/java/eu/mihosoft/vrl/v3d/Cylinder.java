@@ -166,6 +166,7 @@ public class Cylinder extends Primitive {
 		this.endRadius = endRadius < MINIMUM_RADIUS ? MINIMUM_RADIUS : endRadius;
 		this.numSlices = numSlices;
 	}
+
 	/**
 	 * Constructor. Creates a cylinder ranging from {@code [0,0,0]} to
 	 * {@code [0,0,height]} with the specified {@code radius} and {@code height}.
@@ -201,6 +202,7 @@ public class Cylinder extends Primitive {
 		this.startRadius = startRadius < MINIMUM_RADIUS ? MINIMUM_RADIUS : startRadius;
 		this.endRadius = endRadius < MINIMUM_RADIUS ? MINIMUM_RADIUS : endRadius;
 	}
+
 	// public Cylinder(LengthParameter startRadius, LengthParameter endRadius,
 	// LengthParameter height, int numSlices) {
 	// this(startRadius.getMM(),endRadius.getMM(),height.getMM(),numSlices);

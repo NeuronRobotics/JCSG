@@ -122,6 +122,7 @@ public class Vector3d extends javax.vecmath.Vector3d {
 	public static Vector3d xy(double x, double y) {
 		return new Vector3d(x, y);
 	}
+
 	public static Vector3d xy(Number x, Number y) {
 		return xy(x.doubleValue(), y.doubleValue());
 	}
@@ -139,9 +140,11 @@ public class Vector3d extends javax.vecmath.Vector3d {
 	public static Vector3d xyz(double x, double y, double z) {
 		return new Vector3d(x, y, z);
 	}
+
 	public static Vector3d xyz(Number x, Number y, Number z) {
 		return new Vector3d(x, y, z);
 	}
+
 	@Override
 	public Vector3d clone() {
 		return new Vector3d(x, y, z);
@@ -378,6 +381,7 @@ public class Vector3d extends javax.vecmath.Vector3d {
 		return sb.append(roundedValue(x, ep)).append(" ").append(roundedValue(y, ep)).append(" ")
 				.append(roundedValue(z, ep));
 	}
+
 	/**
 	 * Rounds a double value to the nearest multiple of epsilon.
 	 *
@@ -389,6 +393,7 @@ public class Vector3d extends javax.vecmath.Vector3d {
 		// Round to nearest multiple of epsilon
 		return ((double) Math.round(value / epsilon)) * epsilon;
 	}
+
 	private String roundedValue(double v, double ep) {
 		return String.format(Locale.US, getExportString(), roundToEpsilon(v, ep));
 	}
@@ -450,6 +455,7 @@ public class Vector3d extends javax.vecmath.Vector3d {
 	public String toString() {
 		return "[" + toStlString().replaceAll(" ", " , ") + "]";
 	}
+
 	/*
 	 * (non-Javadoc)
 	 *
@@ -473,9 +479,11 @@ public class Vector3d extends javax.vecmath.Vector3d {
 		Vector3d diff = v.minus(this);
 		return diff.magnitude();
 	}
+
 	public boolean test(Vector3d obj) {
 		return test(obj, Plane.getEPSILON());
 	}
+
 	public boolean test(Vector3d obj, double epsilon) {
 		if (this == obj)
 			return true;

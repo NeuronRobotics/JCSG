@@ -71,24 +71,31 @@ public class Fillet extends Primitive {
 		return Extrude.sweep(profile, (angle + 1) / numArcPoints, 0, filletOfset, (int) numArcPoints).roty(90)
 				.rotz(-0.5).union(new Cylinder(filletOfset * 1.1, rad).toCSG()).movez(-filletOfset);
 	}
+
 	public static ArrayList<CSG> outerChamfer(CSG base, double rad) throws ColinearPointsException {
 		return fillet(base, rad, true, 1);
 	}
+
 	public static ArrayList<CSG> innerChamfer(CSG base, double rad) throws ColinearPointsException {
 		return fillet(base, rad, false, 1);
 	}
+
 	public static ArrayList<CSG> outerFillet(CSG base, double rad) throws ColinearPointsException {
 		return fillet(base, rad, true, 16);
 	}
+
 	public static ArrayList<CSG> innerFillet(CSG base, double rad) throws ColinearPointsException {
 		return fillet(base, rad, false, 16);
 	}
+
 	public static ArrayList<CSG> outerFillet(CSG base, double rad, int faces) throws ColinearPointsException {
 		return fillet(base, rad, true, faces);
 	}
+
 	public static ArrayList<CSG> innerFillet(CSG base, double rad, int faces) throws ColinearPointsException {
 		return fillet(base, rad, false, faces);
 	}
+
 	public static ArrayList<CSG> fillet(CSG base, double rad, boolean outer, int numFaces)
 			throws ColinearPointsException {
 		List<Polygon> polys = Slice.slice(base);

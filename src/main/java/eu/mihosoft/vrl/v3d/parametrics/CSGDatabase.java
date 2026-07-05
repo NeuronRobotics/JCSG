@@ -71,6 +71,7 @@ public class CSGDatabase {
 		}
 		return instance;
 	}
+
 	public static void setInstance(CSGDatabaseInstance instance) {
 		System.out.println("\n\nCSG Instance Set here to " + instance.getDbFile().getAbsolutePath() + "\n\n");
 		CSGDatabase.instance = instance;

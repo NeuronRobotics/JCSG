@@ -120,6 +120,7 @@ public class SvgExportTest {
 		SVGExporter.export(carrot, defaultDir);
 
 	}
+
 	@Test
 	public void svgLoadSlices() throws IOException {
 
@@ -129,6 +130,7 @@ public class SvgExportTest {
 		// System.out.println("SVG Elements ="+gear);
 
 	}
+
 	@Test
 	public void testManyCSGSlices() throws IOException, ColinearPointsException {
 		// Create a CSG to slice

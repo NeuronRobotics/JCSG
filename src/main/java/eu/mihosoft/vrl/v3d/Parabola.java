@@ -74,6 +74,7 @@ public class Parabola {
 	public static CSG cone(double Radius, double height) {
 		return coneByHeight(Radius, height).rotx(90).toZMin();
 	}
+
 	public static CSG cone(double Radius, double height, double np) {
 		setNumberOfPoints(np);
 		return coneByHeight(Radius, height).rotx(90).toZMin();

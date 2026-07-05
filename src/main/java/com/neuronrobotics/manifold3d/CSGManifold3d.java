@@ -163,6 +163,7 @@ public class CSGManifold3d {
 			throw new RuntimeException("Failed to slice CSG at Z=0", e);
 		}
 	}
+
 	/**
 	 * Returns the union of two CSG solids. Uses {@code manifold.union(a, b)}
 	 * directly (wrapper around {@code manifold_union} in the C library).
@@ -181,6 +182,7 @@ public class CSGManifold3d {
 			manifold.delete(mb);
 		}
 	}
+
 	/**
 	 * calculateAreaAndSurfaceArea
 	 *
@@ -197,6 +199,7 @@ public class CSGManifold3d {
 	public CSG calculateAreaAndSurfaceArea(CSG in) throws Throwable {
 		return fromManifold(toManifold(in), in.getColor());
 	}
+
 	/**
 	 * Returns the union of two CSG solids. Uses {@code manifold.union(a, b)}
 	 * directly (wrapper around {@code manifold_union} in the C library).

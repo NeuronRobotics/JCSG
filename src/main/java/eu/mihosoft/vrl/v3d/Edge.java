@@ -808,6 +808,7 @@ public class Edge {
 			return Optional.empty();
 		}
 	}
+
 	/**
 	 * REturn the crossing point if they share points, then its not crossing if the
 	 * do not touch, they are not crossing if the intersection is not contained
@@ -1054,6 +1055,7 @@ public class Edge {
 			return p2;
 		throw new Exception("Threse edges do not touch");
 	}
+
 	/**
 	 *
 	 * @param test2

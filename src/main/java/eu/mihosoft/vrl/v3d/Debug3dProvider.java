@@ -6,13 +6,16 @@ public class Debug3dProvider {
 		if (isProviderAvailible())
 			provider.addObject(o);
 	}
+
 	public static void clearScreen() {
 		if (isProviderAvailible())
 			provider.clearScreen();
 	}
+
 	public static boolean isProviderAvailible() {
 		return provider != null;
 	}
+
 	/**
 	 * @param provider
 	 *            the provider to set

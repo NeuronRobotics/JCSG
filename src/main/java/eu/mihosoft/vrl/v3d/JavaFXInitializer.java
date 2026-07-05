@@ -6,6 +6,7 @@ public class JavaFXInitializer {
 	public JavaFXInitializer() {
 
 	}
+
 	private static void gointernal() {
 		if (latch) {
 			// System.out.println("ERR initializer already started");
@@ -21,6 +22,7 @@ public class JavaFXInitializer {
 		}
 		latch = true;
 	}
+
 	public static void go() {
 		if (latch) {
 			// System.out.println("ERR initializer already started");

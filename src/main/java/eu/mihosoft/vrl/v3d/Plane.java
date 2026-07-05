@@ -92,6 +92,7 @@ public class Plane implements Serializable {
 		this.setNormal(normal.normalized());
 		this.setDist(dist);
 	}
+
 	/**
 	 * Constructor. Creates a new plane defined by its normal vector and the
 	 * distance to the origin.
@@ -122,6 +123,7 @@ public class Plane implements Serializable {
 		this.setNormal(normal.normalized());
 		this.setDist(normal.dot(vertices.get(0).pos));
 	}
+
 	/**
 	 * Constructor. Creates a new plane defined by its normal vector and the
 	 * distance to the origin.
@@ -135,6 +137,7 @@ public class Plane implements Serializable {
 		this.setNormal(normal.normalized());
 		this.setDist(normal.dot(vertice));
 	}
+
 	/**
 	 * Creates a plane defined by the the specified points.
 	 *
@@ -197,6 +200,7 @@ public class Plane implements Serializable {
 		}
 		throw new ColinearPointsException("Failed to compute the normal! " + vertices);
 	}
+
 	private boolean isValidNormal(Vector3d normal) {
 		if (Double.isFinite(normal.x) && Double.isFinite(normal.y) && Double.isFinite(normal.z)) {
 			setLengthSquared(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z);
@@ -450,6 +454,7 @@ public class Plane implements Serializable {
 	public static void setEpsilon(double ePSILON) {
 		EPSILON = ePSILON;
 	}
+
 	@Override
 	public String toString() {
 		return "Normal" + normal + " distance " + dist;

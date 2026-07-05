@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<profiles version="21">
+    <profile kind="CodeFormatterProfile" name="SpotlessProfile" version="21">
+        <setting id="org.eclipse.jdt.core.formatter.comment.format_line_comments" value="false"/>
+        <setting id="org.eclipse.jdt.core.formatter.comment.format_block_comments" value="false"/>
+        <setting id="org.eclipse.jdt.core.formatter.comment.format_javadoc_comments" value="false"/>
+        <setting id="org.eclipse.jdt.core.formatter.comment.format_source_code_changes_on_save" value="false"/>
+
+        <!-- Preserve blank lines in code -->
+        <setting id="org.eclipse.jdt.core.formatter.number_of_empty_lines_to_preserve" value="2"/>
+
+        <!-- Preserve blank lines between declarations -->
+        <setting id="org.eclipse.jdt.core.formatter.blank_lines_between_type_declarations" value="1"/>
+        <setting id="org.eclipse.jdt.core.formatter.blank_lines_before_method" value="1"/>
+    </profile>
+</profiles>

@@ -178,6 +178,7 @@ public final class Node {
 		this.front = this.back;
 		this.back = temp;
 	}
+
 	// public void invert() {
 	// // Use ArrayList as a stack to track nodes to process
 	// ArrayList<Node> stack = new ArrayList<>();
@@ -330,14 +331,17 @@ public final class Node {
 			System.err.println(ex.getMessage() + " Pruned Collinear polygon " + f);
 		}
 	}
+
 	public static String getOsName() {
 		return System.getProperty("os.name");
 	}
+
 	public static boolean isWindows() {
 		// //com.neuronrobotics.sdk.common.Log.error("OS name: "+getOsName());
 		return getOsName().toLowerCase().startsWith("windows") || getOsName().toLowerCase().startsWith("microsoft")
 				|| getOsName().toLowerCase().startsWith("ms");
 	}
+
 	/**
 	 * Splits a {@link Polygon} by this plane if needed. After that it puts the
 	 * polygons or the polygon fragments in the appropriate lists ({@code front},
@@ -676,6 +680,7 @@ public final class Node {
 						normalPolygonY[polygonIndex], normalPolygonZ[polygonIndex]);
 				return (result);
 			}
+
 			void runOnePolygon(int polygonIndex) {
 				// search for the epsilon values of the incoming plane
 				double negEpsilon = -epsilon;
@@ -836,6 +841,7 @@ public final class Node {
 				}
 
 			}
+
 			@Override
 			public void run() {
 				int pi = getGlobalId() * chunkSize;

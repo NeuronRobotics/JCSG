@@ -60,11 +60,13 @@ public class CSGServer {
 			System.err.println("NO API KEYFILE Provided: " + APIKEYS.getAbsolutePath());
 		}
 	}
+
 	public void addListener(ICSGServerEvent e) {
 		if (listeners.contains(e))
 			return;
 		listeners.add(e);
 	}
+
 	public void removeListener(ICSGServerEvent e) {
 		if (!listeners.contains(e))
 			return;

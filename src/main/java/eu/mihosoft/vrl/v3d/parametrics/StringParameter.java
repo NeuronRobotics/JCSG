@@ -15,12 +15,15 @@ public class StringParameter extends Parameter {
 		setup(key, defaultValue, options);
 		options2 = options;
 	}
+
 	public void setString(String s) {
 		setStrValue(s);
 	}
+
 	public String getString() {
 		return (String) getStrValue();
 	}
+
 	public List<String> getStringOptions() {
 		return new ArrayList<String>(options2);
 	}

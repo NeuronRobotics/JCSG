@@ -45,6 +45,7 @@ public class Parameter {
 		}
 		getInstance().set(key, this);
 	}
+
 	protected void setup(String key, String defaultValue, ArrayList<String> options) {
 		this.name = key;
 		if (getInstance().get(name) == null)
@@ -63,6 +64,7 @@ public class Parameter {
 		}
 		getInstance().set(key, this);
 	}
+
 	public String getName() {
 		return name;
 	}
@@ -81,6 +83,7 @@ public class Parameter {
 	public Long getValue() {
 		return value;
 	}
+
 	public ArrayList<String> getOptions() {
 		return options;
 	}
@@ -103,6 +106,7 @@ public class Parameter {
 	public void setMM(double newVal) {
 		setValue(new Long((long) (newVal * 1000.0)));
 	}
+
 	public void setMicrons(long newVal) {
 		setValue(new Long(newVal));
 	}
@@ -110,12 +114,15 @@ public class Parameter {
 	public double getMM() {
 		return (Double.parseDouble(getValue().toString())) / 1000.0;
 	}
+
 	public double getMicrons() {
 		return (Long) getValue();
 	}
+
 	public CSGDatabaseInstance getInstance() {
 		return instance;
 	}
+
 	public void setInstance(CSGDatabaseInstance instance) {
 		this.instance = instance;
 	}

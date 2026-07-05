@@ -26,6 +26,7 @@ public class SVGLoadTest {
 		CSG.setPreventNonManifoldTriangles(true);
 		CSG.setDefaultOptType(OptType.Manifold3d);
 	}
+
 	@Test
 	@Ignore
 	public void vows() throws IOException {
@@ -57,6 +58,7 @@ public class SVGLoadTest {
 		// FileUtil.write(Paths.get(i+"-flame.stl"),
 		// parts.get(i).toStlString());
 	}
+
 	// Alexes_Bad.svg
 	@Test
 	public void flame() throws IOException {
@@ -89,6 +91,7 @@ public class SVGLoadTest {
 		for (int i = 0; i < parts.size(); i++)
 			parts.get(i).toStl(Paths.get(i + "-flame.stl"));
 	}
+
 	// Alexes_Bad.svg
 	@Test
 	public void Alexes_Bad() throws IOException {
@@ -122,6 +125,7 @@ public class SVGLoadTest {
 		// FileUtil.write(Paths.get(i+"-alex.stl"),
 		// parts.get(i).toStlString());
 	}
+
 	@Test
 	public void box() throws IOException {
 		File svg = new File("box.svg");
@@ -140,6 +144,7 @@ public class SVGLoadTest {
 		for (int i = 0; i < parts.size(); i++)
 			parts.get(i).toStl(Paths.get(i + "-box.stl"));
 	}
+
 	@Test
 	@Ignore
 	public void inside() throws IOException {
@@ -159,6 +164,7 @@ public class SVGLoadTest {
 		for (int i = 0; i < parts.size(); i++)
 			parts.get(i).toStl(Paths.get(i + "-InsideOutsideTest.stl"));
 	}
+
 	@Test
 	public void adversarial() throws IOException {
 		File svg = new File("Part-Num-0.svg");

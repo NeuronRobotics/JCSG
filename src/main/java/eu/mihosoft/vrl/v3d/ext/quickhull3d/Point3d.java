@@ -54,6 +54,7 @@ public class Point3d extends Vector3d {
 	public Point3d(double x, double y, double z) {
 		set(x, y, z);
 	}
+
 	@Override
 	public int hashCode() {
 		int offset = 1000;

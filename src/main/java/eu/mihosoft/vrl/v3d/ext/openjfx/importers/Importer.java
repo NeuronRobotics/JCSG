@@ -59,6 +59,7 @@ public abstract class Importer {
 	 * @return The loaded node
 	 */
 	public abstract Group getRoot();
+
 	/**
 	 * Tests if the given 3D file extension is supported (e.g. "ma", "ase", "obj",
 	 * "fxml", "dae").

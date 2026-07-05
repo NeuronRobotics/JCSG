@@ -11,6 +11,7 @@ public interface IExtrusion {
 	 * @return
 	 */
 	CSG extrude(Vector3d dir, List<Vector3d> points) throws ColinearPointsException;
+
 	/**
 	 * Extrude.
 	 *

@@ -556,6 +556,7 @@ public class CSG implements IuserAPI, Serializable {
 		setCurrentMeshView(newMesh());
 		return getCurrentMeshView();
 	}
+
 	/**
 	 * Gets the mesh.
 	 *
@@ -565,6 +566,7 @@ public class CSG implements IuserAPI, Serializable {
 	public MeshView newMesh() {
 		return newMesh(false);
 	}
+
 	/**
 	 * Gets the mesh.
 	 *
@@ -3946,6 +3948,7 @@ public class CSG implements IuserAPI, Serializable {
 		getStorage().set("materialInfillPercent", type);
 		return this;
 	}
+
 	public Optional<Double> getMateriaDensity() {
 		return getStorage().getValue("materialDensity");
 	}
@@ -3954,6 +3957,7 @@ public class CSG implements IuserAPI, Serializable {
 		getStorage().set("materialDensity", type);
 		return this;
 	}
+
 	private void syncCadoodleCatagories(CSG dyingCSG) {
 		setIsHole(dyingCSG.isHole());
 		setIsHide(dyingCSG.isHide());

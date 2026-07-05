@@ -57,12 +57,14 @@ public class CSGResponse implements Serializable {
 	public String getMessage() {
 		return message;
 	}
+
 	public void setMessage(Throwable t) {
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw);
 		t.printStackTrace(pw);
 		this.message = sw.toString();
 	}
+
 	public void setMessage(String message) {
 		this.message = message;
 	}

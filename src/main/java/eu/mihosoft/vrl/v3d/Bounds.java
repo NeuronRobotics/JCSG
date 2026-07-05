@@ -219,6 +219,7 @@ public class Bounds implements Serializable {
 	public boolean contains(Transform com) {
 		return contains(new Vector3d(com.getX(), com.getY(), com.getZ()));
 	}
+
 	/**
 	 * Helper function wrapping bounding box values
 	 *
@@ -326,6 +327,7 @@ public class Bounds implements Serializable {
 	public double getTotalZ() {
 		return (-this.getMinZ() + this.getMaxZ());
 	}
+
 	public boolean isBoundsTouching(Bounds incoming) {
 		return this.getMaxX() > incoming.getMinX() && this.getMinX() < incoming.getMaxX()
 				&& this.getMaxY() > incoming.getMinY() && this.getMinY() < incoming.getMaxY()

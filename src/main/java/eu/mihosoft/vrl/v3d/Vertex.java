@@ -238,9 +238,11 @@ public class Vertex implements Serializable {
 	public double getX() {
 		return pos.x;
 	}
+
 	public double getY() {
 		return pos.y;
 	}
+
 	public double getZ() {
 		return pos.z;
 	}

@@ -110,6 +110,7 @@ public class Slice {
 			return new Object[]{obj_img, scaleX, xOffset - imageOffsetMotion, scaleY, yOffset - imageOffsetMotion,
 					imageOffsetMotion, imageOffset};
 		}
+
 		int[] toPixels(double absX, double absY, double xOff, double yOff, double scaleX, double scaleY) {
 			return new int[]{(int) ((absX - xOff) / scaleX), (int) ((absY - yOff) / scaleY)};
 		}
@@ -496,9 +497,11 @@ public class Slice {
 	public static List<Polygon> slice(CSG incoming) throws ColinearPointsException {
 		return slice(incoming, new Transform(), 0);
 	}
+
 	public static List<Polygon> slice(CSG incoming, double normalInsetDistance) throws ColinearPointsException {
 		return slice(incoming, new Transform(), normalInsetDistance);
 	}
+
 	public static ISlice getSliceEngine() {
 		if (sliceEngine == null)
 			sliceEngine = new DefaultSliceImp();
@@ -516,6 +519,7 @@ public class Slice {
 	public static void setNumFacesInOffset(int numFacesInOffset) {
 		CSG.setNumFacesInOffset(numFacesInOffset);
 	}
+
 	public static void setMaxRes(int mr) {
 		maxRes = mr;
 	}

@@ -214,6 +214,7 @@ public class Extrude {
 	public static boolean isCCW(Polygon polygon) throws ColinearPointsException {
 		return isCCWv3d(polygon.getPoints());
 	}
+
 	/**
 	 * Checks if is ccw.
 	 *
@@ -225,6 +226,7 @@ public class Extrude {
 	public static boolean isCCW(List<Vertex> vertices) throws ColinearPointsException {
 		return isCCW(vertices, new Vector3d(0, 0, 1));
 	}
+
 	/**
 	 * Checks if is ccw.
 	 *
