@@ -735,7 +735,8 @@ public class SVGLoad {
 			ArrayList<CSG> parts = csgByLayers.get(key);
 			parts.clear();
 
-			for (Polygon p : getPolygonByLayers().get(key)) {
+			List<Polygon> list = getPolygonByLayers().get(key);
+			for (Polygon p : list) {
 				try {
 					PolygonUtil.triangulatePolygon(p);
 					boolean isHole = p.isHole();
