@@ -131,7 +131,10 @@ public class CSGManifold3d {
 		try {
 			csgm = toManifold(csg);
 			checkResult(csgm);
-			List<double[][]> contours = manifold.sliceWithOffset(csgm, 0.0, offset,((Math.abs(offset)<BezierPath.getMaximumInterpolationStep())? ManifoldBindings.JoinType.SQUARE:ManifoldBindings.JoinType.ROUND),
+			List<double[][]> contours = manifold.sliceWithOffset(csgm, 0.0, offset,
+					((Math.abs(offset) < BezierPath.getMaximumInterpolationStep())
+							? ManifoldBindings.JoinType.SQUARE
+							: ManifoldBindings.JoinType.ROUND),
 					Math.abs(BezierPath.getMaximumInterpolationStep()), 16);
 
 			ArrayList<Polygon> result = new ArrayList<>(contours.size());
