@@ -8,6 +8,7 @@ import java.util.List;
 import com.cadoodlecad.manifold.ManifoldBindings;
 import com.cadoodlecad.manifold.ManifoldBindings.ManifoldError;
 import com.cadoodlecad.manifold.ManifoldBindings.MeshData64;
+import com.piro.bezier.BezierPath;
 
 import eu.mihosoft.vrl.v3d.CSG;
 import eu.mihosoft.vrl.v3d.ColinearPointsException;
@@ -130,8 +131,8 @@ public class CSGManifold3d {
 		try {
 			csgm = toManifold(csg);
 			checkResult(csgm);
-			List<double[][]> contours = manifold.sliceWithOffset(csgm, 0.0, offset, ManifoldBindings.JoinType.MITER,
-					2.0, 0);
+			List<double[][]> contours = manifold.sliceWithOffset(csgm, 0.0, offset,((Math.abs(offset)<BezierPath.getMaximumInterpolationStep())? ManifoldBindings.JoinType.SQUARE:ManifoldBindings.JoinType.ROUND),
+					Math.abs(BezierPath.getMaximumInterpolationStep()), 16);
 
 			ArrayList<Polygon> result = new ArrayList<>(contours.size());
 
