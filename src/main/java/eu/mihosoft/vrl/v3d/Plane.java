@@ -179,7 +179,9 @@ public class Plane implements Serializable {
 	public Vector3d computeNormal(List<Vertex> vertices, Vector3d testNorm) throws ColinearPointsException {
 
 		if (vertices == null || vertices.size() < 3) {
-			throw new ColinearPointsException("Can not find normal without at least 3 points " + vertices);
+			ColinearPointsException colinearPointsException = new ColinearPointsException("Can not find normal without at least 3 points " + vertices);
+			colinearPointsException.printStackTrace();
+			throw colinearPointsException;
 		}
 		// First attempt: Newell's method
 		Vector3d normal = new Vector3d(0, 0, 0);
