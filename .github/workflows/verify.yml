@@ -78,14 +78,14 @@ jobs:
       uses: actions/checkout@v2
       with:
          submodules: recursive
-    - name: Install Java and Maven
-      run: |
-        wget https://cdn.azul.com/zulu/bin/zulu25.36.15-ca-fx-jdk25.0.4-macosx_aarch64.tar.gz
-        tar -xzf zulu25.36.15-ca-fx-jdk25.0.4-macosx_aarch64.tar.gz
-        echo "JAVA_HOME=$(pwd)/zulu25.36.15-ca-fx-jdk25.0.4-macosx_aarch64" >> $GITHUB_ENV
-        echo "PATH=$(pwd)/zulu25.36.15-ca-fx-jdk25.0.4-macosx_aarch64/bin:$PATH" >> $GITHUB_ENV
-    - name: Test with Gradle
-      run: ./gradlew test
+     - name: Install Java and Maven
+       run: |
+         wget https://cdn.azul.com/zulu/bin/zulu25.32.21-ca-fx-jdk25.0.2-macosx_aarch64.tar.gz
+         tar -xzf zulu25.32.21-ca-fx-jdk25.0.2-macosx_aarch64.tar.gz
+         echo "JAVA_HOME=$(pwd)/zulu25.32.21-ca-fx-jdk25.0.2-macosx_aarch64" >> $GITHUB_ENV
+         echo "PATH=$(pwd)/zulu25.32.21-ca-fx-jdk25.0.2-macosx_aarch64/bin:$PATH" >> $GITHUB_ENV
+     - name: Test with Gradle
+       run: ./gradlew test
   build-linux-x86:
     runs-on: ubuntu-24.04
     container:
