@@ -3651,12 +3651,12 @@ public class CSG implements IuserAPI, Serializable {
 		return (int) getStorage().getValue("printBedIndex").get();
 	}
 
-	public static CSG text(String text, double height, double fontSize) {
-		return text(text, height, fontSize, Font.getDefault().getName());
+	public static CSG text(String text, double height, Font font) {
+		return text(text, height, height, font.getName());
 	}
 
 	public static CSG text(String text, double height) {
-		return text(text, height, 30);
+		return text(text, height, 30, Font.getDefault().getName());
 	}
 
 	public static CSG text(String text, double height, double fontSize, String fontType) {
@@ -3697,6 +3697,27 @@ public class CSG implements IuserAPI, Serializable {
 	 */
 	public static CSG textToSize(String text, double x, double y, double z) {
 		CSG startText = CSG.text(text, z);
+		double scalex = x / startText.getTotalX();
+		double scaley = y / startText.getTotalY();
+		return startText.scalex(scalex).scaley(scaley).toXMin();
+	}
+
+	/**
+	 * Extrude text to a specific bounding box size
+	 *
+	 * @param text
+	 *            the text to be extruded
+	 * @param x
+	 *            the total final X
+	 * @param y
+	 *            the total final Y
+	 * @param z
+	 *            the total final Z
+	 * @return The given input text, scaled to the exact sizes provided, with Y=0
+	 *         line as the bottom line of the text
+	 */
+	public static CSG textToSize(String text, double x, double y, double z, javafx.scene.text.Font font) {
+		CSG startText = CSG.text(text, z, font);
 		double scalex = x / startText.getTotalX();
 		double scaley = y / startText.getTotalY();
 		return startText.scalex(scalex).scaley(scaley).toXMin();
