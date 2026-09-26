@@ -3673,7 +3673,7 @@ public class CSG implements IuserAPI, Serializable {
 			if (back == null)
 				back = stuff.get(i);
 			else {
-				back = back.dumbUnion(stuff.get(i));
+				back = back.union(stuff.get(i));
 			}
 		}
 		back = back.rotx(180).toZMin();
