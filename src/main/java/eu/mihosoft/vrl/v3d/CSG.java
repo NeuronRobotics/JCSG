@@ -1105,8 +1105,7 @@ public class CSG implements IuserAPI, Serializable {
 				try {
 					return getManifold().union(this, csg);
 				} catch (Throwable e) {
-					System.err.println("ERROR failing over to Java Union " + e.getMessage());
-					e.printStackTrace();
+					throw new RuntimeException(e);
 				}
 			case CSG_BOUND :
 				return _unionCSGBoundsOpt(csg).historySync(this).historySync(csg);
