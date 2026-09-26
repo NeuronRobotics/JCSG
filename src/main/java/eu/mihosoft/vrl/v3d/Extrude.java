@@ -63,10 +63,8 @@ public class Extrude {
 		 * Extrudes the specified path (convex or concave polygon without holes or
 		 * intersections, specified in CCW) into the specified direction.
 		 *
-		 * @param dir
-		 *            direction
-		 * @param points
-		 *            path (convex or concave polygon without holes or intersections)
+		 * @param dir    direction
+		 * @param points path (convex or concave polygon without holes or intersections)
 		 *
 		 * @return a CSG object that consists of the extruded polygon
 		 * @throws ColinearPointsException
@@ -81,10 +79,8 @@ public class Extrude {
 		/**
 		 * Extrude.
 		 *
-		 * @param dir
-		 *            the dir
-		 * @param polygon1
-		 *            the polygon1
+		 * @param dir      the dir
+		 * @param polygon1 the polygon1
 		 * @return the csg
 		 */
 		public CSG extrude(Vector3d dir, Polygon polygon1) {
@@ -144,18 +140,22 @@ public class Extrude {
 	}
 
 	public static CSG points(Vector3d dir, List<Vector3d> points) throws ColinearPointsException {
-
-		return getExtrusionEngine().extrude(dir, points);
+		CSG extrude = getExtrusionEngine().extrude(dir, points);
+		if (CSG.getDefaultOptionType() == OptType.Manifold3d)
+			try {
+				extrude = CSG.getManifold().calculateAreaAndSurfaceArea(extrude);
+			} catch (Throwable e) {
+				throw new RuntimeException(e);
+			}
+		return extrude;
 	}
 
 	/**
 	 * Extrudes the specified path (convex or concave polygon without holes or
 	 * intersections, specified in CCW) into the specified direction.
 	 *
-	 * @param dir
-	 *            direction
-	 * @param points
-	 *            path (convex or concave polygon without holes or intersections)
+	 * @param dir    direction
+	 * @param points path (convex or concave polygon without holes or intersections)
 	 *
 	 * @return a CSG object that consists of the extruded polygon
 	 * @throws ColinearPointsException
@@ -168,8 +168,7 @@ public class Extrude {
 	/**
 	 * To ccw.
 	 *
-	 * @param points
-	 *            the points
+	 * @param points the points
 	 * @return the list
 	 * @throws ColinearPointsException
 	 */
@@ -187,8 +186,7 @@ public class Extrude {
 	/**
 	 * To cw.
 	 *
-	 * @param points
-	 *            the points
+	 * @param points the points
 	 * @return the list
 	 * @throws ColinearPointsException
 	 */
@@ -206,8 +204,7 @@ public class Extrude {
 	/**
 	 * Checks if is ccw.
 	 *
-	 * @param polygon
-	 *            the polygon
+	 * @param polygon the polygon
 	 * @return true, if is ccw
 	 * @throws ColinearPointsException
 	 */
@@ -218,8 +215,7 @@ public class Extrude {
 	/**
 	 * Checks if is ccw.
 	 *
-	 * @param polygon
-	 *            the polygon
+	 * @param polygon the polygon
 	 * @return true, if is ccw
 	 * @throws ColinearPointsException
 	 */
@@ -230,10 +226,8 @@ public class Extrude {
 	/**
 	 * Checks if is ccw.
 	 *
-	 * @param polygon
-	 *            the polygon
-	 * @param normal
-	 *            the normal to check the CCW against.
+	 * @param polygon the polygon
+	 * @param normal  the normal to check the CCW against.
 	 * @return true, if is ccw
 	 * @throws ColinearPointsException
 	 */
@@ -247,8 +241,7 @@ public class Extrude {
 	/**
 	 * Checks if is ccw.
 	 *
-	 * @param polygon
-	 *            the polygon
+	 * @param polygon the polygon
 	 * @return true, if is ccw
 	 */
 	public static boolean isCCWv3d(List<Vector3d> vertices) throws ColinearPointsException {
@@ -325,10 +318,8 @@ public class Extrude {
 	/**
 	 * Normalized x.
 	 *
-	 * @param v1
-	 *            the v1
-	 * @param v2
-	 *            the v2
+	 * @param v1 the v1
+	 * @param v2 the v2
 	 * @return the double
 	 */
 	private static double normalizedX(Vector3d v1, Vector3d v2) {
