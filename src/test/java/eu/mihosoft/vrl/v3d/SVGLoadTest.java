@@ -125,6 +125,7 @@ public class SVGLoadTest {
 		// FileUtil.write(Paths.get(i+"-alex.stl"),
 		// parts.get(i).toStlString());
 	}
+
 	@Test
 	public void badPoly() throws IOException {
 		File svg = new File("polygon.svg");
@@ -140,12 +141,13 @@ public class SVGLoadTest {
 			// Auto-generated catch block
 			e.printStackTrace();
 		}
-		if(parts.size()==0)
+		if (parts.size() == 0)
 			throw new RuntimeException("No parts generated!" + svg.getAbsolutePath());
 
 		for (int i = 0; i < parts.size(); i++)
-			parts.get(i).toStl(Paths.get(i +svg.getAbsolutePath()+ ".stl"));
+			parts.get(i).toStl(Paths.get(i + svg.getAbsolutePath() + ".stl"));
 	}
+
 	@Test
 	public void box() throws IOException {
 		File svg = new File("box.svg");

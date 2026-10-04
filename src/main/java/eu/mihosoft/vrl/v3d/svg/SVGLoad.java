@@ -4,7 +4,6 @@ import org.apache.batik.anim.dom.SAXSVGDocumentFactory;
 import org.apache.batik.anim.dom.SVGOMGElement;
 import org.apache.batik.anim.dom.SVGOMImageElement;
 import org.apache.batik.anim.dom.SVGOMPathElement;
-import org.apache.batik.anim.dom.SVGOMPolylineElement;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -31,6 +30,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.svg.SVGAnimatedPoints;
 import org.w3c.dom.svg.SVGImageElement;
 import org.w3c.dom.svg.SVGPathSegList;
 import org.w3c.dom.svg.SVGPointList;
@@ -336,7 +336,8 @@ public class SVGLoad {
 				SVGOMGElement element = (SVGOMGElement) item;
 				loadGroup(element, startingFrame, "TOP");
 			}
-			if (SVGOMPathElement.class.isInstance(item) || SVGOMImageElement.class.isInstance(item)) {
+			if (SVGOMPathElement.class.isInstance(item) || SVGAnimatedPoints.class.isInstance(item)
+					|| SVGOMImageElement.class.isInstance(item)) {
 				try {
 					loadPath(item, startingFrame, "TOP");
 				} catch (Throwable t) {
@@ -504,7 +505,7 @@ public class SVGLoad {
 					//// com.neuronrobotics.sdk.common.Log.error("\tPath
 					//// "+pathNode.getAttributes().getNamedItem("id").getNodeValue()+" "+newFrame);
 					loadComposite(code, newFrame, encapsulatingLayer, c);
-				} else if (SVGOMPolylineElement.class.isInstance(pathNode)) {
+				} else if (SVGAnimatedPoints.class.isInstance(pathNode)) {
 					Color c = null;
 					//// com.neuronrobotics.sdk.common.Log.error("Layer "+encapsulatingLayer);
 					try {
@@ -547,9 +548,7 @@ public class SVGLoad {
 					}
 
 					String sb = null;
-					SVGOMPolylineElement pathElement = (SVGOMPolylineElement) pathNode;
-					SVGPointList pathList = pathElement.getPoints();
-					// String offset = pathElement.getOwnerSVGElement();
+					SVGPointList pathList = ((SVGAnimatedPoints) pathNode).getPoints();
 
 					int pathObjects = pathList.getNumberOfItems();
 
