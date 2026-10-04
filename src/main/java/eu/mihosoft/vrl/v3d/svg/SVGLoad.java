@@ -9,6 +9,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.awt.geom.PathIterator;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,6 +25,8 @@ import org.apache.batik.bridge.GVTBuilder;
 import org.apache.batik.bridge.UserAgent;
 import org.apache.batik.bridge.UserAgentAdapter;
 import org.apache.batik.dom.svg.SVGItem;
+import org.apache.batik.parser.AWTPathProducer;
+import org.apache.batik.parser.PathParser;
 import org.apache.batik.util.XMLResourceDescriptor;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -32,7 +35,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.svg.SVGAnimatedPoints;
 import org.w3c.dom.svg.SVGImageElement;
-import org.w3c.dom.svg.SVGPathSegList;
 import org.w3c.dom.svg.SVGPointList;
 
 import com.piro.bezier.BezierPath;
@@ -165,20 +167,40 @@ public class SVGLoad {
 		public String toCode() {
 			String sb = "";
 			SVGOMPathElement pathElement = getPathElement();
-			SVGPathSegList pathList = pathElement.getNormalizedPathSegList();
-			// String offset = pathElement.getOwnerSVGElement();
-
-			int pathObjects = pathList.getNumberOfItems();
-			/*
-			 * sb.append( "M "+offset .replaceAll("translate", "") .replaceAll("(", "")
-			 * .replaceAll(")", "") +"\n");
-			 */
-			// sb.append( "//"+getId()+"\n");
-
-			for (int i = 0; i < pathObjects; i++) {
-				SVGItem item = (SVGItem) pathList.getItem(i);
-				String itemLine = String.format(Locale.US, "%s%n", item.getValueAsString());
-				sb += itemLine;
+			// NB: SVGOMPathElement#getNormalizedPathSegList() resolves a relative moveto
+			// after a closepath against the last point of the subpath instead of the
+			// start point of the subpath (the latter is what SVG mandates and what
+			// renderers use). AWTPathProducer performs the same normalization correctly,
+			// so we use it here to keep the loader consistent with actual rendering.
+			AWTPathProducer pathProducer = new AWTPathProducer();
+			PathParser pathParser = new PathParser();
+			pathParser.setPathHandler(pathProducer);
+			pathParser.parse(pathElement.getAttributeNS(null, "d"));
+			PathIterator pathIterator = pathProducer.getShape().getPathIterator(null);
+			double[] coords = new double[6];
+			while (!pathIterator.isDone()) {
+				int segmentType = pathIterator.currentSegment(coords);
+				switch (segmentType) {
+					case PathIterator.SEG_MOVETO :
+						sb += String.format(Locale.US, "M %s %s%n", coords[0], coords[1]);
+						break;
+					case PathIterator.SEG_LINETO :
+						sb += String.format(Locale.US, "L %s %s%n", coords[0], coords[1]);
+						break;
+					case PathIterator.SEG_QUADTO :
+						sb += String.format(Locale.US, "Q %s %s %s %s%n", coords[0], coords[1], coords[2], coords[3]);
+						break;
+					case PathIterator.SEG_CUBICTO :
+						sb += String.format(Locale.US, "C %s %s %s %s %s %s%n", coords[0], coords[1], coords[2],
+								coords[3], coords[4], coords[5]);
+						break;
+					case PathIterator.SEG_CLOSE :
+						sb += String.format(Locale.US, "z%n");
+						break;
+					default :
+						throw new RuntimeException("Unexpected path segment type: " + segmentType);
+				}
+				pathIterator.next();
 			}
 
 			return sb.toString();

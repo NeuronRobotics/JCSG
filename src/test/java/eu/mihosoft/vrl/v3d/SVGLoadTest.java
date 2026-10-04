@@ -216,6 +216,73 @@ public class SVGLoadTest {
 		// fail("Not yet implemented");
 	}
 
+	@Test
+	public void rose() throws IOException {
+		File grouped = new File("rose.svg");
+		File ungrouped = new File("rose-fixed.svg");
+		if (!grouped.exists())
+			throw new RuntimeException("Test file missing!" + grouped.getAbsolutePath());
+		if (!ungrouped.exists())
+			throw new RuntimeException("Test file missing!" + ungrouped.getAbsolutePath());
+		List<Polygon> a = allPolygons(new SVGLoad(grouped.toURI()));
+		List<Polygon> b = allPolygons(new SVGLoad(ungrouped.toURI()));
+		// The two files describe the same shapes with the same coordinates, but with
+		// different grouping and subpath winding. Both must load to the same geometry.
+		assertSameGeometry(a, b, 1e-3);
+	}
+
+	/** Flattens the polygons of every layer into a single list. */
+	private static List<Polygon> allPolygons(SVGLoad s) {
+		List<Polygon> all = new ArrayList<Polygon>();
+		HashMap<String, List<Polygon>> polygons = s.toPolygons();
+		for (String key : polygons.keySet())
+			all.addAll(polygons.get(key));
+		return all;
+	}
+
+	/** Asserts that two polygon collections describe the same geometry. */
+	private static void assertSameGeometry(List<Polygon> a, List<Polygon> b, double tol) {
+		assertEquals("polygon count", a.size(), b.size());
+		boolean[] used = new boolean[b.size()];
+		for (Polygon pa : a) {
+			double[] ba = boundingBox(pa);
+			// each source polygon must have exactly one geometrically matching target
+			int best = -1;
+			double bestDistance = Double.MAX_VALUE;
+			for (int j = 0; j < b.size(); j++) {
+				if (used[j])
+					continue;
+				double[] bb = boundingBox(b.get(j));
+				double dx = (ba[0] + ba[2]) / 2 - (bb[0] + bb[2]) / 2;
+				double dy = (ba[1] + ba[3]) / 2 - (bb[1] + bb[3]) / 2;
+				double d = Math.hypot(dx, dy);
+				if (d < bestDistance) {
+					bestDistance = d;
+					best = j;
+				}
+			}
+			used[best] = true;
+			Polygon pb = b.get(best);
+			assertEquals("vertex count", pa.getPoints().size(), pb.getPoints().size());
+			double[] bb = boundingBox(pb);
+			for (int k = 0; k < 4; k++)
+				assertEquals("bounding box coordinate " + k, ba[k], bb[k], tol);
+		}
+	}
+
+	/** Returns the {minX,minY,maxX,maxY} bounding box of a polygon. */
+	private static double[] boundingBox(Polygon p) {
+		double minX = Double.MAX_VALUE, minY = Double.MAX_VALUE;
+		double maxX = -Double.MAX_VALUE, maxY = -Double.MAX_VALUE;
+		for (Vector3d v : p.getPoints()) {
+			minX = Math.min(minX, v.x);
+			minY = Math.min(minY, v.y);
+			maxX = Math.max(maxX, v.x);
+			maxY = Math.max(maxY, v.y);
+		}
+		return new double[]{minX, minY, maxX, maxY};
+	}
+
 	private ArrayList<CSG> run(SVGLoad s) {
 
 		ArrayList<Object> p = new ArrayList<>();
