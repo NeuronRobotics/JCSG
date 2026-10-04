@@ -125,7 +125,27 @@ public class SVGLoadTest {
 		// FileUtil.write(Paths.get(i+"-alex.stl"),
 		// parts.get(i).toStlString());
 	}
+	@Test
+	public void badPoly() throws IOException {
+		File svg = new File("polygon.svg");
+		if (!svg.exists())
+			throw new RuntimeException("Test file missing!" + svg.getAbsolutePath());
+		SVGLoad s = new SVGLoad(svg.toURI());
+		ArrayList<CSG> parts = run(s);
+		try {
+			ThumbnailImageCSG.setCullFaceValue(CullFace.NONE);
+			new ThumbnailImageCSG().writeImage(CSGDatabase.getInstance(), parts,
+					new File(svg.getAbsolutePath() + ".png"));
+		} catch (Exception e) {
+			// Auto-generated catch block
+			e.printStackTrace();
+		}
+		if(parts.size()==0)
+			throw new RuntimeException("No parts generated!" + svg.getAbsolutePath());
 
+		for (int i = 0; i < parts.size(); i++)
+			parts.get(i).toStl(Paths.get(i +svg.getAbsolutePath()+ ".stl"));
+	}
 	@Test
 	public void box() throws IOException {
 		File svg = new File("box.svg");
