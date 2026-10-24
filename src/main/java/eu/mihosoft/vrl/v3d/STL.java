@@ -94,6 +94,15 @@ public class STL {
 
 		fromPolygons = new CSG(polygons);
 
+		// measuring the mesh is the manifold check: a surface that is not closed has
+		// no volume, and the kernel refuses it. A loaded part must be a solid, so it
+		// is measured here rather than left with an unchecked volume of zero.
+		if (CSG.getManifold() != null) {
+			CSG measured = CSG.getManifold().calculateAreaAndSurfaceArea(fromPolygons);
+			fromPolygons.setVolume(measured.getVolume());
+			fromPolygons.setSurfaceArea(measured.getSurfaceArea());
+		}
+
 		return fromPolygons;
 
 	}
