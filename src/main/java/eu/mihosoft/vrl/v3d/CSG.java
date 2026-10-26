@@ -422,8 +422,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * Sets the polygons.
 	 *
-	 * @param polygons
-	 *            the new polygons
+	 * @param polygons the new polygons
 	 * @throws ColinearPointsException
 	 */
 	public CSG setPolygons(ArrayList<Polygon> polygons) throws ColinearPointsException {
@@ -492,8 +491,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * Sets the color.
 	 *
-	 * @param color
-	 *            the new color
+	 * @param color the new color
 	 */
 	public CSG setColor(javafx.scene.paint.Color color) {
 		r = color.getRed();
@@ -515,8 +513,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * Sets the Temporary color.
 	 *
-	 * @param color
-	 *            the new Temporary color
+	 * @param color the new Temporary color
 	 */
 	public CSG setTemporaryColor(Color color) {
 		if (getCurrentMeshView() != null) {
@@ -529,8 +526,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * Sets the manipulator.
 	 *
-	 * @param manipulator
-	 *            the manipulator
+	 * @param manipulator the manipulator
 	 * @return the affine
 	 */
 	public CSG setManipulator(javafx.scene.transform.Affine m) {
@@ -610,8 +606,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * To z min.
 	 *
-	 * @param target
-	 *            the target
+	 * @param target the target
 	 * @return the csg
 	 */
 	public CSG toZMin(CSG target) {
@@ -621,8 +616,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * To z max.
 	 *
-	 * @param target
-	 *            the target
+	 * @param target the target
 	 * @return the csg
 	 */
 	public CSG toZMax(CSG target) {
@@ -632,8 +626,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * To x min.
 	 *
-	 * @param target
-	 *            the target
+	 * @param target the target
 	 * @return the csg
 	 */
 	public CSG toXMin(CSG target) {
@@ -643,8 +636,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * To x max.
 	 *
-	 * @param target
-	 *            the target
+	 * @param target the target
 	 * @return the csg
 	 */
 	public CSG toXMax(CSG target) {
@@ -654,8 +646,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * To y min.
 	 *
-	 * @param target
-	 *            the target
+	 * @param target the target
 	 * @return the csg
 	 */
 	public CSG toYMin(CSG target) {
@@ -665,8 +656,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * To y max.
 	 *
-	 * @param target
-	 *            the target
+	 * @param target the target
 	 * @return the csg
 	 */
 	public CSG toYMax(CSG target) {
@@ -746,8 +736,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * Movey.
 	 *
-	 * @param howFarToMove
-	 *            the how far to move
+	 * @param howFarToMove the how far to move
 	 * @return the csg
 	 */
 	// Helper/wrapper functions for movement
@@ -758,8 +747,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * Movez.
 	 *
-	 * @param howFarToMove
-	 *            the how far to move
+	 * @param howFarToMove the how far to move
 	 * @return the csg
 	 */
 	public CSG movez(Number howFarToMove) {
@@ -769,8 +757,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * Movex.
 	 *
-	 * @param howFarToMove
-	 *            the how far to move
+	 * @param howFarToMove the how far to move
 	 * @return the csg
 	 */
 	public CSG movex(Number howFarToMove) {
@@ -870,8 +857,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * Rotz.
 	 *
-	 * @param degreesToRotate
-	 *            the degrees to rotate
+	 * @param degreesToRotate the degrees to rotate
 	 * @return the csg
 	 */
 	// Rotation function, rotates the object
@@ -882,8 +868,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * Roty.
 	 *
-	 * @param degreesToRotate
-	 *            the degrees to rotate
+	 * @param degreesToRotate the degrees to rotate
 	 * @return the csg
 	 */
 	public CSG roty(Number degreesToRotate) {
@@ -893,8 +878,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * Rotx.
 	 *
-	 * @param degreesToRotate
-	 *            the degrees to rotate
+	 * @param degreesToRotate the degrees to rotate
 	 * @return the csg
 	 */
 	public CSG rotx(Number degreesToRotate) {
@@ -904,8 +888,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * Scalez.
 	 *
-	 * @param scaleValue
-	 *            the scale value
+	 * @param scaleValue the scale value
 	 * @return the csg
 	 */
 	// Scale function, scales the object
@@ -916,8 +899,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * Scaley.
 	 *
-	 * @param scaleValue
-	 *            the scale value
+	 * @param scaleValue the scale value
 	 * @return the csg
 	 */
 	public CSG scaley(Number scaleValue) {
@@ -927,8 +909,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * Scalex.
 	 *
-	 * @param scaleValue
-	 *            the scale value
+	 * @param scaleValue the scale value
 	 * @return the csg
 	 */
 	public CSG scalex(Number scaleValue) {
@@ -945,8 +926,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * Scaley.
 	 *
-	 * @param measurment
-	 *            the scale value
+	 * @param measurment the scale value
 	 * @return the csg
 	 */
 	public CSG scaleToMeasurmentY(Number measurment) {
@@ -958,8 +938,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * Scalex.
 	 *
-	 * @param measurment
-	 *            the scale value
+	 * @param measurment the scale value
 	 * @return the csg
 	 */
 	public CSG scaleToMeasurmentX(Number measurment) {
@@ -970,8 +949,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * Scale.
 	 *
-	 * @param scaleValue
-	 *            the scale value
+	 * @param scaleValue the scale value
 	 * @return the csg
 	 */
 	public CSG scale(Number scaleValue) {
@@ -1081,8 +1059,7 @@ public class CSG implements IuserAPI, Serializable {
 	 *
 	 * </blockquote>
 	 *
-	 * @param csg
-	 *            other csg
+	 * @param csg other csg
 	 *
 	 * @return union of this csg and the specified csg
 	 */
@@ -1127,8 +1104,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * <b>WARNING:</b> this method does not apply the csg algorithms. Therefore,
 	 * please ensure that this csg and the specified csg do not intersect.
 	 *
-	 * @param csg
-	 *            csg
+	 * @param csg csg
 	 *
 	 * @return a csg consisting of the polygons of this csg and the specified csg
 	 * @throws ColinearPointsException
@@ -1180,8 +1156,7 @@ public class CSG implements IuserAPI, Serializable {
 	 *
 	 * </blockquote>
 	 *
-	 * @param csgs
-	 *            other csgs
+	 * @param csgs other csgs
 	 *
 	 * @return union of this csg and the specified csgs
 	 */
@@ -1298,8 +1273,7 @@ public class CSG implements IuserAPI, Serializable {
 	 *
 	 * </blockquote>
 	 *
-	 * @param csgs
-	 *            other csgs
+	 * @param csgs other csgs
 	 *
 	 * @return union of this csg and the specified csgs
 	 */
@@ -1366,8 +1340,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * Returns the convex hull of this csg and the union of the specified csgs.
 	 *
-	 * @param csgs
-	 *            csgs
+	 * @param csgs csgs
 	 * @return the convex hull of this csg and the specified csgs
 	 */
 	public CSG hull(List<CSG> csgs) {
@@ -1385,8 +1358,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * Returns the convex hull of this csg and the union of the specified csgs.
 	 *
-	 * @param csgs
-	 *            csgs
+	 * @param csgs csgs
 	 * @return the convex hull of this csg and the specified csgs
 	 */
 	public CSG hull(CSG... csgs) {
@@ -1397,8 +1369,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * _union csg bounds opt.
 	 *
-	 * @param csg
-	 *            the csg
+	 * @param csg the csg
 	 * @return the csg
 	 */
 	private CSG _unionCSGBoundsOpt(CSG csg) {
@@ -1416,8 +1387,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * _union polygon bounds opt.
 	 *
-	 * @param csg
-	 *            the csg
+	 * @param csg the csg
 	 * @return the csg
 	 */
 	// private CSG _unionPolygonBoundsOpt(CSG csg) {
@@ -1458,8 +1428,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * consists of the polygon lists of this csg and the specified csg. In this case
 	 * no further space partitioning is performed.
 	 *
-	 * @param csg
-	 *            csg
+	 * @param csg csg
 	 * @return the union of this csg and the specified csg
 	 * @throws ColinearPointsException
 	 */
@@ -1486,8 +1455,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * _union no opt.
 	 *
-	 * @param csg
-	 *            the csg
+	 * @param csg the csg
 	 * @return the csg
 	 * @throws Exception
 	 */
@@ -1544,8 +1512,7 @@ public class CSG implements IuserAPI, Serializable {
 	 *
 	 * </blockquote>
 	 *
-	 * @param csgs
-	 *            other csgs
+	 * @param csgs other csgs
 	 * @return difference of this csg and the specified csgs
 	 */
 	public CSG difference(List<CSG> csgs) {
@@ -1600,8 +1567,7 @@ public class CSG implements IuserAPI, Serializable {
 	 *
 	 * </blockquote>
 	 *
-	 * @param csgs
-	 *            other csgs
+	 * @param csgs other csgs
 	 * @return difference of this csg and the specified csgs
 	 */
 	public CSG difference(CSG... csgs) {
@@ -1632,8 +1598,7 @@ public class CSG implements IuserAPI, Serializable {
 	 *
 	 * </blockquote>
 	 *
-	 * @param csg
-	 *            other csg
+	 * @param csg other csg
 	 * @return difference of this csg and the specified csg
 	 */
 	public CSG difference(CSG csg) {
@@ -1681,8 +1646,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * _difference csg bounds opt.
 	 *
-	 * @param csg
-	 *            the csg
+	 * @param csg the csg
 	 * @return the csg
 	 */
 	private CSG _differenceCSGBoundsOpt(CSG csg) {
@@ -1710,8 +1674,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * _difference polygon bounds opt.
 	 *
-	 * @param csg
-	 *            the csg
+	 * @param csg the csg
 	 * @return the csg
 	 */
 	// private CSG _differencePolygonBoundsOpt(CSG csg) {
@@ -1743,8 +1706,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * _difference no opt.
 	 *
-	 * @param csg
-	 *            the csg
+	 * @param csg the csg
 	 * @return the csg
 	 */
 	private CSG _differenceNoOpt(CSG csg) {
@@ -1801,8 +1763,7 @@ public class CSG implements IuserAPI, Serializable {
 	 *
 	 * </blockquote>
 	 *
-	 * @param csg
-	 *            other csg
+	 * @param csg other csg
 	 * @return intersection of this csg and the specified csg
 	 */
 	public CSG intersect(CSG csg) {
@@ -1882,8 +1843,7 @@ public class CSG implements IuserAPI, Serializable {
 	 *
 	 * </blockquote>
 	 *
-	 * @param csgs
-	 *            other csgs
+	 * @param csgs other csgs
 	 * @return intersection of this csg and the specified csgs
 	 */
 	public CSG intersect(List<CSG> csgs) {
@@ -1937,8 +1897,7 @@ public class CSG implements IuserAPI, Serializable {
 	 *
 	 * </blockquote>
 	 *
-	 * @param csgs
-	 *            other csgs
+	 * @param csgs other csgs
 	 * @return intersection of this csg and the specified csgs
 	 */
 	public CSG intersect(CSG... csgs) {
@@ -2535,8 +2494,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * Color.
 	 *
-	 * @param c
-	 *            the c
+	 * @param c the c
 	 * @return the csg
 	 */
 	public CSG color(Color c) {
@@ -2560,8 +2518,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * Returns a transformed copy of this CSG.
 	 *
-	 * @param transform
-	 *            the transform to apply
+	 * @param transform the transform to apply
 	 *
 	 * @return a transformed copy of this CSG
 	 */
@@ -2793,8 +2750,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * Sets the default opt type.
 	 *
-	 * @param optType
-	 *            the optType to set
+	 * @param optType the optType to set
 	 */
 	public static void setDefaultOptType(OptType optType) {
 		if (optType == defaultOptType)
@@ -2859,8 +2815,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * collection is returned. To make a normal insets, difference this collection
 	 * To make an outset by the normals, union this collection with this object.
 	 *
-	 * @param travelingShape
-	 *            a shape to sweep around
+	 * @param travelingShape a shape to sweep around
 	 * @return
 	 * @throws ColinearPointsException
 	 */
@@ -2918,8 +2873,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * collection is returned. To make a normal insets, difference this collection
 	 * To make an outset by the normals, union this collection with this object.
 	 *
-	 * @param travelingShape
-	 *            a shape to sweep around
+	 * @param travelingShape a shape to sweep around
 	 * @return
 	 * @throws ColinearPointsException
 	 */
@@ -2951,10 +2905,8 @@ public class CSG implements IuserAPI, Serializable {
 	 * normal of the surface, then this function will effectinatly compute that
 	 * value.
 	 *
-	 * @param itemToDifference
-	 *            the object that needs to fit
-	 * @param minkowskiObject
-	 *            the object to represent the offset
+	 * @param itemToDifference the object that needs to fit
+	 * @param minkowskiObject  the object to represent the offset
 	 * @return
 	 * @throws ColinearPointsException
 	 */
@@ -2987,10 +2939,8 @@ public class CSG implements IuserAPI, Serializable {
 	 * normal of the surface, then this function will effectinatly compute that
 	 * value.
 	 *
-	 * @param itemToDifference
-	 *            the object that needs to fit
-	 * @param tolerance
-	 *            the tolerance distance
+	 * @param itemToDifference the object that needs to fit
+	 * @param tolerance        the tolerance distance
 	 * @return
 	 * @throws ColinearPointsException
 	 */
@@ -3374,8 +3324,7 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	/**
-	 * @param exportFormat
-	 *            the exportFormat to add
+	 * @param exportFormat the exportFormat to add
 	 */
 	public CSG addExportFormat(String exportFormat) {
 		if (this.exportFormats == null)
@@ -3463,17 +3412,15 @@ public class CSG implements IuserAPI, Serializable {
 	 * // Add the separate fastener hole objects to the list fasteners =
 	 * returned.subList(1, returned.size());
 	 *
-	 * @param edgeDirection
-	 *            a Vector3d object representing the direction of the edge of the
-	 *            board to which tabs and fastener holes will be added
-	 * @param fastener
-	 *            a CSG object representing a template fastener to be added between
-	 *            the tabs
+	 * @param edgeDirection a Vector3d object representing the direction of the edge
+	 *                      of the board to which tabs and fastener holes will be
+	 *                      added
+	 * @param fastener      a CSG object representing a template fastener to be
+	 *                      added between the tabs
 	 * @return an ArrayList of CSG objects representing the original board with
 	 *         added tabs and separate fastener hole objects
-	 * @throws Exception
-	 *             if the edgeDirection parameter is not a cartesian unit Vector3d
-	 *             object or uses an unimplemented orientation
+	 * @throws Exception if the edgeDirection parameter is not a cartesian unit
+	 *                   Vector3d object or uses an unimplemented orientation
 	 */
 	public ArrayList<CSG> addTabs(Vector3d edgeDirection, CSG fastener) throws Exception {
 
@@ -3683,14 +3630,10 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * Extrude text to a specific bounding box size
 	 *
-	 * @param text
-	 *            the text to be extruded
-	 * @param x
-	 *            the total final X
-	 * @param y
-	 *            the total final Y
-	 * @param z
-	 *            the total final Z
+	 * @param text the text to be extruded
+	 * @param x    the total final X
+	 * @param y    the total final Y
+	 * @param z    the total final Z
 	 * @return The given input text, scaled to the exact sizes provided, with Y=0
 	 *         line as the bottom line of the text
 	 */
@@ -3704,14 +3647,10 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * Extrude text to a specific bounding box size
 	 *
-	 * @param text
-	 *            the text to be extruded
-	 * @param x
-	 *            the total final X
-	 * @param y
-	 *            the total final Y
-	 * @param z
-	 *            the total final Z
+	 * @param text the text to be extruded
+	 * @param x    the total final X
+	 * @param y    the total final Y
+	 * @param z    the total final Z
 	 * @return The given input text, scaled to the exact sizes provided, with Y=0
 	 *         line as the bottom line of the text
 	 */
@@ -4042,38 +3981,22 @@ public class CSG implements IuserAPI, Serializable {
 	 * Tessellates a given CSG object into a 3D grid with specified steps and grid
 	 * spacing, including offsets for odd rows, columns, and layers.
 	 *
-	 * @param incoming
-	 *            The CSG object to be tessellated.
-	 * @param xSteps
-	 *            Number of steps (iterations) in the x-direction.
-	 * @param ySteps
-	 *            Number of steps (iterations) in the y-direction.
-	 * @param zSteps
-	 *            Number of steps (iterations) in the z-direction.
-	 * @param xGrid
-	 *            Distance between iterations in the x-direction.
-	 * @param yGrid
-	 *            Distance between iterations in the y-direction.
-	 * @param zGrid
-	 *            Distance between iterations in the z-direction.
-	 * @param oddRowXOffset
-	 *            X offset for odd rows.
-	 * @param oddRowYOffset
-	 *            Y offset for odd rows.
-	 * @param oddRowZOffset
-	 *            Z offset for odd rows.
-	 * @param oddColXOffset
-	 *            X offset for odd columns.
-	 * @param oddColYOffset
-	 *            Y offset for odd columns.
-	 * @param oddColZOffset
-	 *            Z offset for odd columns.
-	 * @param oddLayXOffset
-	 *            X offset for odd layers.
-	 * @param oddLayYOffset
-	 *            Y offset for odd layers.
-	 * @param oddLayZOffset
-	 *            Z offset for odd layers.
+	 * @param incoming      The CSG object to be tessellated.
+	 * @param xSteps        Number of steps (iterations) in the x-direction.
+	 * @param ySteps        Number of steps (iterations) in the y-direction.
+	 * @param zSteps        Number of steps (iterations) in the z-direction.
+	 * @param xGrid         Distance between iterations in the x-direction.
+	 * @param yGrid         Distance between iterations in the y-direction.
+	 * @param zGrid         Distance between iterations in the z-direction.
+	 * @param oddRowXOffset X offset for odd rows.
+	 * @param oddRowYOffset Y offset for odd rows.
+	 * @param oddRowZOffset Z offset for odd rows.
+	 * @param oddColXOffset X offset for odd columns.
+	 * @param oddColYOffset Y offset for odd columns.
+	 * @param oddColZOffset Z offset for odd columns.
+	 * @param oddLayXOffset X offset for odd layers.
+	 * @param oddLayYOffset Y offset for odd layers.
+	 * @param oddLayZOffset Z offset for odd layers.
 	 * @return A list of tessellated CSG objects.
 	 */
 	public static List<CSG> tessellate(CSG incoming, int xSteps, int ySteps, int zSteps, double xGrid, double yGrid,
@@ -4118,22 +4041,14 @@ public class CSG implements IuserAPI, Serializable {
 	 * Tessellates a given CSG object into a 3D grid with specified steps, grid
 	 * spacing, and a 3D array of offsets for odd rows, columns, and layers.
 	 *
-	 * @param incoming
-	 *            The CSG object to be tessellated.
-	 * @param xSteps
-	 *            Number of steps (iterations) in the x-direction.
-	 * @param ySteps
-	 *            Number of steps (iterations) in the y-direction.
-	 * @param zSteps
-	 *            Number of steps (iterations) in the z-direction.
-	 * @param xGrid
-	 *            Distance between iterations in the x-direction.
-	 * @param yGrid
-	 *            Distance between iterations in the y-direction.
-	 * @param zGrid
-	 *            Distance between iterations in the z-direction.
-	 * @param offsets
-	 *            3D array of offsets for odd rows, columns, and layers.
+	 * @param incoming The CSG object to be tessellated.
+	 * @param xSteps   Number of steps (iterations) in the x-direction.
+	 * @param ySteps   Number of steps (iterations) in the y-direction.
+	 * @param zSteps   Number of steps (iterations) in the z-direction.
+	 * @param xGrid    Distance between iterations in the x-direction.
+	 * @param yGrid    Distance between iterations in the y-direction.
+	 * @param zGrid    Distance between iterations in the z-direction.
+	 * @param offsets  3D array of offsets for odd rows, columns, and layers.
 	 * @return A list of tessellated CSG objects.
 	 */
 	public static List<CSG> tessellate(CSG incoming, int xSteps, int ySteps, int zSteps, double xGrid, double yGrid,
@@ -4159,14 +4074,10 @@ public class CSG implements IuserAPI, Serializable {
 	 * Tessellates a given CSG object into a 3D grid with specified steps. The grid
 	 * spacing is determined by the dimensions of the incoming CSG object.
 	 *
-	 * @param incoming
-	 *            The CSG object to be tessellated.
-	 * @param xSteps
-	 *            Number of steps (iterations) in the x-direction.
-	 * @param ySteps
-	 *            Number of steps (iterations) in the y-direction.
-	 * @param zSteps
-	 *            Number of steps (iterations) in the z-direction.
+	 * @param incoming The CSG object to be tessellated.
+	 * @param xSteps   Number of steps (iterations) in the x-direction.
+	 * @param ySteps   Number of steps (iterations) in the y-direction.
+	 * @param zSteps   Number of steps (iterations) in the z-direction.
 	 * @return A list of tessellated CSG objects.
 	 */
 	public static List<CSG> tessellate(CSG incoming, int xSteps, int ySteps, int zSteps) {
@@ -4179,32 +4090,19 @@ public class CSG implements IuserAPI, Serializable {
 	 * offsets for odd rows, columns, and layers. The grid spacing is determined by
 	 * the dimensions of the incoming CSG object.
 	 *
-	 * @param incoming
-	 *            The CSG object to be tessellated.
-	 * @param xSteps
-	 *            Number of steps (iterations) in the x-direction.
-	 * @param ySteps
-	 *            Number of steps (iterations) in the y-direction.
-	 * @param zSteps
-	 *            Number of steps (iterations) in the z-direction.
-	 * @param oddRowXOffset
-	 *            X offset for odd rows.
-	 * @param oddRowYOffset
-	 *            Y offset for odd rows.
-	 * @param oddRowZOffset
-	 *            Z offset for odd rows.
-	 * @param oddColXOffset
-	 *            X offset for odd columns.
-	 * @param oddColYOffset
-	 *            Y offset for odd columns.
-	 * @param oddColZOffset
-	 *            Z offset for odd columns.
-	 * @param oddLayXOffset
-	 *            X offset for odd layers.
-	 * @param oddLayYOffset
-	 *            Y offset for odd layers.
-	 * @param oddLayZOffset
-	 *            Z offset for odd layers.
+	 * @param incoming      The CSG object to be tessellated.
+	 * @param xSteps        Number of steps (iterations) in the x-direction.
+	 * @param ySteps        Number of steps (iterations) in the y-direction.
+	 * @param zSteps        Number of steps (iterations) in the z-direction.
+	 * @param oddRowXOffset X offset for odd rows.
+	 * @param oddRowYOffset Y offset for odd rows.
+	 * @param oddRowZOffset Z offset for odd rows.
+	 * @param oddColXOffset X offset for odd columns.
+	 * @param oddColYOffset Y offset for odd columns.
+	 * @param oddColZOffset Z offset for odd columns.
+	 * @param oddLayXOffset X offset for odd layers.
+	 * @param oddLayYOffset Y offset for odd layers.
+	 * @param oddLayZOffset Z offset for odd layers.
 	 * @return A list of tessellated CSG objects.
 	 */
 	public static List<CSG> tessellate(CSG incoming, int xSteps, int ySteps, int zSteps, double oddRowXOffset,
@@ -4220,12 +4118,9 @@ public class CSG implements IuserAPI, Serializable {
 	 * Tessellates a given CSG object into a 3D grid with specified steps and
 	 * uniform grid spacing.
 	 *
-	 * @param incoming
-	 *            The CSG object to be tessellated.
-	 * @param steps
-	 *            Number of steps (iterations) in each direction (x, y, z).
-	 * @param gridSpacing
-	 *            Distance between iterations in all directions (x, y, z).
+	 * @param incoming    The CSG object to be tessellated.
+	 * @param steps       Number of steps (iterations) in each direction (x, y, z).
+	 * @param gridSpacing Distance between iterations in all directions (x, y, z).
 	 * @return A list of tessellated CSG objects.
 	 */
 	public static List<CSG> tessellate(CSG incoming, int steps, double gridSpacing) {
@@ -4237,10 +4132,8 @@ public class CSG implements IuserAPI, Serializable {
 	 * Tessellates a given CSG object into a 3D grid with specified steps. The grid
 	 * spacing is determined by the dimensions of the incoming CSG object.
 	 *
-	 * @param incoming
-	 *            The CSG object to be tessellated.
-	 * @param steps
-	 *            Number of steps (iterations) in each direction (x, y, z).
+	 * @param incoming The CSG object to be tessellated.
+	 * @param steps    Number of steps (iterations) in each direction (x, y, z).
 	 * @return A list of tessellated CSG objects.
 	 */
 	public static List<CSG> tessellate(CSG incoming, int steps) {
@@ -4252,24 +4145,15 @@ public class CSG implements IuserAPI, Serializable {
 	 * Tessellates a given CSG object into a 2D grid with specified steps and grid
 	 * spacing, including offsets for odd rows and columns.
 	 *
-	 * @param incoming
-	 *            The CSG object to be tessellated.
-	 * @param xSteps
-	 *            Number of steps (iterations) in the x-direction.
-	 * @param ySteps
-	 *            Number of steps (iterations) in the y-direction.
-	 * @param xGrid
-	 *            Distance between iterations in the x-direction.
-	 * @param yGrid
-	 *            Distance between iterations in the y-direction.
-	 * @param oddRowXOffset
-	 *            X offset for odd rows.
-	 * @param oddRowYOffset
-	 *            Y offset for odd rows.
-	 * @param oddColXOffset
-	 *            X offset for odd columns.
-	 * @param oddColYOffset
-	 *            Y offset for odd columns.
+	 * @param incoming      The CSG object to be tessellated.
+	 * @param xSteps        Number of steps (iterations) in the x-direction.
+	 * @param ySteps        Number of steps (iterations) in the y-direction.
+	 * @param xGrid         Distance between iterations in the x-direction.
+	 * @param yGrid         Distance between iterations in the y-direction.
+	 * @param oddRowXOffset X offset for odd rows.
+	 * @param oddRowYOffset Y offset for odd rows.
+	 * @param oddColXOffset X offset for odd columns.
+	 * @param oddColYOffset Y offset for odd columns.
 	 * @return A list of tessellated CSG objects.
 	 */
 	public static List<CSG> tessellateXY(CSG incoming, int xSteps, int ySteps, double xGrid, double yGrid,
@@ -4282,18 +4166,12 @@ public class CSG implements IuserAPI, Serializable {
 	 * Tessellates a given CSG object into a 2D grid with specified steps, grid
 	 * spacing, and a 2D array of offsets for odd rows and columns.
 	 *
-	 * @param incoming
-	 *            The CSG object to be tessellated.
-	 * @param xSteps
-	 *            Number of steps (iterations) in the x-direction.
-	 * @param ySteps
-	 *            Number of steps (iterations) in the y-direction.
-	 * @param xGrid
-	 *            Distance between iterations in the x-direction.
-	 * @param yGrid
-	 *            Distance between iterations in the y-direction.
-	 * @param offsets
-	 *            2D array of offsets for odd rows and columns.
+	 * @param incoming The CSG object to be tessellated.
+	 * @param xSteps   Number of steps (iterations) in the x-direction.
+	 * @param ySteps   Number of steps (iterations) in the y-direction.
+	 * @param xGrid    Distance between iterations in the x-direction.
+	 * @param yGrid    Distance between iterations in the y-direction.
+	 * @param offsets  2D array of offsets for odd rows and columns.
 	 * @return A list of tessellated CSG objects.
 	 */
 	public static List<CSG> tessellateXY(CSG incoming, int xSteps, int ySteps, double xGrid, double yGrid,
@@ -4311,12 +4189,9 @@ public class CSG implements IuserAPI, Serializable {
 	 * Tessellates a given CSG object into a 2D grid with specified steps. The grid
 	 * spacing is determined by the dimensions of the incoming CSG object.
 	 *
-	 * @param incoming
-	 *            The CSG object to be tessellated.
-	 * @param xSteps
-	 *            Number of steps (iterations) in the x-direction.
-	 * @param ySteps
-	 *            Number of steps (iterations) in the y-direction.
+	 * @param incoming The CSG object to be tessellated.
+	 * @param xSteps   Number of steps (iterations) in the x-direction.
+	 * @param ySteps   Number of steps (iterations) in the y-direction.
 	 * @return A list of tessellated CSG objects.
 	 */
 	public static List<CSG> tessellateXY(CSG incoming, int xSteps, int ySteps) {
@@ -4327,16 +4202,11 @@ public class CSG implements IuserAPI, Serializable {
 	 * Tessellates a given CSG object into a 2D grid with specified steps and grid
 	 * spacing.
 	 *
-	 * @param incoming
-	 *            The CSG object to be tessellated.
-	 * @param xSteps
-	 *            Number of steps (iterations) in the x-direction.
-	 * @param ySteps
-	 *            Number of steps (iterations) in the y-direction.
-	 * @param xGrid
-	 *            Distance between iterations in the x-direction.
-	 * @param yGrid
-	 *            Distance between iterations in the y-direction.
+	 * @param incoming The CSG object to be tessellated.
+	 * @param xSteps   Number of steps (iterations) in the x-direction.
+	 * @param ySteps   Number of steps (iterations) in the y-direction.
+	 * @param xGrid    Distance between iterations in the x-direction.
+	 * @param yGrid    Distance between iterations in the y-direction.
 	 * @return A list of tessellated CSG objects.
 	 */
 	public static List<CSG> tessellateXY(CSG incoming, int xSteps, int ySteps, double xGrid, double yGrid) {
@@ -4345,14 +4215,11 @@ public class CSG implements IuserAPI, Serializable {
 
 	/**
 	 *
-	 * @param incoming
-	 *            Hexagon (with flats such that Y total is flat to flat distance)
-	 * @param xSteps
-	 *            number of steps in X
-	 * @param ySteps
-	 *            number of steps in Y
-	 * @param spacing
-	 *            the amount of space between each hexagon
+	 * @param incoming Hexagon (with flats such that Y total is flat to flat
+	 *                 distance)
+	 * @param xSteps   number of steps in X
+	 * @param ySteps   number of steps in Y
+	 * @param spacing  the amount of space between each hexagon
 	 * @return a list of spaced hexagons
 	 */
 	List<CSG> tessellateHex(CSG incoming, int xSteps, int ySteps, double spacing) {
@@ -4363,12 +4230,10 @@ public class CSG implements IuserAPI, Serializable {
 
 	/**
 	 *
-	 * @param incoming
-	 *            Hexagon (with flats such that Y total is flat to flat distance)
-	 * @param xSteps
-	 *            number of steps in X
-	 * @param ySteps
-	 *            number of steps in Y
+	 * @param incoming Hexagon (with flats such that Y total is flat to flat
+	 *                 distance)
+	 * @param xSteps   number of steps in X
+	 * @param ySteps   number of steps in Y
 	 * @return a list of spaced hexagons
 	 */
 	List<CSG> tessellateHex(CSG incoming, int xSteps, int ySteps) {
@@ -4504,8 +4369,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * Returns this csg in STL string format.
 	 *
-	 * @param sb
-	 *            string builder
+	 * @param sb string builder
 	 *
 	 * @return the specified string builder
 	 * @throws NonManifoldShapeError
@@ -4560,8 +4424,7 @@ public class CSG implements IuserAPI, Serializable {
 	/**
 	 * Returns this csg in OBJ string format.
 	 *
-	 * @param sb
-	 *            string builder
+	 * @param sb string builder
 	 * @return the specified string builder
 	 * @throws NonManifoldShapeError
 	 * @throws ColinearPointsException
@@ -4660,12 +4523,9 @@ public class CSG implements IuserAPI, Serializable {
 	 * Each CSG becomes a separate <object> resource and a <item> in <build>.
 	 * Indices in <triangle> are 0-based, matching the native long[] directly.
 	 *
-	 * @param csgs
-	 *            the list of CSG objects to export
-	 * @param repair
-	 *            if true, attempt to repair non-manifold geometry before export
-	 * @param output
-	 *            stream to write the .3mf ZIP into
+	 * @param csgs   the list of CSG objects to export
+	 * @param repair if true, attempt to repair non-manifold geometry before export
+	 * @param output stream to write the .3mf ZIP into
 	 */
 	public static void toThreeMF(List<CSG> csgs, boolean repair, Path destination)
 			throws IOException, ColinearPointsException, NonManifoldShapeError {
@@ -4773,8 +4633,7 @@ public class CSG implements IuserAPI, Serializable {
 	 * Reads a .3mf file and returns one CSG per <object> found in the model. Uses a
 	 * SAX streaming parser for high performance on large meshes.
 	 *
-	 * @param source
-	 *            path to the .3mf file
+	 * @param source path to the .3mf file
 	 * @return list of CSG objects, one per <object> in the 3MF resources
 	 */
 	public static List<CSG> fromThreeMF(Path source) throws IOException {
@@ -4942,15 +4801,30 @@ public class CSG implements IuserAPI, Serializable {
 				}
 
 				CSG csg = new CSG();
-				csg.setName(od.name == null || od.name.isEmpty() ? null : od.name);
+				String name = od.name == null || od.name.isEmpty() ? null : od.name;
+				if (name != null)
+					csg.setName(name);
 				csg.setVertices(od.vertices.trim());
 				csg.setTriangles(od.triangles.trim());
 				if (color != null)
 					csg.setColor(color);
+
+				csg = CSG.calculateAreaAndSurfaceArea(csg);
 				result.add(csg);
 			}
 			return result;
 		}
+	}
+
+	public static CSG calculateAreaAndSurfaceArea(CSG incoming) {
+		if (CSG.getDefaultOptionType() == OptType.Manifold3d) {
+			try {
+				return CSG.getManifold().calculateAreaAndSurfaceArea(incoming);
+			} catch (Throwable e) {
+				throw new RuntimeException(e);
+			}
+		}
+		return incoming;
 	}
 
 	public void removeParameter(CSGDatabaseInstance db, String s) {
