@@ -84,10 +84,16 @@ jobs:
          submodules: recursive
     - name: Install Java and Maven
       run: |
+        JDK_ARCHIVE=$(bash jvm/getJdkArchiveFile.sh)
+        JDK_HOME=$(pwd)/$(bash jvm/getJdkArchiveName.sh)
         wget $(bash jvm/getJdkUrl.sh)
-        tar -xzf $(bash jvm/getJdkArchiveFile.sh)
-        echo "JAVA_HOME=$(pwd)/$(bash jvm/getJdkArchiveName.sh)" >> $GITHUB_ENV
-        echo "PATH=$(pwd)/$(bash jvm/getJdkArchiveName.sh)/bin:$PATH" >> $GITHUB_ENV
+        case $JDK_ARCHIVE in
+          *.zip) unzip -q $JDK_ARCHIVE ;;
+          *) tar -xzf $JDK_ARCHIVE ;;
+        esac
+        if test -d $JDK_HOME/Contents/Home; then JDK_HOME=$JDK_HOME/Contents/Home; fi
+        echo "JAVA_HOME=$JDK_HOME" >> $GITHUB_ENV
+        echo "PATH=$JDK_HOME/bin:$PATH" >> $GITHUB_ENV
     - name: Test with Gradle
       run: ./gradlew test
   build-linux-x86:
