@@ -40,13 +40,15 @@ jobs:
           sudo apt install libgtk2.0-0
 
     - name: Pull a JavaFX JDK
-      run: wget https://cdn.azul.com/zulu/bin/zulu25.36.15-ca-fx-jdk25.0.4-linux_aarch64.tar.gz
+      run: |
+        echo "JVM_ARCHIVE=$(bash jvm/getJdkArchiveFile.sh)" >> $GITHUB_ENV
+        wget $(bash jvm/getJdkUrl.sh)
 
     - name: Set Java
       uses: actions/setup-java@v1
       with:
         java-version: 25
-        jdkFile: ./zulu25.36.15-ca-fx-jdk25.0.4-linux_aarch64.tar.gz
+        jdkFile: ${{ env.JVM_ARCHIVE }}
 
     - name: Test with Gradle
       run: xvfb-run -s '-screen 0 1024x768x24' ./gradlew test
@@ -60,13 +62,15 @@ jobs:
          submodules: recursive
 
     - name: Pull a JavaFX JDK
-      run: curl -O https://cdn.azul.com/zulu/bin/zulu25.36.15-ca-fx-jdk25.0.4-win_x64.zip
+      run: |
+        echo "JVM_ARCHIVE=$(bash jvm/getJdkArchiveFile.sh)" >> $GITHUB_ENV
+        curl -O $(bash jvm/getJdkUrl.sh)
 
     - name: Set Java
       uses: actions/setup-java@v1
       with:
         java-version: 25
-        jdkFile: ./zulu25.36.15-ca-fx-jdk25.0.4-win_x64.zip
+        jdkFile: ${{ env.JVM_ARCHIVE }}
 
     - name: Test with Gradle
       run: ./gradlew test
@@ -80,10 +84,10 @@ jobs:
          submodules: recursive
     - name: Install Java and Maven
       run: |
-        wget https://cdn.azul.com/zulu/bin/zulu25.32.21-ca-fx-jdk25.0.2-macosx_aarch64.tar.gz
-        tar -xzf zulu25.32.21-ca-fx-jdk25.0.2-macosx_aarch64.tar.gz
-        echo "JAVA_HOME=$(pwd)/zulu25.32.21-ca-fx-jdk25.0.2-macosx_aarch64" >> $GITHUB_ENV
-        echo "PATH=$(pwd)/zulu25.32.21-ca-fx-jdk25.0.2-macosx_aarch64/bin:$PATH" >> $GITHUB_ENV
+        wget $(bash jvm/getJdkUrl.sh)
+        tar -xzf $(bash jvm/getJdkArchiveFile.sh)
+        echo "JAVA_HOME=$(pwd)/$(bash jvm/getJdkArchiveName.sh)" >> $GITHUB_ENV
+        echo "PATH=$(pwd)/$(bash jvm/getJdkArchiveName.sh)/bin:$PATH" >> $GITHUB_ENV
     - name: Test with Gradle
       run: ./gradlew test
   build-linux-x86:
@@ -101,6 +105,7 @@ jobs:
             unzip \
             curl \
             wget \
+            jq \
             ca-certificates \
             lsb-release \
             gnupg \
@@ -134,13 +139,15 @@ jobs:
       run: pwd; ls -la        
 
     - name: Pull a JavaFX JDK
-      run: wget https://cdn.azul.com/zulu/bin/zulu25.36.15-ca-fx-jdk25.0.4-linux_x64.tar.gz
+      run: |
+        echo "JVM_ARCHIVE=$(bash jvm/getJdkArchiveFile.sh)" >> $GITHUB_ENV
+        wget $(bash jvm/getJdkUrl.sh)
 
     - name: Set Java
       uses: actions/setup-java@v1
       with:
         java-version: 25
-        jdkFile: ./zulu25.36.15-ca-fx-jdk25.0.4-linux_x64.tar.gz
+        jdkFile: ${{ env.JVM_ARCHIVE }}
 
       
     - name: Test with Gradle 
