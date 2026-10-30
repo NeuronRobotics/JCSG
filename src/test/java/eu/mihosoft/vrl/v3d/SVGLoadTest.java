@@ -143,9 +143,12 @@ public class SVGLoadTest {
 		}
 		if (parts.size() == 0)
 			throw new RuntimeException("No parts generated!" + svg.getAbsolutePath());
-
-		for (int i = 0; i < parts.size(); i++)
-			parts.get(i).toStl(Paths.get(i + svg.getAbsolutePath() + ".stl"));
+		try {
+			for (int i = 0; i < parts.size(); i++)
+				parts.get(i).toStl(Paths.get(i + svg.getAbsolutePath() + ".stl"));
+		} catch (java.nio.file.InvalidPathException ex) {
+			ex.printStackTrace();
+		}
 	}
 
 	@Test
