@@ -62,6 +62,7 @@ jobs:
          submodules: recursive
 
     - name: Pull a JavaFX JDK
+      shell: bash
       run: |
         echo "JVM_ARCHIVE=$(bash jvm/getJdkArchiveFile.sh)" >> $GITHUB_ENV
         curl -O $(bash jvm/getJdkUrl.sh)
