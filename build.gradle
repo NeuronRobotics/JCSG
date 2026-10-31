@@ -134,3 +134,36 @@ javadoc {
 		options.addBooleanOption('html5', true)
 	}
 }
+
+// Regenerate after any dependency change:
+//   ./gradlew --write-locks lockClasspaths
+dependencyLocking {
+	lockAllConfigurations()
+}
+
+def lockedConfigurations = [
+	'annotationProcessor',
+	'compileClasspath',
+]
+
+// Registered only if absent: parent builds register a task of this name on
+// every project they contain, and a second registration fails the build.
+if (tasks.findByName('lockClasspaths') == null) {
+	tasks.register('lockClasspaths') {
+		group = 'build'
+		description = 'Resolve the locked configurations so --write-locks records them'
+		doLast {
+			lockedConfigurations.each { n ->
+				def c = configurations.findByName(n)
+				if (c != null && c.canBeResolved) {
+					try {
+						c.resolve()
+					} catch (Throwable ignored) {
+						// A configuration that cannot resolve is still recorded by
+						// --write-locks; failure here must not abort the task.
+					}
+				}
+			}
+		}
+	}
+}
