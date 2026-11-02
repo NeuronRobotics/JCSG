@@ -69,7 +69,8 @@ EOF
 # zip -r is absent from Git Bash; build the archive with python's zipfile instead
 make_zip() { # out.zip source-dir
 	if command -v zip >/dev/null 2>&1; then
-		(cd "$2" && zip -qr "$1" .)
+		# -y: store symlinks as symlinks (zip follows them by default)
+		(cd "$2" && zip -qry "$1" .)
 	elif command -v python3 >/dev/null 2>&1; then
 		python3 - "$1" "$2" <<'PYEOF'
 import os, sys, zipfile
@@ -78,7 +79,14 @@ with zipfile.ZipFile(out, "w") as zf:
     for root, dirs, files in os.walk(src):
         for name in dirs + files:
             path = os.path.join(root, name)
-            zf.write(path, os.path.relpath(path, src))
+            rel = os.path.relpath(path, src)
+            if os.path.islink(path):
+                # store symlinks like zip -r does so extraction recreates them
+                zi = zipfile.ZipInfo(rel)
+                zi.external_attr = 0o120777 << 16
+                zf.writestr(zi, os.readlink(path))
+            else:
+                zf.write(path, rel)
 PYEOF
 	else
 		echo "zip or python3 is required to build test archives" >&2
@@ -133,11 +141,20 @@ else
 	(cd "$WORK/fakepkg" && tar -czf "$WORK/fake-archive.tar.gz" .)
 	FAKE_ARCHIVE=$WORK/fake-archive.tar.gz
 fi
-# macOS zip layout: Contents/Home must be flattened
+# Real Zulu macOS zip layout: the JDK home is nested in a .jdk bundle and the
+# top-level bin/lib/... entries are only symlinks into it
 MAC_NAME=$(JVM_KEY=Mac-x64 bash "$HERE/getJdkArchiveName.sh")
-mkdir -p "$WORK/fakemac/Contents/Home/bin"
-mk_fake_java "$WORK/fakemac/Contents/Home/bin/java" ok
+mkdir -p "$WORK/fakemac/$MAC_NAME/zulu-25.jdk/Contents/Home/bin"
+mkdir -p "$WORK/fakemac/$MAC_NAME/zulu-25.jdk/Contents/Home/lib"
+mk_fake_java "$WORK/fakemac/$MAC_NAME/zulu-25.jdk/Contents/Home/bin/java" ok
+ln -s "zulu-25.jdk/Contents/Home/bin" "$WORK/fakemac/$MAC_NAME/bin"
+ln -s "zulu-25.jdk/Contents/Home/lib" "$WORK/fakemac/$MAC_NAME/lib"
 make_zip "$WORK/fake-mac.zip" "$WORK/fakemac"
+
+# App-style bundle layout: Contents/Home directly at the top level
+mkdir -p "$WORK/fakeapp/Contents/Home/bin"
+mk_fake_java "$WORK/fakeapp/Contents/Home/bin/java" ok
+make_zip "$WORK/fake-app.zip" "$WORK/fakeapp"
 
 # 1. Fresh install; java -version runs and prints the pinned major version
 ROOT=$WORK/root1
@@ -189,16 +206,32 @@ expect_fail "truncated archive fails" "$ROOT"
 	FAIL=$((FAIL + 1))
 }
 
-# 7. macOS zip layout -> Contents/Home flattened, bin/java at top, no Contents left
+# 7. Real Zulu macOS layout: nested .jdk bundle flattened, launcher a regular
+#    file, bundle skeleton and top-level symlinks gone
 ROOT=$WORK/root7
 make_stub "$WORK/fake-mac.zip"
 if run_installer "$ROOT" JVM_KEY=Mac-x64 &&
-	[ -x "$ROOT/$MAC_NAME/bin/java" ] &&
+	[ -f "$ROOT/$MAC_NAME/bin/java" ] && [ ! -L "$ROOT/$MAC_NAME/bin/java" ] &&
+	[ ! -L "$ROOT/$MAC_NAME/lib" ] &&
+	[ ! -e "$ROOT/$MAC_NAME/zulu-25.jdk" ]; then
+	echo "PASS: macOS .jdk bundle flattened"
+	PASS=$((PASS + 1))
+else
+	echo "FAIL: macOS bundle flatten scenario"
+	cat "$WORK/out.log"
+	FAIL=$((FAIL + 1))
+fi
+
+# 7b. App-style Contents/Home layout is flattened too
+ROOT=$WORK/root7b
+make_stub "$WORK/fake-app.zip"
+if run_installer "$ROOT" JVM_KEY=Mac-x64 &&
+	[ -f "$ROOT/$MAC_NAME/bin/java" ] &&
 	[ ! -e "$ROOT/$MAC_NAME/Contents" ]; then
 	echo "PASS: macOS Contents/Home flattened"
 	PASS=$((PASS + 1))
 else
-	echo "FAIL: macOS flatten scenario"
+	echo "FAIL: macOS Contents/Home flatten scenario"
 	cat "$WORK/out.log"
 	FAIL=$((FAIL + 1))
 fi

@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # Downloads the pinned Zulu JavaFX JDK for this OS/arch from jvm.json (single source
 # of truth) and installs it to ~/bin/CaDoodle-ApplicationInstall/<archive-name>/ so
-# that <install>/bin/java exists (macOS Contents/Home is flattened). Verifies the
-# install with java -version and the pinned major version; exits non-zero if the
-# JVM is missing or broken.
+# that <install>/bin/java exists. Zulu's macOS zips nest the JDK home in a
+# <name>/zulu-25.jdk/Contents/Home bundle behind top-level symlinks; the Home
+# directory's content is copied (dereferenced) to the install root so the real
+# files are in place. Verifies the install with java -version and the pinned
+# major version; exits non-zero if the JVM is missing or broken.
 # Re-run any time jvm.json changes: an existing install is replaced when the pinned
 # archive differs. Override the install root with JDK_INSTALL_ROOT, the jvm.json key
 # with JVM_KEY, and the expected major version with JVM_MAJOR_VERSION.
@@ -26,7 +28,7 @@ trap 'rm -rf "$TEMP_DIR"' EXIT
 is_working_jvm() {
 	local dir=$1 java out
 	# Windows ships the launcher as java.exe; everything else as java
-	java=$(find "$dir" -maxdepth 3 -type f \( -name java -o -name java.exe \) -path '*/bin/*' 2>/dev/null | head -1)
+	java=$(find -L "$dir" -type f \( -name java -o -name java.exe \) -path '*/bin/*' 2>/dev/null | head -1)
 	[ -n "$java" ] || return 1
 	chmod +x "$java" 2>/dev/null || true
 	# java -version prints to stderr and quotes the version: openjdk version "25.0.4"
@@ -40,32 +42,38 @@ else
 	echo "Installing JDK $JVM to $INSTALL_DIR"
 	curl -fL --retry 3 -o "$TEMP_DIR/$ZIP" "$URL"
 	rm -rf "$INSTALL_DIR"
-	mkdir -p "$INSTALL_DIR"
+	EXTRACT_DIR=$TEMP_DIR/extract
+	mkdir -p "$EXTRACT_DIR"
 	case $ZIP in
 	*.zip)
 		if command -v unzip >/dev/null 2>&1; then
-			unzip -o -q "$TEMP_DIR/$ZIP" -d "$INSTALL_DIR"
+			unzip -o -q "$TEMP_DIR/$ZIP" -d "$EXTRACT_DIR"
 		elif command -v python3 >/dev/null 2>&1; then
 			# Git Bash and minimal MSYS2 installs ship no unzip; python3 does
-			python3 -m zipfile -e "$TEMP_DIR/$ZIP" "$INSTALL_DIR"
+			python3 -m zipfile -e "$TEMP_DIR/$ZIP" "$EXTRACT_DIR"
 		elif command -v python >/dev/null 2>&1; then
 			# Windows runners expose python.exe without a python3 alias
-			python -m zipfile -e "$TEMP_DIR/$ZIP" "$INSTALL_DIR"
+			python -m zipfile -e "$TEMP_DIR/$ZIP" "$EXTRACT_DIR"
 		else
 			echo "unzip or python is required to extract $ZIP" >&2
 			exit 1
 		fi
 		;;
-	*) tar -xzf "$TEMP_DIR/$ZIP" -C "$INSTALL_DIR" ;;
+	*) tar -xzf "$TEMP_DIR/$ZIP" -C "$EXTRACT_DIR" ;;
 	esac
-	# Flattened layout: <archive-name>/bin/java even on macOS (Contents/Home merged up)
-	if [ -d "$INSTALL_DIR/$JVM" ]; then
-		mv "$INSTALL_DIR/$JVM"/* "$INSTALL_DIR/"
-		rm -rf "$INSTALL_DIR/$JVM"
-	elif [ -d "$INSTALL_DIR/Contents/Home" ]; then
-		mv "$INSTALL_DIR/Contents/Home"/* "$INSTALL_DIR/"
-		rm -rf "$INSTALL_DIR/Contents"
+
+	# macOS archives hide the JDK home inside a .jdk bundle: pick the deepest
+	# Home directory (Zulu ships exactly one), else the archive top dir
+	HOME_DIR=$(find "$EXTRACT_DIR" -type d -path '*/Contents/Home' | sort | tail -1)
+	if [ -n "$HOME_DIR" ]; then
+		SRC_DIR=$HOME_DIR
+	else
+		SRC_DIR=$(find "$EXTRACT_DIR" -mindepth 1 -maxdepth 1 -type d | head -1)
+		[ -d "$SRC_DIR" ] || { echo "Archive $ZIP extracted nothing recognisable" >&2; exit 1; }
 	fi
+	mkdir -p "$INSTALL_DIR"
+	# -L dereferences the top-level symlinks so real files land in the install root
+	cp -RL "$SRC_DIR/." "$INSTALL_DIR/"
 	chmod -R u+rwX "$INSTALL_DIR"
 
 	if is_working_jvm "$INSTALL_DIR"; then
