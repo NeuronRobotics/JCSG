@@ -142,7 +142,7 @@ else
 	FAKE_ARCHIVE=$WORK/fake-archive.tar.gz
 fi
 # Real Zulu macOS zip layout: the JDK home is nested in a .jdk bundle and the
-# top-level bin/lib/... entries are only symlinks into it
+# top-level bin/lib/... entries are symlinks into it; the installer keeps them
 MAC_NAME=$(JVM_KEY=Mac-x64 bash "$HERE/getJdkArchiveName.sh")
 mkdir -p "$WORK/fakemac/$MAC_NAME/zulu-25.jdk/Contents/Home/bin"
 mkdir -p "$WORK/fakemac/$MAC_NAME/zulu-25.jdk/Contents/Home/lib"
@@ -206,32 +206,19 @@ expect_fail "truncated archive fails" "$ROOT"
 	FAIL=$((FAIL + 1))
 }
 
-# 7. Real Zulu macOS layout: nested .jdk bundle flattened, launcher a regular
-#    file, bundle skeleton and top-level symlinks gone
+# 7. Real Zulu macOS layout: installed verbatim; bin/java reachable through the
+#    kept symlinks and the .jdk bundle left in place
 ROOT=$WORK/root7
 make_stub "$WORK/fake-mac.zip"
 if run_installer "$ROOT" JVM_KEY=Mac-x64 &&
-	[ -f "$ROOT/$MAC_NAME/bin/java" ] && [ ! -L "$ROOT/$MAC_NAME/bin/java" ] &&
-	[ ! -L "$ROOT/$MAC_NAME/lib" ] &&
-	[ ! -e "$ROOT/$MAC_NAME/zulu-25.jdk" ]; then
-	echo "PASS: macOS .jdk bundle flattened"
+	[ -L "$ROOT/$MAC_NAME/bin" ] &&
+	[ -x "$ROOT/$MAC_NAME/bin/java" ] &&
+	[ -L "$ROOT/$MAC_NAME/lib" ] &&
+	[ -d "$ROOT/$MAC_NAME/zulu-25.jdk/Contents/Home/bin" ]; then
+	echo "PASS: macOS .jdk bundle kept with working symlinks"
 	PASS=$((PASS + 1))
 else
-	echo "FAIL: macOS bundle flatten scenario"
-	cat "$WORK/out.log"
-	FAIL=$((FAIL + 1))
-fi
-
-# 7b. App-style Contents/Home layout is flattened too
-ROOT=$WORK/root7b
-make_stub "$WORK/fake-app.zip"
-if run_installer "$ROOT" JVM_KEY=Mac-x64 &&
-	[ -f "$ROOT/$MAC_NAME/bin/java" ] &&
-	[ ! -e "$ROOT/$MAC_NAME/Contents" ]; then
-	echo "PASS: macOS Contents/Home flattened"
-	PASS=$((PASS + 1))
-else
-	echo "FAIL: macOS Contents/Home flatten scenario"
+	echo "FAIL: macOS bundle-with-symlinks scenario"
 	cat "$WORK/out.log"
 	FAIL=$((FAIL + 1))
 fi

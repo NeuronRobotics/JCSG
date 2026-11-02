@@ -27,10 +27,16 @@ trap 'rm -rf "$TEMP_DIR"' EXIT
 # Validate an existing install before trusting it; a stale or broken one is reinstalled.
 is_working_jvm() {
 	local dir=$1 java out
-	# -L follows the top-level symlinks in the macOS layout; Windows ships the
-	# launcher as java.exe, everything else as java
-	java=$(find -L "$dir" -type f \( -name java -o -name java.exe \) -path '*/bin/*' 2>/dev/null | head -1)
-	[ -n "$java" ] || return 1
+	# Contract: bin/java(.exe) at the install root. On macOS bin is a symlink
+	# into zulu-25.jdk/Contents/Home/bin and -e/-x resolve through it; Windows
+	# ships the launcher as java.exe, everything else as java
+	if [ -e "$dir/bin/java.exe" ]; then
+		java=$dir/bin/java.exe
+	elif [ -e "$dir/bin/java" ]; then
+		java=$dir/bin/java
+	else
+		return 1
+	fi
 	chmod +x "$java" 2>/dev/null || true
 	# java -version prints to stderr and quotes the version: openjdk version "25.0.4"
 	out=$("$java" -version 2>&1) || return 1
