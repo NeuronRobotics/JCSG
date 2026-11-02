@@ -14,7 +14,7 @@ jobs:
       packages: write 
     steps:
       - uses: actions/checkout@v3
-      - name: Install pinned JDK from jvm.json
+      - name: Install and verify pinned JDK from jvm.json
         run: |
           bash jvm/installJdk.sh
           JAVA_HOME=$HOME/bin/CaDoodle-ApplicationInstall/$(bash jvm/getJdkArchiveName.sh)

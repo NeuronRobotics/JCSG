@@ -11,38 +11,6 @@ on:
       - '*'
 
 jobs:
-  jdk-archive:
-    strategy:
-      matrix:
-        include:
-          - key: Linux-x64
-            runs-on: ubuntu-24.04
-          - key: Linux-aarch64
-            runs-on: ubuntu-24.04-arm
-          - key: Windows-x64
-            runs-on: windows-latest
-          - key: Mac-x64
-            runs-on: macos-15-intel
-          - key: Mac-aarch64
-            runs-on: macos-15
-    name: jdk-archive (${{ matrix.key }})
-    runs-on: ${{ matrix.runs-on }}
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-
-    - name: Install the pinned JDK from jvm.json
-      shell: bash
-      run: bash jvm/installJdk.sh
-
-    - name: Run the installer test suite
-      shell: bash
-      run: bash jvm/testInstallJdk.sh
-
-    - name: Confirm java -version of the pinned archive
-      shell: bash
-      run: $HOME/bin/CaDoodle-ApplicationInstall/$(bash jvm/getJdkArchiveName.sh)/bin/java -version
-
   build-linux-arm:
     runs-on: ubuntu-24.04-arm
 
@@ -51,6 +19,13 @@ jobs:
       uses: actions/checkout@v2
       with:
          submodules: recursive
+
+    - name: Install and verify pinned JDK from jvm.json
+      run: |
+        bash jvm/installJdk.sh
+        JAVA_HOME=$HOME/bin/CaDoodle-ApplicationInstall/$(bash jvm/getJdkArchiveName.sh)
+        echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
+        echo "PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
 
     - name: List directory contents
       run: pwd; ls -la
@@ -71,13 +46,6 @@ jobs:
           sudo apt update
           sudo apt install libgtk2.0-0
 
-    - name: Install pinned JDK from jvm.json
-      run: |
-        bash jvm/installJdk.sh
-        JAVA_HOME=$HOME/bin/CaDoodle-ApplicationInstall/$(bash jvm/getJdkArchiveName.sh)
-        echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
-        echo "PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
-
     - name: Test with Gradle
       run: xvfb-run -s '-screen 0 1024x768x24' ./gradlew test
   build-windows:
@@ -89,7 +57,7 @@ jobs:
       with:
          submodules: recursive
 
-    - name: Install pinned JDK from jvm.json
+    - name: Install and verify pinned JDK from jvm.json
       shell: bash
       run: |
         bash jvm/installJdk.sh
@@ -107,7 +75,7 @@ jobs:
       uses: actions/checkout@v2
       with:
          submodules: recursive
-    - name: Install pinned JDK from jvm.json
+    - name: Install and verify pinned JDK from jvm.json
       run: |
         bash jvm/installJdk.sh
         JAVA_HOME=$HOME/bin/CaDoodle-ApplicationInstall/$(bash jvm/getJdkArchiveName.sh)
@@ -149,6 +117,13 @@ jobs:
       with:
          submodules: recursive        
         
+    - name: Install and verify pinned JDK from jvm.json
+      run: |
+        bash jvm/installJdk.sh
+        JAVA_HOME=$HOME/bin/CaDoodle-ApplicationInstall/$(bash jvm/getJdkArchiveName.sh)
+        echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
+        echo "PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
+
     - name: List directory contents
       run: pwd; ls -la      
       
@@ -162,14 +137,6 @@ jobs:
 
     - name: After checkout, list directory contnts
       run: pwd; ls -la        
-
-    - name: Install pinned JDK from jvm.json
-      run: |
-        bash jvm/installJdk.sh
-        JAVA_HOME=$HOME/bin/CaDoodle-ApplicationInstall/$(bash jvm/getJdkArchiveName.sh)
-        echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
-        echo "PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
-
 
     - name: Test with Gradle 
       run: xvfb-run -s '-screen 0 1024x768x24' ./gradlew test     
