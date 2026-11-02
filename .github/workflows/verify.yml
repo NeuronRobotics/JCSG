@@ -11,6 +11,38 @@ on:
       - '*'
 
 jobs:
+  jdk-archive:
+    strategy:
+      matrix:
+        include:
+          - key: Linux-x64
+            runs-on: ubuntu-24.04
+          - key: Linux-aarch64
+            runs-on: ubuntu-24.04-arm
+          - key: Windows-x64
+            runs-on: windows-latest
+          - key: Mac-x64
+            runs-on: macos-15-intel
+          - key: Mac-aarch64
+            runs-on: macos-15
+    name: jdk-archive (${{ matrix.key }})
+    runs-on: ${{ matrix.runs-on }}
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Install the pinned JDK from jvm.json
+      shell: bash
+      run: bash jvm/installJdk.sh
+
+    - name: Run the installer test suite
+      shell: bash
+      run: bash jvm/testInstallJdk.sh
+
+    - name: Confirm java -version of the pinned archive
+      shell: bash
+      run: $HOME/bin/CaDoodle-ApplicationInstall/$(bash jvm/getJdkArchiveName.sh)/bin/java -version
+
   build-linux-arm:
     runs-on: ubuntu-24.04-arm
 
@@ -39,16 +71,12 @@ jobs:
           sudo apt update
           sudo apt install libgtk2.0-0
 
-    - name: Pull a JavaFX JDK
+    - name: Install pinned JDK from jvm.json
       run: |
-        echo "JVM_ARCHIVE=$(bash jvm/getJdkArchiveFile.sh)" >> $GITHUB_ENV
-        wget $(bash jvm/getJdkUrl.sh)
-
-    - name: Set Java
-      uses: actions/setup-java@v1
-      with:
-        java-version: 25
-        jdkFile: ${{ env.JVM_ARCHIVE }}
+        bash jvm/installJdk.sh
+        JAVA_HOME=$HOME/bin/CaDoodle-ApplicationInstall/$(bash jvm/getJdkArchiveName.sh)
+        echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
+        echo "PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
 
     - name: Test with Gradle
       run: xvfb-run -s '-screen 0 1024x768x24' ./gradlew test
@@ -61,17 +89,13 @@ jobs:
       with:
          submodules: recursive
 
-    - name: Pull a JavaFX JDK
+    - name: Install pinned JDK from jvm.json
       shell: bash
       run: |
-        echo "JVM_ARCHIVE=$(bash jvm/getJdkArchiveFile.sh)" >> $GITHUB_ENV
-        curl -O $(bash jvm/getJdkUrl.sh)
-
-    - name: Set Java
-      uses: actions/setup-java@v1
-      with:
-        java-version: 25
-        jdkFile: ${{ env.JVM_ARCHIVE }}
+        bash jvm/installJdk.sh
+        JAVA_HOME=$HOME/bin/CaDoodle-ApplicationInstall/$(bash jvm/getJdkArchiveName.sh)
+        echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
+        echo "PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
 
     - name: Test with Gradle
       run: ./gradlew test
@@ -83,18 +107,12 @@ jobs:
       uses: actions/checkout@v2
       with:
          submodules: recursive
-    - name: Install Java and Maven
+    - name: Install pinned JDK from jvm.json
       run: |
-        JDK_ARCHIVE=$(bash jvm/getJdkArchiveFile.sh)
-        JDK_HOME=$(pwd)/$(bash jvm/getJdkArchiveName.sh)
-        wget $(bash jvm/getJdkUrl.sh)
-        case $JDK_ARCHIVE in
-          *.zip) unzip -q $JDK_ARCHIVE ;;
-          *) tar -xzf $JDK_ARCHIVE ;;
-        esac
-        if test -d $JDK_HOME/Contents/Home; then JDK_HOME=$JDK_HOME/Contents/Home; fi
-        echo "JAVA_HOME=$JDK_HOME" >> $GITHUB_ENV
-        echo "PATH=$JDK_HOME/bin:$PATH" >> $GITHUB_ENV
+        bash jvm/installJdk.sh
+        JAVA_HOME=$HOME/bin/CaDoodle-ApplicationInstall/$(bash jvm/getJdkArchiveName.sh)
+        echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
+        echo "PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
     - name: Test with Gradle
       run: ./gradlew test
   build-linux-x86:
@@ -145,18 +163,14 @@ jobs:
     - name: After checkout, list directory contnts
       run: pwd; ls -la        
 
-    - name: Pull a JavaFX JDK
+    - name: Install pinned JDK from jvm.json
       run: |
-        echo "JVM_ARCHIVE=$(bash jvm/getJdkArchiveFile.sh)" >> $GITHUB_ENV
-        wget $(bash jvm/getJdkUrl.sh)
+        bash jvm/installJdk.sh
+        JAVA_HOME=$HOME/bin/CaDoodle-ApplicationInstall/$(bash jvm/getJdkArchiveName.sh)
+        echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
+        echo "PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
 
-    - name: Set Java
-      uses: actions/setup-java@v1
-      with:
-        java-version: 25
-        jdkFile: ${{ env.JVM_ARCHIVE }}
 
-      
     - name: Test with Gradle 
       run: xvfb-run -s '-screen 0 1024x768x24' ./gradlew test     
   

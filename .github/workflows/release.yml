@@ -14,14 +14,12 @@ jobs:
       packages: write 
     steps:
       - uses: actions/checkout@v3
-      - name: Pull a JavaFX JDK
+      - name: Install pinned JDK from jvm.json
         run: |
-          echo "JVM_ARCHIVE=$(bash jvm/getJdkArchiveFile.sh)" >> $GITHUB_ENV
-          wget $(bash jvm/getJdkUrl.sh)
-      - uses: actions/setup-java@v1
-        with:
-          java-version: 25
-          jdkFile: ${{ env.JVM_ARCHIVE }}
+          bash jvm/installJdk.sh
+          JAVA_HOME=$HOME/bin/CaDoodle-ApplicationInstall/$(bash jvm/getJdkArchiveName.sh)
+          echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
+          echo "PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
       - name: Set output
         id: vars
         run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
