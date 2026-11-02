@@ -69,7 +69,7 @@ jobs:
     - name: Test with Gradle
       run: ./gradlew test
   build-mac:
-    runs-on: macos-latest
+    runs-on: macos-15
 
     steps:
     - name: Checkout repository and submodules
