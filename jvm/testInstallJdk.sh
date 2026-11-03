@@ -141,14 +141,12 @@ else
 	(cd "$WORK/fakepkg" && tar -czf "$WORK/fake-archive.tar.gz" .)
 	FAKE_ARCHIVE=$WORK/fake-archive.tar.gz
 fi
-# Real Zulu macOS zip layout: the JDK home is nested in a .jdk bundle and the
-# top-level bin/lib/... entries are symlinks into it; the installer keeps them
+# Current Zulu macOS zip layout: only a Contents/ bundle at the top level, the
+# launcher lives in Contents/Home/bin/java (no top-level bin)
 MAC_NAME=$(JVM_KEY=Mac-x64 bash "$HERE/getJdkArchiveName.sh")
-mkdir -p "$WORK/fakemac/$MAC_NAME/zulu-25.jdk/Contents/Home/bin"
-mkdir -p "$WORK/fakemac/$MAC_NAME/zulu-25.jdk/Contents/Home/lib"
-mk_fake_java "$WORK/fakemac/$MAC_NAME/zulu-25.jdk/Contents/Home/bin/java" ok
-ln -s "zulu-25.jdk/Contents/Home/bin" "$WORK/fakemac/$MAC_NAME/bin"
-ln -s "zulu-25.jdk/Contents/Home/lib" "$WORK/fakemac/$MAC_NAME/lib"
+mkdir -p "$WORK/fakemac/$MAC_NAME/Contents/Home/bin"
+mkdir -p "$WORK/fakemac/$MAC_NAME/Contents/Home/lib"
+mk_fake_java "$WORK/fakemac/$MAC_NAME/Contents/Home/bin/java" ok
 make_zip "$WORK/fake-mac.zip" "$WORK/fakemac"
 
 # App-style bundle layout: Contents/Home directly at the top level
@@ -162,6 +160,11 @@ make_stub "$FAKE_ARCHIVE"
 expect_ok "fresh install" "$ROOT"
 grep -q 'openjdk version "25' "$WORK/out.log" || {
 	echo "FAIL: java -version output missing from installer output"
+	FAIL=$((FAIL + 1))
+}
+# getJdkHome.sh resolves the install root on the flat (non-mac) layout
+[ "$(JDK_INSTALL_ROOT=$ROOT bash "$HERE/getJdkHome.sh")" = "$ROOT/$DEFAULT_NAME" ] || {
+	echo "FAIL: getJdkHome.sh did not resolve $ROOT/$DEFAULT_NAME"
 	FAIL=$((FAIL + 1))
 }
 
@@ -206,19 +209,18 @@ expect_fail "truncated archive fails" "$ROOT"
 	FAIL=$((FAIL + 1))
 }
 
-# 7. Real Zulu macOS layout: installed verbatim; bin/java reachable through the
-#    kept symlinks and the .jdk bundle left in place
+# 7. Current Zulu macOS layout: installed verbatim; launcher only inside
+#    Contents/Home, and getJdkHome.sh resolves JAVA_HOME into the bundle
 ROOT=$WORK/root7
 make_stub "$WORK/fake-mac.zip"
 if run_installer "$ROOT" JVM_KEY=Mac-x64 &&
-	[ -L "$ROOT/$MAC_NAME/bin" ] &&
-	[ -x "$ROOT/$MAC_NAME/bin/java" ] &&
-	[ -L "$ROOT/$MAC_NAME/lib" ] &&
-	[ -d "$ROOT/$MAC_NAME/zulu-25.jdk/Contents/Home/bin" ]; then
-	echo "PASS: macOS .jdk bundle kept with working symlinks"
+	[ ! -e "$ROOT/$MAC_NAME/bin" ] &&
+	[ -x "$ROOT/$MAC_NAME/Contents/Home/bin/java" ] &&
+	[ "$(JVM_KEY=Mac-x64 JDK_INSTALL_ROOT=$ROOT bash "$HERE/getJdkHome.sh")" = "$ROOT/$MAC_NAME/Contents/Home" ]; then
+	echo "PASS: macOS Contents/Home bundle install"
 	PASS=$((PASS + 1))
 else
-	echo "FAIL: macOS bundle-with-symlinks scenario"
+	echo "FAIL: macOS Contents/Home bundle scenario"
 	cat "$WORK/out.log"
 	FAIL=$((FAIL + 1))
 fi

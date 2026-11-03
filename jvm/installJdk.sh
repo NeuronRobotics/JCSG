@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # Downloads the pinned Zulu JavaFX JDK for this OS/arch from jvm.json (single source
 # of truth) and installs the archive's <archive-name> top directory verbatim to
-# ~/bin/CaDoodle-ApplicationInstall/<archive-name>/ so <install>/bin/java(.exe)
-# exists on every OS. The macOS zip ships top-level symlinks (bin, lib, ...)
-# into <name>/zulu-25.jdk/Contents/Home; they are kept as-is and the java
-# launcher resolves through them. Verifies the install with java -version and
-# the pinned major version; exits non-zero if the JVM is missing or broken.
+# ~/bin/CaDoodle-ApplicationInstall/<archive-name>/. The java launcher is found
+# at bin/java(.exe) everywhere except current macOS zips, which ship only a
+# Contents/Home bundle (older macOS zips expose it through top-level symlinks).
+# Verifies the install with java -version and the pinned major version; exits
+# non-zero if the JVM is missing or broken.
 # Re-run any time jvm.json changes: an existing install is replaced when the pinned
 # archive differs. Override the install root with JDK_INSTALL_ROOT, the jvm.json key
 # with JVM_KEY, and the expected major version with JVM_MAJOR_VERSION.
@@ -24,19 +24,28 @@ INSTALL_DIR=$INSTALL_ROOT/$JVM
 TEMP_DIR=$(mktemp -d)
 trap 'rm -rf "$TEMP_DIR"' EXIT
 
-# Validate an existing install before trusting it; a stale or broken one is reinstalled.
-is_working_jvm() {
-	local dir=$1 java out
-	# Contract: bin/java(.exe) at the install root. On macOS bin is a symlink
-	# into zulu-25.jdk/Contents/Home/bin and -e/-x resolve through it; Windows
-	# ships the launcher as java.exe, everything else as java
+# Locate the java launcher in an installed JDK dir: top-level bin/java(.exe)
+# (Linux, Windows, and older macOS zips through the bin symlink) or
+# Contents/Home/bin/java(.exe) (current macOS zips)
+find_java() { # dir -> echoes launcher path, non-zero if absent
+	local dir=$1
 	if [ -e "$dir/bin/java.exe" ]; then
-		java=$dir/bin/java.exe
+		echo "$dir/bin/java.exe"
 	elif [ -e "$dir/bin/java" ]; then
-		java=$dir/bin/java
+		echo "$dir/bin/java"
+	elif [ -e "$dir/Contents/Home/bin/java.exe" ]; then
+		echo "$dir/Contents/Home/bin/java.exe"
+	elif [ -e "$dir/Contents/Home/bin/java" ]; then
+		echo "$dir/Contents/Home/bin/java"
 	else
 		return 1
 	fi
+}
+
+# Validate an existing install before trusting it; a stale or broken one is reinstalled.
+is_working_jvm() {
+	local dir=$1 java out
+	java=$(find_java "$dir") || return 1
 	chmod +x "$java" 2>/dev/null || true
 	# java -version prints to stderr and quotes the version: openjdk version "25.0.4"
 	out=$("$java" -version 2>&1) || return 1
@@ -88,10 +97,6 @@ else
 	fi
 fi
 
-if [ -x "$INSTALL_DIR/bin/java.exe" ]; then
-	JAVA_LAUNCHER=$INSTALL_DIR/bin/java.exe
-else
-	JAVA_LAUNCHER=$INSTALL_DIR/bin/java
-fi
+JAVA_LAUNCHER=$(find_java "$INSTALL_DIR")
 echo "--- java -version ---"
 "$JAVA_LAUNCHER" -version

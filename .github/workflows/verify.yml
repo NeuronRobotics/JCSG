@@ -23,7 +23,7 @@ jobs:
     - name: Install and verify pinned JDK from jvm.json
       run: |
         bash jvm/installJdk.sh
-        JAVA_HOME=$HOME/bin/CaDoodle-ApplicationInstall/$(bash jvm/getJdkArchiveName.sh)
+        JAVA_HOME=$(bash jvm/getJdkHome.sh)
         echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
         echo "PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
 
@@ -61,7 +61,7 @@ jobs:
       shell: bash
       run: |
         bash jvm/installJdk.sh
-        JAVA_HOME=$HOME/bin/CaDoodle-ApplicationInstall/$(bash jvm/getJdkArchiveName.sh)
+        JAVA_HOME=$(bash jvm/getJdkHome.sh)
         # gradlew.bat needs a native Windows path, not the MSYS form bash produces
         echo "JAVA_HOME=$(cygpath -w "$JAVA_HOME")" >> $GITHUB_ENV
         echo "$JAVA_HOME/bin" >> $GITHUB_PATH
@@ -79,7 +79,7 @@ jobs:
     - name: Install and verify pinned JDK from jvm.json
       run: |
         bash jvm/installJdk.sh
-        JAVA_HOME=$HOME/bin/CaDoodle-ApplicationInstall/$(bash jvm/getJdkArchiveName.sh)
+        JAVA_HOME=$(bash jvm/getJdkHome.sh)
         echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
         echo "PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
     - name: Test with Gradle
@@ -121,7 +121,7 @@ jobs:
     - name: Install and verify pinned JDK from jvm.json
       run: |
         bash jvm/installJdk.sh
-        JAVA_HOME=$HOME/bin/CaDoodle-ApplicationInstall/$(bash jvm/getJdkArchiveName.sh)
+        JAVA_HOME=$(bash jvm/getJdkHome.sh)
         echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
         echo "PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
 
