@@ -100,9 +100,10 @@
 	"Mac-x64":{
 		"url":"https://cdn.azul.com/zulu/bin/",
 		"type":"zip",
-		"name":"zulu25.32.21-ca-fx-jdk25.0.2-macosx_x64",
+		"name":"zulu25.38.109-ca-fx-jdk25.0.5.0.3-macosx_x64",
 		"jvmargs":[
 					"-Dprism.dirtyopts=false",
+			"-Dprism.order=mtl",
 			"-Dprism.forceGPU=true",
 			"-XX:MaxRAMPercentage=95",
 			"--add-exports javafx.graphics/com.sun.javafx.css=ALL-UNNAMED",
@@ -132,9 +133,10 @@
 	"Mac-aarch64":{
 		"url":"https://cdn.azul.com/zulu/bin/",
 		"type":"zip",
-		"name":"zulu25.32.21-ca-fx-jdk25.0.2-macosx_aarch64",
+		"name":"zulu25.38.109-ca-fx-jdk25.0.5.0.3-macosx_aarch64",
 		"jvmargs":[
 					"-Dprism.dirtyopts=false",
+			"-Dprism.order=mtl",
 			"-Dprism.forceGPU=true",
 			"-XX:MaxRAMPercentage=95",
 			"--add-exports javafx.graphics/com.sun.javafx.css=ALL-UNNAMED",
