@@ -4846,4 +4846,11 @@ public class CSG implements IuserAPI, Serializable {
 	public double getSurfaceArea() {
 		return this.surfaceArea;
 	}
+
+	public static CSG simplify(CSG csg, double d) throws Throwable {
+		if(defaultOptType==OptType.Manifold3d) {
+			return manifold.simplify(csg, d);
+		}
+		return csg;
+	}
 }
