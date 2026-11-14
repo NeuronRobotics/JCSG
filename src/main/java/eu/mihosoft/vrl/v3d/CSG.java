@@ -4635,7 +4635,7 @@ public class CSG implements IuserAPI, Serializable {
 	 *
 	 * @param source path to the .3mf file
 	 * @return list of CSG objects, one per <object> in the 3MF resources
-	 * @throws Throwable 
+	 * @throws Throwable
 	 */
 	public static List<CSG> fromThreeMF(Path source) throws Throwable {
 		try (ZipFile zip = new ZipFile(source.toFile())) {
@@ -4811,7 +4811,7 @@ public class CSG implements IuserAPI, Serializable {
 					csg.setColor(color);
 
 				csg = CSG.calculateAreaAndSurfaceArea(csg);
-				if(csg.getVertCount()>4)
+				if (csg.getVertCount() > 4)
 					result.add(csg);
 			}
 			return result;
@@ -4820,9 +4820,9 @@ public class CSG implements IuserAPI, Serializable {
 
 	public static CSG calculateAreaAndSurfaceArea(CSG incoming) throws Throwable {
 		if (CSG.getDefaultOptionType() == OptType.Manifold3d) {
-			
-				return CSG.getManifold().calculateAreaAndSurfaceArea(incoming);
-	
+
+			return CSG.getManifold().calculateAreaAndSurfaceArea(incoming);
+
 		}
 		return incoming;
 	}
@@ -4848,7 +4848,7 @@ public class CSG implements IuserAPI, Serializable {
 	}
 
 	public static CSG simplify(CSG csg, double d) throws Throwable {
-		if(defaultOptType==OptType.Manifold3d) {
+		if (defaultOptType == OptType.Manifold3d) {
 			return manifold.simplify(csg, d);
 		}
 		return csg;
