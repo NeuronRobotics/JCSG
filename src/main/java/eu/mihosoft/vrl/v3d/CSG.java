@@ -4635,8 +4635,9 @@ public class CSG implements IuserAPI, Serializable {
 	 *
 	 * @param source path to the .3mf file
 	 * @return list of CSG objects, one per <object> in the 3MF resources
+	 * @throws Throwable 
 	 */
-	public static List<CSG> fromThreeMF(Path source) throws IOException {
+	public static List<CSG> fromThreeMF(Path source) throws Throwable {
 		try (ZipFile zip = new ZipFile(source.toFile())) {
 
 			ZipEntry modelEntry = null;
@@ -4790,7 +4791,7 @@ public class CSG implements IuserAPI, Serializable {
 
 		// ── Build CSGs after parse ─────────────────────────────────────────────
 
-		List<CSG> buildCSGs() {
+		List<CSG> buildCSGs() throws Throwable {
 			List<CSG> result = new ArrayList<CSG>(objects.size());
 			for (ObjectData od : objects) {
 				Color color = null;
@@ -4810,19 +4811,18 @@ public class CSG implements IuserAPI, Serializable {
 					csg.setColor(color);
 
 				csg = CSG.calculateAreaAndSurfaceArea(csg);
-				result.add(csg);
+				if(csg.getVertCount()>4)
+					result.add(csg);
 			}
 			return result;
 		}
 	}
 
-	public static CSG calculateAreaAndSurfaceArea(CSG incoming) {
+	public static CSG calculateAreaAndSurfaceArea(CSG incoming) throws Throwable {
 		if (CSG.getDefaultOptionType() == OptType.Manifold3d) {
-			try {
+			
 				return CSG.getManifold().calculateAreaAndSurfaceArea(incoming);
-			} catch (Throwable e) {
-				throw new RuntimeException(e);
-			}
+	
 		}
 		return incoming;
 	}
