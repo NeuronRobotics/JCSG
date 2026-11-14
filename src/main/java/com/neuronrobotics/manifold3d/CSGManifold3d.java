@@ -205,6 +205,47 @@ public class CSGManifold3d {
 	}
 
 	/**
+	 * Returns a copy of the solid with the edges and facets below the given tolerance
+	 * merged away, as Manifold's own {@code simplify} does. A mesh whose facets are
+	 * thinner than a downstream consumer can resolve — a boolean near a seam, an STL
+	 * of a part with folded sheet metal — closes the volume but carries edges no BRep
+	 * kernel can represent; this is the pass that removes them.
+	 *
+	 * @param incoming
+	 *            the solid to clean; must not be null
+	 * @param tolerance
+	 *            the merge distance, in model units
+	 * @return the simplified solid
+	 * @throws Throwable
+	 *             if the native calls fail
+	 */
+	public CSG simplify(CSG incoming, double tolerance) throws Throwable {
+		MemorySegment man = toManifold(incoming);
+		try {
+			MemorySegment original = manifold.asOriginal(man);
+			manifold.delete(man);
+			MemorySegment smooth = null;
+			try {
+				smooth = manifold.simplify(original, tolerance);
+				manifold.delete(original);
+				CSG fromManifold = fromManifold(smooth, incoming.getColor());
+				manifold.delete(smooth);
+				return fromManifold;
+			} catch (Throwable t) {
+				if (smooth != null)
+					manifold.delete(smooth);
+				else
+					manifold.delete(original);
+				throw t;
+			}
+		} catch (Throwable t) {
+			if (t instanceof RuntimeException)
+				throw (RuntimeException) t;
+			throw t;
+		}
+	}
+
+	/**
 	 * Returns the union of two CSG solids. Uses {@code manifold.union(a, b)}
 	 * directly (wrapper around {@code manifold_union} in the C library).
 	 */
