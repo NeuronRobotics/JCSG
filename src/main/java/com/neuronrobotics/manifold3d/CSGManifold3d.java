@@ -814,7 +814,9 @@ public class CSGManifold3d {
 	public double volume(CSG incoming) throws Throwable {
 		MemorySegment man = toManifold(incoming);
 		try {
-			return manifold.volume(man);
+			double volume = manifold.volume(man);
+			incoming.setVolume(volume);
+			return volume;
 		} finally {
 			manifold.delete(man);
 		}
@@ -824,7 +826,9 @@ public class CSGManifold3d {
 	public double surfaceArea(CSG incoming) throws Throwable {
 		MemorySegment man = toManifold(incoming);
 		try {
-			return manifold.surfaceArea(man);
+			double surfaceArea = manifold.surfaceArea(man);
+			incoming.setSurfaceArea(surfaceArea);
+			return surfaceArea;
 		} finally {
 			manifold.delete(man);
 		}
@@ -1096,7 +1100,7 @@ public class CSGManifold3d {
 	}
 
 	// -------------------------------------------------------------------------
-	// Composition
+	// Composition / Decomposition
 	// -------------------------------------------------------------------------
 
 	/**
@@ -1123,6 +1127,42 @@ public class CSGManifold3d {
 		} finally {
 			for (MemorySegment seg : segs)
 				manifold.delete(seg);
+		}
+	}
+
+	/**
+	 * Splits a solid into its connected components without booleaning anything —
+	 * the pieces of a composed assembly come back as separate solids in input
+	 * order, each keeping its own surface. An empty solid decomposes to an empty
+	 * list.
+	 *
+	 * @param incoming
+	 *            the solid to split; must not be null
+	 * @return one solid per connected component, never {@code null}
+	 * @throws Throwable
+	 *             if the native calls fail or a component is not a valid manifold
+	 */
+	public List<CSG> decompose(CSG incoming) throws Throwable {
+		// a CSG with no triangles is the empty solid this class's fromManifold
+		// produces; it has nothing to decompose and no mesh to import
+		if (incoming.getTriangles() == null || incoming.getTriangles().length == 0)
+			return new ArrayList<>();
+		MemorySegment man = toManifold(incoming);
+		MemorySegment[] parts = null;
+		try {
+			parts = manifold.decompose(man);
+			checkResult(parts);
+			List<CSG> out = new ArrayList<>(parts.length);
+			for (MemorySegment part : parts)
+				out.add(fromManifold(part, incoming.getColor()));
+			return out;
+		} finally {
+			// every component handle is freed here whether the conversion
+			// succeeded or threw, so nothing native outlives the call
+			if (parts != null)
+				for (MemorySegment part : parts)
+					manifold.safeDelete(part);
+			manifold.delete(man);
 		}
 	}
 
