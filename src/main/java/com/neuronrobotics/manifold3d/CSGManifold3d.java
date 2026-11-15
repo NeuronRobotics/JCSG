@@ -226,8 +226,18 @@ public class CSGManifold3d {
 			manifold.delete(man);
 			MemorySegment smooth = null;
 			try {
-				smooth = manifold.simplify(original, tolerance);
-				manifold.delete(original);
+				// the Manifold simplification loop: each pass collapses the short and
+				// redundant edges the tolerance marks, and collapsing one edge can
+				// mark the next, so the passes repeat until a pass changes nothing
+				smooth = original;
+				for (int pass = 0; pass < SIMPLIFY_MAX_PASSES; pass++) {
+					long before = manifold.numTri(smooth);
+					MemorySegment next = manifold.simplify(smooth, tolerance);
+					manifold.delete(smooth);
+					smooth = next;
+					if (manifold.numTri(next) == before)
+						break;
+				}
 				CSG fromManifold = fromManifold(smooth, incoming.getColor());
 				manifold.delete(smooth);
 				return fromManifold;
@@ -244,6 +254,9 @@ public class CSGManifold3d {
 			throw t;
 		}
 	}
+
+	/** The most Manifold simplify passes one simplify call may take to settle. */
+	private static final int SIMPLIFY_MAX_PASSES = 16;
 
 	/**
 	 * Returns the union of two CSG solids. Uses {@code manifold.union(a, b)}
