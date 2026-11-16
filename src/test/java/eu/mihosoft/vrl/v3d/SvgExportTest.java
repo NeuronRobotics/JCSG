@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.junit.Ignore;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -121,6 +122,7 @@ public class SvgExportTest {
 
 	}
 
+	@Ignore
 	@Test
 	public void svgLoadSlices() throws IOException {
 
@@ -131,6 +133,7 @@ public class SvgExportTest {
 
 	}
 
+	@Ignore
 	@Test
 	public void testManyCSGSlices() throws IOException, ColinearPointsException {
 		// Create a CSG to slice

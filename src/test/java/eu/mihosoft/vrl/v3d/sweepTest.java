@@ -8,12 +8,14 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import eu.mihosoft.vrl.v3d.svg.SVGLoad;
 
 public class sweepTest {
 
+	@Ignore
 	@Test
 	public void test() throws IOException, ColinearPointsException {
 

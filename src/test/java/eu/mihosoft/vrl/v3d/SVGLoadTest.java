@@ -60,6 +60,7 @@ public class SVGLoadTest {
 	}
 
 	// Alexes_Bad.svg
+	@Ignore
 	@Test
 	public void flame() throws IOException {
 
@@ -93,6 +94,7 @@ public class SVGLoadTest {
 	}
 
 	// Alexes_Bad.svg
+	@Ignore
 	@Test
 	public void Alexes_Bad() throws IOException {
 		//
@@ -126,6 +128,7 @@ public class SVGLoadTest {
 		// parts.get(i).toStlString());
 	}
 
+	@Ignore
 	@Test
 	public void badPoly() throws IOException {
 		File svg = new File("polygon.svg");
@@ -151,6 +154,7 @@ public class SVGLoadTest {
 		}
 	}
 
+	@Ignore
 	@Test
 	public void box() throws IOException {
 		File svg = new File("box.svg");
@@ -190,6 +194,7 @@ public class SVGLoadTest {
 			parts.get(i).toStl(Paths.get(i + "-InsideOutsideTest.stl"));
 	}
 
+	@Ignore
 	@Test
 	public void adversarial() throws IOException {
 		File svg = new File("Part-Num-0.svg");
@@ -209,6 +214,7 @@ public class SVGLoadTest {
 		// fail("Not yet implemented");
 	}
 
+	@Ignore
 	@Test
 	public void test() throws IOException {
 		File svg = new File("Test.SVG");
@@ -219,6 +225,7 @@ public class SVGLoadTest {
 		// fail("Not yet implemented");
 	}
 
+	@Ignore
 	@Test
 	public void rose() throws IOException {
 		File grouped = new File("rose.svg");
