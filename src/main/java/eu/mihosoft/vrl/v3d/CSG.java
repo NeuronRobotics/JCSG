@@ -230,6 +230,14 @@ public class CSG implements IuserAPI, Serializable {
 	private String uniqueId = UUID.randomUUID().toString();
 	private static CSGManifold3d manifold = null;
 
+	// Overridable so tests can exercise the FX-thread branch without a display.
+	// Production always asks JavaFX. Package-private, not part of the public API.
+	static java.util.function.BooleanSupplier fxThreadProbe = () -> javafx.application.Platform.isFxApplicationThread();
+
+	private static boolean runningOnFxThread() {
+		return fxThreadProbe.getAsBoolean();
+	}
+
 	private double[] vertices;
 	private long[] triangles;
 	private ArrayList<Plane> planes;
@@ -2579,9 +2587,12 @@ public class CSG implements IuserAPI, Serializable {
 	 * returned if existing
 	 *
 	 * <p>
-	 * With {@link OptType#Manifold3d} enabled the box comes from Manifold's native
-	 * BVH, which avoids the per-vertex scan below. Any failure there falls back to
-	 * the scan, since a wrong box would be worse than a slow one.
+	 * With {@link OptType#Manifold3d} enabled and a caller off the JavaFX thread,
+	 * the box comes from Manifold's native BVH, which avoids the per-vertex scan
+	 * below. On the JavaFX thread the scan is used instead: measuring native here
+	 * would round-trip the whole mesh through the binding on a path that mouse
+	 * handlers reach, stalling input while it runs. Any failure there falls back
+	 * to the scan, since a wrong box would be worse than a slow one.
 	 *
 	 * @return bouds of this csg
 	 */
@@ -2589,7 +2600,7 @@ public class CSG implements IuserAPI, Serializable {
 		if (bounds != null)
 			return bounds;
 
-		if (getOptType() == OptType.Manifold3d && manifold != null) {
+		if (getOptType() == OptType.Manifold3d && manifold != null && !runningOnFxThread()) {
 			try {
 				bounds = manifold.getBounds(this);
 				return bounds;
