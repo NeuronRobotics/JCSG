@@ -4872,10 +4872,28 @@ public class CSG implements IuserAPI, Serializable {
 		return this.surfaceArea;
 	}
 
-	public static CSG simplify(CSG csg, double d) throws Throwable {
-		if (defaultOptType == OptType.Manifold3d) {
-			return manifold.simplify(csg, d);
-		}
-		return csg;
+	/** Cleans at the default BRep precision, in model units, without smoothing. */
+	public CSG simplify() throws Throwable {
+		return simplify(com.neuronrobotics.manifold3d.NativeMeshCleanup.DEFAULT_TOLERANCE);
+	}
+
+	/**
+	 * Returns a native simplified copy; tolerance is a finite nonnegative distance
+	 * in model units, lower-bounded by Manifold's epsilon. Thin-feature removal
+	 * follows native edge-collapse constraints, not a component-volume cutoff.
+	 */
+	public CSG simplify(double tolerance) throws Throwable {
+		return getCleanupManifold().simplify(this, tolerance);
+	}
+
+	private static synchronized CSGManifold3d getCleanupManifold() throws Exception {
+		if (manifold == null)
+			manifold = new CSGManifold3d();
+		return manifold;
+	}
+
+	/** Compatibility entry point for native cleanup. */
+	public static CSG simplify(CSG csg, double tolerance) throws Throwable {
+		return csg.simplify(tolerance);
 	}
 }

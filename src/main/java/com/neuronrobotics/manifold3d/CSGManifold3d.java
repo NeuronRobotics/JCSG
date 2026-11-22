@@ -61,11 +61,13 @@ public class CSGManifold3d {
 	}
 
 	public void checkManifold(CSG c) throws Throwable {
-		MemorySegment back = c.getManifold().toManifold(c);
-		CSG mcsg = c.getManifold().fromManifold(back, c.getColor());
-		CSG.getManifold().delete(back);
-		c.setVertices(mcsg.getVertices());
-		c.setTriangles(mcsg.getTriangles());
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment back = c.getManifold().toManifold(c);
+			CSG mcsg = c.getManifold().fromManifold(back, c.getColor());
+			CSG.getManifold().delete(back);
+			c.setVertices(mcsg.getVertices());
+			c.setTriangles(mcsg.getTriangles());
+		}
 	}
 
 	/**
@@ -84,24 +86,31 @@ public class CSGManifold3d {
 	 *             if {@code csg} is null or has no polygons
 	 */
 	public MemorySegment toManifold(CSG csg) throws Throwable {
-		if (csg == null)
-			throw new IllegalArgumentException("csg must not be null");
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			if (csg == null)
+				throw new IllegalArgumentException("csg must not be null");
 
-		double[] vertices = csg.getVertices();
-		long[] triangles = csg.getTriangles();
+			double[] vertices = csg.getVertices();
+			long[] triangles = csg.getTriangles();
 
-		// ManifoldMeshGL64 takes vertex and triangle *counts*; the flat arrays hold
-		// three scalars per element, so array length would overrun by 3x.
-		if (vertices == null || triangles == null)
-			throw new IllegalArgumentException("csg has no mesh data: " + csg.getName());
-		long vertCount = csg.getVertCount();
-		long triCount = csg.getTriCount();
-		if (vertCount == 0 || triCount == 0)
-			throw new IllegalArgumentException("csg has no polygons: " + csg.getName());
+			// ManifoldMeshGL64 takes vertex and triangle *counts*; the flat arrays hold
+			// three scalars per element, so array length would overrun by 3x.
+			if (vertices == null || triangles == null)
+				throw new IllegalArgumentException("csg has no mesh data: " + csg.getName());
+			long vertCount = csg.getVertCount();
+			long triCount = csg.getTriCount();
+			if (vertCount == 0 || triCount == 0)
+				throw new IllegalArgumentException("csg has no polygons: " + csg.getName());
 
-		MemorySegment ms = manifold.importMeshGL64(vertices, triangles, vertCount, triCount);
-		checkResult(ms);
-		return ms;
+			MemorySegment ms = manifold.importMeshGL64(vertices, triangles, vertCount, triCount);
+			try {
+				checkResult(ms);
+				return ms;
+			} catch (Throwable failure) {
+				manifold.delete(ms);
+				throw failure;
+			}
+		}
 	}
 
 	/**
@@ -123,21 +132,23 @@ public class CSGManifold3d {
 	 *             if {@code manifold} is null
 	 */
 	public CSG fromManifold(MemorySegment ms, Color c) throws Throwable {
-		if (ms == null)
-			throw new IllegalArgumentException("manifold segment must not be null");
-		MeshData64 mesh = this.manifold.exportMeshGL64(ms);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			if (ms == null)
+				throw new IllegalArgumentException("manifold segment must not be null");
+			MeshData64 mesh = this.manifold.exportMeshGL64(ms);
 
-		double[] verts = mesh.vertices(); // flat [x0,y0,z0, x1,y1,z1, ...]
-		long[] tris = mesh.triangles(); // flat [i0,i1,i2, i3,i4,i5, ...]
-		int triCount = mesh.triCount();
+			double[] verts = mesh.vertices(); // flat [x0,y0,z0, x1,y1,z1, ...]
+			long[] tris = mesh.triangles(); // flat [i0,i1,i2, i3,i4,i5, ...]
+			int triCount = mesh.triCount();
 
-		if (triCount == 0)
-			return new CSG();
+			if (triCount == 0)
+				return new CSG();
 
-		CSG csg = new CSG(verts, tris, c);
-		csg.setVolume(manifold.volume(ms));
-		csg.setSurfaceArea(manifold.surfaceArea(ms));
-		return csg;
+			CSG csg = new CSG(verts, tris, c);
+			csg.setVolume(manifold.volume(ms));
+			csg.setSurfaceArea(manifold.surfaceArea(ms));
+			return csg;
+		}
 	}
 
 	/**
@@ -162,46 +173,48 @@ public class CSGManifold3d {
 	 *             wrapping any native call failure
 	 */
 	public ArrayList<Polygon> sliceAtZero(CSG incoming, Transform slicePlane, double offset) throws Throwable {
-		CSG csg = incoming.transformed(slicePlane.inverse());
-		MemorySegment csgm = null;
-		try {
-			csgm = toManifold(csg);
-			checkResult(csgm);
-			List<double[][]> contours = manifold.sliceWithOffset(csgm, 0.0, offset,
-					((Math.abs(offset) < BezierPath.getMaximumInterpolationStep())
-							? ManifoldBindings.JoinType.SQUARE
-							: ManifoldBindings.JoinType.ROUND),
-					Math.abs(BezierPath.getMaximumInterpolationStep()), 16);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			CSG csg = incoming.transformed(slicePlane.inverse());
+			MemorySegment csgm = null;
+			try {
+				csgm = toManifold(csg);
+				checkResult(csgm);
+				List<double[][]> contours = manifold.sliceWithOffset(csgm, 0.0, offset,
+						((Math.abs(offset) < BezierPath.getMaximumInterpolationStep())
+								? ManifoldBindings.JoinType.SQUARE
+								: ManifoldBindings.JoinType.ROUND),
+						Math.abs(BezierPath.getMaximumInterpolationStep()), 16);
 
-			ArrayList<Polygon> result = new ArrayList<>(contours.size());
+				ArrayList<Polygon> result = new ArrayList<>(contours.size());
 
-			for (double[][] contour : contours) {
-				// Need at least 3 vertices to define a plane and a valid polygon.
-				if (contour.length < 3) {
-					continue;
+				for (double[][] contour : contours) {
+					// Need at least 3 vertices to define a plane and a valid polygon.
+					if (contour.length < 3) {
+						continue;
+					}
+
+					ArrayList<Vector3d> points = new ArrayList<>(contour.length);
+					for (double[] xy : contour) {
+						// Z=0 because this is a cross-section at height 0.
+						points.add(Vector3d.xyz(xy[0], xy[1], 0.0));
+					}
+					try {
+						Polygon fromPoints = Polygon.fromPoints(points);
+						result.add(fromPoints);
+					} catch (ColinearPointsException ex) {
+						System.err.println("Polygon returned failed normal");
+					}
 				}
 
-				ArrayList<Vector3d> points = new ArrayList<>(contour.length);
-				for (double[] xy : contour) {
-					// Z=0 because this is a cross-section at height 0.
-					points.add(Vector3d.xyz(xy[0], xy[1], 0.0));
-				}
-				try {
-					Polygon fromPoints = Polygon.fromPoints(points);
-					result.add(fromPoints);
-				} catch (ColinearPointsException ex) {
-					System.err.println("Polygon returned failed normal");
-				}
+				return result;
+
+			} catch (Throwable e) {
+				e.printStackTrace();
+				throw new RuntimeException("Failed to slice CSG at Z=0", e);
+			} finally {
+				if (csgm != null)
+					manifold.delete(csgm);
 			}
-
-			return result;
-
-		} catch (Throwable e) {
-			e.printStackTrace();
-			throw new RuntimeException("Failed to slice CSG at Z=0", e);
-		} finally {
-			if (csgm != null)
-				manifold.delete(csgm);
 		}
 	}
 
@@ -218,28 +231,30 @@ public class CSGManifold3d {
 	 * @return the cross-section contours; empty when the plane misses the solid
 	 */
 	public ArrayList<Polygon> slice(CSG incoming, double height) throws Throwable {
-		MemorySegment csgm = null;
-		try {
-			csgm = toManifold(incoming);
-			checkResult(csgm);
-			List<double[][]> contours = manifold.slice(csgm, height);
-			ArrayList<Polygon> result = new ArrayList<>(contours.size());
-			for (double[][] contour : contours) {
-				if (contour.length < 3)
-					continue;
-				ArrayList<Vector3d> points = new ArrayList<>(contour.length);
-				for (double[] xy : contour)
-					points.add(Vector3d.xyz(xy[0], xy[1], height));
-				try {
-					result.add(Polygon.fromPoints(points));
-				} catch (ColinearPointsException ex) {
-					System.err.println("Slice contour dropped, normal failed: " + ex.getMessage());
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment csgm = null;
+			try {
+				csgm = toManifold(incoming);
+				checkResult(csgm);
+				List<double[][]> contours = manifold.slice(csgm, height);
+				ArrayList<Polygon> result = new ArrayList<>(contours.size());
+				for (double[][] contour : contours) {
+					if (contour.length < 3)
+						continue;
+					ArrayList<Vector3d> points = new ArrayList<>(contour.length);
+					for (double[] xy : contour)
+						points.add(Vector3d.xyz(xy[0], xy[1], height));
+					try {
+						result.add(Polygon.fromPoints(points));
+					} catch (ColinearPointsException ex) {
+						System.err.println("Slice contour dropped, normal failed: " + ex.getMessage());
+					}
 				}
+				return result;
+			} finally {
+				if (csgm != null)
+					manifold.delete(csgm);
 			}
-			return result;
-		} finally {
-			if (csgm != null)
-				manifold.delete(csgm);
 		}
 	}
 
@@ -248,17 +263,19 @@ public class CSGManifold3d {
 	 * directly (wrapper around {@code manifold_union} in the C library).
 	 */
 	public CSG minkowski_difference(CSG a, CSG b) throws Throwable {
-		MemorySegment ma = toManifold(a);
-		MemorySegment mb = toManifold(b);
-		try {
-			MemorySegment result = manifold.minkowski_difference(ma, mb);
-			checkResult(result);
-			CSG fromManifold = fromManifold(result, b.getColor());
-			manifold.delete(result);
-			return fromManifold;
-		} finally {
-			manifold.delete(ma);
-			manifold.delete(mb);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment ma = toManifold(a);
+			MemorySegment mb = toManifold(b);
+			try {
+				MemorySegment result = manifold.minkowski_difference(ma, mb);
+				checkResult(result);
+				CSG fromManifold = fromManifold(result, b.getColor());
+				manifold.delete(result);
+				return fromManifold;
+			} finally {
+				manifold.delete(ma);
+				manifold.delete(mb);
+			}
 		}
 	}
 
@@ -276,84 +293,39 @@ public class CSGManifold3d {
 	 *             if the object is not manifold then an error will
 	 */
 	public CSG calculateAreaAndSurfaceArea(CSG in) throws Throwable {
-		MemorySegment man = toManifold(in);
-		try {
-			return fromManifold(man, in.getColor());
-		} finally {
-			manifold.delete(man);
-		}
-	}
-
-	/**
-	 * Returns a copy of the solid with the edges and facets below the given tolerance
-	 * merged away, as Manifold's own {@code simplify} does. A mesh whose facets are
-	 * thinner than a downstream consumer can resolve — a boolean near a seam, an STL
-	 * of a part with folded sheet metal — closes the volume but carries edges no BRep
-	 * kernel can represent; this is the pass that removes them.
-	 *
-	 * @param incoming
-	 *            the solid to clean; must not be null
-	 * @param tolerance
-	 *            the merge distance, in model units
-	 * @return the simplified solid
-	 * @throws Throwable
-	 *             if the native calls fail
-	 */
-	public CSG simplify(CSG incoming, double tolerance) throws Throwable {
-		MemorySegment man = toManifold(incoming);
-		try {
-			MemorySegment original = manifold.asOriginal(man);
-			manifold.delete(man);
-			MemorySegment smooth = null;
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment man = toManifold(in);
 			try {
-				// the Manifold simplification loop: each pass collapses the short and
-				// redundant edges the tolerance marks, and collapsing one edge can
-				// mark the next, so the passes repeat until a pass changes nothing
-				smooth = original;
-				for (int pass = 0; pass < SIMPLIFY_MAX_PASSES; pass++) {
-					long before = manifold.numTri(smooth);
-					MemorySegment next = manifold.simplify(smooth, tolerance);
-					manifold.delete(smooth);
-					smooth = next;
-					if (manifold.numTri(next) == before)
-						break;
-				}
-				CSG fromManifold = fromManifold(smooth, incoming.getColor());
-				manifold.delete(smooth);
-				return fromManifold;
-			} catch (Throwable t) {
-				if (smooth != null)
-					manifold.delete(smooth);
-				else
-					manifold.delete(original);
-				throw t;
+				return fromManifold(man, in.getColor());
+			} finally {
+				manifold.delete(man);
 			}
-		} catch (Throwable t) {
-			if (t instanceof RuntimeException)
-				throw (RuntimeException) t;
-			throw t;
 		}
 	}
 
-	/** The most Manifold simplify passes one simplify call may take to settle. */
-	private static final int SIMPLIFY_MAX_PASSES = 16;
+	/** Returns a native precision-cleaned copy without smoothing. */
+	public CSG simplify(CSG incoming, double tolerance) throws Throwable {
+		return new NativeMeshCleanup(this, manifold).simplify(incoming, tolerance);
+	}
 
 	/**
 	 * Returns the union of two CSG solids. Uses {@code manifold.union(a, b)}
 	 * directly (wrapper around {@code manifold_union} in the C library).
 	 */
 	public CSG minkowski_sum(CSG a, CSG b) throws Throwable {
-		MemorySegment ma = toManifold(a);
-		MemorySegment mb = toManifold(b);
-		try {
-			MemorySegment result = manifold.minkowski_sum(ma, mb);
-			checkResult(result);
-			CSG fromManifold = fromManifold(result, b.getColor());
-			manifold.delete(result);
-			return fromManifold;
-		} finally {
-			manifold.delete(ma);
-			manifold.delete(mb);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment ma = toManifold(a);
+			MemorySegment mb = toManifold(b);
+			try {
+				MemorySegment result = manifold.minkowski_sum(ma, mb);
+				checkResult(result);
+				CSG fromManifold = fromManifold(result, b.getColor());
+				manifold.delete(result);
+				return fromManifold;
+			} finally {
+				manifold.delete(ma);
+				manifold.delete(mb);
+			}
 		}
 	}
 	// -------------------------------------------------------------------------
@@ -365,17 +337,19 @@ public class CSGManifold3d {
 	 * directly (wrapper around {@code manifold_union} in the C library).
 	 */
 	public CSG union(CSG a, CSG b) throws Throwable {
-		MemorySegment ma = toManifold(a);
-		MemorySegment mb = toManifold(b);
-		try {
-			MemorySegment result = manifold.union(ma, mb);
-			checkResult(result);
-			CSG fromManifold = fromManifold(result, b.getColor());
-			manifold.delete(result);
-			return fromManifold;
-		} finally {
-			manifold.delete(ma);
-			manifold.delete(mb);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment ma = toManifold(a);
+			MemorySegment mb = toManifold(b);
+			try {
+				MemorySegment result = manifold.union(ma, mb);
+				checkResult(result);
+				CSG fromManifold = fromManifold(result, b.getColor());
+				manifold.delete(result);
+				return fromManifold;
+			} finally {
+				manifold.delete(ma);
+				manifold.delete(mb);
+			}
 		}
 	}
 
@@ -384,69 +358,71 @@ public class CSGManifold3d {
 	 * {@code manifold.difference(a, b)}.
 	 */
 	public CSG difference(CSG a, CSG b) throws Throwable {
-		MemorySegment ma = toManifold(a);
-		MemorySegment mb = toManifold(b);
-		try {
-			MemorySegment smooth = null;
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment ma = toManifold(a);
+			MemorySegment mb = toManifold(b);
 			try {
-				if (minkowskiMembrainRemoval) {
-					MemorySegment tol = null;
-					MemorySegment mink = null;
-					MemorySegment result = null;
-					MemorySegment or = null;
-					try {
-						tol = manifold.cube(MembrainTollerence, MembrainTollerence, MembrainTollerence, true);
-						mink = manifold.minkowski_sum(mb, tol);
-						result = manifold.difference(ma, mink);
-						or = manifold.asOriginal(result);
-						smooth = manifold.simplify(or, MembrainTollerence);
-						CSG out = finishDifference(smooth, a);
-						smooth = null; // consumed by finishDifference
-						return out;
-					} finally {
-						manifold.safeDelete(tol);
-						manifold.safeDelete(mink);
-						manifold.safeDelete(result);
-						manifold.safeDelete(or);
-						// freed here when anything before finishDifference threw
-						manifold.safeDelete(smooth);
-					}
-				} else {
-					// the membrane cube must come from the native side: a JCSG Cube
-					// this small triangulates to nothing, which would silently skip
-					// the loop
-					MemorySegment membrane = manifold.cube(MembrainTollerence, MembrainTollerence, MembrainTollerence,
-							true);
-					ManifoldBindings.MeshData64 membraneMesh;
-					try {
-						membraneMesh = manifold.exportMeshGL64(membrane);
-					} finally {
-						manifold.delete(membrane);
-					}
-					double[] membraneVerts = membraneMesh.vertices();
-					smooth = ma;
-					try {
-						for (int i = 0; i < membraneMesh.vertCount(); i++) {
-							MemorySegment bMoved = manifold.translate(mb, membraneVerts[i * 3],
-									membraneVerts[i * 3 + 1], membraneVerts[i * 3 + 2]);
-							MemorySegment lastOne = smooth;
-							smooth = manifold.difference(smooth, bMoved);
-							manifold.delete(bMoved);
-							manifold.delete(lastOne);
+				MemorySegment smooth = null;
+				try {
+					if (minkowskiMembrainRemoval) {
+						MemorySegment tol = null;
+						MemorySegment mink = null;
+						MemorySegment result = null;
+						MemorySegment or = null;
+						try {
+							tol = manifold.cube(MembrainTollerence, MembrainTollerence, MembrainTollerence, true);
+							mink = manifold.minkowski_sum(mb, tol);
+							result = manifold.difference(ma, mink);
+							or = manifold.asOriginal(result);
+							smooth = manifold.simplify(or, MembrainTollerence);
+							CSG out = finishDifference(smooth, a);
+							smooth = null; // consumed by finishDifference
+							return out;
+						} finally {
+							manifold.safeDelete(tol);
+							manifold.safeDelete(mink);
+							manifold.safeDelete(result);
+							manifold.safeDelete(or);
+							// freed here when anything before finishDifference threw
+							manifold.safeDelete(smooth);
 						}
-						return finishDifference(smooth, a);
-					} catch (Throwable t) {
-						manifold.safeDelete(smooth);
-						throw t;
-					} finally {
-						manifold.delete(mb);
+					} else {
+						// the membrane cube must come from the native side: a JCSG Cube
+						// this small triangulates to nothing, which would silently skip
+						// the loop
+						MemorySegment membrane = manifold.cube(MembrainTollerence, MembrainTollerence,
+								MembrainTollerence, true);
+						ManifoldBindings.MeshData64 membraneMesh;
+						try {
+							membraneMesh = manifold.exportMeshGL64(membrane);
+						} finally {
+							manifold.delete(membrane);
+						}
+						double[] membraneVerts = membraneMesh.vertices();
+						smooth = ma;
+						try {
+							for (int i = 0; i < membraneMesh.vertCount(); i++) {
+								MemorySegment bMoved = manifold.translate(mb, membraneVerts[i * 3],
+										membraneVerts[i * 3 + 1], membraneVerts[i * 3 + 2]);
+								MemorySegment lastOne = smooth;
+								smooth = manifold.difference(smooth, bMoved);
+								manifold.delete(bMoved);
+								manifold.delete(lastOne);
+							}
+							return finishDifference(smooth, a);
+						} catch (Throwable t) {
+							manifold.safeDelete(smooth);
+							throw t;
+						} finally {
+							manifold.delete(mb);
+						}
 					}
+				} finally {
+					// both branches consumed ma and mb internally; nothing left to free
 				}
-			} finally {
-				// both branches consumed ma and mb internally; nothing left to free
+			} catch (Throwable t) {
+				throw t;
 			}
-		} catch (Throwable t) {
-			throw t;
 		}
 	}
 
@@ -465,17 +441,19 @@ public class CSGManifold3d {
 	 * {@code manifold.intersection(a, b)}.
 	 */
 	public CSG intersection(CSG a, CSG b) throws Throwable {
-		MemorySegment ma = toManifold(a);
-		MemorySegment mb = toManifold(b);
-		try {
-			MemorySegment result = manifold.intersection(ma, mb);
-			checkResult(result);
-			CSG fromManifold = fromManifold(result, a.getColor());
-			manifold.delete(result);
-			return fromManifold;
-		} finally {
-			manifold.delete(ma);
-			manifold.delete(mb);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment ma = toManifold(a);
+			MemorySegment mb = toManifold(b);
+			try {
+				MemorySegment result = manifold.intersection(ma, mb);
+				checkResult(result);
+				CSG fromManifold = fromManifold(result, a.getColor());
+				manifold.delete(result);
+				return fromManifold;
+			} finally {
+				manifold.delete(ma);
+				manifold.delete(mb);
+			}
 		}
 	}
 
@@ -489,17 +467,19 @@ public class CSGManifold3d {
 	 * @return the resulting solid, in {@code a}'s colour
 	 */
 	public CSG booleanOp(CSG a, CSG b, BooleanOp op) throws Throwable {
-		MemorySegment ma = toManifold(a);
-		MemorySegment mb = toManifold(b);
-		try {
-			MemorySegment result = manifold.booleanOp(ma, mb, op.toInt());
-			checkResult(result);
-			CSG fromManifold = fromManifold(result, a.getColor());
-			manifold.delete(result);
-			return fromManifold;
-		} finally {
-			manifold.delete(ma);
-			manifold.delete(mb);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment ma = toManifold(a);
+			MemorySegment mb = toManifold(b);
+			try {
+				MemorySegment result = manifold.booleanOp(ma, mb, op.toInt());
+				checkResult(result);
+				CSG fromManifold = fromManifold(result, a.getColor());
+				manifold.delete(result);
+				return fromManifold;
+			} finally {
+				manifold.delete(ma);
+				manifold.delete(mb);
+			}
 		}
 	}
 
@@ -510,21 +490,23 @@ public class CSGManifold3d {
 	 * @return the combined solid, in the first solid's colour
 	 */
 	public CSG batchUnion(CSG... csgs) throws Throwable {
-		if (csgs == null || csgs.length == 0)
-			throw new IllegalArgumentException("at least one solid is required");
-		MemorySegment[] shapes = new MemorySegment[csgs.length];
-		for (int i = 0; i < csgs.length; i++) {
-			shapes[i] = toManifold(csgs[i]);
-		}
-		try {
-			MemorySegment result = manifold.batchUnion(shapes);
-			checkResult(result);
-			CSG fromManifold = fromManifold(result, csgs[0].getColor());
-			manifold.delete(result);
-			return fromManifold;
-		} finally {
-			for (MemorySegment shape : shapes)
-				manifold.delete(shape);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			if (csgs == null || csgs.length == 0)
+				throw new IllegalArgumentException("at least one solid is required");
+			MemorySegment[] shapes = new MemorySegment[csgs.length];
+			for (int i = 0; i < csgs.length; i++) {
+				shapes[i] = toManifold(csgs[i]);
+			}
+			try {
+				MemorySegment result = manifold.batchUnion(shapes);
+				checkResult(result);
+				CSG fromManifold = fromManifold(result, csgs[0].getColor());
+				manifold.delete(result);
+				return fromManifold;
+			} finally {
+				for (MemorySegment shape : shapes)
+					manifold.delete(shape);
+			}
 		}
 	}
 
@@ -536,12 +518,14 @@ public class CSGManifold3d {
 	 * Returns the unit tetrahedron Manifold generates, converted to a CSG.
 	 */
 	public CSG tetrahedron() throws Throwable {
-		MemorySegment man = manifold.tetrahedron();
-		try {
-			checkResult(man);
-			return fromManifold(man, CSG.getDefaultColor());
-		} finally {
-			manifold.delete(man);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment man = manifold.tetrahedron();
+			try {
+				checkResult(man);
+				return fromManifold(man, CSG.getDefaultColor());
+			} finally {
+				manifold.delete(man);
+			}
 		}
 	}
 
@@ -557,12 +541,14 @@ public class CSGManifold3d {
 	 * @return the box as a solid
 	 */
 	public CSG cube(double width, double height, double depth, boolean centered) throws Throwable {
-		MemorySegment man = manifold.cube(width, height, depth, centered);
-		try {
-			checkResult(man);
-			return fromManifold(man, CSG.getDefaultColor());
-		} finally {
-			manifold.delete(man);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment man = manifold.cube(width, height, depth, centered);
+			try {
+				checkResult(man);
+				return fromManifold(man, CSG.getDefaultColor());
+			} finally {
+				manifold.delete(man);
+			}
 		}
 	}
 
@@ -575,12 +561,14 @@ public class CSGManifold3d {
 	 * @return the sphere as a solid
 	 */
 	public CSG sphere(double radius, int segments) throws Throwable {
-		MemorySegment man = manifold.sphere(radius, segments);
-		try {
-			checkResult(man);
-			return fromManifold(man, CSG.getDefaultColor());
-		} finally {
-			manifold.delete(man);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment man = manifold.sphere(radius, segments);
+			try {
+				checkResult(man);
+				return fromManifold(man, CSG.getDefaultColor());
+			} finally {
+				manifold.delete(man);
+			}
 		}
 	}
 
@@ -600,12 +588,14 @@ public class CSGManifold3d {
 	 */
 	public CSG cylinder(double height, double radiusLow, double radiusHigh, int segments, int centered)
 			throws Throwable {
-		MemorySegment man = manifold.cylinder(height, radiusLow, radiusHigh, segments, centered);
-		try {
-			checkResult(man);
-			return fromManifold(man, CSG.getDefaultColor());
-		} finally {
-			manifold.delete(man);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment man = manifold.cylinder(height, radiusLow, radiusHigh, segments, centered);
+			try {
+				checkResult(man);
+				return fromManifold(man, CSG.getDefaultColor());
+			} finally {
+				manifold.delete(man);
+			}
 		}
 	}
 
@@ -621,16 +611,18 @@ public class CSGManifold3d {
 	 * {@code manifold.hull(MemorySegment)}.
 	 */
 	public CSG hull(CSG a) throws Throwable {
-		MemorySegment ma = toManifold(a);
-		checkResult(ma);
-		try {
-			MemorySegment result = manifold.hull(ma);
-			checkResult(result);
-			CSG fromManifold = fromManifold(result, a.getColor());
-			manifold.delete(result);
-			return fromManifold;
-		} finally {
-			manifold.delete(ma);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment ma = toManifold(a);
+			checkResult(ma);
+			try {
+				MemorySegment result = manifold.hull(ma);
+				checkResult(result);
+				CSG fromManifold = fromManifold(result, a.getColor());
+				manifold.delete(result);
+				return fromManifold;
+			} finally {
+				manifold.delete(ma);
+			}
 		}
 	}
 
@@ -640,21 +632,23 @@ public class CSGManifold3d {
 	 * {@code manifold_batch_hull}.
 	 */
 	public CSG hull(CSG... solids) throws Throwable {
-		MemorySegment[] segs = new MemorySegment[solids.length];
-		for (int i = 0; i < solids.length; i++) {
-			segs[i] = toManifold(solids[i]);
-		}
-		try {
-			MemorySegment result = manifold.batchHull(segs);
-			checkResult(result);
-			try {
-				return fromManifold(result, solids[0].getColor());
-			} finally {
-				manifold.delete(result);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment[] segs = new MemorySegment[solids.length];
+			for (int i = 0; i < solids.length; i++) {
+				segs[i] = toManifold(solids[i]);
 			}
-		} finally {
-			for (MemorySegment seg : segs)
-				manifold.delete(seg);
+			try {
+				MemorySegment result = manifold.batchHull(segs);
+				checkResult(result);
+				try {
+					return fromManifold(result, solids[0].getColor());
+				} finally {
+					manifold.delete(result);
+				}
+			} finally {
+				for (MemorySegment seg : segs)
+					manifold.delete(seg);
+			}
 		}
 	}
 
@@ -676,24 +670,26 @@ public class CSGManifold3d {
 	}
 
 	public CSG hull(List<Vector3d> points) throws Throwable {
-		ArrayList<double[]> pts = new ArrayList<double[]>();
-		for (int i = 0; i < points.size(); i++) {
-			Vector3d v = points.get(i);
-			double[] p = new double[]{v.x, v.y, v.z};
-			pts.add(p);
-		}
-		MemorySegment mem = null;
-		try {
-			mem = manifold.hull(pts);
-			checkResult(mem);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			ArrayList<double[]> pts = new ArrayList<double[]>();
+			for (int i = 0; i < points.size(); i++) {
+				Vector3d v = points.get(i);
+				double[] p = new double[]{v.x, v.y, v.z};
+				pts.add(p);
+			}
+			MemorySegment mem = null;
+			try {
+				mem = manifold.hull(pts);
+				checkResult(mem);
 
-			CSG fromManifold = fromManifold(mem, CSG.getDefaultColor());
-			manifold.delete(mem);
-			mem = null;
-			return fromManifold;
-		} finally {
-			if (mem != null)
+				CSG fromManifold = fromManifold(mem, CSG.getDefaultColor());
 				manifold.delete(mem);
+				mem = null;
+				return fromManifold;
+			} finally {
+				if (mem != null)
+					manifold.delete(mem);
+			}
 		}
 	}
 
@@ -710,9 +706,12 @@ public class CSGManifold3d {
 	 * @return the transformed solid
 	 */
 	public CSG transformed(CSG incoming, Transform transform) throws Throwable {
-		double[][] cols = toNativeTransformColumns(transform);
-		return runSingleManifoldOp(incoming, m -> manifold.transform(m, cols[0][0], cols[0][1], cols[0][2], cols[1][0],
-				cols[1][1], cols[1][2], cols[2][0], cols[2][1], cols[2][2], cols[3][0], cols[3][1], cols[3][2]));
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			double[][] cols = toNativeTransformColumns(transform);
+			return runSingleManifoldOp(incoming,
+					m -> manifold.transform(m, cols[0][0], cols[0][1], cols[0][2], cols[1][0], cols[1][1], cols[1][2],
+							cols[2][0], cols[2][1], cols[2][2], cols[3][0], cols[3][1], cols[3][2]));
+		}
 	}
 
 	/**
@@ -733,7 +732,9 @@ public class CSGManifold3d {
 	 * Moves the solid by the given offset, computed on the native side.
 	 */
 	public CSG translate(CSG incoming, double x, double y, double z) throws Throwable {
-		return runSingleManifoldOp(incoming, m -> manifold.translate(m, x, y, z));
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			return runSingleManifoldOp(incoming, m -> manifold.translate(m, x, y, z));
+		}
 	}
 
 	/**
@@ -742,26 +743,36 @@ public class CSGManifold3d {
 	 * and keep the result manifold.
 	 */
 	public CSG scale(CSG incoming, double x, double y, double z) throws Throwable {
-		return runSingleManifoldOp(incoming, m -> manifold.scale(m, x, y, z));
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			return runSingleManifoldOp(incoming, m -> manifold.scale(m, x, y, z));
+		}
 	}
 
 	/**
 	 * Rotates the solid about the X, Y and Z axes, in that order, in degrees.
 	 */
 	public CSG rotate(CSG incoming, double x, double y, double z) throws Throwable {
-		return runSingleManifoldOp(incoming, m -> manifold.rotate(m, x, y, z));
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			return runSingleManifoldOp(incoming, m -> manifold.rotate(m, x, y, z));
+		}
 	}
 
 	public CSG rotateX(CSG incoming, double degrees) throws Throwable {
-		return rotate(incoming, degrees, 0, 0);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			return rotate(incoming, degrees, 0, 0);
+		}
 	}
 
 	public CSG rotateY(CSG incoming, double degrees) throws Throwable {
-		return rotate(incoming, 0, degrees, 0);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			return rotate(incoming, 0, degrees, 0);
+		}
 	}
 
 	public CSG rotateZ(CSG incoming, double degrees) throws Throwable {
-		return rotate(incoming, 0, 0, degrees);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			return rotate(incoming, 0, 0, degrees);
+		}
 	}
 
 	/**
@@ -770,7 +781,9 @@ public class CSGManifold3d {
 	 * empty solid.
 	 */
 	public CSG mirror(CSG incoming, double nx, double ny, double nz) throws Throwable {
-		return runSingleManifoldOp(incoming, m -> manifold.mirror(m, nx, ny, nz));
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			return runSingleManifoldOp(incoming, m -> manifold.mirror(m, nx, ny, nz));
+		}
 	}
 
 	/** Functional hook so each op reads as its native call. */
@@ -792,7 +805,9 @@ public class CSGManifold3d {
 	}
 
 	public void delete(MemorySegment back) throws Throwable {
-		manifold.delete(back);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			manifold.delete(back);
+		}
 	}
 
 	/**
@@ -800,7 +815,9 @@ public class CSGManifold3d {
 	 * handle. Freeing either afterwards leaves the other usable.
 	 */
 	public MemorySegment copy(MemorySegment m) throws Throwable {
-		return manifold.copy(m);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			return manifold.copy(m);
+		}
 	}
 
 	/**
@@ -808,12 +825,16 @@ public class CSGManifold3d {
 	 * treat it as fresh geometry. Geometry is unchanged.
 	 */
 	public MemorySegment asOriginal(MemorySegment m) throws Throwable {
-		return manifold.asOriginal(m);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			return manifold.asOriginal(m);
+		}
 	}
 
 	/** Releases the bindings handle; native segments must be freed separately. */
 	public void close() {
-		manifold.close();
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			manifold.close();
+		}
 	}
 
 	// -------------------------------------------------------------------------
@@ -822,35 +843,41 @@ public class CSGManifold3d {
 
 	/** Returns the enclosed volume, from the native measurement. */
 	public double volume(CSG incoming) throws Throwable {
-		MemorySegment man = toManifold(incoming);
-		try {
-			double volume = manifold.volume(man);
-			incoming.setVolume(volume);
-			return volume;
-		} finally {
-			manifold.delete(man);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment man = toManifold(incoming);
+			try {
+				double volume = manifold.volume(man);
+				incoming.setVolume(volume);
+				return volume;
+			} finally {
+				manifold.delete(man);
+			}
 		}
 	}
 
 	/** Returns the total surface area of all faces. */
 	public double surfaceArea(CSG incoming) throws Throwable {
-		MemorySegment man = toManifold(incoming);
-		try {
-			double surfaceArea = manifold.surfaceArea(man);
-			incoming.setSurfaceArea(surfaceArea);
-			return surfaceArea;
-		} finally {
-			manifold.delete(man);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment man = toManifold(incoming);
+			try {
+				double surfaceArea = manifold.surfaceArea(man);
+				incoming.setSurfaceArea(surfaceArea);
+				return surfaceArea;
+			} finally {
+				manifold.delete(man);
+			}
 		}
 	}
 
 	/** Returns the precision Manifold believes the geometry carries. */
 	public double epsilon(CSG incoming) throws Throwable {
-		MemorySegment man = toManifold(incoming);
-		try {
-			return manifold.epsilon(man);
-		} finally {
-			manifold.delete(man);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment man = toManifold(incoming);
+			try {
+				return manifold.epsilon(man);
+			} finally {
+				manifold.delete(man);
+			}
 		}
 	}
 
@@ -859,67 +886,83 @@ public class CSGManifold3d {
 	 * a torus.
 	 */
 	public int genus(CSG incoming) throws Throwable {
-		MemorySegment man = toManifold(incoming);
-		try {
-			return manifold.genus(man);
-		} finally {
-			manifold.delete(man);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment man = toManifold(incoming);
+			try {
+				return manifold.genus(man);
+			} finally {
+				manifold.delete(man);
+			}
 		}
 	}
 
 	/** Returns the number of vertices. */
 	public long numVert(CSG incoming) throws Throwable {
-		MemorySegment man = toManifold(incoming);
-		try {
-			return manifold.numVert(man);
-		} finally {
-			manifold.delete(man);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment man = toManifold(incoming);
+			try {
+				return manifold.numVert(man);
+			} finally {
+				manifold.delete(man);
+			}
 		}
 	}
 
 	/** Returns the number of triangles. */
 	public long numTri(CSG incoming) throws Throwable {
-		MemorySegment man = toManifold(incoming);
-		try {
-			return manifold.numTri(man);
-		} finally {
-			manifold.delete(man);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment man = toManifold(incoming);
+			try {
+				return manifold.numTri(man);
+			} finally {
+				manifold.delete(man);
+			}
 		}
 	}
 
 	/** Returns the number of edges. */
 	public long numEdge(CSG incoming) throws Throwable {
-		MemorySegment man = toManifold(incoming);
-		try {
-			return manifold.numEdge(man);
-		} finally {
-			manifold.delete(man);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment man = toManifold(incoming);
+			try {
+				return manifold.numEdge(man);
+			} finally {
+				manifold.delete(man);
+			}
 		}
 	}
 
 	/** Returns the number of per-vertex property channels. */
 	public long numProp(CSG incoming) throws Throwable {
-		MemorySegment man = toManifold(incoming);
-		try {
-			return manifold.numProp(man);
-		} finally {
-			manifold.delete(man);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment man = toManifold(incoming);
+			try {
+				return manifold.numProp(man);
+			} finally {
+				manifold.delete(man);
+			}
 		}
 	}
 
 	/** Returns the native size of one Manifold handle. */
 	public long manifoldSize() throws Throwable {
-		return manifold.manifoldSize();
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			return manifold.manifoldSize();
+		}
 	}
 
 	/** Returns the native size of one MeshGL64 handle. */
 	public long meshGL64Size() throws Throwable {
-		return manifold.meshGL64Size();
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			return manifold.meshGL64Size();
+		}
 	}
 
 	/** Returns the native size of one manifold vector handle. */
 	public long vecSize() throws Throwable {
-		return manifold.vecSize();
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			return manifold.vecSize();
+		}
 	}
 
 	/**
@@ -927,11 +970,13 @@ public class CSGManifold3d {
 	 * {@link ManifoldError#NO_ERROR} when it is a valid manifold.
 	 */
 	public ManifoldError status(CSG incoming) throws Throwable {
-		MemorySegment man = toManifold(incoming);
-		try {
-			return manifold.status(man);
-		} finally {
-			manifold.delete(man);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment man = toManifold(incoming);
+			try {
+				return manifold.status(man);
+			} finally {
+				manifold.delete(man);
+			}
 		}
 	}
 
@@ -939,11 +984,13 @@ public class CSGManifold3d {
 	 * Estimates the native memory the solid's geometry occupies, in bytes.
 	 */
 	public long estimateMemoryBytes(CSG incoming) throws Throwable {
-		MemorySegment man = toManifold(incoming);
-		try {
-			return manifold.estimateMemoryBytes(man);
-		} finally {
-			manifold.delete(man);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment man = toManifold(incoming);
+			try {
+				return manifold.estimateMemoryBytes(man);
+			} finally {
+				manifold.delete(man);
+			}
 		}
 	}
 
@@ -953,12 +1000,16 @@ public class CSGManifold3d {
 
 	/** Splits every edge into {@code n} pieces, giving a finer mesh. */
 	public CSG refine(CSG incoming, int n) throws Throwable {
-		return runSingleManifoldOp(incoming, m -> manifold.refine(m, n));
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			return runSingleManifoldOp(incoming, m -> manifold.refine(m, n));
+		}
 	}
 
 	/** Splits every edge longer than {@code length} so no edge exceeds it. */
 	public CSG refineToLength(CSG incoming, double length) throws Throwable {
-		return runSingleManifoldOp(incoming, m -> manifold.refineToLength(m, length));
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			return runSingleManifoldOp(incoming, m -> manifold.refineToLength(m, length));
+		}
 	}
 
 	/**
@@ -968,7 +1019,9 @@ public class CSGManifold3d {
 	 * with its mesh unchanged.
 	 */
 	public CSG refineToTolerance(CSG incoming, double tolerance) throws Throwable {
-		return runSingleManifoldOp(incoming, m -> manifold.refineToTolerance(m, tolerance));
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			return runSingleManifoldOp(incoming, m -> manifold.refineToTolerance(m, tolerance));
+		}
 	}
 
 	/**
@@ -979,17 +1032,19 @@ public class CSGManifold3d {
 	 * through unchanged rather than reading missing normals inside Manifold.
 	 */
 	public CSG smoothByNormals(CSG incoming, int normalIdx) throws Throwable {
-		MemorySegment man = toManifold(incoming);
-		try {
-			if (manifold.numProp(man) < normalIdx + 3)
-				return incoming;
-			MemorySegment result = manifold.smoothByNormals(man, normalIdx);
-			checkResult(result);
-			CSG fromManifold = fromManifold(result, incoming.getColor());
-			manifold.delete(result);
-			return fromManifold;
-		} finally {
-			manifold.delete(man);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment man = toManifold(incoming);
+			try {
+				if (manifold.numProp(man) < normalIdx + 3)
+					return incoming;
+				MemorySegment result = manifold.smoothByNormals(man, normalIdx);
+				checkResult(result);
+				CSG fromManifold = fromManifold(result, incoming.getColor());
+				manifold.delete(result);
+				return fromManifold;
+			} finally {
+				manifold.delete(man);
+			}
 		}
 	}
 
@@ -1001,17 +1056,19 @@ public class CSGManifold3d {
 	 * passes through unchanged.
 	 */
 	public CSG calculateNormals(CSG incoming, int normalIdx, double minSharpAngle) throws Throwable {
-		MemorySegment man = toManifold(incoming);
-		try {
-			if (manifold.numProp(man) < normalIdx + 3 && normalIdx == 0)
-				return incoming;
-			MemorySegment result = manifold.calculateNormals(man, normalIdx, minSharpAngle);
-			checkResult(result);
-			CSG fromManifold = fromManifold(result, incoming.getColor());
-			manifold.delete(result);
-			return fromManifold;
-		} finally {
-			manifold.delete(man);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment man = toManifold(incoming);
+			try {
+				if (manifold.numProp(man) < normalIdx + 3 && normalIdx == 0)
+					return incoming;
+				MemorySegment result = manifold.calculateNormals(man, normalIdx, minSharpAngle);
+				checkResult(result);
+				CSG fromManifold = fromManifold(result, incoming.getColor());
+				manifold.delete(result);
+				return fromManifold;
+			} finally {
+				manifold.delete(man);
+			}
 		}
 	}
 
@@ -1022,7 +1079,9 @@ public class CSGManifold3d {
 	 * (0) and fully smooth (1).
 	 */
 	public CSG smoothOut(CSG incoming, double minSharpAngle, double minSmoothness) throws Throwable {
-		return runSingleManifoldOp(incoming, m -> smoothOut(m, minSharpAngle, minSmoothness));
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			return runSingleManifoldOp(incoming, m -> smoothOut(m, minSharpAngle, minSmoothness));
+		}
 	}
 
 	/**
@@ -1053,34 +1112,36 @@ public class CSGManifold3d {
 	 *                      smooth]
 	 */
 	public MemorySegment smoothOut(MemorySegment m, double minSharpAngle, double minSmoothness) throws Throwable {
-		if (m == null)
-			throw new IllegalArgumentException("manifold segment must not be null");
-		int originalNumProp = (int) manifold.numProp(m);
-		double blend = Math.max(0.0, Math.min(1.0, minSmoothness));
-		double sharpAngle = minSharpAngle + (180.0 - minSharpAngle) * blend;
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			if (m == null)
+				throw new IllegalArgumentException("manifold segment must not be null");
+			int originalNumProp = (int) manifold.numProp(m);
+			double blend = Math.max(0.0, Math.min(1.0, minSmoothness));
+			double sharpAngle = minSharpAngle + (180.0 - minSharpAngle) * blend;
 
-		// Normals land in the first free channels so user properties stay put.
-		MemorySegment withNormals = manifold.calculateNormals(m, originalNumProp, sharpAngle);
-		MemorySegment smoothed;
-		try {
-			smoothed = manifold.smoothByNormals(withNormals, originalNumProp);
-		} finally {
-			manifold.safeDelete(withNormals);
-		}
+			// Normals land in the first free channels so user properties stay put.
+			MemorySegment withNormals = manifold.calculateNormals(m, originalNumProp, sharpAngle);
+			MemorySegment smoothed;
+			try {
+				smoothed = manifold.smoothByNormals(withNormals, originalNumProp);
+			} finally {
+				manifold.safeDelete(withNormals);
+			}
 
-		// Drop the temporary normal channels again; tangents live on the Manifold
-		// itself and survive property changes.
-		try {
-			final int kept = originalNumProp;
+			// Drop the temporary normal channels again; tangents live on the Manifold
+			// itself and survive property changes.
+			try {
+				final int kept = originalNumProp;
 
-			return manifold.setProperties(smoothed, kept, kept == 0 ? null : (newProp, position, oldProp) -> {
-				MemorySegment src = oldProp.reinterpret(kept * (long) Double.BYTES);
-				MemorySegment dst = newProp.reinterpret(kept * (long) Double.BYTES);
-				for (int i = 0; i < kept; i++)
-					dst.setAtIndex(ValueLayout.JAVA_DOUBLE, i, src.getAtIndex(ValueLayout.JAVA_DOUBLE, i));
-			});
-		} finally {
-			manifold.safeDelete(smoothed);
+				return manifold.setProperties(smoothed, kept, kept == 0 ? null : (newProp, position, oldProp) -> {
+					MemorySegment src = oldProp.reinterpret(kept * (long) Double.BYTES);
+					MemorySegment dst = newProp.reinterpret(kept * (long) Double.BYTES);
+					for (int i = 0; i < kept; i++)
+						dst.setAtIndex(ValueLayout.JAVA_DOUBLE, i, src.getAtIndex(ValueLayout.JAVA_DOUBLE, i));
+				});
+			} finally {
+				manifold.safeDelete(smoothed);
+			}
 		}
 	}
 
@@ -1099,7 +1160,9 @@ public class CSGManifold3d {
 	 * @return the kept half; empty when the plane misses the solid
 	 */
 	public CSG trimByPlane(CSG incoming, double nx, double ny, double nz, double offset) throws Throwable {
-		return runSingleManifoldOp(incoming, m -> manifold.trimByPlane(m, nx, ny, nz, offset));
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			return runSingleManifoldOp(incoming, m -> manifold.trimByPlane(m, nx, ny, nz, offset));
+		}
 	}
 
 	/**
@@ -1114,30 +1177,32 @@ public class CSGManifold3d {
 	 * @return the two halves, in the solid's colour
 	 */
 	public List<CSG> splitByPlane(CSG incoming, double nx, double ny, double nz, double offset) throws Throwable {
-		MemorySegment man = toManifold(incoming);
-		MemorySegment positive = null;
-		MemorySegment negative = null;
-		MemorySegment cutter = null;
-		try {
-			// splitting against the opposite halfspace yields exactly the two
-			// complementary halves of the solid
-			cutter = manifold.trimByPlane(man, -nx, -ny, -nz, -offset);
-			MemorySegment[] pair = manifold.split(man, cutter);
-			positive = pair[0];
-			negative = pair[1];
-			checkResult(positive, negative);
-			CSG pos = fromManifold(positive, incoming.getColor());
-			CSG neg = fromManifold(negative, incoming.getColor());
-			return new ArrayList<>(List.of(pos, neg));
-		} finally {
-			if (positive != null)
-				manifold.delete(positive);
-			if (negative != null)
-				manifold.delete(negative);
-			// split reads the cutter but does not take ownership of it
-			if (cutter != null)
-				manifold.delete(cutter);
-			manifold.delete(man);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment man = toManifold(incoming);
+			MemorySegment positive = null;
+			MemorySegment negative = null;
+			MemorySegment cutter = null;
+			try {
+				// splitting against the opposite halfspace yields exactly the two
+				// complementary halves of the solid
+				cutter = manifold.trimByPlane(man, -nx, -ny, -nz, -offset);
+				MemorySegment[] pair = manifold.split(man, cutter);
+				positive = pair[0];
+				negative = pair[1];
+				checkResult(positive, negative);
+				CSG pos = fromManifold(positive, incoming.getColor());
+				CSG neg = fromManifold(negative, incoming.getColor());
+				return new ArrayList<>(java.util.Arrays.asList(pos, neg));
+			} finally {
+				if (positive != null)
+					manifold.delete(positive);
+				if (negative != null)
+					manifold.delete(negative);
+				// split reads the cutter but does not take ownership of it
+				if (cutter != null)
+					manifold.delete(cutter);
+				manifold.delete(man);
+			}
 		}
 	}
 
@@ -1146,25 +1211,27 @@ public class CSGManifold3d {
 	 * of the solid inside the cutter, then the part outside it.
 	 */
 	public List<CSG> split(CSG incoming, CSG cutter) throws Throwable {
-		MemorySegment ma = toManifold(incoming);
-		MemorySegment mb = toManifold(cutter);
-		MemorySegment inside = null;
-		MemorySegment outside = null;
-		try {
-			MemorySegment[] pair = manifold.split(ma, mb);
-			inside = pair[0];
-			outside = pair[1];
-			checkResult(inside, outside);
-			CSG in = fromManifold(inside, incoming.getColor());
-			CSG out = fromManifold(outside, incoming.getColor());
-			return new ArrayList<>(List.of(in, out));
-		} finally {
-			if (inside != null)
-				manifold.delete(inside);
-			if (outside != null)
-				manifold.delete(outside);
-			manifold.delete(ma);
-			manifold.delete(mb);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment ma = toManifold(incoming);
+			MemorySegment mb = toManifold(cutter);
+			MemorySegment inside = null;
+			MemorySegment outside = null;
+			try {
+				MemorySegment[] pair = manifold.split(ma, mb);
+				inside = pair[0];
+				outside = pair[1];
+				checkResult(inside, outside);
+				CSG in = fromManifold(inside, incoming.getColor());
+				CSG out = fromManifold(outside, incoming.getColor());
+				return new ArrayList<>(java.util.Arrays.asList(in, out));
+			} finally {
+				if (inside != null)
+					manifold.delete(inside);
+				if (outside != null)
+					manifold.delete(outside);
+				manifold.delete(ma);
+				manifold.delete(mb);
+			}
 		}
 	}
 
@@ -1181,21 +1248,23 @@ public class CSGManifold3d {
 	 * @return the combined solid, in the first part's colour
 	 */
 	public CSG compose(CSG... parts) throws Throwable {
-		if (parts == null || parts.length == 0)
-			throw new IllegalArgumentException("at least one solid is required");
-		MemorySegment[] segs = new MemorySegment[parts.length];
-		for (int i = 0; i < parts.length; i++) {
-			segs[i] = toManifold(parts[i]);
-		}
-		try {
-			MemorySegment result = manifold.compose(segs);
-			checkResult(result);
-			CSG fromManifold = fromManifold(result, parts[0].getColor());
-			manifold.delete(result);
-			return fromManifold;
-		} finally {
-			for (MemorySegment seg : segs)
-				manifold.delete(seg);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			if (parts == null || parts.length == 0)
+				throw new IllegalArgumentException("at least one solid is required");
+			MemorySegment[] segs = new MemorySegment[parts.length];
+			for (int i = 0; i < parts.length; i++) {
+				segs[i] = toManifold(parts[i]);
+			}
+			try {
+				MemorySegment result = manifold.compose(segs);
+				checkResult(result);
+				CSG fromManifold = fromManifold(result, parts[0].getColor());
+				manifold.delete(result);
+				return fromManifold;
+			} finally {
+				for (MemorySegment seg : segs)
+					manifold.delete(seg);
+			}
 		}
 	}
 
@@ -1212,26 +1281,28 @@ public class CSGManifold3d {
 	 *             if the native calls fail or a component is not a valid manifold
 	 */
 	public List<CSG> decompose(CSG incoming) throws Throwable {
-		// a CSG with no triangles is the empty solid this class's fromManifold
-		// produces; it has nothing to decompose and no mesh to import
-		if (incoming.getTriangles() == null || incoming.getTriangles().length == 0)
-			return new ArrayList<>();
-		MemorySegment man = toManifold(incoming);
-		MemorySegment[] parts = null;
-		try {
-			parts = manifold.decompose(man);
-			checkResult(parts);
-			List<CSG> out = new ArrayList<>(parts.length);
-			for (MemorySegment part : parts)
-				out.add(fromManifold(part, incoming.getColor()));
-			return out;
-		} finally {
-			// every component handle is freed here whether the conversion
-			// succeeded or threw, so nothing native outlives the call
-			if (parts != null)
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			// a CSG with no triangles is the empty solid this class's fromManifold
+			// produces; it has nothing to decompose and no mesh to import
+			if (incoming.getTriangles() == null || incoming.getTriangles().length == 0)
+				return new ArrayList<>();
+			MemorySegment man = toManifold(incoming);
+			MemorySegment[] parts = null;
+			try {
+				parts = manifold.decompose(man);
+				checkResult(parts);
+				List<CSG> out = new ArrayList<>(parts.length);
 				for (MemorySegment part : parts)
-					manifold.safeDelete(part);
-			manifold.delete(man);
+					out.add(fromManifold(part, incoming.getColor()));
+				return out;
+			} finally {
+				// every component handle is freed here whether the conversion
+				// succeeded or threw, so nothing native outlives the call
+				if (parts != null)
+					for (MemorySegment part : parts)
+						manifold.safeDelete(part);
+				manifold.delete(man);
+			}
 		}
 	}
 
@@ -1246,7 +1317,9 @@ public class CSGManifold3d {
 	 * triangles.
 	 */
 	public void setCircularSegments(int segments) throws Throwable {
-		manifold.setCircularSegments(segments);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			manifold.setCircularSegments(segments);
+		}
 	}
 
 	/**
@@ -1254,7 +1327,9 @@ public class CSGManifold3d {
 	 * smoother curves. Only applies while {@link #setCircularSegments(int)} is 0.
 	 */
 	public void setMinCircularAngle(double degrees) throws Throwable {
-		manifold.setMinCircularAngle(degrees);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			manifold.setMinCircularAngle(degrees);
+		}
 	}
 
 	/**
@@ -1262,7 +1337,9 @@ public class CSGManifold3d {
 	 * current quality settings.
 	 */
 	public int getCircularSegments(double radius) throws Throwable {
-		return manifold.getCircularSegments(radius);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			return manifold.getCircularSegments(radius);
+		}
 	}
 
 	// -------------------------------------------------------------------------
@@ -1274,12 +1351,14 @@ public class CSGManifold3d {
 	 * the native side.
 	 */
 	public Bounds getBounds(CSG incoming) throws Throwable {
-		MemorySegment man = toManifold(incoming);
-		try {
-			double[] b = manifold.bounds(man);
-			return new Bounds(new Vector3d(b[0], b[1], b[2]), new Vector3d(b[3], b[4], b[5]));
-		} finally {
-			manifold.delete(man);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment man = toManifold(incoming);
+			try {
+				double[] b = manifold.bounds(man);
+				return new Bounds(new Vector3d(b[0], b[1], b[2]), new Vector3d(b[3], b[4], b[5]));
+			} finally {
+				manifold.delete(man);
+			}
 		}
 	}
 
@@ -1287,44 +1366,50 @@ public class CSGManifold3d {
 	 * Moves the solid so its bounding-box centre sits at the origin.
 	 */
 	public CSG centerObject(CSG incoming) throws Throwable {
-		MemorySegment man = toManifold(incoming);
-		try {
-			MemorySegment centred = manifold.centerObject(man);
-			checkResult(centred);
-			CSG fromManifold = fromManifold(centred, incoming.getColor());
-			manifold.delete(centred);
-			return fromManifold;
-		} finally {
-			manifold.delete(man);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment man = toManifold(incoming);
+			try {
+				MemorySegment centred = manifold.centerObject(man);
+				checkResult(centred);
+				CSG fromManifold = fromManifold(centred, incoming.getColor());
+				manifold.delete(centred);
+				return fromManifold;
+			} finally {
+				manifold.delete(man);
+			}
 		}
 	}
 
 	public CSG fromSTL(Path path) throws Throwable {
-		MemorySegment man = manifold.importSTL(path.toFile());
-		try {
-			checkResult(man);
-			CSG back = fromManifold(man, Color.ALICEBLUE);
-			manifold.delete(man);
-			return back;
-		} catch (Throwable t) {
-			if (man != null)
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment man = manifold.importSTL(path.toFile());
+			try {
+				checkResult(man);
+				CSG back = fromManifold(man, Color.ALICEBLUE);
 				manifold.delete(man);
-			throw t;
+				return back;
+			} catch (Throwable t) {
+				if (man != null)
+					manifold.delete(man);
+				throw t;
+			}
 		}
 	}
 
 	public void toSTL(CSG incoming, Path path) throws Throwable {
-		MemorySegment man = null;
-		try {
-			man = toManifold(incoming);
-			manifold.exportSTL(man, path.toFile());
-			manifold.delete(man);
-		} catch (Throwable e) {
-			if (man != null)
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			MemorySegment man = null;
+			try {
+				man = toManifold(incoming);
+				manifold.exportSTL(man, path.toFile());
 				manifold.delete(man);
-			throw e;
-		}
+			} catch (Throwable e) {
+				if (man != null)
+					manifold.delete(man);
+				throw e;
+			}
 
+		}
 	}
 
 	/**
@@ -1336,22 +1421,26 @@ public class CSGManifold3d {
 	 * @param path destination file
 	 */
 	public void to3MF(List<CSG> csgs, Path path) throws Throwable {
-		if (csgs == null || csgs.isEmpty())
-			throw new IllegalArgumentException("at least one solid is required");
-		ArrayList<MemorySegment> meshes = new ArrayList<>(csgs.size());
-		try {
-			for (CSG csg : csgs)
-				meshes.add(toManifold(csg));
-			manifold.export3MF(meshes, path.toFile());
-		} finally {
-			for (MemorySegment mesh : meshes)
-				manifold.delete(mesh);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			if (csgs == null || csgs.isEmpty())
+				throw new IllegalArgumentException("at least one solid is required");
+			ArrayList<MemorySegment> meshes = new ArrayList<>(csgs.size());
+			try {
+				for (CSG csg : csgs)
+					meshes.add(toManifold(csg));
+				manifold.export3MF(meshes, path.toFile());
+			} finally {
+				for (MemorySegment mesh : meshes)
+					manifold.delete(mesh);
+			}
 		}
 	}
 
 	/** Writes a single solid to a 3MF file. */
 	public void to3MF(CSG incoming, Path path) throws Throwable {
-		to3MF(List.of(incoming), path);
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			to3MF(java.util.Collections.singletonList(incoming), path);
+		}
 	}
 
 	/**
@@ -1363,17 +1452,19 @@ public class CSGManifold3d {
 	 * @return one solid per object, never {@code null}
 	 */
 	public List<CSG> from3MF(Path path) throws Throwable {
-		ArrayList<MemorySegment> meshes = manifold.import3MF(path.toFile());
-		try {
-			List<CSG> out = new ArrayList<>(meshes.size());
-			for (MemorySegment mesh : meshes) {
-				checkResult(mesh);
-				out.add(fromManifold(mesh, CSG.getDefaultColor()));
+		try (NativeAccess.Scope ignored = NativeAccess.read()) {
+			ArrayList<MemorySegment> meshes = manifold.import3MF(path.toFile());
+			try {
+				List<CSG> out = new ArrayList<>(meshes.size());
+				for (MemorySegment mesh : meshes) {
+					checkResult(mesh);
+					out.add(fromManifold(mesh, CSG.getDefaultColor()));
+				}
+				return out;
+			} finally {
+				for (MemorySegment mesh : meshes)
+					manifold.delete(mesh);
 			}
-			return out;
-		} finally {
-			for (MemorySegment mesh : meshes)
-				manifold.delete(mesh);
 		}
 	}
 
@@ -1386,22 +1477,35 @@ public class CSGManifold3d {
 	}
 
 	public CSG unionAll(List<CSG> csgs, ICSGProgress progressMoniter) throws Throwable {
-		MemorySegment[] shapes = new MemorySegment[csgs.size()];
-
-		for (int i = 0; i < csgs.size(); i++) {
-			shapes[i] = toManifold(csgs.get(i));
+		if (csgs == null || csgs.isEmpty())
+			throw new IllegalArgumentException("at least one solid is required");
+		ArrayList<MemorySegment> shapes = new ArrayList<MemorySegment>(csgs.size());
+		try {
+			for (int i = 0; i < csgs.size(); i++) {
+				shapes.add(toManifold(csgs.get(i)));
+				if (progressMoniter != null)
+					progressMoniter.progressUpdate(i, csgs.size() + 1, "Union All Load", null);
+			}
 			if (progressMoniter != null)
-				progressMoniter.progressUpdate(i, csgs.size() + 1, "Union All Load", null);
+				progressMoniter.progressUpdate(csgs.size(), csgs.size() + 1, "Run Union All", null);
+			MemorySegment all;
+			try (NativeAccess.Scope ignored = NativeAccess.read()) {
+				all = manifold.batchUnion(shapes.toArray(new MemorySegment[shapes.size()]));
+			}
+			try {
+				if (progressMoniter != null)
+					progressMoniter.progressUpdate(csgs.size() + 1, csgs.size() + 1, "Finishing Union All", null);
+				try (NativeAccess.Scope ignored = NativeAccess.read()) {
+					checkResult(all);
+					return fromManifold(all, csgs.get(0).getColor());
+				}
+			} finally {
+				delete(all);
+			}
+		} finally {
+			for (MemorySegment shape : shapes)
+				delete(shape);
 		}
-		progressMoniter.progressUpdate(csgs.size(), csgs.size() + 1, "Run Union All", null);
-		MemorySegment all = manifold.batchUnion(shapes);
-		for (int i = 0; i < csgs.size(); i++) {
-			manifold.delete(shapes[i]);
-		}
-		progressMoniter.progressUpdate(csgs.size() + 1, csgs.size() + 1, "Finishing Union All", null);
-		CSG back = fromManifold(all, csgs.get(0).getColor());
-		manifold.delete(all);
-		return back;
 	}
 
 }
