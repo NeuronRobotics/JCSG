@@ -2600,7 +2600,7 @@ public class CSG implements IuserAPI, Serializable {
 		if (bounds != null)
 			return bounds;
 
-		if (getOptType() == OptType.Manifold3d && manifold != null && !runningOnFxThread()) {
+		if (getOptType() == OptType.Manifold3d && manifold != null) {
 			try {
 				bounds = manifold.getBounds(this);
 				return bounds;

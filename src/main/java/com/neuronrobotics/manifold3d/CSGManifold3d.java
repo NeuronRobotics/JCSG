@@ -88,9 +88,18 @@ public class CSGManifold3d {
 			throw new IllegalArgumentException("csg must not be null");
 
 		double[] vertices = csg.getVertices();
-
 		long[] triangles = csg.getTriangles();
-		MemorySegment ms = manifold.importMeshGL64(vertices, triangles, vertices.length, triangles.length);
+
+		// ManifoldMeshGL64 takes vertex and triangle *counts*; the flat arrays hold
+		// three scalars per element, so array length would overrun by 3x.
+		if (vertices == null || triangles == null)
+			throw new IllegalArgumentException("csg has no mesh data: " + csg.getName());
+		long vertCount = csg.getVertCount();
+		long triCount = csg.getTriCount();
+		if (vertCount == 0 || triCount == 0)
+			throw new IllegalArgumentException("csg has no polygons: " + csg.getName());
+
+		MemorySegment ms = manifold.importMeshGL64(vertices, triangles, vertCount, triCount);
 		checkResult(ms);
 		return ms;
 	}

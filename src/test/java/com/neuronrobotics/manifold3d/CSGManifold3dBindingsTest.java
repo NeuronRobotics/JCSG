@@ -173,6 +173,34 @@ public class CSGManifold3dBindingsTest {
 		assertEquals(Math.PI * 100 * 20 / 3, manifold.volume(cone), 20.0);
 	}
 
+	// ---- mesh marshalling -----------------------------------------------------
+
+	@Test
+	public void toManifoldPassesElementCountsNotArrayLengths() throws Throwable {
+		// The flat arrays hold three scalars per vertex/triangle, so handing
+		// Manifold the array length would make it read 3x the buffer.
+		CSG cube = cube(10);
+		assertEquals(cube.getVertCount(), manifold.numVert(cube));
+		assertEquals(cube.getTriCount(), manifold.numTri(cube));
+		assertEquals(1000, manifold.volume(cube), 1e-9);
+	}
+
+	@Test
+	public void toManifoldRoundTripsANonTrivialMesh() throws Throwable {
+		// A sphere exercises more vertices than a cube, so a vertex-count overrun
+		// shows up as duplicated or spurious geometry rather than passing silently.
+		CSG sphere = manifold.sphere(10, 32);
+		CSG back = manifold.fromManifold(manifold.toManifold(sphere), sphere.getColor());
+		assertEquals(manifold.numVert(sphere), back.getVertCount());
+		assertEquals(manifold.numTri(sphere), back.getTriCount());
+		assertEquals(manifold.volume(sphere), manifold.volume(back), 1e-9);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void toManifoldRejectsASolidWithNoMesh() throws Throwable {
+		manifold.toManifold(new CSG());
+	}
+
 	// ---- transformations -----------------------------------------------------
 
 	@Test
