@@ -1,6 +1,7 @@
 package com.neuronrobotics.manifold3d;
 
 import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +11,7 @@ import com.cadoodlecad.manifold.ManifoldBindings.ManifoldError;
 import com.cadoodlecad.manifold.ManifoldBindings.MeshData64;
 import com.piro.bezier.BezierPath;
 
+import eu.mihosoft.vrl.v3d.Bounds;
 import eu.mihosoft.vrl.v3d.CSG;
 import eu.mihosoft.vrl.v3d.ColinearPointsException;
 import eu.mihosoft.vrl.v3d.Cube;
@@ -20,7 +22,6 @@ import eu.mihosoft.vrl.v3d.Transform;
 import eu.mihosoft.vrl.v3d.Vector3d;
 import eu.mihosoft.vrl.v3d.Vertex;
 import javax.vecmath.Matrix4d;
-import javafx.geometry.BoundingBox;
 import javafx.scene.paint.Color;
 public class CSGManifold3d {
 	private static final double MembrainTollerence = Plane.getEPSILON() * 10;
@@ -1012,7 +1013,66 @@ public class CSGManifold3d {
 	 * (0) and fully smooth (1).
 	 */
 	public CSG smoothOut(CSG incoming, double minSharpAngle, double minSmoothness) throws Throwable {
-		return runSingleManifoldOp(incoming, m -> manifold.smoothOut(m, minSharpAngle, minSmoothness));
+		return runSingleManifoldOp(incoming, m -> smoothOut(m, minSharpAngle, minSmoothness));
+	}
+
+	/**
+	 * Smooths the manifold by eliminating edges whose dihedral angle is below
+	 * {@code minSharpAngle} degrees. Edges above that threshold are kept sharp.
+	 *
+	 * {@code minSmoothness} blends the preserved sharp edges between fully sharp
+	 * (0.0) and fully smooth (1.0).
+	 *
+	 * <p>
+	 * Upstream removed {@code Manifold::SmoothOut} together with the
+	 * {@code Smoothness} tangent API, so the tangent field is rebuilt here from the
+	 * two primitives that survived: {@code CalculateNormals} records a normal per
+	 * vertex split by the same dihedral threshold, and {@code SmoothByNormals}
+	 * converts those normals into half-edge tangent vectors. The resulting tangent
+	 * field matches the threshold semantics; {@code minSmoothness} is applied by
+	 * widening the threshold as upstream documented (1.0 is equivalent to a
+	 * {@code minSharpAngle} of 180). The temporary normal channels are removed
+	 * afterwards so the property count is unchanged.
+	 *
+	 * Useful post-difference to dissolve thin sliver faces left by near-coincident
+	 * surfaces. A {@code minSharpAngle} of 30–60 degrees is a reasonable starting
+	 * point; increase it to dissolve more aggressive artifacts.
+	 *
+	 * @param m             the input manifold
+	 * @param minSharpAngle edges sharper than this (degrees) are preserved
+	 * @param minSmoothness smoothness at preserved edges [0.0 = sharp, 1.0 =
+	 *                      smooth]
+	 */
+	public MemorySegment smoothOut(MemorySegment m, double minSharpAngle, double minSmoothness) throws Throwable {
+		if (m == null)
+			throw new IllegalArgumentException("manifold segment must not be null");
+		int originalNumProp = (int) manifold.numProp(m);
+		double blend = Math.max(0.0, Math.min(1.0, minSmoothness));
+		double sharpAngle = minSharpAngle + (180.0 - minSharpAngle) * blend;
+
+		// Normals land in the first free channels so user properties stay put.
+		MemorySegment withNormals = manifold.calculateNormals(m, originalNumProp, sharpAngle);
+		MemorySegment smoothed;
+		try {
+			smoothed = manifold.smoothByNormals(withNormals, originalNumProp);
+		} finally {
+			manifold.safeDelete(withNormals);
+		}
+
+		// Drop the temporary normal channels again; tangents live on the Manifold
+		// itself and survive property changes.
+		try {
+			final int kept = originalNumProp;
+
+			return manifold.setProperties(smoothed, kept, kept == 0 ? null : (newProp, position, oldProp) -> {
+				MemorySegment src = oldProp.reinterpret(kept * (long) Double.BYTES);
+				MemorySegment dst = newProp.reinterpret(kept * (long) Double.BYTES);
+				for (int i = 0; i < kept; i++)
+					dst.setAtIndex(ValueLayout.JAVA_DOUBLE, i, src.getAtIndex(ValueLayout.JAVA_DOUBLE, i));
+			});
+		} finally {
+			manifold.safeDelete(smoothed);
+		}
 	}
 
 	// -------------------------------------------------------------------------
@@ -1201,13 +1261,14 @@ public class CSGManifold3d {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Returns the axis-aligned bounds as a JavaFX box positioned at the minimum
-	 * corner.
+	 * Returns the axis-aligned bounds of {@code incoming}, measured by Manifold on
+	 * the native side.
 	 */
-	public BoundingBox getBounds(CSG incoming) throws Throwable {
+	public Bounds getBounds(CSG incoming) throws Throwable {
 		MemorySegment man = toManifold(incoming);
 		try {
-			return manifold.getJavaFXBounds(man);
+			double[] b = manifold.bounds(man);
+			return new Bounds(new Vector3d(b[0], b[1], b[2]), new Vector3d(b[3], b[4], b[5]));
 		} finally {
 			manifold.delete(man);
 		}

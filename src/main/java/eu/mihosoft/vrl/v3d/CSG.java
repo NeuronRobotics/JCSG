@@ -2578,11 +2578,25 @@ public class CSG implements IuserAPI, Serializable {
 	 * Returns the bounds of this csg. SIDE EFFECT bounds is created and simply
 	 * returned if existing
 	 *
+	 * <p>
+	 * With {@link OptType#Manifold3d} enabled the box comes from Manifold's native
+	 * BVH, which avoids the per-vertex scan below. Any failure there falls back to
+	 * the scan, since a wrong box would be worse than a slow one.
+	 *
 	 * @return bouds of this csg
 	 */
 	public Bounds getBounds() {
 		if (bounds != null)
 			return bounds;
+
+		if (getOptType() == OptType.Manifold3d && manifold != null) {
+			try {
+				bounds = manifold.getBounds(this);
+				return bounds;
+			} catch (Throwable e) {
+				e.printStackTrace();
+			}
+		}
 
 		double minX = Double.POSITIVE_INFINITY;
 		double minY = Double.POSITIVE_INFINITY;

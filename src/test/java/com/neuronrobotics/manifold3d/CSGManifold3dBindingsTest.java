@@ -22,7 +22,6 @@ import eu.mihosoft.vrl.v3d.Bounds;
 import eu.mihosoft.vrl.v3d.Polygon;
 import eu.mihosoft.vrl.v3d.Transform;
 import eu.mihosoft.vrl.v3d.Vector3d;
-import javafx.geometry.BoundingBox;
 
 /**
  * One test per CSGManifold3d binding to the ManifoldBindings API. Every case
@@ -128,28 +127,28 @@ public class CSGManifold3dBindingsTest {
 		CSG c = manifold.cube(10, 20, 30, true);
 		assertNoError(c);
 		assertEquals(10 * 20 * 30, manifold.volume(c), 1e-9);
-		BoundingBox b = manifold.getBounds(c);
-		assertEquals(-15, b.getMinZ(), 1e-9);
-		assertEquals(15, b.getMaxZ(), 1e-9);
+		Bounds b = manifold.getBounds(c);
+		assertEquals(-15, b.getMin().z, 1e-9);
+		assertEquals(15, b.getMax().z, 1e-9);
 	}
 
 	@Test
 	public void cubeUncenteredSitsInFirstOctant() throws Throwable {
 		CSG c = manifold.cube(10, 20, 30, false);
-		BoundingBox b = manifold.getBounds(c);
-		assertEquals(0, b.getMinX(), 1e-9);
-		assertEquals(0, b.getMinY(), 1e-9);
-		assertEquals(0, b.getMinZ(), 1e-9);
-		assertEquals(10, b.getMaxX(), 1e-9);
+		Bounds b = manifold.getBounds(c);
+		assertEquals(0, b.getMin().x, 1e-9);
+		assertEquals(0, b.getMin().y, 1e-9);
+		assertEquals(0, b.getMin().z, 1e-9);
+		assertEquals(10, b.getMax().x, 1e-9);
 	}
 
 	@Test
 	public void sphereIsCentredWithExpectedArea() throws Throwable {
 		CSG s = manifold.sphere(10, 32);
 		assertNoError(s);
-		BoundingBox b = manifold.getBounds(s);
-		assertEquals(-10, b.getMinX(), 1e-6);
-		assertEquals(10, b.getMaxX(), 1e-6);
+		Bounds b = manifold.getBounds(s);
+		assertEquals(-10, b.getMin().x, 1e-6);
+		assertEquals(10, b.getMax().x, 1e-6);
 		// faceted sphere always undershoots the exact area but gets close
 		double area = manifold.surfaceArea(s);
 		assertTrue("sphere area " + area + " too far from " + 4 * Math.PI * 100,
@@ -160,10 +159,10 @@ public class CSGManifold3dBindingsTest {
 	public void cylinderRadiusAndPlacement() throws Throwable {
 		CSG cyl = manifold.cylinder(20, 5, 5, 32, 0);
 		assertNoError(cyl);
-		BoundingBox b = manifold.getBounds(cyl);
-		assertEquals(0, b.getMinZ(), 1e-9);
-		assertEquals(20, b.getMaxZ(), 1e-9);
-		assertEquals(10, b.getMaxX() - b.getMinX(), 1e-6);
+		Bounds b = manifold.getBounds(cyl);
+		assertEquals(0, b.getMin().z, 1e-9);
+		assertEquals(20, b.getMax().z, 1e-9);
+		assertEquals(10, b.getMax().x - b.getMin().x, 1e-6);
 	}
 
 	@Test
@@ -179,10 +178,10 @@ public class CSGManifold3dBindingsTest {
 	@Test
 	public void translateMovesTheBounds() throws Throwable {
 		CSG moved = manifold.translate(manifold.cube(10, 10, 10, false), 5, 6, 7);
-		BoundingBox b = manifold.getBounds(moved);
-		assertEquals(5, b.getMinX(), 1e-9);
-		assertEquals(6, b.getMinY(), 1e-9);
-		assertEquals(7, b.getMinZ(), 1e-9);
+		Bounds b = manifold.getBounds(moved);
+		assertEquals(5, b.getMin().x, 1e-9);
+		assertEquals(6, b.getMin().y, 1e-9);
+		assertEquals(7, b.getMin().z, 1e-9);
 	}
 
 	@Test
@@ -195,10 +194,10 @@ public class CSGManifold3dBindingsTest {
 	public void rotateZTurnsTheShape() throws Throwable {
 		CSG c = manifold.cube(10, 10, 10, true).transformed(new Transform().translateX(20));
 		CSG rotated = manifold.rotateZ(c, 90);
-		BoundingBox b = manifold.getBounds(rotated);
+		Bounds b = manifold.getBounds(rotated);
 		// the far-x arm swings onto the +Y axis
-		assertEquals(25, b.getMaxY(), 1e-6);
-		assertTrue(Math.abs(b.getMaxX() - 5) < 1e-6);
+		assertEquals(25, b.getMax().y, 1e-6);
+		assertTrue(Math.abs(b.getMax().x - 5) < 1e-6);
 	}
 
 	@Test
@@ -208,10 +207,10 @@ public class CSGManifold3dBindingsTest {
 		CSG arm = manifold.cube(10, 10, 10, true).transformed(new Transform().translateY(20));
 		CSG viaManifold = manifold.rotateX(arm, 90);
 		CSG viaJCSG = arm.rotx(-90);
-		BoundingBox bm = manifold.getBounds(viaManifold);
+		Bounds bm = manifold.getBounds(viaManifold);
 		Bounds bj = viaJCSG.getBounds();
-		assertEquals(bj.getMinZ(), bm.getMinZ(), 1e-6);
-		assertEquals(bj.getMaxZ(), bm.getMaxZ(), 1e-6);
+		assertEquals(bj.getMin().z, bm.getMin().z, 1e-6);
+		assertEquals(bj.getMax().z, bm.getMax().z, 1e-6);
 	}
 
 	@Test
@@ -220,21 +219,21 @@ public class CSGManifold3dBindingsTest {
 		CSG solid = manifold.cube(10, 10, 10, true);
 		CSG viaManifold = manifold.transformed(solid, t);
 		CSG viaJCSG = new Cube(10, 10, 10).toCSG().transformed(t);
-		BoundingBox bm = manifold.getBounds(viaManifold);
+		Bounds bm = manifold.getBounds(viaManifold);
 		Bounds bj = viaJCSG.getBounds();
-		assertEquals(bj.getMinX(), bm.getMinX(), 1e-6);
-		assertEquals(bj.getMaxX(), bm.getMaxX(), 1e-6);
-		assertEquals(bj.getMaxY(), bm.getMaxY(), 1e-6);
+		assertEquals(bj.getMin().x, bm.getMin().x, 1e-6);
+		assertEquals(bj.getMax().x, bm.getMax().x, 1e-6);
+		assertEquals(bj.getMax().y, bm.getMax().y, 1e-6);
 	}
 
 	@Test
 	public void mirrorFlipsAcrossPlane() throws Throwable {
 		CSG arm = manifold.cube(10, 10, 10, true).transformed(new Transform().translateX(20));
 		CSG mirrored = manifold.mirror(arm, 1, 0, 0);
-		BoundingBox b = manifold.getBounds(mirrored);
+		Bounds b = manifold.getBounds(mirrored);
 		// the +X arm becomes a -X arm of the same length
-		assertEquals(-25, b.getMinX(), 1e-6);
-		assertEquals(-15, b.getMaxX(), 1e-6);
+		assertEquals(-25, b.getMin().x, 1e-6);
+		assertEquals(-15, b.getMax().x, 1e-6);
 	}
 
 	// ---- refinement -----------------------------------------------------------
@@ -309,8 +308,8 @@ public class CSGManifold3dBindingsTest {
 	public void trimByPlaneKeepsPositiveSide() throws Throwable {
 		CSG c = manifold.cube(20, 20, 20, true).transformed(new Transform().translateZ(10)); // 0..20 in Z
 		CSG trimmed = manifold.trimByPlane(c, 0, 0, 1, 10);
-		BoundingBox b = manifold.getBounds(trimmed);
-		assertEquals(20, b.getMaxZ(), 1e-6);
+		Bounds b = manifold.getBounds(trimmed);
+		assertEquals(20, b.getMax().z, 1e-6);
 		assertEquals(4000, manifold.volume(trimmed), 1e-6);
 	}
 
@@ -483,19 +482,19 @@ public class CSGManifold3dBindingsTest {
 
 	@Test
 	public void getBoundsMatchesSolid() throws Throwable {
-		BoundingBox b = manifold.getBounds(cube(20));
-		assertEquals(-10, b.getMinX(), 1e-9);
-		assertEquals(10, b.getMaxZ(), 1e-9);
-		assertEquals(20, b.getWidth(), 1e-9);
+		Bounds b = manifold.getBounds(cube(20));
+		assertEquals(-10, b.getMin().x, 1e-9);
+		assertEquals(10, b.getMax().z, 1e-9);
+		assertEquals(20, b.getBounds().x, 1e-9);
 	}
 
 	@Test
 	public void centerObjectMovesCentroidToOrigin() throws Throwable {
 		CSG offCentre = cube(20).transformed(new Transform().translate(30, -40, 50));
 		CSG centred = manifold.centerObject(offCentre);
-		BoundingBox b = manifold.getBounds(centred);
-		assertEquals(0, b.getMinX() + b.getWidth() / 2, 1e-6);
-		assertEquals(0, b.getMinZ() + b.getDepth() / 2, 1e-6);
+		Bounds b = manifold.getBounds(centred);
+		assertEquals(0, b.getMin().x + b.getBounds().x / 2, 1e-6);
+		assertEquals(0, b.getMin().z + b.getBounds().z / 2, 1e-6);
 		assertEquals(8000, manifold.volume(centred), 1e-6);
 	}
 
@@ -514,9 +513,9 @@ public class CSGManifold3dBindingsTest {
 		points.add(Vector3d.xyz(0, 0, -10));
 		CSG hull = manifold.hull(points);
 		assertNoError(hull);
-		BoundingBox b = manifold.getBounds(hull);
-		assertEquals(-10, b.getMinX(), 1e-6);
-		assertEquals(10, b.getMaxZ(), 1e-6);
+		Bounds b = manifold.getBounds(hull);
+		assertEquals(-10, b.getMin().x, 1e-6);
+		assertEquals(10, b.getMax().z, 1e-6);
 		// octahedron volume: 4/3 * a^3
 		assertEquals(4.0 / 3.0 * 1000, manifold.volume(hull), 1e-6);
 	}
@@ -526,10 +525,10 @@ public class CSGManifold3dBindingsTest {
 		CSG a = cube(10).transformed(new Transform().translateX(15));
 		CSG b = cube(10).transformed(new Transform().translateX(-15));
 		CSG hull = manifold.hull(a, b);
-		BoundingBox bnds = manifold.getBounds(hull);
+		Bounds bnds = manifold.getBounds(hull);
 		// hull must span both bodies and the gap between them
-		assertEquals(-20, bnds.getMinX(), 1e-6);
-		assertEquals(20, bnds.getMaxX(), 1e-6);
+		assertEquals(-20, bnds.getMin().x, 1e-6);
+		assertEquals(20, bnds.getMax().x, 1e-6);
 		assertTrue(manifold.volume(hull) > 2 * 1000);
 	}
 

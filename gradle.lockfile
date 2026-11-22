@@ -3,7 +3,7 @@
 # This file is expected to be part of source control.
 com.aparapi:aparapi-jni:1.4.3=compileClasspath
 com.aparapi:aparapi:3.0.2=compileClasspath
-com.github.madhephaestus:manifold3d:v3.5.1-5=compileClasspath
+com.github.madhephaestus:manifold3d:v4.0.0-java-pre1=compileClasspath
 com.google.code.gson:gson:2.8.9=compileClasspath
 com.googlecode.json-simple:json-simple:1.1=compileClasspath
 commons-io:commons-io:2.11.0=compileClasspath
